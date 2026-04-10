@@ -39,22 +39,22 @@ order = client.marketplace.create_order({
 print("Order:", order)
 
 
-# ── CHANNEL ───────────────────────────────────────────────────────────────────
+# CHANNEL 
 channels = client.channel.list_channels(type="group")
 print("Channels:", channels)
 
 
-# ── IPS ───────────────────────────────────────────────────────────────────────
+# IPS 
 profile = client.ips.get_my_profile()
 print("My Profile:", profile)
 
 
-# ── AGENT ─────────────────────────────────────────────────────────────────────
+# AGENT
 agents = client.agent.list_agents()
 print("Agents:", agents)
 
 
-# ── AI ────────────────────────────────────────────────────────────────────────
+# AI 
 # Non-streaming
 response = client.ai.complete(
     model="gpt-4o",

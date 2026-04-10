@@ -12,30 +12,30 @@ load_dotenv()
 async def main():
     async with AsyncImbraceClient(check_health=True) as client:
         try:
-            # ── Platform ──────────────────────────────────────────────────────
+            #Platform 
             me = await client.platform.get_me()
             print("Me:", me)
 
-            # ── Marketplace ───────────────────────────────────────────────────
+            #Marketplace 
             products = await client.marketplace.list_products(limit=5)
             print("Products:", products)
 
-            # ── Channel ───────────────────────────────────────────────────────
+            #Channel 
             channels = await client.channel.list_channels()
             print("Channels:", channels)
 
-            # ── IPS ───────────────────────────────────────────────────────────
+            #IPS 
             profile = await client.ips.get_my_profile()
             print("Profile:", profile)
 
-            # ── Agent ─────────────────────────────────────────────────────────
+            #Agent 
             run = await client.agent.run_agent(
                 agent_id="agent_123",
                 input={"task": "Analyze sales data for Q1 2025"},
             )
             print("Agent Run:", run)
 
-            # ── AI Streaming ──────────────────────────────────────────────────
+            # AI Streaming 
             print("AI Streaming:")
             async for chunk in client.ai.stream(
                 model="gpt-4o",
