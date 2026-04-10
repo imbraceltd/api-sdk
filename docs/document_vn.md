@@ -93,8 +93,7 @@ IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 IMBRACE_ORG_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
->
->  `https://app-gatewayv2.imbrace.co`
+> `https://app-gatewayv2.imbrace.co`
 
 ### TypeScript SDK
 
