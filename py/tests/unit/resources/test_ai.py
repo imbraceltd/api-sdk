@@ -13,7 +13,7 @@ MESSAGES = [{"role": "user", "content": "Hello"}]
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(api_key="key_test")
+    c = ImbraceClient(app_api_key="key_test")
     yield c
     c.close()
 
@@ -26,7 +26,7 @@ def test_complete(httpx_mock: HTTPXMock, client: ImbraceClient):
     }
     httpx_mock.add_response(url=f"{AI_BASE}/completions", json=payload)
 
-    result = client.ai.complete(model="gpt-4o", messages=MESSAGES)
+    result = client.app.ai.complete(model="gpt-4o", messages=MESSAGES)
     assert result["id"] == "cmpl_1"
 
     request = httpx_mock.get_requests()[0]
@@ -38,7 +38,7 @@ def test_complete(httpx_mock: HTTPXMock, client: ImbraceClient):
 def test_complete_with_params(httpx_mock: HTTPXMock, client: ImbraceClient):
     httpx_mock.add_response(url=f"{AI_BASE}/completions", json={"id": "cmpl_2"})
 
-    client.ai.complete(model="gpt-4o", messages=MESSAGES, temperature=0.7, max_tokens=512)
+    client.app.ai.complete(model="gpt-4o", messages=MESSAGES, temperature=0.7, max_tokens=512)
 
     request = httpx_mock.get_requests()[0]
     body = json.loads(request.content)
@@ -53,7 +53,7 @@ def test_embed(httpx_mock: HTTPXMock, client: ImbraceClient):
     }
     httpx_mock.add_response(url=f"{AI_BASE}/embeddings", json=payload)
 
-    result = client.ai.embed(model="text-embedding-3-small", input=["hello world"])
+    result = client.app.ai.embed(model="text-embedding-3-small", input=["hello world"])
     assert result["data"][0]["embedding"] == [0.1, 0.2, 0.3]
 
     request = httpx_mock.get_requests()[0]

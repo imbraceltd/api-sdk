@@ -1,27 +1,9 @@
-from typing import Optional
 import os
-from .auth.token_manager import TokenManager
-from .http import HttpTransport
-from .resources.auth import AuthResource
-from .resources.account import AccountResource
-from .resources.organizations import OrganizationsResource
-from .resources.agent import AgentResource
-from .resources.channel import ChannelResource
-from .resources.conversations import ConversationsResource
-from .resources.messages import MessagesResource
-from .resources.contacts import ContactsResource
-from .resources.teams import TeamsResource
-from .resources.workflows import WorkflowsResource
-from .resources.boards import BoardsResource
-from .resources.settings import SettingsResource
-from .resources.ai import AiResource
-from .resources.marketplace import MarketplaceResource
-from .resources.platform import PlatformResource
-from .resources.ips import IpsResource
-from .resources.health import HealthResource
-from .resources.sessions import SessionsResource
-from .resources.categories import CategoriesResource
-from .resources.schedule import ScheduleResource
+from typing import Optional
+
+from .app.client import AppGatewayClient, AsyncAppGatewayClient
+from .server.client import ServerGatewayClient, AsyncServerGatewayClient
+from .journey.client import JourneyClient, AsyncJourneyClient
 
 # Auto-load .env nếu có python-dotenv
 try:
@@ -30,73 +12,126 @@ try:
 except ImportError:
     pass
 
+_DEFAULT_BASE_URL = "https://app-gateway.imbrace.co"
+
 
 class ImbraceClient:
-    """Synchronous Imbrace SDK Client.
+    """Unified Imbrace SDK Client.
+
+    Cung cấp truy cập đến cả 3 gateway thông qua một entry point duy nhất.
 
     Usage:
-        client = ImbraceClient()  # tự động đọc IMBRACE_API_KEY từ .env
+        client = ImbraceClient(
+            app_base_url="https://app-gateway.imbrace.co",
+            server_api_key="api_xxx",
+        )
+        # App Gateway — OTP auth
+        client.app.auth.signin_email_request("user@example.com")
+        client.app.boards.list()
+
+        # Server Gateway — API Key auth
+        client.server.boards.search("brd_xxx", q="keyword")
+        client.server.boards.create_items("brd_xxx", items=[...])
+
+        # Journey API — temp token auth
+        client.journey.workflow.get("12345", org_id="org_xxx")
+        client.journey.ai_assistant.list()
     """
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        access_token: Optional[str] = None,
-        api_key: Optional[str] = None,
+        # App Gateway
+        app_base_url: Optional[str] = None,
+        app_access_token: Optional[str] = None,
+        app_api_key: Optional[str] = None,
+        # Server Gateway
+        server_base_url: Optional[str] = None,
+        server_api_key: Optional[str] = None,
+        # Journey API
+        journey_base_url: Optional[str] = None,
+        journey_temp_token: Optional[str] = None,
+        # Shared
         timeout: int = 30,
-        check_health: bool = False,
     ):
-        resolved_key = api_key or os.environ.get("IMBRACE_API_KEY")
-        resolved_url = (
-            base_url
-            or os.environ.get("IMBRACE_BASE_URL")
-            or "https://app-gatewayv2.imbrace.co"
-        )
-        self.base_url = resolved_url.rstrip("/")
-        self.token_manager = TokenManager(access_token)
-        self.http = HttpTransport(
-            token_manager=self.token_manager,
+        resolved_app_url = (app_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_server_url = (server_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_journey_url = (journey_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_server_key = server_api_key or os.environ.get("IMBRACE_API_KEY") or ""
+        resolved_journey_token = journey_temp_token or os.environ.get("IMBRACE_TEMP_TOKEN") or ""
+
+        self.app = AppGatewayClient(
+            base_url=resolved_app_url,
+            access_token=app_access_token,
+            api_key=app_api_key,
             timeout=timeout,
-            api_key=resolved_key,
         )
-        self.auth = AuthResource(self.http, self.base_url)
-        self.account = AccountResource(self.http, self.base_url)
-        self.organizations = OrganizationsResource(self.http, self.base_url)
-        self.agent = AgentResource(self.http, self.base_url)
-        self.channel = ChannelResource(self.http, self.base_url)
-        self.conversations = ConversationsResource(self.http, self.base_url)
-        self.messages = MessagesResource(self.http, self.base_url)
-        self.contacts = ContactsResource(self.http, self.base_url)
-        self.teams = TeamsResource(self.http, self.base_url)
-        self.workflows = WorkflowsResource(self.http, self.base_url)
-        self.boards = BoardsResource(self.http, self.base_url)
-        self.settings = SettingsResource(self.http, self.base_url)
-        self.ai = AiResource(self.http, self.base_url)
-        self.marketplace = MarketplaceResource(self.http, self.base_url)
-        self.platform = PlatformResource(self.http, self.base_url)
-        self.ips = IpsResource(self.http, self.base_url)
-        self.sessions = SessionsResource(self.http, self.base_url)
-        self.health = HealthResource(self.http, self.base_url)
-        self.categories = CategoriesResource(self.http, self.base_url)
-        self.schedule = ScheduleResource(self.http, self.base_url)
-
-        if check_health:
-            self.init()
-
-    def set_access_token(self, token: str) -> None:
-        self.token_manager.set_token(token)
-
-    def clear_access_token(self) -> None:
-        self.token_manager.clear()
-
-    def init(self) -> None:
-        self.health.check()
+        self.server = ServerGatewayClient(
+            api_key=resolved_server_key,
+            base_url=resolved_server_url,
+            timeout=timeout,
+        )
+        self.journey = JourneyClient(
+            temp_token=resolved_journey_token,
+            base_url=resolved_journey_url,
+            timeout=timeout,
+        )
 
     def close(self) -> None:
-        self.http.close()
+        self.app.close()
+        self.server.close()
+        self.journey.close()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+class AsyncImbraceClient:
+    """Async Unified Imbrace SDK Client."""
+
+    def __init__(
+        self,
+        app_base_url: Optional[str] = None,
+        app_access_token: Optional[str] = None,
+        app_api_key: Optional[str] = None,
+        server_base_url: Optional[str] = None,
+        server_api_key: Optional[str] = None,
+        journey_base_url: Optional[str] = None,
+        journey_temp_token: Optional[str] = None,
+        timeout: int = 30,
+    ):
+        resolved_app_url = (app_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_server_url = (server_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_journey_url = (journey_base_url or os.environ.get("IMBRACE_BASE_URL") or _DEFAULT_BASE_URL)
+        resolved_server_key = server_api_key or os.environ.get("IMBRACE_API_KEY") or ""
+        resolved_journey_token = journey_temp_token or os.environ.get("IMBRACE_TEMP_TOKEN") or ""
+
+        self.app = AsyncAppGatewayClient(
+            base_url=resolved_app_url,
+            access_token=app_access_token,
+            api_key=app_api_key,
+            timeout=timeout,
+        )
+        self.server = AsyncServerGatewayClient(
+            api_key=resolved_server_key,
+            base_url=resolved_server_url,
+            timeout=timeout,
+        )
+        self.journey = AsyncJourneyClient(
+            temp_token=resolved_journey_token,
+            base_url=resolved_journey_url,
+            timeout=timeout,
+        )
+
+    async def close(self) -> None:
+        await self.app.close()
+        await self.server.close()
+        await self.journey.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()

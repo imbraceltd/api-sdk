@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { ConversationsResource } from "../../../src/resources/conversations.js"
-import { HttpTransport } from "../../../src/http.js"
-import { TokenManager } from "../../../src/auth/token-manager.js"
+import { ConversationsResource } from "../../../src/app/resources/conversations.js"
+import { HttpTransport } from "../../../src/core/http.js"
+import { TokenManager } from "../../../src/core/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 const ORG_ID = "org_e7e8fdb5-39a9-4599-80db-79ae6ff619fd"

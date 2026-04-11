@@ -3,9 +3,9 @@ import pytest
 import httpx
 from pytest_httpx import HTTPXMock
 
-from imbrace.auth.token_manager import TokenManager
-from imbrace.http import HttpTransport
-from imbrace.exceptions import AuthError, ApiError, NetworkError
+from imbrace.core.auth.token_manager import TokenManager
+from imbrace.core.http import HttpTransport
+from imbrace.core.exceptions import AuthError, ApiError, NetworkError
 
 BASE = "https://app-gatewayv2.imbrace.co"
 

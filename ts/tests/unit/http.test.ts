@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { HttpTransport } from "../../src/http.js"
-import { TokenManager } from "../../src/auth/token-manager.js"
-import { AuthError, ApiError, NetworkError } from "../../src/errors.js"
+import { HttpTransport } from "../../src/core/http.js"
+import { TokenManager } from "../../src/core/auth/token-manager.js"
+import { AuthError, ApiError, NetworkError } from "../../src/core/errors.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 
@@ -38,7 +38,7 @@ describe("HttpTransport", () => {
     expect(capturedHeaders["x-access-token"]).toBe("key_test")
   })
 
-  it("sets Authorization header when token set", async () => {
+  it("sets x-access-token header when token set", async () => {
     const transport = makeTransport({ token: "tok_test" })
     const capturedHeaders: Record<string, string> = {}
 
@@ -49,7 +49,7 @@ describe("HttpTransport", () => {
     })
 
     await transport.getFetch()(BASE + "/health", { method: "GET" })
-    expect(capturedHeaders["authorization"]).toBe("Bearer tok_test")
+    expect(capturedHeaders["x-access-token"]).toBe("tok_test")
   })
 
   it("does not set Authorization header when no token", async () => {

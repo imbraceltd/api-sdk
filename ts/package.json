@@ -30,29 +30,17 @@
       "import": "./dist/client.js",
       "types": "./dist/client.d.ts"
     },
-    "./resources/marketplace": {
-      "import": "./dist/resources/marketplace.js",
-      "types": "./dist/resources/marketplace.d.ts"
+    "./app/client": {
+      "import": "./dist/app/client.js",
+      "types": "./dist/app/client.d.ts"
     },
-    "./resources/platform": {
-      "import": "./dist/resources/platform.js",
-      "types": "./dist/resources/platform.d.ts"
+    "./server/client": {
+      "import": "./dist/server/client.js",
+      "types": "./dist/server/client.d.ts"
     },
-    "./resources/channel": {
-      "import": "./dist/resources/channel.js",
-      "types": "./dist/resources/channel.d.ts"
-    },
-    "./resources/ips": {
-      "import": "./dist/resources/ips.js",
-      "types": "./dist/resources/ips.d.ts"
-    },
-    "./resources/agent": {
-      "import": "./dist/resources/agent.js",
-      "types": "./dist/resources/agent.d.ts"
-    },
-    "./resources/ai": {
-      "import": "./dist/resources/ai.js",
-      "types": "./dist/resources/ai.d.ts"
+    "./journey/client": {
+      "import": "./dist/journey/client.js",
+      "types": "./dist/journey/client.d.ts"
     }
   },
   "files": [

@@ -1,15 +1,29 @@
-from .client import ImbraceClient
-from .async_client import AsyncImbraceClient
-from .exceptions import ImbraceError, AuthError, ApiError, NetworkError
-from .api_key import ImbraceApiKey, ImbraceApiKeyResponse, extract_api_key
+from .client import ImbraceClient, AsyncImbraceClient
+from .app.client import AppGatewayClient, AsyncAppGatewayClient
+from .server.client import ServerGatewayClient, AsyncServerGatewayClient
+from .journey.client import JourneyClient, AsyncJourneyClient
+from .core.exceptions import ImbraceError, AuthError, ApiError, NetworkError
+from .core.api_key import ImbraceApiKey, ImbraceApiKeyResponse, extract_api_key
 
 __all__ = [
-    # Clients
+    # Unified clients
     "ImbraceClient",
     "AsyncImbraceClient",
+    # Gateway clients (standalone usage)
+    "AppGatewayClient",
+    "AsyncAppGatewayClient",
+    "ServerGatewayClient",
+    "AsyncServerGatewayClient",
+    "JourneyClient",
+    "AsyncJourneyClient",
     # Errors
-    "ImbraceError", "AuthError", "ApiError", "NetworkError",
+    "ImbraceError",
+    "AuthError",
+    "ApiError",
+    "NetworkError",
     # API Key helpers
-    "ImbraceApiKey", "ImbraceApiKeyResponse", "extract_api_key",
+    "ImbraceApiKey",
+    "ImbraceApiKeyResponse",
+    "extract_api_key",
 ]
-__version__ = "1.0.0"
+__version__ = "2.0.0"

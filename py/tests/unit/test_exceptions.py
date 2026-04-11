@@ -1,6 +1,6 @@
 """Tests for exception hierarchy."""
 import pytest
-from imbrace.exceptions import ImbraceError, AuthError, ApiError, NetworkError
+from imbrace.core.exceptions import ImbraceError, AuthError, ApiError, NetworkError
 
 
 def test_hierarchy():

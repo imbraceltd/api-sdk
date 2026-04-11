@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { ImbraceError, AuthError, ApiError, NetworkError } from "../../src/errors.js"
+import { ImbraceError, AuthError, ApiError, NetworkError } from "../../src/core/errors.js"
 
 describe("error hierarchy", () => {
   it("AuthError is instanceof ImbraceError", () => {

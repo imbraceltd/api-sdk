@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { TeamsResource } from "../../../src/resources/teams.js"
-import { HttpTransport } from "../../../src/http.js"
-import { TokenManager } from "../../../src/auth/token-manager.js"
+import { TeamsResource } from "../../../src/app/resources/teams.js"
+import { HttpTransport } from "../../../src/core/http.js"
+import { TokenManager } from "../../../src/core/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 

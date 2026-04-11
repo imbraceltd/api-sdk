@@ -1,6 +1,6 @@
 """Tests for TokenManager."""
 import threading
-from imbrace.auth.token_manager import TokenManager
+from imbrace.core.auth.token_manager import TokenManager
 
 
 def test_initial_token_none():
