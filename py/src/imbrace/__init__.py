@@ -1,7 +1,6 @@
 from .client import ImbraceClient, AsyncImbraceClient
 from .app.client import AppGatewayClient, AsyncAppGatewayClient
 from .server.client import ServerGatewayClient, AsyncServerGatewayClient
-from .journey.client import JourneyClient, AsyncJourneyClient
 from .core.exceptions import ImbraceError, AuthError, ApiError, NetworkError
 from .core.api_key import ImbraceApiKey, ImbraceApiKeyResponse, extract_api_key
 
@@ -14,8 +13,6 @@ __all__ = [
     "AsyncAppGatewayClient",
     "ServerGatewayClient",
     "AsyncServerGatewayClient",
-    "JourneyClient",
-    "AsyncJourneyClient",
     # Errors
     "ImbraceError",
     "AuthError",

@@ -18,11 +18,6 @@ def test_server_gateway_initialized():
     client.close()
 
 
-def test_journey_gateway_initialized():
-    client = ImbraceClient(journey_temp_token="tok_xxx")
-    assert client.journey is not None
-    client.close()
-
 
 def test_app_base_url_default():
     client = ImbraceClient(app_api_key="key")
@@ -80,14 +75,6 @@ def test_all_server_resources_initialized():
     client.close()
 
 
-def test_all_journey_resources_initialized():
-    client = ImbraceClient(journey_temp_token="tok")
-    assert client.journey.workflow is not None
-    assert client.journey.ai_assistant is not None
-    assert client.journey.apps is not None
-    assert client.journey.boards is not None
-    client.close()
-
 
 def test_set_access_token():
     client = ImbraceClient(app_api_key="key")
@@ -112,7 +99,6 @@ def test_async_client_initialized():
     client = AsyncImbraceClient(app_api_key="key")
     assert client.app is not None
     assert client.server is not None
-    assert client.journey is not None
 
 
 def test_async_client_all_app_resources():

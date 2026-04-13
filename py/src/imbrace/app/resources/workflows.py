@@ -28,14 +28,6 @@ class WorkflowsResource:
     def update(self, workflow_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         return self._http.request("PATCH", f"{self._base}/v1/backend/workflow/{workflow_id}", json=body).json()
 
-    def list_n8n(self) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/v1/backend/n8n/workflows").json()
-
-    def get_n8n(self, id: str) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/v1/backend/n8n/workflows/{id}").json()
-
-    def create_n8n(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/v1/backend/n8n/workflows", json=body).json()
 
 
 class AsyncWorkflowsResource:

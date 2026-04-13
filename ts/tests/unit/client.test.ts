@@ -15,11 +15,10 @@ describe("ImbraceClient", () => {
     process.env = originalEnv
   })
 
-  it("initialises all 3 gateways", () => {
+  it("initialises app and server gateways", () => {
     const client = new ImbraceClient({ serverApiKey: "key" })
     expect(client.app).toBeDefined()
     expect(client.server).toBeDefined()
-    expect(client.journey).toBeDefined()
   })
 
   it("app gateway has all resources", () => {
@@ -48,14 +47,6 @@ describe("ImbraceClient", () => {
     expect(client.server.categories).toBeDefined()
     expect(client.server.schedule).toBeDefined()
     expect(client.server.marketplace).toBeDefined()
-  })
-
-  it("journey gateway has all resources", () => {
-    const client = new ImbraceClient({ journeyTempToken: "tok" })
-    expect(client.journey.workflow).toBeDefined()
-    expect(client.journey.aiAssistant).toBeDefined()
-    expect(client.journey.apps).toBeDefined()
-    expect(client.journey.boards).toBeDefined()
   })
 
   it("reads IMBRACE_API_KEY from env for server gateway", () => {

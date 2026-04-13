@@ -15,7 +15,6 @@ import { HealthResource } from "./resources/health.js"
 import { AccountResource } from "./resources/account.js"
 import { OrganizationsResource } from "./resources/organizations.js"
 import { SessionsResource } from "./resources/sessions.js"
-import { IpsResource } from "./resources/ips.js"
 
 export interface AppGatewayConfig {
   baseUrl: string
@@ -43,7 +42,6 @@ export class AppGatewayClient {
   public readonly settings: SettingsResource
   public readonly health: HealthResource
   public readonly sessions: SessionsResource
-  public readonly ips: IpsResource
 
   constructor(opts: AppGatewayConfig) {
     const base = opts.baseUrl.replace(/\/$/, "")
@@ -70,7 +68,6 @@ export class AppGatewayClient {
     this.settings = new SettingsResource(this.http, base)
     this.health = new HealthResource(this.http, base)
     this.sessions = new SessionsResource(this.http, base)
-    this.ips = new IpsResource(this.http, base)
   }
 
   setAccessToken(token: string) { this.tokenManager.setToken(token) }

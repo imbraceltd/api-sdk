@@ -60,8 +60,3 @@ def test_update_workflow(httpx_mock: HTTPXMock, client):
     assert body["active"] is True
 
 
-def test_list_n8n_workflows(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{BASE}/v1/backend/n8n/workflows", json={"data": []})
-    client.app.workflows.list_n8n()
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "GET"
