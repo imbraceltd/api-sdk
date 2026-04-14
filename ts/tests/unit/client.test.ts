@@ -8,7 +8,6 @@ describe("ImbraceClient", () => {
     originalEnv = { ...process.env }
     delete process.env.IMBRACE_API_KEY
     delete process.env.IMBRACE_BASE_URL
-    delete process.env.IMBRACE_TEMP_TOKEN
   })
 
   afterEach(() => {

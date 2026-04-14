@@ -20,7 +20,7 @@ export class AuthResource {
   }
 
   async signinWithEmail(email: string, otp: string) {
-    return this.http.getFetch()(`${this.base}/v1/login/_signin_with_email`, {
+    return this.http.getFetch()(`${this.base}/v1/backend/login/_signin_with_email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, otp }),

@@ -28,7 +28,7 @@ class AuthResource:
         """Bước 2 — Xác thực OTP, nhận login token."""
         return self._http.request(
             "POST",
-            f"{self._base}/v1/login/_signin_with_email",
+            f"{self._base}/v1/backend/login/_signin_with_email",
             json={"email": email, "otp": otp},
         ).json()
 
@@ -67,7 +67,7 @@ class AsyncAuthResource:
     async def signin_with_email(self, email: str, otp: str) -> Dict[str, Any]:
         res = await self._http.request(
             "POST",
-            f"{self._base}/v1/login/_signin_with_email",
+            f"{self._base}/v1/backend/login/_signin_with_email",
             json={"email": email, "otp": otp},
         )
         return res.json()

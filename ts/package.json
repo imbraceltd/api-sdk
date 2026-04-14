@@ -37,10 +37,6 @@
     "./server/client": {
       "import": "./dist/server/client.js",
       "types": "./dist/server/client.d.ts"
-    },
-    "./journey/client": {
-      "import": "./dist/journey/client.js",
-      "types": "./dist/journey/client.d.ts"
     }
   },
   "files": [
