@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { TokenManager } from "../../src/core/auth/token-manager.js"
+import { TokenManager } from "../../src/auth/token-manager.js"
 
 describe("TokenManager", () => {
   it("starts with undefined token", () => {

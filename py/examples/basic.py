@@ -9,11 +9,12 @@ client = ImbraceClient(
     api_key=os.getenv("IMBRACE_API_KEY"),
     # base_url mặc định: https://app-gatewayv2.imbrace.co
 )
-# Cách 2: Từ response của auth endpoint ---
+
+# Hoặc --- Cách 2: Từ response của auth endpoint ---
 # import httpx
 # res = httpx.get(
 #     "https://app-gatewayv2.imbrace.co/auth/key",
-#     headers={"X-access-token": "your-raw-key"}
+#     headers={"X-Api-Key": "your-raw-key"}
 # ).json()
 # client = ImbraceClient(api_key=extract_api_key(res))
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { OrganizationsResource } from "../../../src/app/resources/organizations.js"
-import { HttpTransport } from "../../../src/core/http.js"
-import { TokenManager } from "../../../src/core/auth/token-manager.js"
+import { OrganizationsResource } from "../../../src/resources/organizations.js"
+import { HttpTransport } from "../../../src/http.js"
+import { TokenManager } from "../../../src/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 
@@ -21,11 +21,11 @@ describe("OrganizationsResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  it("list() calls GET /v2/backend/organizations", async () => {
+  it("list() calls GET /v2/organizations", async () => {
     mockFetch({ data: [{ _id: "org_1", name: "Acme" }] })
     await makeResource().list()
     const url = new URL((vi.mocked(globalThis.fetch).mock.calls[0][0] as URL))
-    expect(url.pathname).toBe("/v2/backend/organizations")
+    expect(url.pathname).toBe("/v2/organizations")
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("GET")
   })
 
@@ -44,10 +44,11 @@ describe("OrganizationsResource", () => {
     expect(url.searchParams.get("skip")).toBe("0")
   })
 
-  it("sends x-access-token header", async () => {
-    mockFetch({ data: [] })
+  it("sends x-api-key header", async () => {
+    mockFetch({})
     await makeResource().list()
     const headers = new Headers(vi.mocked(globalThis.fetch).mock.calls[0][1]?.headers as HeadersInit)
-    expect(headers.get("x-access-token")).toBe("test_key")
+    expect(headers.get("x-api-key")).toBe("test_key")
   })
+
 })

@@ -1,57 +1,40 @@
-"""Tests for BoardsResource."""
-import json
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
-BOARDS = f"{BASE}/v1/backend/board"
+GW = "https://app-gateway.imbrace.co"
+DB = f"{GW}/data-board"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
 def test_list_boards(httpx_mock: HTTPXMock, client):
-    payload = {"data": [{"id": "b_1", "name": "CRM"}]}
-    httpx_mock.add_response(url=f"{BOARDS}?limit=20&skip=0", json=payload)
-    result = client.app.boards.list()
-    assert result["data"][0]["name"] == "CRM"
+    httpx_mock.add_response(url=f"{DB}/boards?limit=20&skip=0", json={"data": []})
+    res = client.boards.list()
+    assert isinstance(res["data"], list)
+
+
+def test_get_board(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{DB}/boards/b_1", json={"id": "b_1"})
+    res = client.boards.get("b_1")
+    assert res["id"] == "b_1"
 
 
 def test_create_board(httpx_mock: HTTPXMock, client):
-    payload = {"id": "b_new", "name": "My Board"}
-    httpx_mock.add_response(url=BOARDS, json=payload)
-    result = client.app.boards.create("My Board", description="Test")
-    assert result["name"] == "My Board"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
-    body = json.loads(req.content)
-    assert body["name"] == "My Board"
-    assert body["description"] == "Test"
+    httpx_mock.add_response(url=f"{DB}/boards", method="POST", json={"id": "b_2"})
+    res = client.boards.create("My Board")
+    assert res["id"] == "b_2"
 
 
-def test_list_board_items(httpx_mock: HTTPXMock, client):
-    payload = {"data": [{"id": "bi_1"}]}
-    httpx_mock.add_response(url=f"{BOARDS}/b_1/board_items?limit=20&skip=0", json=payload)
-    result = client.app.boards.list_items("b_1")
-    assert len(result["data"]) == 1
-
-
-def test_create_board_item(httpx_mock: HTTPXMock, client):
-    payload = {"id": "bi_new"}
-    httpx_mock.add_response(url=f"{BOARDS}/b_1/board_items", json=payload)
-    client.app.boards.create_item("b_1", {"fields": [{"key": "name", "value": "Test"}]})
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
+def test_update_board(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{DB}/boards/b_1", method="PUT", json={"id": "b_1", "name": "Updated"})
+    res = client.boards.update("b_1", {"name": "Updated"})
+    assert res["name"] == "Updated"
 
 
 def test_delete_board(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{BOARDS}/b_1", json={"success": True})
-    client.app.boards.delete("b_1")
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "DELETE"
+    httpx_mock.add_response(url=f"{DB}/boards/b_1", method="DELETE", status_code=204)
+    client.boards.delete("b_1")

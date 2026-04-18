@@ -11,13 +11,7 @@
     "url": "https://github.com/imbrace/sdk.git",
     "directory": "ts"
   },
-  "keywords": [
-    "imbrace",
-    "sdk",
-    "api",
-    "typescript",
-    "javascript"
-  ],
+  "keywords": ["imbrace", "sdk", "api", "typescript", "javascript"],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,13 +24,29 @@
       "import": "./dist/client.js",
       "types": "./dist/client.d.ts"
     },
-    "./app/client": {
-      "import": "./dist/app/client.js",
-      "types": "./dist/app/client.d.ts"
+    "./resources/marketplace": {
+      "import": "./dist/resources/marketplace.js",
+      "types": "./dist/resources/marketplace.d.ts"
     },
-    "./server/client": {
-      "import": "./dist/server/client.js",
-      "types": "./dist/server/client.d.ts"
+    "./resources/platform": {
+      "import": "./dist/resources/platform.js",
+      "types": "./dist/resources/platform.d.ts"
+    },
+    "./resources/channel": {
+      "import": "./dist/resources/channel.js",
+      "types": "./dist/resources/channel.d.ts"
+    },
+    "./resources/ips": {
+      "import": "./dist/resources/ips.js",
+      "types": "./dist/resources/ips.d.ts"
+    },
+    "./resources/agent": {
+      "import": "./dist/resources/agent.js",
+      "types": "./dist/resources/agent.d.ts"
+    },
+    "./resources/ai": {
+      "import": "./dist/resources/ai.js",
+      "types": "./dist/resources/ai.d.ts"
     }
   },
   "files": [
@@ -54,22 +64,16 @@
     "test:integration": "vitest run tests/integration",
     "test:all": "vitest run",
     "test:watch": "vitest tests/unit",
-    "test:bun": "bun x vitest run tests/unit",
-    "test:bun:watch": "bun x vitest tests/unit",
-    "gen": "bun script/build.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@hey-api/client-fetch": "^0.13.1",
-    "@hey-api/openapi-ts": "^0.95.0",
-    "@types/bun": "^1.3.11",
     "@types/node": "^20.0.0",
-    "@vitest/ui": "^1.6.0",
     "typescript": "^5.4.0",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "@vitest/ui": "^1.6.0"
   },
   "engines": {
     "node": ">=18.0.0"

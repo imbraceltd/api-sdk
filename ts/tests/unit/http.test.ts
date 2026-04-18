@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { HttpTransport } from "../../src/core/http.js"
-import { TokenManager } from "../../src/core/auth/token-manager.js"
-import { AuthError, ApiError, NetworkError } from "../../src/core/errors.js"
+import { HttpTransport } from "../../src/http.js"
+import { TokenManager } from "../../src/auth/token-manager.js"
+import { AuthError, ApiError, NetworkError } from "../../src/errors.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 
-function makeTransport(opts: { apiKey?: string; token?: string } = {}) {
+function makeTransport(opts: { apiKey?: string; token?: string; organizationId?: string } = {}) {
   const tokenManager = new TokenManager(opts.token)
-  return new HttpTransport({ apiKey: opts.apiKey, timeout: 5000, tokenManager })
+  return new HttpTransport({ apiKey: opts.apiKey, timeout: 5000, tokenManager, organizationId: opts.organizationId })
 }
 
 describe("HttpTransport", () => {
@@ -35,10 +35,11 @@ describe("HttpTransport", () => {
     })
 
     await transport.getFetch()(BASE + "/health", { method: "GET" })
-    expect(capturedHeaders["x-access-token"]).toBe("key_test")
+    expect(capturedHeaders["x-api-key"]).toBe("key_test")
+    expect(capturedHeaders["x-access-token"]).toBeUndefined()
   })
 
-  it("sets x-access-token header when token set", async () => {
+  it("sets x-access-token when token set without organizationId (legacy mode)", async () => {
     const transport = makeTransport({ token: "tok_test" })
     const capturedHeaders: Record<string, string> = {}
 
@@ -50,6 +51,7 @@ describe("HttpTransport", () => {
 
     await transport.getFetch()(BASE + "/health", { method: "GET" })
     expect(capturedHeaders["x-access-token"]).toBe("tok_test")
+    expect(capturedHeaders["authorization"]).toBeUndefined()
   })
 
   it("does not set Authorization header when no token", async () => {
@@ -64,6 +66,40 @@ describe("HttpTransport", () => {
 
     await transport.getFetch()(BASE + "/health", { method: "GET" })
     expect(capturedHeaders["authorization"]).toBeUndefined()
+  })
+
+  it("apiKey mode excludes token headers even when token is set", async () => {
+    const transport = makeTransport({ apiKey: "key_test", token: "tok_test" })
+    const capturedHeaders: Record<string, string> = {}
+
+    globalThis.fetch = vi.fn().mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const h = init?.headers as Headers
+      h.forEach((v, k) => { capturedHeaders[k] = v })
+      return new Response("{}", { status: 200 })
+    })
+
+    await transport.getFetch()(BASE + "/health", { method: "GET" })
+    expect(capturedHeaders["x-api-key"]).toBe("key_test")
+    expect(capturedHeaders["x-access-token"]).toBeUndefined()
+    expect(capturedHeaders["authorization"]).toBeUndefined()
+  })
+
+  it("JWT Bearer mode: token + organizationId sends Authorization + x-organization-id", async () => {
+    const fakeJwt = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEifQ.signature"
+    const transport = makeTransport({ token: fakeJwt, organizationId: "org_123" })
+    const capturedHeaders: Record<string, string> = {}
+
+    globalThis.fetch = vi.fn().mockImplementation(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const h = init?.headers as Headers
+      h.forEach((v, k) => { capturedHeaders[k] = v })
+      return new Response("{}", { status: 200 })
+    })
+
+    await transport.getFetch()(BASE + "/health", { method: "GET" })
+    expect(capturedHeaders["authorization"]).toBe(`Bearer ${fakeJwt}`)
+    expect(capturedHeaders["x-organization-id"]).toBe("org_123")
+    expect(capturedHeaders["x-access-token"]).toBeUndefined()
+    expect(capturedHeaders["x-api-key"]).toBeUndefined()
   })
 
   it("throws AuthError on 401", async () => {

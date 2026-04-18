@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { AuthResource } from "../../../src/app/resources/auth.js"
-import { HttpTransport } from "../../../src/core/http.js"
-import { TokenManager } from "../../../src/core/auth/token-manager.js"
+import { AuthResource } from "../../../src/resources/auth.js"
+import { HttpTransport } from "../../../src/http.js"
+import { TokenManager } from "../../../src/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 
@@ -25,6 +25,7 @@ describe("AuthResource", () => {
     mockFetch({ apiKey: { _id: "key_1", apiKey: "abc123", is_active: true }, expires_in: 864000 })
     await makeResource().getThirdPartyToken()
     const url = new URL((vi.mocked(globalThis.fetch).mock.calls[0][0] as string))
+    // note: "thrid" is a backend typo — preserved intentionally
     expect(url.pathname).toBe("/private/backend/v1/thrid_party_token")
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("POST")
   })
@@ -43,10 +44,11 @@ describe("AuthResource", () => {
     expect(body.expirationDays).toBe(30)
   })
 
-  it("sends x-access-token header", async () => {
-    mockFetch({ apiKey: {}, expires_in: 864000 })
+  it("sends x-api-key header", async () => {
+    mockFetch({})
     await makeResource().getThirdPartyToken()
     const headers = new Headers(vi.mocked(globalThis.fetch).mock.calls[0][1]?.headers as HeadersInit)
-    expect(headers.get("x-access-token")).toBe("test_key")
+    expect(headers.get("x-api-key")).toBe("test_key")
   })
+
 })

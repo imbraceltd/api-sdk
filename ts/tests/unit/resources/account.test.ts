@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { AccountResource } from "../../../src/app/resources/account.js"
-import { HttpTransport } from "../../../src/core/http.js"
-import { TokenManager } from "../../../src/core/auth/token-manager.js"
+import { AccountResource } from "../../../src/resources/account.js"
+import { HttpTransport } from "../../../src/http.js"
+import { TokenManager } from "../../../src/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 
@@ -21,19 +21,19 @@ describe("AccountResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  it("getAccount() calls GET /v1/backend/account", async () => {
+  it("getAccount() calls GET /v1/account", async () => {
     mockFetch({ id: "acc_1", name: "Test Account" })
     const res = await makeResource().getAccount()
     const url = new URL((vi.mocked(globalThis.fetch).mock.calls[0][0] as string))
-    expect(url.pathname).toBe("/v1/backend/account")
+    expect(url.pathname).toBe("/v1/account")
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("GET")
     expect(res.name).toBe("Test Account")
   })
 
-  it("sends x-access-token header", async () => {
+  it("sends x-api-key header", async () => {
     mockFetch({})
     await makeResource().getAccount()
     const headers = new Headers(vi.mocked(globalThis.fetch).mock.calls[0][1]?.headers as HeadersInit)
-    expect(headers.get("x-access-token")).toBe("test_key")
+    expect(headers.get("x-api-key")).toBe("test_key")
   })
 })

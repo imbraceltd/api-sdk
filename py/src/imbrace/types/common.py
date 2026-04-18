@@ -22,6 +22,7 @@ class ApiResponse(BaseModel, Generic[T]):
 
 
 class PagedResponse(BaseModel, Generic[T]):
-    success: bool
-    data: List[T]
-    pagination: PageInfo
+    success: Optional[bool] = None
+    data: List[T] = []
+    pagination: Optional[PageInfo] = None
+    total: Optional[int] = None

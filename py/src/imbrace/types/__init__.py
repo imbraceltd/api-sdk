@@ -1,7 +1,9 @@
 from .common import ApiResponse, PageInfo, PagedResponse
 from .session import Session, Message, Part, TextPart, FilePart
 from .marketplace import Product, Order, CreateOrderInput, OrderStatus
+from .platform import User, Organization, Permission
 from .channel import Channel, Conversation, ChannelMessage
+from .ips import IpsProfile, Identity
 from .agent import Agent, AgentRun, AgentStatus
 from .ai import Completion, CompletionChoice, StreamChunk, Embedding
 
@@ -12,8 +14,12 @@ __all__ = [
     "Session", "Message", "Part", "TextPart", "FilePart",
     # marketplace
     "Product", "Order", "CreateOrderInput", "OrderStatus",
+    # platform
+    "User", "Organization", "Permission",
     # channel
     "Channel", "Conversation", "ChannelMessage",
+    # ips
+    "IpsProfile", "Identity",
     # agent
     "Agent", "AgentRun", "AgentStatus",
     # ai

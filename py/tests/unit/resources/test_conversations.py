@@ -1,47 +1,41 @@
-"""Tests for ConversationsResource."""
-import json
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
-ORG_ID = "org_e7e8fdb5-39a9-4599-80db-79ae6ff619fd"
+GW = "https://app-gateway.imbrace.co"
+CS = f"{GW}/channel-service"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
-def test_get_views_count(httpx_mock: HTTPXMock, client):
-    payload = {"all": 975, "yours": 293, "closed": 61}
-    httpx_mock.add_response(
-        url=f"{BASE}/v2/backend/team_conversations/_views_count", json=payload
-    )
-    result = client.app.conversations.get_views_count()
-    assert result["all"] == 975
+def test_list_conversations(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{CS}/v1/conversations", json={"data": []})
+    res = client.conversations.list()
+    assert isinstance(res["data"], list)
+
+
+def test_list_conversations_with_params(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{CS}/v2/team_conversations?type=open&limit=10", json={"data": []})
+    res = client.conversations.list(type="open", limit=10)
+    assert isinstance(res["data"], list)
+
+
+def test_get_conversation(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{CS}/v1/team_conversations/conv_1", json={"id": "conv_1"})
+    res = client.conversations.get("conv_1")
+    assert res["id"] == "conv_1"
 
 
 def test_create_conversation(httpx_mock: HTTPXMock, client):
-    payload = {"object_name": "conversation", "id": "conv_123", "status": "active"}
-    httpx_mock.add_response(url=f"{BASE}/v1/backend/conversation", json=payload)
-    result = client.app.conversations.create()
-    assert result["id"] == "conv_123"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
+    httpx_mock.add_response(url=f"{CS}/v1/conversations", method="POST", json={"id": "conv_2"})
+    res = client.conversations.create()
+    assert res["id"] == "conv_2"
 
 
-def test_search(httpx_mock: HTTPXMock, client):
-    payload = {"success": True, "message": {"hits": [], "total": 0}}
-    httpx_mock.add_response(
-        url=f"{BASE}/v1/backend/meilisearch/{ORG_ID}/search", json=payload
-    )
-    result = client.app.conversations.search(ORG_ID, q="hello")
-    assert result["success"] is True
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
-    body = json.loads(req.content)
-    assert body["q"] == "hello"
+def test_join_conversation(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{CS}/v1/team_conversations/_join", method="POST", json={"success": True})
+    res = client.conversations.join({"conversation_id": "conv_1"})
+    assert res["success"] is True

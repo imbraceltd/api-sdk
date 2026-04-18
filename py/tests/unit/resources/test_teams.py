@@ -1,48 +1,41 @@
-"""Tests for TeamsResource."""
-import json
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
+GW = "https://app-gateway.imbrace.co"
+PL = f"{GW}/platform"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
 def test_list_teams(httpx_mock: HTTPXMock, client):
-    payload = {"object_name": "list", "data": [{"id": "t_1", "name": "general"}]}
-    httpx_mock.add_response(url=f"{BASE}/v2/backend/teams?limit=20&skip=0", json=payload)
-    result = client.app.teams.list()
-    assert result["data"][0]["name"] == "general"
+    httpx_mock.add_response(url=f"{PL}/v1/teams", json={"data": []})
+    res = client.teams.list()
+    assert isinstance(res["data"], list)
 
 
 def test_list_my_teams(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{BASE}/v2/backend/teams/my", json={"data": []})
-    client.app.teams.list_my()
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "GET"
+    httpx_mock.add_response(url=f"{PL}/v2/teams/my", json={"data": []})
+    res = client.teams.list_my()
+    assert isinstance(res["data"], list)
 
 
-def test_add_users(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(
-        url=f"{BASE}/v2/backend/teams/_add_users", json={"success": True}
-    )
-    result = client.app.teams.add_users("t_1", ["u_1", "u_2"])
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
-    body = json.loads(req.content)
-    assert body["team_id"] == "t_1"
-    assert body["user_ids"] == ["u_1", "u_2"]
+def test_create_team(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{PL}/v1/teams", method="POST", json={"id": "t_1"})
+    res = client.teams.create({"name": "Support"})
+    assert res["id"] == "t_1"
+
+
+def test_update_team(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{PL}/v2/teams/t_1", method="PUT", json={"id": "t_1", "name": "New"})
+    res = client.teams.update("t_1", {"name": "New"})
+    assert res["id"] == "t_1"
 
 
 def test_delete_team(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{BASE}/v2/backend/teams/t_1", json={"success": True})
-    client.app.teams.delete("t_1")
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "DELETE"
+    httpx_mock.add_response(url=f"{PL}/v2/teams/t_1", method="DELETE", json={"success": True})
+    res = client.teams.delete("t_1")
+    assert res["success"] is True

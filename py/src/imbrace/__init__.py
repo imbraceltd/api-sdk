@@ -1,26 +1,20 @@
-from .client import ImbraceClient, AsyncImbraceClient
-from .app.client import AppGatewayClient, AsyncAppGatewayClient
-from .server.client import ServerGatewayClient, AsyncServerGatewayClient
-from .core.exceptions import ImbraceError, AuthError, ApiError, NetworkError
-from .core.api_key import ImbraceApiKey, ImbraceApiKeyResponse, extract_api_key
+from .client import ImbraceClient
+from .async_client import AsyncImbraceClient
+from .exceptions import ImbraceError, AuthError, ApiError, NetworkError
+from .api_key import ImbraceApiKey, ImbraceApiKeyResponse, extract_api_key
+from .environments import Environment, EnvironmentPreset, ENVIRONMENTS
+from .service_registry import ServiceUrls, resolve_service_urls
 
 __all__ = [
-    # Unified clients
+    # Clients
     "ImbraceClient",
     "AsyncImbraceClient",
-    # Gateway clients (standalone usage)
-    "AppGatewayClient",
-    "AsyncAppGatewayClient",
-    "ServerGatewayClient",
-    "AsyncServerGatewayClient",
     # Errors
-    "ImbraceError",
-    "AuthError",
-    "ApiError",
-    "NetworkError",
+    "ImbraceError", "AuthError", "ApiError", "NetworkError",
     # API Key helpers
-    "ImbraceApiKey",
-    "ImbraceApiKeyResponse",
-    "extract_api_key",
+    "ImbraceApiKey", "ImbraceApiKeyResponse", "extract_api_key",
+    # Environment / ServiceRegistry
+    "Environment", "EnvironmentPreset", "ENVIRONMENTS",
+    "ServiceUrls", "resolve_service_urls",
 ]
-__version__ = "2.0.0"
+__version__ = "1.0.0"

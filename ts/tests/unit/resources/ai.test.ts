@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { AiResource } from "../../../src/app/resources/ai.js"
-import { HttpTransport } from "../../../src/core/http.js"
-import { TokenManager } from "../../../src/core/auth/token-manager.js"
+import { AiResource } from "../../../src/resources/ai.js"
+import { HttpTransport } from "../../../src/http.js"
+import { TokenManager } from "../../../src/auth/token-manager.js"
 
 const BASE = "https://app-gatewayv2.imbrace.co"
 const MESSAGES = [{ role: "user" as const, content: "Hello" }]

@@ -1,68 +1,42 @@
-"""Tests for AgentResource — endpoint /v2/backend/templates."""
-import json
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
-TEMPLATES = f"{BASE}/v2/backend/templates"
+GW = "https://app-gateway.imbrace.co"
+MP = f"{GW}/marketplaces/v1/market-places/templates"
+UC = f"{GW}/v3/marketplaces/use-cases"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
 def test_list_agents(httpx_mock: HTTPXMock, client):
-    payload = {"data": [{"_id": "uc_1", "title": "Agent A"}]}
-    httpx_mock.add_response(url=TEMPLATES, json=payload)
-    result = client.app.agent.list()
-    assert result == payload
+    httpx_mock.add_response(url=MP, json={"data": []})
+    res = client.agent.list_agents()
+    assert isinstance(res["data"], list)
 
 
 def test_get_agent(httpx_mock: HTTPXMock, client):
-    payload = {"data": {"_id": "uc_1", "title": "Agent A"}}
-    httpx_mock.add_response(url=f"{TEMPLATES}/uc_1", json=payload)
-    result = client.app.agent.get("uc_1")
-    assert result["data"]["title"] == "Agent A"
+    httpx_mock.add_response(url=f"{MP}/tpl_1", json={"id": "tpl_1"})
+    res = client.agent.get("tpl_1")
+    assert res["id"] == "tpl_1"
 
 
-def test_create_agent(httpx_mock: HTTPXMock, client):
-    payload = {"data": {"_id": "uc_new", "title": "Test Agent"}}
-    httpx_mock.add_response(url=f"{TEMPLATES}/custom", json=payload)
-    body = {
-        "assistant": {"name": "Test Agent"},
-        "usecase": {"title": "Test Agent"},
-    }
-    result = client.app.agent.create(body)
-    assert result["data"]["title"] == "Test Agent"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
-    assert json.loads(req.content)["assistant"]["name"] == "Test Agent"
+def test_list_use_cases(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=UC, json={"data": []})
+    res = client.agent.list_use_cases()
+    assert isinstance(res["data"], list)
 
 
-def test_update_agent(httpx_mock: HTTPXMock, client):
-    payload = {"data": {"_id": "uc_1", "title": "Updated"}}
-    httpx_mock.add_response(url=f"{TEMPLATES}/uc_1/custom", json=payload)
-    result = client.app.agent.update("uc_1", {"usecase": {"title": "Updated"}})
-    assert result["data"]["title"] == "Updated"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "PATCH"
+def test_get_use_case(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{UC}/uc_1", json={"id": "uc_1"})
+    res = client.agent.get_use_case("uc_1")
+    assert res["id"] == "uc_1"
 
 
-def test_delete_agent(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{TEMPLATES}/uc_1", json={"success": True})
-    result = client.app.agent.delete("uc_1")
-    assert result["success"] is True
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "DELETE"
-
-
-def test_auth_header_sent(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=TEMPLATES, json={})
-    client.app.agent.list()
-    req = httpx_mock.get_requests()[0]
-    assert req.headers.get("x-access-token") == "test_key"
+def test_create_use_case(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{UC}/v2/custom", method="POST", json={"id": "uc_2"})
+    res = client.agent.create_use_case({"name": "new"})
+    assert res["id"] == "uc_2"

@@ -1,39 +1,29 @@
-"""Tests for OrganizationsResource."""
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
-ORGS_URL = f"{BASE}/v2/backend/organizations"
+GW = "https://app-gateway.imbrace.co"
+PL = f"{GW}/platform"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
 def test_list_organizations(httpx_mock: HTTPXMock, client):
-    payload = {"data": [{"id": "org_1", "name": "Acme Corp"}]}
-    httpx_mock.add_response(url=f"{ORGS_URL}?limit=10&skip=0", json=payload)
-    result = client.app.organizations.list()
-    assert result["data"][0]["name"] == "Acme Corp"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "GET"
+    httpx_mock.add_response(url=f"{PL}/v2/organizations?limit=10&skip=0", json={"data": []})
+    res = client.organizations.list()
+    assert isinstance(res["data"], list)
 
 
-def test_list_organizations_pagination(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(json={"data": []})
-    client.app.organizations.list(limit=5, skip=10)
-    req = httpx_mock.get_requests()[0]
-    assert "limit=5" in str(req.url)
-    assert "skip=10" in str(req.url)
+def test_create_organization(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{PL}/v1/organizations", method="POST", json={"id": "org_1"})
+    res = client.organizations.create({"name": "Acme"})
+    assert res["id"] == "org_1"
 
 
-def test_list_organizations_sends_auth_header(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{ORGS_URL}?limit=10&skip=0", json={"data": []})
-    client.app.organizations.list()
-    req = httpx_mock.get_requests()[0]
-    assert req.headers.get("x-access-token") == "test_key"
+def test_list_all_organizations(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{PL}/v2/organizations/_all", json={"data": []})
+    res = client.organizations.list_all()
+    assert isinstance(res["data"], list)

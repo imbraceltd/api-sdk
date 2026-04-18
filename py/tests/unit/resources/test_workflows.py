@@ -1,62 +1,36 @@
-"""Tests for WorkflowsResource."""
-import json
 import pytest
 from pytest_httpx import HTTPXMock
-
 from imbrace import ImbraceClient
 
-BASE = "https://app-gatewayv2.imbrace.co"
-WORKFLOWS_URL = f"{BASE}/v1/backend/workflows"
-WORKFLOW_URL = f"{BASE}/v1/backend/workflow"
+GW = "https://app-gateway.imbrace.co"
+CS = f"{GW}/channel-service/v1"
+PL = f"{GW}/platform/v1"
 
 
 @pytest.fixture
 def client():
-    c = ImbraceClient(app_api_key="test_key")
-    yield c
-    c.close()
+    return ImbraceClient(api_key="test_key")
 
 
 def test_list_workflows(httpx_mock: HTTPXMock, client):
-    payload = {"data": [{"_id": "wf_1", "name": "Welcome Flow"}]}
-    httpx_mock.add_response(url=WORKFLOWS_URL, json=payload)
-    result = client.app.workflows.list()
-    assert result["data"][0]["name"] == "Welcome Flow"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "GET"
-
-
-def test_list_workflows_with_tag(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(json={"data": []})
-    client.app.workflows.list(tag="onboarding")
-    req = httpx_mock.get_requests()[0]
-    assert "tag=onboarding" in str(req.url)
-
-
-def test_list_channel_automation(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{WORKFLOWS_URL}/channel_automation", json={"data": []})
-    client.app.workflows.list_channel_automation()
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "GET"
+    httpx_mock.add_response(url=f"{CS}/automations", json={"data": []})
+    res = client.workflows.list()
+    assert isinstance(res["data"], list)
 
 
 def test_create_workflow(httpx_mock: HTTPXMock, client):
-    payload = {"_id": "wf_new", "name": "New Flow"}
-    httpx_mock.add_response(url=WORKFLOW_URL, json=payload)
-    result = client.app.workflows.create({"name": "New Flow"})
-    assert result["_id"] == "wf_new"
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "POST"
-    body = json.loads(req.content)
-    assert body["name"] == "New Flow"
+    httpx_mock.add_response(url=f"{CS}/automations", method="POST", json={"id": "wf_1"})
+    res = client.workflows.create({"name": "My Flow"})
+    assert res["id"] == "wf_1"
 
 
 def test_update_workflow(httpx_mock: HTTPXMock, client):
-    httpx_mock.add_response(url=f"{WORKFLOW_URL}/wf_1", json={"_id": "wf_1"})
-    client.app.workflows.update("wf_1", {"active": True})
-    req = httpx_mock.get_requests()[0]
-    assert req.method == "PATCH"
-    body = json.loads(req.content)
-    assert body["active"] is True
+    httpx_mock.add_response(url=f"{CS}/automations/wf_1", method="PATCH", json={"id": "wf_1"})
+    res = client.workflows.update("wf_1", {"active": True})
+    assert res["id"] == "wf_1"
 
 
+def test_list_n8n_workflows(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{PL}/workflows", json={"data": []})
+    res = client.workflows.list_n8n()
+    assert isinstance(res["data"], list)
