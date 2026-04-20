@@ -1,18 +1,16 @@
 import { HttpTransport } from "../http.js"
+import type { Account } from "../types/index.js"
 
 export class AccountResource {
-  /**
-   * @param base - platform base URL (gateway/platform)
-   */
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
   private get v1() { return `${this.base}/v1` }
 
-  async getAccount() {
+  async getAccount(): Promise<Account> {
     return this.http.getFetch()(`${this.v1}/account`, { method: "GET" }).then(r => r.json())
   }
 
-  async updateAccount(body: Record<string, unknown>) {
+  async updateAccount(body: Partial<Account>): Promise<Account> {
     return this.http.getFetch()(`${this.v1}/account`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -20,7 +18,7 @@ export class AccountResource {
     }).then(r => r.json())
   }
 
-  async uploadAvatar(body: FormData) {
+  async uploadAvatar(body: FormData): Promise<{ url: string }> {
     return this.http.getFetch()(`${this.v1}/account/_fileupload`, {
       method: "POST",
       body,

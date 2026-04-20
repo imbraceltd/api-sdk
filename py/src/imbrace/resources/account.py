@@ -19,16 +19,16 @@ class AccountResource:
         return f"{self._base}/v1"
 
     def get(self) -> User:
-        """Lấy thông tin tài khoản hiện tại."""
+        """Get current account information."""
         res = self._http.request("GET", f"{self._v1}/account").json()
-        # Nếu server trả về ApiResponse bọc ngoài, ta lấy data. 
-        # Giả định server trả về trực tiếp dict của User hoặc ApiResponse[User]
+        # If the server returns a wrapped ApiResponse, extract the data.
+        # Assume the server returns a User dict or ApiResponse[User] directly.
         if "data" in res and "success" in res:
             return User(**res["data"])
         return User(**res)
 
     def update(self, body: Dict[str, Any]) -> User:
-        """Cập nhật thông tin tài khoản."""
+        """Update account information."""
         res = self._http.request("PUT", f"{self._v1}/account", json=body).json()
         if "data" in res and "success" in res:
             return User(**res["data"])
@@ -47,7 +47,7 @@ class AsyncAccountResource:
         return f"{self._base}/v1"
 
     async def get(self) -> User:
-        """Lấy thông tin tài khoản hiện tại (bất đồng bộ)."""
+        """Get current account information (async)."""
         res = await self._http.request("GET", f"{self._v1}/account")
         data = res.json()
         if "data" in data and "success" in data:
@@ -55,7 +55,7 @@ class AsyncAccountResource:
         return User(**data)
 
     async def update(self, body: Dict[str, Any]) -> User:
-        """Cập nhật thông tin tài khoản (bất đồng bộ)."""
+        """Update account information (async)."""
         res = await self._http.request("PUT", f"{self._v1}/account", json=body)
         data = res.json()
         if "data" in data and "success" in data:

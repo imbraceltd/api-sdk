@@ -1,13 +1,12 @@
 from __future__ import annotations
 from typing import Optional, Union
-import os
 import warnings
 
 from .auth.token_manager import TokenManager
 from .http import AsyncHttpTransport
 from .environments import EnvironmentPreset, ServiceHosts, ENVIRONMENTS
 from .service_registry import resolve_service_urls
-from .resources.auth import AsyncAuthResource
+from .resources.auth import AsyncAuthResource, SignInResponse, OtpSignInResponse
 from .resources.account import AsyncAccountResource
 from .resources.organizations import AsyncOrganizationsResource
 from .resources.agent import AsyncAgentResource
@@ -55,26 +54,10 @@ class AsyncImbraceClient:
         # Legacy compat
         base_url: Optional[str] = None,
     ):
-        # If access_token is explicitly provided, don't fall back to IMBRACE_API_KEY from env
-        if api_key is not None:
-            resolved_key = api_key
-        elif access_token is None:
-            resolved_key = os.environ.get("IMBRACE_API_KEY")
-        else:
-            resolved_key = None
-        resolved_env = env or os.environ.get("IMBRACE_ENV") or "stable"
-        resolved_gateway = base_url or gateway or os.environ.get("IMBRACE_GATEWAY_URL")
-
-        # 1. Collect overrides from environment variables
-        env_services = {}
-        service_keys = ["platform", "channel_service", "ips", "data_board", "ai", "marketplaces"]
-        for key in service_keys:
-            env_val = os.environ.get(f"IMBRACE_{key.upper()}_URL")
-            if env_val:
-                env_services[key] = env_val
-
-        # 2. Merge overrides
-        merged_services = {**env_services, **(services or {})}
+        resolved_key = api_key
+        resolved_env = env or "stable"
+        resolved_gateway = base_url or gateway
+        merged_services = services or {}
 
         # Resolve preset
         if resolved_gateway:
@@ -105,7 +88,7 @@ class AsyncImbraceClient:
             organization_id=organization_id,
         )
 
-        self.auth          = AsyncAuthResource(self.http, urls.platform)
+        self.auth          = AsyncAuthResource(self.http, urls.platform, urls.gateway)
         self.account       = AsyncAccountResource(self.http, urls.platform)
         self.platform      = AsyncPlatformResource(self.http, urls.platform)
         self.organizations = AsyncOrganizationsResource(self.http, urls.platform)
@@ -134,10 +117,10 @@ class AsyncImbraceClient:
         self.outbounds     = AsyncOutboundsResource(self.http, urls.channel_service)
         self.touchpoints   = AsyncTouchpointsResource(self.http, urls.channel_service)
 
-    # ── Convenience auth ──────────────────────────────────────────────────────
+    # ── Convenience auth   
 
     async def login(self, email: str, password: str) -> dict:
-        """Login bằng email/password, tự lưu access token vào client."""
+        """Sign in with email and password. Stores the returned access token on the client."""
         res = await self.auth.sign_in(email, password)
         token = res.get("accessToken") or res.get("token") or res.get("access_token")
         if token:
@@ -145,7 +128,7 @@ class AsyncImbraceClient:
         return res
 
     async def login_with_otp(self, email: str, otp: str) -> dict:
-        """Login bằng OTP (sau khi gọi request_otp), tự lưu access token."""
+        """Sign in with an OTP code (call request_otp() first). Stores the returned access token."""
         res = await self.auth.signin_with_email(email, otp)
         token = res.get("accessToken") or res.get("token") or res.get("access_token")
         if token:
@@ -153,12 +136,12 @@ class AsyncImbraceClient:
         return res
 
     async def request_otp(self, email: str) -> None:
-        """Gửi OTP về email. Dùng trước login_with_otp()."""
+        """Send a one-time password to the given email address."""
         await self.auth.signin_email_request(email)
 
     def set_access_token(self, token: str) -> None:
         self.token_manager.set_token(token)
-        self.http.api_key = None  # Explicit access_token call switches off api_key mode
+        self.http.clear_api_key()
 
     def clear_access_token(self) -> None:
         self.token_manager.clear()

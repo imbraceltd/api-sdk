@@ -17,7 +17,6 @@ def client():
 
 
 def test_list_channels(httpx_mock: HTTPXMock, client):
-    # Cập nhật payload cho PagedResponse[Channel]
     payload = {
         "success": True,
         "data": [{"id": "ch_1", "name": "Web", "type": "support"}],

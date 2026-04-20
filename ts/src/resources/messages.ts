@@ -1,4 +1,5 @@
 import { HttpTransport } from "../http.js"
+import type { ConversationMessage, PagedResponse } from "../types/index.js"
 
 export class MessagesResource {
   /**
@@ -13,7 +14,7 @@ export class MessagesResource {
     q?: string
     limit?: number
     skip?: number
-  }) {
+  }): Promise<PagedResponse<ConversationMessage>> {
     const url = new URL(`${this.v1}/conversation_messages`)
     if (params?.type)   url.searchParams.set("type",  params.type)
     if (params?.q)      url.searchParams.set("q",     params.q)
@@ -29,7 +30,7 @@ export class MessagesResource {
     caption?: string
     title?: string
     payload?: string
-  }) {
+  }): Promise<ConversationMessage> {
     return this.http.getFetch()(`${this.v1}/conversation_messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,14 +38,14 @@ export class MessagesResource {
     }).then(r => r.json())
   }
 
-  async uploadFile(body: FormData) {
+  async uploadFile(body: FormData): Promise<{ url: string }> {
     return this.http.getFetch()(`${this.v1}/conversation_messages/_fileupload`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
-  async addComment(convId: string, messageId: string, body: Record<string, unknown>) {
+  async addComment(convId: string, messageId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +53,7 @@ export class MessagesResource {
     }).then(r => r.json())
   }
 
-  async updateComment(convId: string, commentId: string, body: Record<string, unknown>) {
+  async updateComment(convId: string, commentId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v1}/conversations/${convId}/comments/${commentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -64,19 +65,19 @@ export class MessagesResource {
     await this.http.getFetch()(`${this.v1}/conversations/${convId}/comments/${commentId}`, { method: "DELETE" })
   }
 
-  async pin(convId: string, messageId: string) {
+  async pin(convId: string, messageId: string): Promise<Record<string, unknown>> {
     const url = new URL(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}`)
     url.searchParams.set("action", "pin")
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async unpin(convId: string, messageId: string) {
+  async unpin(convId: string, messageId: string): Promise<Record<string, unknown>> {
     const url = new URL(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}`)
     url.searchParams.set("action", "unpin")
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getIndex(conversationId: string, messageId: string) {
+  async getIndex(conversationId: string, messageId: string): Promise<{ index: number }> {
     return this.http.getFetch()(
       `${this.v1}/conversations/${conversationId}/conversation_messages/${messageId}/_index`,
       { method: "GET" }

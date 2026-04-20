@@ -14,7 +14,7 @@ export class WorkflowsResource {
   private get chV1() { return `${this.channelBase}/v1` }
   private get plV1() { return `${this.platformBase}/v1` }
 
-  // ─── Channel automation (channel-service) ────────────────────────────────────
+  // ─── Channel automation (channel-service) 
 
   async listChannelAutomation(params?: { channelType?: string }) {
     const url = new URL(`${this.chV1}/workflows/channel_automation`)
@@ -22,7 +22,7 @@ export class WorkflowsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── n8n workflows (platform) ────────────────────────────────────────────────
+  // ─── n8n workflows (platform) 
 
   async list(params?: Record<string, string>) {
     const url = new URL(`${this.plV1}/workflows`)
@@ -58,7 +58,7 @@ export class WorkflowsResource {
     return this.http.getFetch()(`${this.plV1}/n8n/workflows/new`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Credentials ─────────────────────────────────────────────────────────────
+  // ─── Credentials 
 
   async listCredentials() {
     return this.http.getFetch()(`${this.plV1}/credentials`, { method: "GET" }).then(r => r.json())
@@ -90,7 +90,7 @@ export class WorkflowsResource {
     await this.http.getFetch()(`${this.plV1}/n8n/credentials/${credentialId}`, { method: "DELETE" })
   }
 
-  // ─── Channel credentials (channel-service) ───────────────────────────────────
+  // ─── Channel credentials (channel-service) 
 
   async getChannelCredential(credentialId: string) {
     return this.http.getFetch()(`${this.chV1}/channels/credentials/${credentialId}`, { method: "GET" }).then(r => r.json())

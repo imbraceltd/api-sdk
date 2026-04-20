@@ -47,4 +47,13 @@ Thumbs.db
 #document
 app-gateway-review
 new-frontend
+opencode
+docs
 
+#Claude
+.claude/
+.claude/commands/
+.claude/referances/
+.claude/skill/
+.claude/skill/skill.md
+.claude/skill/skill.yaml

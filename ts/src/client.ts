@@ -39,23 +39,23 @@ export interface ImbraceClientConfig {
    * - 'stable'   → app-gatewayv2.imbrace.co (default)
    */
   env?: Environment
-  /** Override gateway URL của env được chọn */
+  /** Override the gateway URL for the selected environment. */
   gateway?: string
-  /** Override base URL của từng service cụ thể */
+  /** Override the base URL for individual services. */
   services?: Partial<ServiceUrls>
-  /** API key (server-side) — từ POST /private/backend/v1/thrid_party_token */
+  /** API key (server-side) — from POST /private/backend/v1/thrid_party_token */
   apiKey?: string
-  /** Access token (client-side) — OAuth/JWT token */
+  /** User access token (client-side OAuth/JWT). */
   accessToken?: string
-  /** Gửi kèm header x-organization-id trên mọi request */
+  /** Sent as x-organization-id on every request. */
   organizationId?: string
   /** Timeout in ms. Default: 30000 */
   timeout?: number
-  /** Ping /global/health khi gọi init(). Default: false */
+  /** Ping /global/health on init(). Default: false */
   checkHealth?: boolean
 }
 
-/** Extract apiKey từ response của third-party token endpoint */
+/** Extract apiKey from the response of the third-party token endpoint. */
 export function extractApiKey(res: { apiKey: { apiKey: string } }): string {
   return res.apiKey.apiKey
 }
@@ -91,28 +91,13 @@ export class ImbraceClient {
   public readonly license: LicenseResource
 
   constructor(opts?: ImbraceClientConfig) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const env = (globalThis as any).process?.env ?? {}
-
     this.opts = opts ?? {}
 
-    // ── Resolve overrides from environment variables (e.g. IMBRACE_IPS_URL) ───
-    const envServices: Partial<ServiceUrls> = {}
-    const serviceKeys = ['platform', 'channelService', 'ips', 'dataBoard', 'ai', 'marketplaces'] as const
-    for (const key of serviceKeys) {
-      // Map camelCase to SNAKE_CASE for env var names
-      const envKey = `IMBRACE_${key.replace(/[A-Z]/g, letter => `_${letter.toUpperCase()}`).toUpperCase()}_URL`
-      if (env[envKey]) {
-        envServices[key] = env[envKey]
-      }
-    }
-
-    const mergedServices = { ...envServices, ...opts?.services }
+    const mergedServices = opts?.services ?? {}
 
     // ── Resolve environment & service URLs ──────────────────────────────────
-    // Ưu tiên: code opts > process.env > default 'stable'
-    const envName = opts?.env ?? (env.IMBRACE_ENV as Environment) ?? 'stable'
-    const gatewayOverride = opts?.gateway ?? env.IMBRACE_GATEWAY_URL
+    const envName = opts?.env ?? 'stable'
+    const gatewayOverride = opts?.gateway
 
     const basePreset: Environment | EnvironmentPreset = gatewayOverride
       ? { ...ENVIRONMENTS[envName], gateway: gatewayOverride }
@@ -120,16 +105,10 @@ export class ImbraceClient {
 
     const urls = resolveServiceUrls(basePreset, mergedServices)
 
-    // ── Resolve API key — access_token takes priority over env IMBRACE_API_KEY ─
-    // If access_token is explicitly provided, don't fall back to IMBRACE_API_KEY from env.
-    const resolvedApiKey = opts?.apiKey !== undefined
-      ? opts.apiKey
-      : opts?.accessToken !== undefined
-        ? undefined
-        : (env.IMBRACE_API_KEY as string | undefined)
+    const resolvedApiKey = opts?.apiKey
 
     // ── Warn when no credentials ─────────────────────────────────────────────
-    if (!resolvedApiKey && !opts?.accessToken && !env.IMBRACE_ACCESS_TOKEN) {
+    if (!resolvedApiKey && !opts?.accessToken) {
       console.warn(
         '[ImbraceClient] No credentials provided. ' +
         'Pass accessToken= (user login) or apiKey= (server-to-server).'
@@ -146,10 +125,10 @@ export class ImbraceClient {
       organizationId: opts?.organizationId,
     })
 
-    // ── Wire resources với per-service base URL ──────────────────────────────
+    // ── Wire resources with per-service base URLs ────────────────────────────
 
     // Auth & Account → platform service
-    this.auth          = new AuthResource(this.http, urls.platform)
+    this.auth          = new AuthResource(this.http, urls.platform, urls.gateway)
     this.account       = new AccountResource(this.http, urls.platform)
 
     // Platform group
@@ -165,7 +144,7 @@ export class ImbraceClient {
     this.messages      = new MessagesResource(this.http, urls.channelService)
     this.categories    = new CategoriesResource(this.http, urls.channelService)
 
-    // Workflows cần cả channel-service và platform (n8n)
+    // Workflows requires both channel-service (automation) and platform (n8n)
     this.workflows     = new WorkflowsResource(this.http, urls.channelService, urls.platform)
 
     // Dedicated services
@@ -173,7 +152,7 @@ export class ImbraceClient {
     this.ips           = new IpsResource(this.http, urls.ips)
     this.ai            = new AiResource(this.http, urls.ai)
 
-    // Marketplace cần cả marketplaces service và platform/v2/marketplaces
+    // Marketplace requires both the marketplaces service and platform/v2/marketplaces sub-paths
     this.marketplace   = new MarketplaceResource(this.http, urls.marketplaces, urls.platform)
 
     // Agent templates + use-cases
@@ -194,7 +173,7 @@ export class ImbraceClient {
 
   // ── Convenience auth ────────────────────────────────────────────────────────
 
-  /** Login bằng email/password, tự lưu access token vào client. */
+  /** Sign in with email/password and store the returned access token. */
   public async login(email: string, password: string): Promise<Record<string, unknown>> {
     const res = await this.auth.signIn({ email, password })
     const token = (res as Record<string, unknown>).accessToken
@@ -204,7 +183,7 @@ export class ImbraceClient {
     return res as Record<string, unknown>
   }
 
-  /** Login bằng OTP (sau khi gọi requestOtp), tự lưu access token. */
+  /** Sign in with an OTP (after calling requestOtp) and store the returned access token. */
   public async loginWithOtp(email: string, otp: string): Promise<Record<string, unknown>> {
     const res = await this.auth.signinWithEmail(email, otp)
     const token = (res as Record<string, unknown>).accessToken
@@ -214,7 +193,7 @@ export class ImbraceClient {
     return res as Record<string, unknown>
   }
 
-  /** Gửi OTP về email. Dùng trước loginWithOtp(). */
+  /** Send an OTP to the given email. Call before loginWithOtp(). */
   public async requestOtp(email: string): Promise<void> {
     await this.auth.signinEmailRequest(email)
   }

@@ -5,8 +5,7 @@ from imbrace import ImbraceClient
 
 def test_list_ap_workflows_develop(httpx_mock: HTTPXMock):
     client = ImbraceClient(env="develop", api_key="test_key")
-    # IPS URL on develop is specific LAN host
-    ips_url = "http://ips.dev.imbrace.lan/ips/v1"
+    ips_url = "https://app-gateway.dev.imbrace.co/ips/v1"
     httpx_mock.add_response(url=f"{ips_url}/ap-workflows/all", json={"data": [{"id": "wf_1"}]})
     
     result = client.ips.list_ap_workflows()
@@ -23,7 +22,7 @@ def test_list_schedulers_stable(httpx_mock: HTTPXMock):
 
 def test_delete_scheduler(httpx_mock: HTTPXMock):
     client = ImbraceClient(env="develop", api_key="test_key")
-    ips_url = "http://ips.dev.imbrace.lan/ips/v1"
+    ips_url = "https://app-gateway.dev.imbrace.co/ips/v1"
     httpx_mock.add_response(url=f"{ips_url}/schedulers/sch_1", method="DELETE", json={"success": True})
     
     result = client.ips.delete_scheduler("sch_1")

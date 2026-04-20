@@ -1,4 +1,5 @@
 import { HttpTransport } from "../http.js"
+import type { Team, PagedResponse } from "../types/index.js"
 
 export class TeamsResource {
   /**
@@ -9,7 +10,7 @@ export class TeamsResource {
   private get v1() { return `${this.base}/v1` }
   private get v2() { return `${this.base}/v2` }
 
-  async list(params?: { type?: string; limit?: number; skip?: number; q?: string }) {
+  async list(params?: { type?: string; limit?: number; skip?: number; q?: string }): Promise<PagedResponse<Team>> {
     const url = new URL(`${this.v2}/teams`)
     if (params?.type)   url.searchParams.set("type",  params.type)
     if (params?.limit)  url.searchParams.set("limit", String(params.limit))
@@ -18,11 +19,11 @@ export class TeamsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async listMy() {
+  async listMy(): Promise<Team[]> {
     return this.http.getFetch()(`${this.v2}/teams/my`, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: Record<string, unknown>) {
+  async create(body: Record<string, unknown>): Promise<Team> {
     return this.http.getFetch()(`${this.v1}/teams`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,7 +31,7 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async update(teamId: string, body: Record<string, unknown>) {
+  async update(teamId: string, body: Record<string, unknown>): Promise<Team> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -42,7 +43,7 @@ export class TeamsResource {
     await this.http.getFetch()(`${this.v2}/teams/${teamId}`, { method: "DELETE" })
   }
 
-  async addUsers(body: { team_id: string; user_ids: string[] }) {
+  async addUsers(body: { team_id: string; user_ids: string[] }): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/_add_users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,7 +51,7 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async removeUsers(body: { user_ids: string[] }) {
+  async removeUsers(body: { user_ids: string[] }): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/_remove_users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,15 +59,15 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async getUsers(teamId: string) {
+  async getUsers(teamId: string): Promise<Record<string, unknown>[]> {
     return this.http.getFetch()(`${this.v1}/team/${teamId}/users`, { method: "GET" }).then(r => r.json())
   }
 
-  async getWorkflows(teamId: string) {
+  async getWorkflows(teamId: string): Promise<Record<string, unknown>[]> {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  async join(body: Record<string, unknown>) {
+  async join(body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/_join_team`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -74,7 +75,7 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async leave(body: Record<string, unknown>) {
+  async leave(body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/_leave`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -82,7 +83,7 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async requestJoin(teamId: string, body: Record<string, unknown>) {
+  async requestJoin(teamId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}/join_request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,13 +91,13 @@ export class TeamsResource {
     }).then(r => r.json())
   }
 
-  async approveJoinRequest(teamId: string, teamUserId: string) {
+  async approveJoinRequest(teamId: string, teamUserId: string): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}/user/${teamUserId}/approve`, {
       method: "POST",
     }).then(r => r.json())
   }
 
-  async updateUserRole(teamId: string, teamUserId: string, body: Record<string, unknown>) {
+  async updateUserRole(teamId: string, teamUserId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}/user/${teamUserId}/role`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

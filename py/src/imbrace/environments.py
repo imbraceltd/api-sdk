@@ -20,10 +20,6 @@ class EnvironmentPreset:
 ENVIRONMENTS: dict[str, EnvironmentPreset] = {
     "develop": EnvironmentPreset(
         gateway="https://app-gateway.dev.imbrace.co",
-        service_hosts=ServiceHosts(
-            ips="http://ips.dev.imbrace.lan",
-            data_board="http://data-board.dev.imbrace.lan",
-        ),
     ),
     "sandbox": EnvironmentPreset(
         gateway="https://app-gateway.sandbox.imbrace.co",

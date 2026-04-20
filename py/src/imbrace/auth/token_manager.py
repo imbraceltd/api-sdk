@@ -1,37 +1,28 @@
 from typing import Optional
 import threading
 
-# Quản lý access token cho authentication
-# Thread-safe implementation
 class TokenManager:
-    """Thread-safe TokenManager for Imbrace SDK.
-
-    Quản lý access token với thread safety.
-    """
+    """Thread-safe access token store for the Imbrace SDK."""
 
     def __init__(self, initial_token: Optional[str] = None):
         self._token = initial_token
         self._lock = threading.Lock()
 
     def set_token(self, token: str) -> None:
-        """Thiết lập access token mới với thread safety.
+        """Set the active access token.
 
         Args:
-            token: Access token mới
+            token: New access token value.
         """
         with self._lock:
             self._token = token
 
     def get_token(self) -> Optional[str]:
-        """Lấy access token hiện tại với thread safety.
-
-        Returns:
-            Access token hoặc None nếu chưa có
-        """
+        """Return the current access token, or None if not set."""
         with self._lock:
             return self._token
 
     def clear(self) -> None:
-        """Xóa access token hiện tại với thread safety."""
+        """Clear the stored access token."""
         with self._lock:
             self._token = None

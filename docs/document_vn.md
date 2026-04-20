@@ -18,6 +18,11 @@
 
 ## 1. Tổng Quan Kiến Trúc
 
+### Phạm vi
+
+- SDK chi gom **App Gateway + Server Gateway**.
+- **Journey API** và các path HTTP riêng cho **n8n** không thuộc phạm vi repo này (xem [SDK_OVERVIEW.md](./SDK_OVERVIEW.md)).
+
 ### Cấu trúc SDK
 
 ```
@@ -38,9 +43,6 @@ sdk/
 │   │   ├── client.py
 │   │   └── resources/         (ai_agent, boards, categories, marketplace,
 │   │                            platform, schedule)
-│   ├── journey/               ← Journey API (temp token auth)
-│   │   ├── client.py
-│   │   └── resources/         (ai_assistant, apps, boards, workflow)
 │   ├── types/                 ← shared type definitions
 │   └── client.py              ← ImbraceClient (unified entry point)
 │
@@ -59,12 +61,14 @@ sdk/
     │   ├── client.ts
     │   └── resources/         (ai-agent, boards, categories, marketplace,
     │                            platform, schedule)
-    ├── journey/               ← Journey API
-    │   ├── client.ts
-    │   └── resources/         (ai-assistant, apps, boards, workflow)
     ├── types/                 ← shared type definitions
     └── client.ts              ← ImbraceClient (unified entry point)
 ```
+
+### App Gateway và Server Gateway (khác nhau nhanh)
+
+- App Gateway: `x-access-token` = access token; path `/v1|v2|v3/backend/...`.
+- Server Gateway: `x-access-token` = API key; path `/3rd/...`.
 
 ### Tầng Test
 
@@ -74,7 +78,7 @@ sdk/
 │  → Mock toàn bộ HTTP: pytest-httpx (Python) / vitest   │
 │  → Chạy offline, chạy trên CI/CD                        │
 │  → Kiểm tra: logic SDK, headers, URL, params, errors   │
-├─────────────────────────────────────────────────────────┤
+│  ├─────────────────────────────────────────────────────────┤
 │  INTEGRATION TESTS  (cần server thật + API key hợp lệ) │
 │  → Gọi thật tới app-gatewayv2.imbrace.co               │
 │  → Tự động skip nếu không có IMBRACE_API_KEY            │
@@ -136,6 +140,9 @@ pytest tests/unit -k "boards" -v
 
 ### 3.2 Integration Tests (cần API key thật)
 
+Kiểm thử tích hợp gọi thật tới API Gateway. Xem chi tiết danh sách tất cả các bài test tại:
+👉 **[INTEGRATION_TESTS_VN.md](./INTEGRATION_TESTS_VN.md)**
+
 ```bash
 cd D:/HUANGJUNFENG/IMBrace/sdk/py
 
@@ -145,8 +152,6 @@ IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 # Cách 2: Dùng .env (SDK tự đọc)
 pytest tests/integration -v -m integration
 ```
-
-> Test tự động **skip** nếu `IMBRACE_API_KEY` không được set.
 
 ### 3.3 Chạy tất cả (unit + integration)
 
@@ -196,6 +201,9 @@ npm run test:watch
 ```
 
 ### 4.3 Integration Tests (cần API key thật)
+
+Kiểm thử tích hợp gọi thật tới API Gateway. Xem chi tiết danh sách tất cả các bài test tại:
+👉 **[INTEGRATION_TESTS_VN.md](./INTEGRATION_TESTS_VN.md)**
 
 ```bash
 cd D:/HUANGJUNFENG/IMBrace/sdk/ts
@@ -295,55 +303,7 @@ Dùng `pytest-httpx` để giả lập server — không có request thật.
 | `test_sessions.py` | List sessions, directory filter |
 | `test_settings.py` | Message templates, users, bulk invite |
 | `test_teams.py` | List, my teams, add/remove users |
-| `test_workflows.py` | List, tag filter, channel automation, n8n |
-
----
-
-### Python — Integration Test
-
-#### `tests/integration/test_integration.py`
-
-Gọi thật vào `https://app-gatewayv2.imbrace.co`. Tự skip nếu `IMBRACE_API_KEY` trống.
-
-| Test case | Endpoint |
-|---|---|
-| `test_get_account` | `GET /v1/backend/account` |
-| `test_list_channels` | `GET /v1/backend/channels?type=web` |
-| `test_list_agents` | `GET /v2/backend/templates` |
-| `test_list_teams` | `GET /v2/backend/teams` |
-| `test_list_contacts` | `GET /v1/backend/contacts?limit=5` |
-| `test_get_views_count` | `GET /v2/backend/team_conversations/_views_count` |
-| `test_list_messages` | `GET /v1/backend/conversation_messages?limit=5` |
-| `test_list_boards` | `GET /v1/backend/board` |
-| `test_list_users` | `GET /v1/backend/users?limit=5` |
-| `test_list_message_templates` | `GET /v2/backend/message_templates` |
-
----
-
-### TypeScript — Unit Tests
-
-Cấu trúc tương đương Python. Mock `globalThis.fetch` thay vì `pytest-httpx`.
-
-| File | Tương đương Python |
-|---|---|
-| `errors.test.ts` | `test_exceptions.py` |
-| `http.test.ts` | `test_http.py` |
-| `client.test.ts` | `test_client.py` |
-| `auth.test.ts` | `test_auth.py` |
-| `resources/*.test.ts` (19 files) | `resources/test_*.py` |
-
-Điểm khác biệt trong `http.test.ts`:
-- Mock qua `globalThis.fetch`
-- `AbortController` kiểm tra timeout
-- TS có thêm `ips.test.ts`, `marketplace.test.ts`, `platform.test.ts`
-
----
-
-### TypeScript — Integration Test
-
-#### `tests/integration/integration.test.ts`
-
-Tương đương Python. Tự skip nếu `IMBRACE_API_KEY` không set.
+| `test_workflows.py` | List, tag filter, channel automation, create/update |
 
 ---
 

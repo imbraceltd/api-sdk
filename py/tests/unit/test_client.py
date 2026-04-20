@@ -14,7 +14,7 @@ def test_default_env_is_stable():
 def test_env_develop():
     client = ImbraceClient(env="develop", api_key="test_key")
     assert client.auth._base == "https://app-gateway.dev.imbrace.co/platform"
-    assert client.ips._base == "http://ips.dev.imbrace.lan/ips/v1"
+    assert client.ips._base == "https://app-gateway.dev.imbrace.co/ips/v1"
 
 
 def test_env_sandbox():
@@ -22,11 +22,9 @@ def test_env_sandbox():
     assert client.auth._base == "https://app-gateway.sandbox.imbrace.co/platform"
 
 
-def test_gateway_override_via_env():
-    os.environ["IMBRACE_GATEWAY_URL"] = "https://my-proxy.com"
-    client = ImbraceClient(api_key="test_key")
+def test_gateway_override_via_constructor():
+    client = ImbraceClient(api_key="test_key", gateway="https://my-proxy.com")
     assert client.auth._base == "https://my-proxy.com/platform"
-    os.environ.pop("IMBRACE_GATEWAY_URL")
 
 
 def test_organization_id_header():

@@ -12,7 +12,6 @@ def client():
     return ImbraceClient(api_key="test_key")
 
 def test_complete(httpx_mock: HTTPXMock, client):
-    # Cập nhật payload với đầy đủ các trường bắt buộc của Pydantic Completion model
     payload = {
         "id": "chat_123",
         "model": "gpt-4o",
@@ -31,13 +30,11 @@ def test_complete(httpx_mock: HTTPXMock, client):
         model="gpt-4o",
         messages=[{"role": "user", "content": "Hi"}]
     )
-    # Truy cập qua object property thay vì subscript
     assert result.choices[0].message.content == "Hello!"
     req = httpx_mock.get_requests()[0]
     assert req.method == "POST"
 
 def test_embed(httpx_mock: HTTPXMock, client):
-    # Cập nhật payload cho Embedding model
     payload = {
         "model": "text-embedding-3-small",
         "data": [{"index": 0, "embedding": [0.1, 0.2], "object": "embedding"}]

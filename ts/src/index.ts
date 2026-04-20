@@ -2,8 +2,6 @@
 export * from "./types/index.js"
 // Errors
 export * from "./errors.js"
-// Auth
-export * from "./auth/token-manager.js"
 // Resources
 export * from "./resources/auth.js"
 export * from "./resources/account.js"

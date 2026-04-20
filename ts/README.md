@@ -276,14 +276,14 @@ npm run test       # run tests
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `IMBRACE_ENV` | No | `stable` | Chọn môi trường (`develop`, `sandbox`, `stable`) |
-| `IMBRACE_GATEWAY_URL` | No | — | Ghi đè URL Gateway (ví dụ trỏ về local hoặc custom gateway) |
-| `IMBRACE_API_KEY` | Yes* | — | API Key từ Imbrace Gateway (server-side) |
+| `IMBRACE_ENV` | No | `stable` | Select environment (`develop`, `sandbox`, `stable`) |
+| `IMBRACE_GATEWAY_URL` | No | — | Override Gateway URL (e.g., point to local or custom gateway) |
+| `IMBRACE_API_KEY` | Yes* | — | API Key from Imbrace Gateway (server-side) |
 
 ### Configuration Priority
-SDK sẽ đọc cấu hình theo thứ tự ưu tiên sau:
-1.  **Explicit Options**: Truyền trực tiếp vào `new ImbraceClient({ env: 'sandbox', gateway: '...' })`.
-2.  **Environment Variables**: Đọc từ `.env` hoặc hệ thống (`IMBRACE_ENV`, `IMBRACE_GATEWAY_URL`).
-3.  **Defaults**: Mặc định là môi trường `stable` với gateway `https://app-gateway.imbrace.co`.
+The SDK will read configuration in the following priority order:
+1.  **Explicit Options**: Passed directly into `new ImbraceClient({ env: 'sandbox', gateway: '...' })`.
+2.  **Environment Variables**: Read from `.env` or system (`IMBRACE_ENV`, `IMBRACE_GATEWAY_URL`).
+3.  **Defaults**: Defaults to `stable` environment with gateway `https://app-gateway.imbrace.co`.
 
 *Or pass `accessToken` for client-side usage.

@@ -32,7 +32,7 @@ Our SDKs are built with a focus on **type safety**, **predictability**, and **pe
 
 Dive deep into the implementation and usage details:
 
-*   📖 **[Core Guide (Vietnamese)](./docs/document.md)** — Comprehensive guide on SDK logic and testing.
+*   📖 **[Core Guide](./docs/document_en.md)** — Comprehensive guide on SDK logic and testing.
 *   📘 **[TypeScript SDK Guide](./ts/README.md)** — Installation and usage for JS/TS developers.
 *   🐍 **[Python SDK Guide](./py/README.md)** — Integration details for Python/FastAPI/Django.
 
@@ -57,7 +57,7 @@ pip install -e ".[dev]"
 
 ## 🧪 Quality Assurance
 
-We maintain a high standard of code quality through rigorous testing. See the [**Testing Documentation**](./docs/document.md) for:
+We maintain a high standard of code quality through rigorous testing. See the [**Testing Documentation**](./docs/document_en.md) for:
 - ✅ **Unit Tests**: Mocked HTTP layers for lightning-fast local validation.
 - 🌐 **Integration Tests**: End-to-end verification against `app-gatewayv2.imbrace.co`.
 - 🛠️ **Linting**: Consistent code style enforced by ESLint, Ruff, and MyPy.

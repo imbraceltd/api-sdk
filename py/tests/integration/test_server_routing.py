@@ -1,9 +1,9 @@
-"""Integration test — Nhiệm vụ 3: phải gọi đúng server.
+"""Integration test — Task 3: requests must reach the correct server.
 
-Kiểm tra:
-- Service base URLs trỏ đúng gateway + path (env develop)
-- Thực sự gọi được từng service endpoint và nhận 200/2xx (không phải 404/502)
-- API Key được gắn đúng header x-api-key (không phải x-access-token)
+Checks:
+- Service base URLs point to the right gateway + path (develop env)
+- Each service endpoint is reachable and returns 200/2xx (not 404/502)
+- API Key is sent in the correct x-api-key header (not x-access-token)
 """
 import pytest
 from imbrace import ImbraceClient
@@ -35,12 +35,12 @@ def test_ai_url(client):
 
 
 def test_boards_url(client):
-    # Trong develop, data-board dùng direct LAN host
+    # In develop, data-board uses a direct LAN host instead of the gateway
     assert "data-board" in client.boards._base, client.boards._base
 
 
 def test_ips_url(client):
-    # Trong develop, IPS dùng direct LAN host
+    # In develop, IPS uses a direct LAN host instead of the gateway
     assert "ips" in client.ips._base, client.ips._base
 
 
@@ -56,24 +56,24 @@ def _is_jwt(token: str) -> bool:
 
 
 def test_platform_responds(api_key):
-    """platform service reachable — trả về 401 auth error (không phải 404/502 routing error)."""
+    """platform service is reachable — returns a 401 auth error (not a 404/502 routing error)."""
     import httpx
     gw = "https://app-gateway.dev.imbrace.co"
-    # Ping platform với API key — expect 401 (authed service) chứ không phải 404/502 (routing sai)
+    # Expect 401 (auth-gated service), not 404/502 (wrong routing)
     r = httpx.get(
         f"{gw}/platform/v1/health",
         headers={"x-api-key": api_key},
         timeout=10,
     )
-    assert r.status_code != 404, f"platform/v1/health trả về 404 — routing sai: {r.text[:100]}"
-    assert r.status_code != 502, f"platform/v1/health trả về 502 — service down: {r.text[:100]}"
+    assert r.status_code != 404, f"platform/v1/health returned 404 — routing error: {r.text[:100]}"
+    assert r.status_code != 502, f"platform/v1/health returned 502 — service down: {r.text[:100]}"
     assert r.status_code in (200, 201, 401, 403), (
         f"Unexpected status {r.status_code}: {r.text[:100]}"
     )
 
 
 def test_channel_service_responds(access_token):
-    """channel-service trả về 200 — acc_ và JWT tokens đều được chấp nhận."""
+    """channel-service returns 200 — both acc_ and JWT tokens are accepted."""
     import os
     org_id = os.environ.get("IMBRACE_ORGANIZATION_ID")
     client = ImbraceClient(
@@ -88,7 +88,7 @@ def test_channel_service_responds(access_token):
 
 
 def test_api_key_header_not_access_token(api_key):
-    """x-api-key được gắn đúng; x-access-token không được gắn khi chỉ dùng api_key."""
+    """x-api-key is set correctly; x-access-token must not be set when only api_key is used."""
     import httpx
     from unittest.mock import patch, MagicMock
 
@@ -99,7 +99,6 @@ def test_api_key_header_not_access_token(api_key):
 
     def capture(*args, **kwargs):
         captured["headers"] = dict(kwargs.get("headers", {}))
-        # Gọi thật để lấy response
         return original_request(*args, **kwargs)
 
     with patch.object(client.http._client, "request", side_effect=capture):

@@ -28,7 +28,7 @@ class AiResource:
         max_tokens: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Completion:
-        """Tạo chat completion."""
+        """Create chat completion."""
         body: Dict[str, Any] = {"model": model, "messages": messages, "stream": False}
         if temperature is not None:
             body["temperature"] = temperature
@@ -77,7 +77,7 @@ class AiResource:
                             continue
 
     def embed(self, model: str, input: List[str]) -> Embedding:
-        """Tạo embeddings cho danh sách text."""
+        """Create embeddings for a list of text."""
         res = self._http.request("POST", f"{self._v3}/embeddings", json={"model": model, "input": input}).json()
         if "data" in res and "success" in res:
             return Embedding(**res["data"])
@@ -234,7 +234,7 @@ class AiResource:
 
 
 class AsyncAiResource:
-    """AI domain — Async. Full parity với AiResource sync."""
+    """AI domain — Async. Full parity with sync AiResource."""
 
     def __init__(self, http: AsyncHttpTransport, base: str):
         self._http = http
@@ -258,7 +258,7 @@ class AsyncAiResource:
         max_tokens: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Completion:
-        """Tạo chat completion (bất đồng bộ)."""
+        """Create chat completion (async)."""
         body: Dict[str, Any] = {"model": model, "messages": messages, "stream": False}
         if temperature is not None:
             body["temperature"] = temperature
@@ -279,7 +279,7 @@ class AsyncAiResource:
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
     ) -> AsyncIterator[StreamChunk]:
-        """Stream chat completion (bất đồng bộ)."""
+        """Stream chat completion (async)."""
         import httpx
         body: Dict[str, Any] = {"model": model, "messages": messages, "stream": True}
         if temperature is not None:
@@ -308,7 +308,7 @@ class AsyncAiResource:
                             continue
 
     async def embed(self, model: str, input: List[str]) -> Embedding:
-        """Tạo embeddings (bất đồng bộ)."""
+        """Create embeddings (async)."""
         res = await self._http.request("POST", f"{self._v3}/embeddings", json={"model": model, "input": input})
         data = res.json()
         if "data" in data and "success" in data:

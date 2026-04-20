@@ -1,20 +1,20 @@
-// Imbrace TS SDK — Basic usage với Imbrace Gateway thực
+// Imbrace TS SDK — Basic usage with real Imbrace Gateway
 import { ImbraceClient, extractApiKey } from "../src/index.js"
 
-// --- Cách 1: Dùng thẳng API Key string ---
+// --- Option 1: Using the API Key string directly ---
 const client = new ImbraceClient({
   apiKey: process.env.IMBRACE_API_KEY,
-  // baseUrl mặc định: https://app-gatewayv2.imbrace.co
+  // Default baseUrl: https://app-gatewayv2.imbrace.co
 })
 
-// Hoặc --- Cách 2: Từ response của auth endpoint ---
+// Or --- Option 2: From the auth endpoint response ---
 // const authResponse = await fetch("https://app-gatewayv2.imbrace.co/auth/key")
 //   .then(r => r.json())
 // const client = new ImbraceClient({
-//   apiKey: extractApiKey(authResponse), // lấy authResponse.apiKey.apiKey
+//   apiKey: extractApiKey(authResponse), // gets authResponse.apiKey.apiKey
 // })
 
-// Optional: verify server is reachable trước
+// Optional: verify server is reachable first
 await client.init()
 
 // List all sessions

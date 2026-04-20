@@ -4,13 +4,11 @@ import os
 
 load_dotenv()
 
-# --- Cách 1: Dùng thẳng API Key string ---
 client = ImbraceClient(
     api_key=os.getenv("IMBRACE_API_KEY"),
-    # base_url mặc định: https://app-gatewayv2.imbrace.co
 )
 
-# Hoặc --- Cách 2: Từ response của auth endpoint ---
+
 # import httpx
 # res = httpx.get(
 #     "https://app-gatewayv2.imbrace.co/auth/key",

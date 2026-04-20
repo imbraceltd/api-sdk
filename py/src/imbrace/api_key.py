@@ -2,7 +2,7 @@ from typing import Optional, TypedDict
 
 
 class ImbraceApiKey(TypedDict):
-    """Shape của object apiKey trong response từ Imbrace Gateway."""
+    """Shape of the apiKey object in the response from Imbrace Gateway."""
     _id: str
     apiKey: str
     organization_id: str
@@ -15,13 +15,13 @@ class ImbraceApiKey(TypedDict):
 
 
 class ImbraceApiKeyResponse(TypedDict):
-    """Response đầy đủ từ auth endpoint của Imbrace Gateway."""
+    """Full response from the Imbrace Gateway auth endpoint."""
     apiKey: ImbraceApiKey
     expires_in: int
 
 
 def extract_api_key(res: ImbraceApiKeyResponse) -> str:
-    """Lấy giá trị key thật từ API Key response.
+    """Extract the actual key value from the API Key response.
 
     Example:
         res = requests.get(".../auth/key").json()

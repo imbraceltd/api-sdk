@@ -4,7 +4,7 @@
  * Run with:
  *   npm run test:integration
  *
- * Hoặc override env inline:
+ * Or override env inline:
  *   IMBRACE_API_KEY=api_xxx npm run test:integration
  *
  * Get a new API key:
@@ -35,7 +35,7 @@ beforeAll(() => {
   }
   client = new ImbraceClient({
     env: "develop",
-    gateway: BASE_URL,       // override gateway nếu IMBRACE_BASE_URL set trong .env
+    gateway: BASE_URL,       // override gateway if IMBRACE_BASE_URL is set in .env
     apiKey: API_KEY,
     organizationId: ORG_ID,
   })
@@ -46,7 +46,7 @@ function skipIfNoKey() {
   return false
 }
 
-// ── Account ──────────────────────────────────────────────────────────────────
+// ── Account 
 
 describe("Account (integration)", () => {
   it("getAccount() returns account data", async () => {
@@ -56,7 +56,7 @@ describe("Account (integration)", () => {
   })
 })
 
-// ── Channels ─────────────────────────────────────────────────────────────────
+// ── Channels 
 
 describe("Channels (integration)", () => {
   it("list() returns channel list", async () => {
@@ -66,7 +66,7 @@ describe("Channels (integration)", () => {
   })
 })
 
-// ── Agents ───────────────────────────────────────────────────────────────────
+// ── Agents 
 
 describe("Agent (integration)", () => {
   it("list() returns templates", async () => {
@@ -76,7 +76,7 @@ describe("Agent (integration)", () => {
   })
 })
 
-// ── Teams ─────────────────────────────────────────────────────────────────────
+// ── Teams   
 
 describe("Teams (integration)", () => {
   it("list() returns teams", async () => {
@@ -92,7 +92,7 @@ describe("Teams (integration)", () => {
   })
 })
 
-// ── Contacts ─────────────────────────────────────────────────────────────────
+// ── Contacts  
 
 describe("Contacts (integration)", () => {
   it("list() returns contacts", async () => {
@@ -102,7 +102,7 @@ describe("Contacts (integration)", () => {
   })
 })
 
-// ── Conversations ─────────────────────────────────────────────────────────────
+// ── Conversations   
 
 describe("Conversations (integration)", () => {
   it("getViewsCount() returns counts", async () => {
@@ -112,7 +112,7 @@ describe("Conversations (integration)", () => {
   })
 })
 
-// ── Messages ─────────────────────────────────────────────────────────────────
+// ── Messages  
 
 describe("Messages (integration)", () => {
   it("list() returns messages", async () => {
@@ -122,7 +122,7 @@ describe("Messages (integration)", () => {
   })
 })
 
-// ── Boards ────────────────────────────────────────────────────────────────────
+// ── Boards 
 
 describe("Boards (integration)", () => {
   it("list() returns boards", async () => {
@@ -132,7 +132,7 @@ describe("Boards (integration)", () => {
   })
 })
 
-// ── Settings ─────────────────────────────────────────────────────────────────
+// ── Settings 
 
 describe("Settings (integration)", () => {
   it("listUsers() returns users", async () => {

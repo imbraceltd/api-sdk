@@ -5,7 +5,7 @@ from ..http import HttpTransport, AsyncHttpTransport
 class AgentResource:
     """Agent / UseCase templates — Sync.
 
-    Quản lý 2 nhóm endpoint:
+    Manages 2 groups of endpoints:
     - Marketplace templates: {marketplaces}/v1/market-places/templates
     - Use-cases (AI): {gateway}/v3/marketplaces/use-cases
 

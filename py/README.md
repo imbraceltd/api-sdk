@@ -263,5 +263,12 @@ async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
+| `IMBRACE_ENV` | No | `stable` | Select environment (`develop`, `sandbox`, `stable`) |
+| `IMBRACE_GATEWAY_URL` | No | — | Override Gateway URL (e.g., point to local or custom gateway) |
 | `IMBRACE_API_KEY` | Yes | — | API Key from Imbrace Gateway |
-| `IMBRACE_BASE_URL` | No | `https://app-gatewayv2.imbrace.co` | Gateway base URL |
+
+### Configuration Priority
+The SDK will read configuration in the following priority order:
+1.  **Explicit Options**: Passed directly into `ImbraceClient(env='sandbox', gateway='...')`.
+2.  **Environment Variables**: Read from `.env` (via `python-dotenv`) or system (`IMBRACE_ENV`, `IMBRACE_GATEWAY_URL`).
+3.  **Defaults**: Defaults to `stable` environment with gateway `https://app-gateway.imbrace.co`.

@@ -1,11 +1,11 @@
 /**
  * Imbrace TypeScript SDK — Frontend demo
- * Dùng cho: React, Next.js, Vue, Svelte, hoặc Node.js script
+ * Used for: React, Next.js, Vue, Svelte, or Node.js script
  */
 import { ImbraceClient } from "imbrace-ts"
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-// Tự đọc IMBRACE_API_KEY, IMBRACE_BASE_URL từ env
+// Automatically reads IMBRACE_API_KEY, IMBRACE_BASE_URL from env
 const client = new ImbraceClient({
   // apiKey: process.env.IMBRACE_API_KEY,          // server-side
   // accessToken: "eyJhbGci...",                   // client-side (browser)
@@ -39,7 +39,7 @@ console.log("📦 Order:", order.id)
 const channels = await client.channel.listChannels({ type: "group" })
 console.log("💬 Channels:", channels.data.length)
 
-// Gửi tin nhắn
+// Send message
 const msg = await client.channel.sendMessage("conv_123", {
   content: "Hello from SDK!",
   type: "text",

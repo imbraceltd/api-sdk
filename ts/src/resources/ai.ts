@@ -3,8 +3,8 @@ import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChun
 
 export class AiResource {
   /**
-   * @param base - Fully resolved AI base URL (gateway/ai)
-   *   Version (v2/v3) được thêm trong từng method.
+   * @param base - Fully resolved AI base URL (gateway/ai).
+   *   Version (v2/v3) is appended per method.
    */
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 

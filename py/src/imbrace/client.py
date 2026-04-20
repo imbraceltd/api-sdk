@@ -1,13 +1,12 @@
 from __future__ import annotations
 from typing import Optional, Union
-import os
 import warnings
 
 from .auth.token_manager import TokenManager
 from .http import HttpTransport
 from .environments import EnvironmentPreset, ServiceHosts, ENVIRONMENTS
 from .service_registry import resolve_service_urls
-from .resources.auth import AuthResource
+from .resources.auth import AuthResource, SignInResponse, OtpSignInResponse
 from .resources.account import AccountResource
 from .resources.organizations import OrganizationsResource
 from .resources.agent import AgentResource
@@ -61,27 +60,10 @@ class ImbraceClient:
         # Legacy compat — takes precedence over env if set
         base_url: Optional[str] = None,
     ):
-        # If access_token is explicitly provided, don't fall back to IMBRACE_API_KEY from env
-        # — the caller has chosen access_token mode.
-        if api_key is not None:
-            resolved_key = api_key
-        elif access_token is None:
-            resolved_key = os.environ.get("IMBRACE_API_KEY")
-        else:
-            resolved_key = None
-        resolved_env = env or os.environ.get("IMBRACE_ENV") or "stable"
-        resolved_gateway = base_url or gateway or os.environ.get("IMBRACE_GATEWAY_URL")
-
-        # 1. Collect overrides from environment variables (e.g. IMBRACE_IPS_URL)
-        env_services = {}
-        service_keys = ["platform", "channel_service", "ips", "data_board", "ai", "marketplaces"]
-        for key in service_keys:
-            env_val = os.environ.get(f"IMBRACE_{key.upper()}_URL")
-            if env_val:
-                env_services[key] = env_val
-
-        # 2. Merge environment overrides with explicitly passed services
-        merged_services = {**env_services, **(services or {})}
+        resolved_key = api_key
+        resolved_env = env or "stable"
+        resolved_gateway = base_url or gateway
+        merged_services = services or {}
 
         # Resolve preset
         if resolved_gateway:
@@ -95,7 +77,7 @@ class ImbraceClient:
 
         urls = resolve_service_urls(preset, merged_services)
 
-        if not resolved_key and not access_token and not os.environ.get("IMBRACE_ACCESS_TOKEN"):
+        if not resolved_key and not access_token:
             warnings.warn(
                 "ImbraceClient: no credentials provided. "
                 "Pass access_token= (user login) or api_key= (server-to-server).",
@@ -112,7 +94,7 @@ class ImbraceClient:
         )
 
         # Auth & Account → platform service
-        self.auth          = AuthResource(self.http, urls.platform)
+        self.auth          = AuthResource(self.http, urls.platform, urls.gateway)
         self.account       = AccountResource(self.http, urls.platform)
 
         # Platform group
@@ -158,7 +140,7 @@ class ImbraceClient:
     # ── Convenience auth ──────────────────────────────────────────────────────
 
     def login(self, email: str, password: str) -> dict:
-        """Login bằng email/password, tự lưu access token vào client."""
+        """Sign in with email and password. Stores the returned access token on the client."""
         res = self.auth.sign_in(email, password)
         token = res.get("accessToken") or res.get("token") or res.get("access_token")
         if token:
@@ -166,7 +148,7 @@ class ImbraceClient:
         return res
 
     def login_with_otp(self, email: str, otp: str) -> dict:
-        """Login bằng OTP (sau khi gọi request_otp), tự lưu access token."""
+        """Sign in with an OTP code (call request_otp() first). Stores the returned access token."""
         res = self.auth.signin_with_email(email, otp)
         token = res.get("accessToken") or res.get("token") or res.get("access_token")
         if token:
@@ -174,12 +156,12 @@ class ImbraceClient:
         return res
 
     def request_otp(self, email: str) -> None:
-        """Gửi OTP về email. Dùng trước login_with_otp()."""
+        """Send a one-time password to the given email address."""
         self.auth.signin_email_request(email)
 
     def set_access_token(self, token: str) -> None:
         self.token_manager.set_token(token)
-        self.http.api_key = None  # Explicit access_token call switches off api_key mode
+        self.http.clear_api_key()
 
     def clear_access_token(self) -> None:
         self.token_manager.clear()

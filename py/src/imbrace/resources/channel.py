@@ -28,7 +28,7 @@ class ChannelResource:
         return f"{self._base}/v3"
 
     def list(self, type: Optional[str] = None) -> PagedResponse[Channel]:
-        """Lấy danh sách channels."""
+        """List channels."""
         params = {}
         if type:
             params["type"] = type
@@ -36,28 +36,28 @@ class ChannelResource:
         return PagedResponse[Channel](**res)
 
     def list_all(self, type: Optional[str] = None) -> Iterator[Channel]:
-        """Tự động duyệt qua tất cả channels (Smart Pagination)."""
+        """Automatically iterate through all channels (Smart Pagination)."""
         params = {}
         if type:
             params["type"] = type
         return self._http.iterate_paged("GET", f"{self._v1}/channels", model=Channel, params=params)
 
     def get(self, channel_id: str) -> Channel:
-        """Lấy thông tin chi tiết một channel."""
+        """Get detailed information for a single channel."""
         res = self._http.request("GET", f"{self._v1}/channels/{channel_id}").json()
         if "data" in res and "success" in res:
             return Channel(**res["data"])
         return Channel(**res)
 
     def create(self, body: Dict[str, Any]) -> Channel:
-        """Tạo channel mới."""
+        """Create a new channel."""
         res = self._http.request("POST", f"{self._v1}/channels", json=body).json()
         if "data" in res and "success" in res:
             return Channel(**res["data"])
         return Channel(**res)
 
     def update(self, channel_id: str, body: Dict[str, Any]) -> Channel:
-        """Cập nhật thông tin channel."""
+        """Update channel information."""
         res = self._http.request("PUT", f"{self._v1}/channels/{channel_id}", json=body).json()
         if "data" in res and "success" in res:
             return Channel(**res["data"])
@@ -216,7 +216,7 @@ class AsyncChannelResource:
         return PagedResponse[Channel](**res.json())
 
     async def list_all(self, type: Optional[str] = None) -> AsyncIterator[Channel]:
-        """Tự động duyệt qua tất cả channels (bất đồng bộ Smart Pagination)."""
+        """Automatically iterate through all channels (Async Smart Pagination)."""
         params = {}
         if type:
             params["type"] = type

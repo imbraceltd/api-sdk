@@ -81,7 +81,7 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/users/${userId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Organizations ──────────────────────────────────────────────────────────
+  // ─── Organizations 
 
   async listOrgs(params?: {
     limit?: number
@@ -109,7 +109,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Teams ──────────────────────────────────────────────────────────────────
+  // ─── Teams
 
   async listTeams(params?: { type?: string; limit?: number; skip?: number; q?: string }) {
     const url = new URL(`${this.v2}/teams`)
@@ -164,7 +164,7 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Permissions ────────────────────────────────────────────────────────────
+  // ─── Permissions  
 
   async listPermissions(userId: string): Promise<Permission[]> {
     return this.http.getFetch()(`${this.v1}/users/${userId}/permissions`, { method: "GET" }).then(r => r.json())
@@ -228,7 +228,7 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/n8n/workflows/${workflowId}`, { method: "DELETE" }).then(r => r.json())
   }
 
-  // ─── Knowledge ──────────────────────────────────────────────────────────────
+  // ─── Knowledge 
 
   async listKnowledge() {
     return this.http.getFetch()(`${this.v1}/knowledge`, { method: "GET" }).then(r => r.json())
@@ -241,13 +241,13 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Resources ──────────────────────────────────────────────────────────────
+  // ─── Resources 
 
   async listResources() {
     return this.http.getFetch()(`${this.v1}/resources`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Apps (journeys) ────────────────────────────────────────────────────────
+  // ─── Apps (journeys) 
 
   async listApps() {
     return this.http.getFetch()(`${this.v2}/apps`, { method: "GET" }).then(r => r.json())
@@ -261,7 +261,7 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/app/_menu_settings`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Contacts v2 ────────────────────────────────────────────────────────────
+  // ─── Contacts v2 
 
   async getContactV2(contactId: string) {
     return this.http.getFetch()(`${this.v2}/contacts/${contactId}`, { method: "GET" }).then(r => r.json())
@@ -275,7 +275,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Users (thêm) ───────────────────────────────────────────────────────────
+  // ─── Users (additional) ─────────────────────────────────────────────────────
 
   async suspendUser(body: { user_id: string }) {
     return this.http.getFetch()(`${this.v1}/users/_suspend`, {
@@ -306,7 +306,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Apps (thêm) ────────────────────────────────────────────────────────────
+  // ─── Apps (additional) ──────────────────────────────────────────────────────
 
   async updateApp(appId: string, body: Record<string, unknown>) {
     return this.http.getFetch()(`${this.v2}/apps/${appId}`, {
@@ -490,7 +490,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Organizations (thêm) ────────────────────────────────────────────────────
+  // ─── Organizations (additional) ─────────────────────────────────────────────
 
   async createAwsOrg(body: Record<string, unknown>) {
     return this.http.getFetch()(`${this.v1}/organizations/aws`, {
@@ -500,7 +500,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Workflows / n8n (thêm) ─────────────────────────────────────────────────
+  // ─── Workflows / n8n (additional) ──────────────────────────────────────────
 
   async listN8nNodeTypes(params?: { onlyLatest?: boolean }) {
     const url = new URL(`${this.v1}/n8n/node-types`)
@@ -534,7 +534,7 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/n8n/oauth1-credential/auth?id=${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Teams (thêm) ────────────────────────────────────────────────────────────
+  // ─── Teams (additional) ─────────────────────────────────────────────────────
 
   async updateTeamV1(teamId: string, body: Record<string, unknown>) {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}`, {

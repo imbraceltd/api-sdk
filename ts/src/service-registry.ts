@@ -1,17 +1,17 @@
 import { type Environment, type EnvironmentPreset, ENVIRONMENTS } from './environments.js'
 
 export interface ServiceUrls {
-  /** Gateway fallback — dùng cho health, license, và các endpoint chưa migrate */
+  /** Gateway fallback — used for health, license, and endpoints not yet migrated to a microservice */
   gateway: string
-  /** channel-service — version (v1/v2/v3) thêm trong từng method */
+  /** channel-service — version (v1/v2/v3) appended per method */
   channelService: string
-  /** platform — version (v1/v2) thêm trong từng method */
+  /** platform — version (v1/v2) appended per method */
   platform: string
-  /** ips/v1 — develop: ips.dev.imbrace.lan/ips/v1, các env khác: gateway/ips/v1 */
+  /** ips/v1 — develop: ips.dev.imbrace.lan/ips/v1, other envs: gateway/ips/v1 */
   ips: string
-  /** data-board — không có version prefix, path trực tiếp */
+  /** data-board — no version prefix; paths are used directly */
   dataBoard: string
-  /** ai — version (v2/v3) thêm trong từng method */
+  /** ai — version (v2/v3) appended per method */
   ai: string
   /** marketplaces/v1 — standalone marketplace service */
   marketplaces: string

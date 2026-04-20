@@ -15,21 +15,132 @@ export interface ThirdPartyTokenResponse {
   expires_in: number
 }
 
+export interface SignInResponse {
+  accessToken: string
+  token?: string
+  userId?: string
+  email?: string
+}
+
+export interface SignUpInput {
+  email: string
+  password: string
+  name: string
+  organizationName?: string
+}
+
+export interface SignUpResponse {
+  userId: string
+  email: string
+}
+
+export interface ForgotPasswordResponse {
+  message: string
+}
+
+export interface LoginProvider {
+  name: string
+  type: string
+  url?: string
+}
+
+export interface LoginProvidersResponse {
+  providers: LoginProvider[]
+}
+
+export interface SigninSSOInput {
+  code: string
+  state?: string
+  redirectUri?: string
+}
+
+export interface SSOResponse {
+  accessToken: string
+  userId: string
+}
+
+export interface ExchangeAccessTokenWithTokenInput {
+  token: string
+  organization_id?: string
+}
+
+export interface SigninWithIdentityInput {
+  identity_token: string
+  provider: string
+}
+
+export interface VerifySignUpResponse {
+  verified: boolean
+  email: string
+}
+
+export interface AzureGroup {
+  id: string
+  displayName: string
+}
+
+export interface AzureGroupsResponse {
+  groups: AzureGroup[]
+}
+
+export interface OidcRoleMapping {
+  _id: string
+  role: string
+  claim: string
+  value: string
+}
+
+export interface OidcRoleMappingInput {
+  role: string
+  claim: string
+  value: string
+}
+
+export interface BulkUpdateOidcInput {
+  mappings: OidcRoleMappingInput[]
+}
+
+export interface GoogleAuthInput {
+  id_token: string
+  access_token?: string
+}
+
+export interface GoogleAuthResponse {
+  accessToken: string
+  userId: string
+  email?: string
+}
+
+export interface EmailIdentityInput {
+  email: string
+  password?: string
+  otp?: string
+}
+
+export interface AwsMarketplaceInput {
+  registrationToken: string
+}
+
+export interface AwsMarketplaceResponse {
+  customerId: string
+  productCode: string
+}
+
 export class AuthResource {
-  /**
-   * @param base - platform base URL (gateway/platform)
-   */
-  constructor(private readonly http: HttpTransport, private readonly base: string) {}
+  constructor(
+    private readonly http: HttpTransport,
+    private readonly base: string,
+    private readonly gateway: string,
+  ) {}
 
   private get v1() { return `${this.base}/v1` }
 
   // ─── Third-party token ───────────────────────────────────────────────────────
 
   async getThirdPartyToken(expirationDays: number = 10): Promise<ThirdPartyTokenResponse> {
-    // Requires active access token. "thrid" is a backend typo — preserved intentionally.
-    const gatewayBase = this.base.replace(/\/platform$/, "")
+    // Path typo is in the backend and intentionally preserved.
     return this.http
-      .getFetch()(`${gatewayBase}/private/backend/v1/thrid_party_token`, {
+      .getFetch()(`${this.gateway}/private/backend/v1/thrid_party_token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ expirationDays }),
@@ -55,7 +166,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signIn(body: { email: string; password: string }) {
+  async signIn(body: { email: string; password: string }): Promise<SignInResponse> {
     return this.http.getFetch()(`${this.v1}/login/sign_in`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,7 +174,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signUp(body: Record<string, unknown>) {
+  async signUp(body: SignUpInput): Promise<SignUpResponse> {
     return this.http.getFetch()(`${this.v1}/login/sign_up`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -71,13 +182,13 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
     const url = new URL(`${this.v1}/login/forget`)
     url.searchParams.set("email", email)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async resetPassword(body: { token: string; password: string }) {
+  async resetPassword(body: { token: string; password: string }): Promise<ForgotPasswordResponse> {
     return this.http.getFetch()(`${this.v1}/login/forget/reset`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,11 +196,11 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async getLoginProviders() {
+  async getLoginProviders(): Promise<LoginProvidersResponse> {
     return this.http.getFetch()(`${this.v1}/login/providers`, { method: "GET" }).then(r => r.json())
   }
 
-  async signinSSO(body: Record<string, unknown>) {
+  async signinSSO(body: SigninSSOInput): Promise<SSOResponse> {
     return this.http.getFetch()(`${this.v1}/sso/login-success`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -110,7 +221,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async exchangeAccessTokenWithToken(body: Record<string, unknown>) {
+  async exchangeAccessTokenWithToken(body: ExchangeAccessTokenWithTokenInput): Promise<{ access_token: string }> {
     return this.http.getFetch()(`${this.v1}/access/_exchange_access_token_with_access_token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -118,7 +229,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signinWithIdentity(body: Record<string, unknown>) {
+  async signinWithIdentity(body: SigninWithIdentityInput): Promise<SignInResponse> {
     return this.http.getFetch()(`${this.v1}/access/_signin_with_identity`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -128,19 +239,19 @@ export class AuthResource {
 
   // ─── Sign-up verification ────────────────────────────────────────────────────
 
-  async verifySignUpCheck(email: string) {
+  async verifySignUpCheck(email: string): Promise<VerifySignUpResponse> {
     const url = new URL(`${this.v1}/login/sign_up/verify/check`)
     url.searchParams.set("email", email)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async resendVerificationEmail(email: string) {
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
     const url = new URL(`${this.v1}/login/sign_up/verify/resend`)
     url.searchParams.set("email", email)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async uploadSignUpPhoto(body: FormData) {
+  async uploadSignUpPhoto(body: FormData): Promise<{ url: string }> {
     return this.http.getFetch()(`${this.v1}/login/sign_in/file_up_load`, {
       method: "POST",
       body,
@@ -149,17 +260,17 @@ export class AuthResource {
 
   // ─── SSO / Azure AD ──────────────────────────────────────────────────────────
 
-  async getAzureGroups() {
+  async getAzureGroups(): Promise<AzureGroupsResponse> {
     return this.http.getFetch()(`${this.v1}/sso/azure_ad/groups/all`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── OIDC Role Mappings ──────────────────────────────────────────────────────
 
-  async listOidcRoleMappings() {
+  async listOidcRoleMappings(): Promise<OidcRoleMapping[]> {
     return this.http.getFetch()(`${this.v1}/oidc_role_mappings`, { method: "GET" }).then(r => r.json())
   }
 
-  async createOidcRoleMapping(body: Record<string, unknown>) {
+  async createOidcRoleMapping(body: OidcRoleMappingInput): Promise<OidcRoleMapping> {
     return this.http.getFetch()(`${this.v1}/oidc_role_mappings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -167,7 +278,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async bulkUpdateOidcRoleMappings(body: Record<string, unknown>) {
+  async bulkUpdateOidcRoleMappings(body: BulkUpdateOidcInput): Promise<OidcRoleMapping[]> {
     return this.http.getFetch()(`${this.v1}/oidc_role_mappings/bulk`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -177,7 +288,7 @@ export class AuthResource {
 
   // ─── Identity ────────────────────────────────────────────────────────────────
 
-  async signupWithGoogle(body: Record<string, unknown>) {
+  async signupWithGoogle(body: GoogleAuthInput): Promise<GoogleAuthResponse> {
     return this.http.getFetch()(`${this.v1}/identity/_signup_google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -185,7 +296,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signinWithGoogle(body: Record<string, unknown>) {
+  async signinWithGoogle(body: GoogleAuthInput): Promise<GoogleAuthResponse> {
     return this.http.getFetch()(`${this.v1}/identity_access/_signin_google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -193,7 +304,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signupWithEmail(body: Record<string, unknown>) {
+  async signupWithEmail(body: EmailIdentityInput): Promise<SignUpResponse> {
     return this.http.getFetch()(`${this.v1}/identity/_signup_email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -201,7 +312,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  async signinWithEmailIdentity(body: Record<string, unknown>) {
+  async signinWithEmailIdentity(body: EmailIdentityInput): Promise<SignInResponse> {
     return this.http.getFetch()(`${this.v1}/identity_access/_signin_email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -211,7 +322,7 @@ export class AuthResource {
 
   // ─── AWS Marketplace ─────────────────────────────────────────────────────────
 
-  async resolveAwsMarketplaceCustomer(body: Record<string, unknown>) {
+  async resolveAwsMarketplaceCustomer(body: AwsMarketplaceInput): Promise<AwsMarketplaceResponse> {
     return this.http.getFetch()(`${this.v1}/aws_marketplace/resolve-customer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

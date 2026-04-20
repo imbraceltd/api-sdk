@@ -96,29 +96,32 @@ class HttpTransport:
                 raise NetworkError(f"Network error or timeout: {str(e)}")
 
     def iterate_paged(
-        self, 
-        method: str, 
-        url: str, 
-        model: Type[T], 
+        self,
+        method: str,
+        url: str,
+        model: Type[T],
         params: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> Iterator[T]:
-        """Tự động duyệt qua tất cả các trang của một API phân trang."""
+        """Iterate over all pages of a paginated endpoint, yielding one item at a time."""
         current_params = (params or {}).copy()
         if "page" not in current_params:
             current_params["page"] = 1
-        
+
         while True:
             res = self.request(method, url, params=current_params, **kwargs).json()
-            # Giả định cấu hình PagedResponse: { data: [...], pagination: { has_next: bool } }
+            # Expected response shape: { data: [...], pagination: { has_next: bool } }
             data = res.get("data", [])
             for item in data:
                 yield model(**item)
-            
+
             pagination = res.get("pagination", {})
             if not pagination.get("has_next"):
                 break
             current_params["page"] += 1
+
+    def clear_api_key(self) -> None:
+        self.api_key = None
 
     def close(self):
         self._client.close()
@@ -194,14 +197,14 @@ class AsyncHttpTransport:
                 raise NetworkError(f"Network error or timeout: {str(e)}")
 
     async def iterate_paged(
-        self, 
-        method: str, 
-        url: str, 
-        model: Type[T], 
+        self,
+        method: str,
+        url: str,
+        model: Type[T],
         params: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> AsyncIterator[T]:
-        """Tự động duyệt qua tất cả các trang (bất đồng bộ)."""
+        """Iterate over all pages of a paginated endpoint, yielding one item at a time (async)."""
         current_params = (params or {}).copy()
         if "page" not in current_params:
             current_params["page"] = 1
@@ -217,6 +220,9 @@ class AsyncHttpTransport:
             if not pagination.get("has_next"):
                 break
             current_params["page"] += 1
+
+    def clear_api_key(self) -> None:
+        self.api_key = None
 
     async def close(self):
         await self._client.aclose()

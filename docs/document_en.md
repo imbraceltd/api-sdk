@@ -18,6 +18,11 @@
 
 ## 1. Architecture Overview
 
+### Scope
+
+- The SDK covers **App Gateway + Server Gateway** only.
+- **Journey API** and **n8n-specific HTTP paths** are out of scope for this repo (see `SDK_OVERVIEW.md`).
+
 ### SDK Structure
 
 ```
@@ -38,9 +43,6 @@ sdk/
 │   │   ├── client.py
 │   │   └── resources/         (ai_agent, boards, categories, marketplace,
 │   │                            platform, schedule)
-│   ├── journey/               ← Journey API (temp token auth)
-│   │   ├── client.py
-│   │   └── resources/         (ai_assistant, apps, boards, workflow)
 │   ├── types/                 ← shared type definitions
 │   └── client.py              ← ImbraceClient (unified entry point)
 │
@@ -59,12 +61,14 @@ sdk/
     │   ├── client.ts
     │   └── resources/         (ai-agent, boards, categories, marketplace,
     │                            platform, schedule)
-    ├── journey/               ← Journey API
-    │   ├── client.ts
-    │   └── resources/         (ai-assistant, apps, boards, workflow)
     ├── types/                 ← shared type definitions
     └── client.ts              ← ImbraceClient (unified entry point)
 ```
+
+### Gateway Differences (Quick)
+
+- App Gateway uses `x-access-token` with access token and `/v1|v2|v3/backend/...` paths.
+- Server Gateway uses `x-access-token` with API key and `/3rd/...` paths.
 
 ### Test Layers
 
@@ -136,6 +140,9 @@ pytest tests/unit -k "boards" -v
 
 ### 3.2 Integration Tests (Requires real API key)
 
+Integration tests perform real calls to the API Gateway. See the full list of test cases at:
+👉 **[INTEGRATION_TESTS_EN.md](./INTEGRATION_TESTS_EN.md)**
+
 ```bash
 cd D:/HUANGJUNFENG/IMBrace/sdk/py
 
@@ -145,8 +152,6 @@ IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 # Option 2: Use .env (SDK reads it automatically)
 pytest tests/integration -v -m integration
 ```
-
-> Tests automatically **skip** if `IMBRACE_API_KEY` is not set.
 
 ### 3.3 Run All (Unit + Integration)
 
@@ -196,6 +201,9 @@ npm run test:watch
 ```
 
 ### 4.3 Integration Tests (Requires real API key)
+
+Integration tests perform real calls to the API Gateway. See the full list of test cases at:
+👉 **[INTEGRATION_TESTS_EN.md](./INTEGRATION_TESTS_EN.md)**
 
 ```bash
 cd D:/HUANGJUNFENG/IMBrace/sdk/ts
@@ -295,55 +303,7 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_sessions.py` | List sessions, directory filter |
 | `test_settings.py` | Message templates, users, bulk invite |
 | `test_teams.py` | List, my teams, add/remove users |
-| `test_workflows.py` | List, tag filter, channel automation, n8n |
-
----
-
-### Python — Integration Test
-
-#### `tests/integration/test_integration.py`
-
-Real calls to `https://app-gatewayv2.imbrace.co`. Automatically skips if `IMBRACE_API_KEY` is missing.
-
-| Test case | Endpoint |
-|---|---|
-| `test_get_account` | `GET /v1/backend/account` |
-| `test_list_channels` | `GET /v1/backend/channels?type=web` |
-| `test_list_agents` | `GET /v2/backend/templates` |
-| `test_list_teams` | `GET /v2/backend/teams` |
-| `test_list_contacts` | `GET /v1/backend/contacts?limit=5` |
-| `test_get_views_count` | `GET /v2/backend/team_conversations/_views_count` |
-| `test_list_messages` | `GET /v1/backend/conversation_messages?limit=5` |
-| `test_list_boards` | `GET /v1/backend/board` |
-| `test_list_users` | `GET /v1/backend/users?limit=5` |
-| `test_list_message_templates` | `GET /v2/backend/message_templates` |
-
----
-
-### TypeScript — Unit Tests
-
-Structure is equivalent to Python. Mocks `globalThis.fetch` instead of using `pytest-httpx`.
-
-| File | Python Equivalent |
-|---|---|
-| `errors.test.ts` | `test_exceptions.py` |
-| `http.test.ts` | `test_http.py` |
-| `client.test.ts` | `test_client.py` |
-| `auth.test.ts` | `test_auth.py` |
-| `resources/*.test.ts` (19 files) | `resources/test_*.py` |
-
-Differences in `http.test.ts`:
-- Mocks via `globalThis.fetch`
-- Uses `AbortController` to verify timeout
-- TS includes additional tests: `ips.test.ts`, `marketplace.test.ts`, `platform.test.ts`
-
----
-
-### TypeScript — Integration Test
-
-#### `tests/integration/integration.test.ts`
-
-Equivalent to Python. Automatically skips if `IMBRACE_API_KEY` is not set.
+| `test_workflows.py` | List, tag filter, channel automation, create/update |
 
 ---
 

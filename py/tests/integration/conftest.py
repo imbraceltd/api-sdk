@@ -44,21 +44,21 @@ def test_password() -> str:
 
 @pytest.fixture(scope="session")
 def access_token() -> str:
-    """acc_ access token — lấy qua scripts/get_access_token.py."""
+    """acc_ access token — obtain via scripts/get_access_token.py."""
     return _require_env("IMBRACE_ACCESS_TOKEN")
 
 
 @pytest.fixture(scope="session")
 def platform_jwt() -> tuple[str, str]:
-    """Lấy JWT thật từ platform v1 sign_in (password-based).
+    """Obtain a real JWT from platform v1 sign_in (password-based).
 
-    Trả về (jwt_token, org_id).
-    SKIP nếu IMBRACE_PLATFORM_EMAIL / IMBRACE_PLATFORM_PASSWORD chưa set.
+    Returns (jwt_token, org_id).
+    Skips if IMBRACE_PLATFORM_EMAIL / IMBRACE_PLATFORM_PASSWORD are not set.
 
     Setup:
-        1. Đăng ký: POST /platform/v1/login/sign_up
-        2. Verify email (click link trong hòm thư)
-        3. Thêm vào .env:
+        1. Register: POST /platform/v1/login/sign_up
+        2. Verify email (click the link in your inbox)
+        3. Add to .env:
                IMBRACE_PLATFORM_EMAIL=your-email@example.com
                IMBRACE_PLATFORM_PASSWORD=YourPassword@123
     """
@@ -66,8 +66,8 @@ def platform_jwt() -> tuple[str, str]:
     password = _optional_env("IMBRACE_PLATFORM_PASSWORD")
     if not email or not password:
         pytest.skip(
-            "IMBRACE_PLATFORM_EMAIL / IMBRACE_PLATFORM_PASSWORD chưa set — "
-            "xem hướng dẫn trong docs/TESTING_GUIDE.md để tạo platform account"
+            "IMBRACE_PLATFORM_EMAIL / IMBRACE_PLATFORM_PASSWORD not set — "
+            "see docs/TESTING_GUIDE.md for platform account setup"
         )
 
     # 1. Sign in → session token
@@ -77,7 +77,7 @@ def platform_jwt() -> tuple[str, str]:
         timeout=15,
     )
     if r.status_code not in (200, 201):
-        pytest.skip(f"Platform sign_in thất bại ({r.status_code}): {r.text[:200]}")
+        pytest.skip(f"Platform sign_in failed ({r.status_code}): {r.text[:200]}")
 
     data = r.json()
     nested = data.get("data") or {}
@@ -86,16 +86,16 @@ def platform_jwt() -> tuple[str, str]:
         or nested.get("token") or nested.get("accessToken")
     )
     if not session_token:
-        pytest.skip(f"Không lấy được token từ sign_in response: {data}")
+        pytest.skip(f"No token found in sign_in response: {data}")
 
-    # 2. Lấy danh sách org
+    # 2. Fetch org list
     r2 = httpx.get(
         f"{GATEWAY}/platform/v2/organizations?limit=10&skip=0&is_active=true",
         headers={"Authorization": f"Bearer {session_token}"},
         timeout=15,
     )
     if r2.status_code != 200 or not r2.json().get("data"):
-        pytest.skip(f"Không lấy được org list: {r2.status_code} {r2.text[:200]}")
+        pytest.skip(f"Failed to fetch org list: {r2.status_code} {r2.text[:200]}")
 
     org_id = r2.json()["data"][0]["id"]
 
@@ -107,7 +107,7 @@ def platform_jwt() -> tuple[str, str]:
         timeout=15,
     )
     if r3.status_code not in (200, 201):
-        pytest.skip(f"Exchange thất bại ({r3.status_code}): {r3.text[:200]}")
+        pytest.skip(f"Exchange failed ({r3.status_code}): {r3.text[:200]}")
 
     d3 = r3.json()
     n3 = d3.get("data") or {}
@@ -116,7 +116,7 @@ def platform_jwt() -> tuple[str, str]:
         or n3.get("token") or n3.get("accessToken")
     )
     if not jwt or not jwt.startswith("eyJ"):
-        pytest.skip(f"Exchange không trả về JWT: token={jwt!r:.40}")
+        pytest.skip(f"Exchange did not return a JWT: token={jwt!r:.40}")
 
     return jwt, org_id
 

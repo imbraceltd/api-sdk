@@ -1,9 +1,9 @@
-"""Integration test — Nhiệm vụ 1: phải init được.
+"""Integration test — Task 1: client must initialize successfully.
 
-Kiểm tra:
-- Client khởi tạo không ném exception
-- health.check() trả về response thành công từ server thật
-- init() với check_health=True chạy được
+Checks:
+- Client construction does not raise an exception
+- health.check() returns a successful response from the real server
+- Constructing with check_health=True completes without error
 """
 import pytest
 from imbrace import ImbraceClient, AsyncImbraceClient
@@ -12,21 +12,21 @@ pytestmark = pytest.mark.integration
 
 
 def test_client_init_no_exception(api_key, gateway):
-    """Client khởi tạo với api_key + env develop không ném exception."""
+    """Client with api_key + develop env initializes without raising."""
     client = ImbraceClient(env="develop", api_key=api_key)
     client.close()
 
 
 def test_health_check_returns_ok(client):
-    """health.check() gọi GET / trên gateway và server trả về JSON."""
+    """health.check() calls GET / on the gateway and the server returns JSON."""
     res = client.health.check()
-    # Gateway root trả về {"name": "App Gateway Public Server", "version": ..., "env": ...}
+    # Gateway root returns {"name": "App Gateway Public Server", "version": ..., "env": ...}
     assert isinstance(res, dict), f"Expected dict, got {type(res)}: {res}"
     assert "name" in res or "status" in res, f"Unexpected response from gateway root: {res}"
 
 
 def test_init_with_check_health(api_key):
-    """init() với check_health=True gọi health check và không raise."""
+    """Constructing with check_health=True triggers a health check and does not raise."""
     import os
     client = ImbraceClient(
         env="develop",
@@ -39,7 +39,7 @@ def test_init_with_check_health(api_key):
 
 @pytest.mark.asyncio
 async def test_async_client_init_no_exception(api_key):
-    """AsyncImbraceClient khởi tạo được."""
+    """AsyncImbraceClient initializes successfully."""
     async with AsyncImbraceClient(env="develop", api_key=api_key) as client:
         res = await client.health.check()
         assert isinstance(res, dict)
