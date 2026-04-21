@@ -238,7 +238,7 @@ class AiResource:
 
     @property
     def _assistant_base(self) -> str:
-        return self._v2 if "app-gatewayv2" in self._base else self._v3
+        return self._v3
 
     # --- Completions / Embeddings ---
     def complete(self, input: CompletionInput) -> Completion:
@@ -429,7 +429,7 @@ class AsyncAiResource:
 
     @property
     def _assistant_base(self) -> str:
-        return self._v2 if "app-gatewayv2" in self._base else self._v3
+        return self._v3
 
     # --- Completions / Embeddings ---
 
