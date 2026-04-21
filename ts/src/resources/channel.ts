@@ -1,5 +1,5 @@
 import { HttpTransport } from "../http.js"
-import type { Channel, Team, PagedResponse } from "../types/index.js"
+import type { Channel, Team } from "../types/index.js"
 
 export interface CreateChannelInput {
   name: string
