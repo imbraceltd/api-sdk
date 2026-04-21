@@ -100,7 +100,7 @@ describe("BoardsResource", () => {
 
   it("bulkDeleteItems() calls POST /v1/backend/board/delete/:id/board_items", async () => {
     mockFetch({ success: true })
-    await makeResource().bulkDeleteItems("b_1", { item_ids: ["bi_1", "bi_2"] })
+    await makeResource().bulkDeleteItems("b_1", { ids: ["bi_1", "bi_2"] })
     const url = new URL((vi.mocked(globalThis.fetch).mock.calls[0][0] as string))
     expect(url.pathname).toBe("/v1/backend/board/delete/b_1/board_items")
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("POST")

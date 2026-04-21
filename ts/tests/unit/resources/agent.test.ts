@@ -8,7 +8,7 @@ const BASE    = `${GW}/v2/backend`
 
 function makeResource() {
   const http = new HttpTransport({ apiKey: "test_key", timeout: 5000, tokenManager: new TokenManager() })
-  return new AgentResource(http, BASE, GW)
+  return new AgentResource(http, BASE)
 }
 
 function mockFetch(data: unknown, status = 200) {
