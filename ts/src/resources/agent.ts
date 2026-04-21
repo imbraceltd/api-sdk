@@ -68,7 +68,6 @@ export class AgentResource {
   constructor(
     private readonly http: HttpTransport,
     base: string,
-    gateway: string,
   ) {
     const backendV2 = base.replace(/\/marketplaces\/?$/, "").replace(/\/$/, "")
     this.templates = `${backendV2}/templates`

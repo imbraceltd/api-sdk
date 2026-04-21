@@ -32,12 +32,11 @@ export class HttpTransport {
       let retries = 0;
       const maxRetries = 2;
 
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const controller = new AbortController();
         const parentSignal = init?.signal;
-        
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        
+
         if (parentSignal?.aborted) {
           throw new NetworkError("Request aborted by user");
         }
@@ -47,7 +46,7 @@ export class HttpTransport {
           parentSignal.addEventListener('abort', abortListener);
         }
 
-        timeoutId = setTimeout(() => controller.abort(), this.opts.timeout);
+        const timeoutId = setTimeout(() => controller.abort(), this.opts.timeout);
         
         const reqInit: RequestInit = {
           ...init,

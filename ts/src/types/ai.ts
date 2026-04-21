@@ -165,7 +165,7 @@ export interface Assistant extends AiBaseResource {
   top_k?: number
 }
 
-export interface AssistantListResponse extends AiListResponse<Assistant> {}
+export type AssistantListResponse = AiListResponse<Assistant>
 
 export interface AssistantNameCheckResponse {
   available: boolean
@@ -189,7 +189,7 @@ export interface AssistantApp extends AiBaseResource {
   workflow?: Record<string, unknown>
 }
 
-export interface AssistantAppListResponse extends AiListResponse<AssistantApp> {}
+export type AssistantAppListResponse = AiListResponse<AssistantApp>
 
 export interface CreateAssistantAppInput {
   name: string
@@ -225,7 +225,7 @@ export interface RagFile extends BaseEntity {
   status?: AiStatus | string
 }
 
-export interface RagFileListResponse extends AiListResponse<RagFile> {}
+export type RagFileListResponse = AiListResponse<RagFile>
 
 // ─── Guardrails ────────────────────────────────────────────────────────────
 
@@ -234,7 +234,7 @@ export interface Guardrail extends AiBaseResource {
   config?: Record<string, unknown>
 }
 
-export interface GuardrailListResponse extends AiListResponse<Guardrail> {}
+export type GuardrailListResponse = AiListResponse<Guardrail>
 
 export interface CreateGuardrailInput {
   name: string
@@ -256,7 +256,7 @@ export interface GuardrailProvider extends AiBaseResource {
   config?: Record<string, unknown>
 }
 
-export interface GuardrailProviderListResponse extends AiListResponse<GuardrailProvider> {}
+export type GuardrailProviderListResponse = AiListResponse<GuardrailProvider>
 
 export interface CreateGuardrailProviderInput {
   name: string
@@ -288,7 +288,7 @@ export interface AiProvider extends AiBaseResource {
   base_url?: string
 }
 
-export interface AiProviderListResponse extends AiListResponse<AiProvider> {}
+export type AiProviderListResponse = AiListResponse<AiProvider>
 
 export interface CreateAiProviderInput {
   name: string

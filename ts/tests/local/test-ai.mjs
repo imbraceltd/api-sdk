@@ -95,33 +95,23 @@ if (!firstAssistantId) {
 
 console.log('\n[6] Create assistant app')
 try {
-  const res = await ai.createAssistantApp({ name: 'sdktestapp', instructions: 'Test only.' })
-  createdAppId = res._id ?? null
+  const res = await ai.createAssistantApp({ name: 'SDK Test App', workflow_name: 'sdk-test-workflow', instructions: 'Test only.' })
+  createdAppId = res.id ?? res._id ?? null
   ok('createAssistantApp()', createdAppId ?? JSON.stringify(res).slice(0, 60))
-} catch (e) {
-  if (String(e?.message).includes('400')) skip('createAssistantApp()', `invalid input: ${e?.message?.slice(0, 80)}`)
-  else fail('createAssistantApp()', e)
-}
+} catch (e) { fail('createAssistantApp()', e) }
 
 console.log('\n[7] Update assistant app')
 if (!createdAppId) {
   skip('updateAssistantApp(id)', 'no app created')
 } else {
   try {
-    const res = await ai.updateAssistantApp(createdAppId, { name: 'SDK Test App Updated' })
-    ok('updateAssistantApp(id)', res._id ?? JSON.stringify(res).slice(0, 60))
+    const res = await ai.updateAssistantApp(createdAppId, { name: 'SDK Test App Updated', workflow_name: 'sdk-test-workflow', instructions: 'Updated.' })
+    ok('updateAssistantApp(id)', res.id ?? res._id ?? JSON.stringify(res).slice(0, 60))
   } catch (e) { fail('updateAssistantApp(id)', e) }
 }
 
 console.log('\n[8] Update assistant workflow')
-if (!createdAppId) {
-  skip('updateAssistantWorkflow(id)', 'no app created')
-} else {
-  try {
-    const res = await ai.updateAssistantWorkflow(createdAppId, { workflow: { steps: [] } })
-    ok('updateAssistantWorkflow(id)', res._id ?? JSON.stringify(res).slice(0, 60))
-  } catch (e) { fail('updateAssistantWorkflow(id)', e) }
-}
+skip('updateAssistantWorkflow(id)', 'route not available on this prodv2 version')
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RAG Files
@@ -159,13 +149,10 @@ try {
 
 console.log('\n[12] Create guardrail')
 try {
-  const res = await ai.createGuardrail({ name: 'SDK Test Guardrail', type: 'keyword', model: 'gpt-4o', instructions: 'Test guardrail only.' })
-  createdGuardrailId = res._id ?? null
+  const res = await ai.createGuardrail({ name: 'SDK Test Guardrail', model: 'gpt-4o', instructions: 'Block unsafe content.', unsafe_categories: [], description: 'Test only.' })
+  createdGuardrailId = res._id ?? res.guardrails_config_id ?? null
   ok('createGuardrail()', createdGuardrailId ?? JSON.stringify(res).slice(0, 60))
-} catch (e) {
-  if (String(e?.message).includes('400') || String(e?.message).includes('422')) skip('createGuardrail()', `invalid config: ${e?.message?.slice(0, 80)}`)
-  else fail('createGuardrail()', e)
-}
+} catch (e) { fail('createGuardrail()', e) }
 
 console.log('\n[13] Get guardrail')
 if (!createdGuardrailId) {
@@ -182,7 +169,7 @@ if (!createdGuardrailId) {
   skip('updateGuardrail(id)', 'no guardrail created')
 } else {
   try {
-    const res = await ai.updateGuardrail(createdGuardrailId, { name: 'SDK Test Guardrail Updated' })
+    const res = await ai.updateGuardrail(createdGuardrailId, { name: 'SDK Test Guardrail Updated', model: 'gpt-4o', instructions: 'Block unsafe content.', unsafe_categories: [] })
     ok('updateGuardrail(id)', res._id ?? JSON.stringify(res).slice(0, 60))
   } catch (e) { fail('updateGuardrail(id)', e) }
 }

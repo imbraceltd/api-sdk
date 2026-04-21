@@ -164,7 +164,7 @@ export class ImbraceClient {
     this.marketplace   = new MarketplaceResource(this.http, urls.marketplaces, urls.gateway)
 
     // Agent templates + use-cases
-    this.agent         = new AgentResource(this.http, urls.marketplaces, urls.gateway)
+    this.agent         = new AgentResource(this.http, urls.marketplaces)
 
     // Campaign & Outbound - channel-service
     this.campaign      = new CampaignResource(this.http, urls.channelService)
