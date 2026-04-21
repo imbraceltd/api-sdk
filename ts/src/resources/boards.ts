@@ -145,7 +145,7 @@ export interface UpdateFolderInput {
 }
 
 export interface DeleteFoldersInput {
-  folder_ids: string[]
+  ids: string[]
   [key: string]: unknown
 }
 
@@ -463,17 +463,17 @@ export class BoardsResource {
     await this.http.getFetch()(`${this.backend}/board/${boardId}/segmentation/${segmentId}`, { method: "DELETE" })
   }
 
-  async searchFolders(params: { organizationId: string; q?: string }): Promise<KnowledgeFolder[]> {
+  async searchFolders(params?: { organizationId?: string; q?: string }): Promise<KnowledgeFolder[]> {
     const url = new URL(`${this.base}/folders/search`)
-    url.searchParams.set("organization_id", params.organizationId)
-    if (params.q) url.searchParams.set("q", params.q)
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
+    if (params?.organizationId) url.searchParams.set("organization_id", params.organizationId)
+    if (params?.q) url.searchParams.set("q", params.q)
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async getFolder(folderId: string, params?: { recursive?: boolean }): Promise<KnowledgeFolder> {
     const url = new URL(`${this.base}/folders/${folderId}`)
     if (params?.recursive !== undefined) url.searchParams.set("recursive", String(params.recursive))
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then(r => r.data?.folder ?? r.data ?? r)
   }
 
   async createFolder(body: CreateFolderInput): Promise<KnowledgeFolder> {
@@ -481,7 +481,7 @@ export class BoardsResource {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async updateFolder(folderId: string, body: UpdateFolderInput): Promise<KnowledgeFolder> {
@@ -489,7 +489,7 @@ export class BoardsResource {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async deleteFolders(body: DeleteFoldersInput): Promise<DeleteFoldersResponse> {
@@ -503,11 +503,11 @@ export class BoardsResource {
   async searchFiles(params: { folderId: string }): Promise<KnowledgeFile[]> {
     const url = new URL(`${this.base}/files/search`)
     url.searchParams.set("folder_id", params.folderId)
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async getFile(fileId: string): Promise<KnowledgeFile> {
-    return this.http.getFetch()(`${this.base}/files/${fileId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.base}/files/${fileId}`, { method: "GET" }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async createFile(body: CreateFileInput): Promise<KnowledgeFile> {
@@ -515,14 +515,14 @@ export class BoardsResource {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async uploadFile(body: FormData): Promise<UploadFileResponse> {
     return this.http.getFetch()(`${this.base}/files/upload`, {
       method: "POST",
       body,
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async downloadFile(fileId: string): Promise<Response> {
@@ -542,7 +542,7 @@ export class BoardsResource {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async getLinkPreview(url: string): Promise<LinkPreviewResponse> {
@@ -568,15 +568,16 @@ export class BoardsResource {
   }
 
   async getFolderContents(folderId: string): Promise<KnowledgeFolder> {
-    return this.http.getFetch()(`${this.base}/folders/${folderId}/contents`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.base}/folders/${folderId}/contents`, { method: "GET" }).then(r => r.json()).then(r => r.data ?? r)
   }
+  // data.folder = folder metadata, data.subfolders = [], data.files = []
 
   async updateFile(fileId: string, body: UpdateFileInput): Promise<KnowledgeFile> {
     return this.http.getFetch()(`${this.base}/files/${fileId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()).then(r => r.data ?? r)
   }
 
   async initiateDriveAuth(type: string): Promise<DriveAuthResponse> {

@@ -232,7 +232,7 @@ if (!created.boardId) {
     const res = await boards.search(created.boardId, { q: '', limit: 5 })
     ok('search()', `${res.data?.length ?? 0} results`)
   } catch (e) {
-    if (e?.message?.includes('400')) skip('search()', 'meilisearch index not ready for new board')
+    if (e?.message?.includes('400')) skip('search()', 'meilisearch organization_id not filterable — prodv2 index config issue')
     else fail('search()', e)
   }
 }

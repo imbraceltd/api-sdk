@@ -129,54 +129,73 @@ class BoardsResource:
         self._http.request("DELETE", f"{self._backend}/board/{board_id}/segmentation/{segment_id}")
 
     # --- Folders ---
-    def search_folders(self, organization_id: str, q: Optional[str] = None) -> Dict[str, Any]:
-        params: Dict[str, str] = {"organization_id": organization_id}
+    # data-board wraps all responses: { success, message, data }
+    # get_folder returns { data: { folder, files } } — unwrap to data["folder"]
+    # get_folder_contents returns { data: { folder, subfolders, files, ... } }
+    # delete_folders body uses { ids: [...] }
+
+    def search_folders(self, organization_id: Optional[str] = None, q: Optional[str] = None) -> list:
+        params: Dict[str, str] = {}
+        if organization_id:
+            params["organization_id"] = organization_id
         if q:
             params["q"] = q
-        return self._http.request("GET", f"{self._base}/folders/search", params=params).json()
+        r = self._http.request("GET", f"{self._base}/folders/search", params=params).json()
+        return r.get("data", r)
 
     def get_folder(self, folder_id: str, recursive: Optional[bool] = None) -> Dict[str, Any]:
         params: Dict[str, Any] = {}
         if recursive is not None:
             params["recursive"] = str(recursive).lower()
-        return self._http.request("GET", f"{self._base}/folders/{folder_id}", params=params).json()
+        r = self._http.request("GET", f"{self._base}/folders/{folder_id}", params=params).json()
+        data = r.get("data", r)
+        return data.get("folder", data) if isinstance(data, dict) else data
 
     def create_folder(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/folders", json=body).json()
+        r = self._http.request("POST", f"{self._base}/folders", json=body).json()
+        return r.get("data", r)
 
     def update_folder(self, folder_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("PUT", f"{self._base}/folders/{folder_id}", json=body).json()
+        r = self._http.request("PUT", f"{self._base}/folders/{folder_id}", json=body).json()
+        return r.get("data", r)
 
-    def delete_folders(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/folders/delete", json=body).json()
+    def delete_folders(self, ids: list) -> Dict[str, Any]:
+        return self._http.request("POST", f"{self._base}/folders/delete", json={"ids": ids}).json()
 
     def get_folder_contents(self, folder_id: str) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/folders/{folder_id}/contents").json()
+        r = self._http.request("GET", f"{self._base}/folders/{folder_id}/contents").json()
+        return r.get("data", r)
 
     # --- Files ---
-    def search_files(self, folder_id: str) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/files/search", params={"folder_id": folder_id}).json()
+    def search_files(self, folder_id: str) -> list:
+        r = self._http.request("GET", f"{self._base}/files/search", params={"folder_id": folder_id}).json()
+        return r.get("data", r)
 
     def get_file(self, file_id: str) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/files/{file_id}").json()
+        r = self._http.request("GET", f"{self._base}/files/{file_id}").json()
+        return r.get("data", r)
 
     def create_file(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/files", json=body).json()
+        r = self._http.request("POST", f"{self._base}/files", json=body).json()
+        return r.get("data", r)
 
     def upload_file(self, files: Any) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/files/upload", files=files).json()
+        r = self._http.request("POST", f"{self._base}/files/upload", files=files).json()
+        return r.get("data", r)
 
     def download_file(self, file_id: str) -> Any:
         return self._http.request("GET", f"{self._base}/files/{file_id}/download")
 
     def update_file(self, file_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("PUT", f"{self._base}/files/{file_id}", json=body).json()
+        r = self._http.request("PUT", f"{self._base}/files/{file_id}", json=body).json()
+        return r.get("data", r)
 
-    def delete_files(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/files/delete", json=body).json()
+    def delete_files(self, file_ids: list) -> Dict[str, Any]:
+        return self._http.request("POST", f"{self._base}/files/delete", json={"file_ids": file_ids}).json()
 
     def generate_ai_tags(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/ai/tag-generation", json=body).json()
+        r = self._http.request("POST", f"{self._base}/ai/tag-generation", json=body).json()
+        return r.get("data", r)
 
     def get_link_preview(self, url: str) -> Dict[str, Any]:
         return self._http.request("POST", f"{self._backend}/link_preview/getWebsiteInfo", json={"url": url}).json()
@@ -264,17 +283,64 @@ class AsyncBoardsResource:
         res = await self._http.request("GET", f"{self._backend}/board/{board_id}/export_csv")
         return res.text
 
-    async def upload_file(self, files: Any) -> Dict[str, Any]:
-        res = await self._http.request("POST", f"{self._base}/files/upload", files=files)
-        return res.json()
-
-    async def get_folder(self, folder_id: str) -> Dict[str, Any]:
-        res = await self._http.request("GET", f"{self._base}/folders/{folder_id}")
-        return res.json()
-
-    async def search_folders(self, organization_id: str, q: Optional[str] = None) -> Dict[str, Any]:
-        params: Dict[str, str] = {"organization_id": organization_id}
+    async def search_folders(self, organization_id: Optional[str] = None, q: Optional[str] = None) -> list:
+        params: Dict[str, str] = {}
+        if organization_id:
+            params["organization_id"] = organization_id
         if q:
             params["q"] = q
         res = await self._http.request("GET", f"{self._base}/folders/search", params=params)
+        r = res.json()
+        return r.get("data", r)
+
+    async def get_folder(self, folder_id: str, recursive: Optional[bool] = None) -> Dict[str, Any]:
+        params: Dict[str, Any] = {}
+        if recursive is not None:
+            params["recursive"] = str(recursive).lower()
+        res = await self._http.request("GET", f"{self._base}/folders/{folder_id}", params=params)
+        r = res.json()
+        data = r.get("data", r)
+        return data.get("folder", data) if isinstance(data, dict) else data
+
+    async def create_folder(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        res = await self._http.request("POST", f"{self._base}/folders", json=body)
+        r = res.json()
+        return r.get("data", r)
+
+    async def update_folder(self, folder_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        res = await self._http.request("PUT", f"{self._base}/folders/{folder_id}", json=body)
+        r = res.json()
+        return r.get("data", r)
+
+    async def delete_folders(self, ids: list) -> Dict[str, Any]:
+        res = await self._http.request("POST", f"{self._base}/folders/delete", json={"ids": ids})
         return res.json()
+
+    async def get_folder_contents(self, folder_id: str) -> Dict[str, Any]:
+        res = await self._http.request("GET", f"{self._base}/folders/{folder_id}/contents")
+        r = res.json()
+        return r.get("data", r)
+
+    async def search_files(self, folder_id: str) -> list:
+        res = await self._http.request("GET", f"{self._base}/files/search", params={"folder_id": folder_id})
+        r = res.json()
+        return r.get("data", r)
+
+    async def get_file(self, file_id: str) -> Dict[str, Any]:
+        res = await self._http.request("GET", f"{self._base}/files/{file_id}")
+        r = res.json()
+        return r.get("data", r)
+
+    async def update_file(self, file_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        res = await self._http.request("PUT", f"{self._base}/files/{file_id}", json=body)
+        r = res.json()
+        return r.get("data", r)
+
+    async def delete_files(self, file_ids: list) -> Dict[str, Any]:
+        res = await self._http.request("POST", f"{self._base}/files/delete", json={"file_ids": file_ids})
+        return res.json()
+
+    async def upload_file(self, files: Any) -> Dict[str, Any]:
+        res = await self._http.request("POST", f"{self._base}/files/upload", files=files)
+        r = res.json()
+        return r.get("data", r)
