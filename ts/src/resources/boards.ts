@@ -56,7 +56,7 @@ export interface UpdateFieldInput {
 }
 
 export interface ReorderFieldsInput {
-  field_ids: string[]
+  fields: string[]
   [key: string]: unknown
 }
 
@@ -80,7 +80,7 @@ export interface UpdateItemInput {
 }
 
 export interface BulkDeleteItemsInput {
-  item_ids: string[]
+  ids: string[]
   [key: string]: unknown
 }
 
