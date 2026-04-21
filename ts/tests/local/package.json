@@ -1,0 +1,7 @@
+{
+  "name": "imbrace-sdk-local-test",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Local test harness for @imbrace/sdk — not published"
+}

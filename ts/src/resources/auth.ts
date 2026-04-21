@@ -20,6 +20,7 @@ export interface SignInResponse {
   token?: string
   userId?: string
   email?: string
+  [key: string]: unknown
 }
 
 export interface SignUpInput {
