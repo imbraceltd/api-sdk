@@ -154,8 +154,7 @@ export class ImbraceClient {
     this.messages      = new MessagesResource(this.http, urls.channelService, urls.backend)
     this.categories    = new CategoriesResource(this.http, urls.channelService)
 
-    // Workflows requires both channel-service (automation) and platform (n8n)
-    this.workflows     = new WorkflowsResource(this.http, urls.channelService, urls.platform)
+    this.workflows     = new WorkflowsResource(this.http, urls.backend)
 
     // Dedicated services
     this.boards        = new BoardsResource(this.http, urls.dataBoard, urls.backend)

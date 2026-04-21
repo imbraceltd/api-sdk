@@ -112,7 +112,7 @@ class AsyncImbraceClient:
         self.conversations = AsyncConversationsResource(self.http, urls.channel_service)
         self.messages      = AsyncMessagesResource(self.http, urls.channel_service, urls.backend)
         self.categories    = AsyncCategoriesResource(self.http, urls.channel_service)
-        self.workflows     = AsyncWorkflowsResource(self.http, urls.channel_service, urls.platform)
+        self.workflows     = AsyncWorkflowsResource(self.http, urls.backend)
 
         self.boards        = AsyncBoardsResource(self.http, urls.data_board, urls.backend)
         self.ips           = AsyncIpsResource(self.http, urls.ips)

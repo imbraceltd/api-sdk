@@ -114,7 +114,7 @@ class ImbraceClient:
         self.categories    = CategoriesResource(self.http, urls.channel_service)
 
         # Workflows: channel-service (automation) + platform (n8n)
-        self.workflows     = WorkflowsResource(self.http, urls.channel_service, urls.platform)
+        self.workflows     = WorkflowsResource(self.http, urls.backend)
 
         # Dedicated services
         self.boards        = BoardsResource(self.http, urls.data_board, urls.backend)
