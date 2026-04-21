@@ -290,9 +290,8 @@ export class AiResource {
   private get v2() { return `${this.base.replace(/\/$/, "")}/v2/ai` }
   private get v3() { return `${this.base.replace(/\/$/, "")}/v3/ai` }
 
-  /** Returns v2 for prodv2, else v3. */
   private get assistantBase() {
-    return this.base.includes("app-gatewayv2") ? this.v2 : this.v3
+    return this.v3
   }
 
   // ─── Completions / Embeddings   
@@ -361,7 +360,7 @@ export class AiResource {
   }
 
   async getAssistant(assistantId: string): Promise<Assistant> {
-    return this.http.getFetch()(`${this.assistantBase}/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.assistantBase}/accounts/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
   }
 
   async checkAssistantName(name: string): Promise<AssistantNameCheckResponse> {
