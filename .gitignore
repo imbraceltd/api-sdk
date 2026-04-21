@@ -48,11 +48,9 @@ Thumbs.db
 app-gateway
 new-frontend
 opencode
-/docs
 !website/src/content/docs/
 file-service
 chat-ai
-
 
 
 
