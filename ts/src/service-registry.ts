@@ -36,9 +36,6 @@ export function resolveServiceUrls(
     typeof env === 'string' ? ENVIRONMENTS[env] : env
   const gw    = preset.gateway.replace(/\/$/, '')
   const hosts = preset.serviceHosts ?? {}
-  
-  // v2 services check: if environment is 'prodv2' or gateway is app-gatewayv2
-  const isV2 = env === 'prodv2' || gw.includes('app-gatewayv2')
 
   const resolved: ServiceUrls = {
     gateway:           gw,
@@ -46,10 +43,10 @@ export function resolveServiceUrls(
     platform:          `${gw}/platform`,
     ips:               `${(hosts.ips ?? gw).replace(/\/$/, '')}/ips/v1`,
     dataBoard:         `${gw}/data-board`,
-    backend:           isV2 ? `${gw}/v2/backend` : `${gw}/v1/backend`,
+    backend:           `${gw}/v2/backend`,
     ai:                gw,
     marketplaces:      `${gw}/v2/backend/marketplaces`,
-    fileService:       isV2 ? `${gw}/v2/backend/file-service` : `${gw}/v1/backend/file-service`,
+    fileService:       `${gw}/v2/backend/file-service`,
     messageSuggestion: `${gw}/v1/message-suggestion`,
     predict:           `${gw}/predict`,
     activepieces:      `${gw}/activepieces`,
