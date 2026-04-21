@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { User, Organization, Permission, PagedResponse } from "../types/index.js"
 
-// ─── User action interfaces ───────────────────────────────────────────────────
-
 export interface ChangeRoleResponse {
   success: boolean
   user?: User
@@ -30,8 +28,6 @@ export interface UserWorkflowsResponse {
   [key: string]: unknown
 }
 
-// ─── Team interfaces ──────────────────────────────────────────────────────────
-
 export interface CreateTeamInput {
   name: string
   type?: string
@@ -54,8 +50,6 @@ export interface TeamWorkflowsResponse {
   workflows: unknown[]
   [key: string]: unknown
 }
-
-// ─── Credential / n8n interfaces ─────────────────────────────────────────────
 
 export interface Credential {
   id: string
@@ -97,8 +91,6 @@ export interface UpdateN8nWorkflowInput {
   [key: string]: unknown
 }
 
-// ─── Knowledge interfaces ─────────────────────────────────────────────────────
-
 export interface KnowledgeItem {
   _id: string
   name?: string
@@ -115,15 +107,11 @@ export interface KnowledgeUploadResponse {
   [key: string]: unknown
 }
 
-// ─── Resource interface ───────────────────────────────────────────────────────
-
 export interface ResourceItem {
   _id: string
   name: string
   [key: string]: unknown
 }
-
-// ─── App interfaces ───────────────────────────────────────────────────────────
 
 export interface AppItem {
   _id: string
@@ -165,8 +153,6 @@ export interface OrgMembersEmailResponse {
   [key: string]: unknown
 }
 
-// ─── Email sender interfaces ──────────────────────────────────────────────────
-
 export interface EmailSender {
   _id: string
   name: string
@@ -185,8 +171,6 @@ export interface UpdateEmailSenderInput {
   email?: string
   [key: string]: unknown
 }
-
-// ─── Room interfaces ──────────────────────────────────────────────────────────
 
 export interface Room {
   _id: string
@@ -220,8 +204,6 @@ export interface RoomStatusCountResponse {
   [status: string]: number
 }
 
-// ─── Store interfaces ─────────────────────────────────────────────────────────
-
 export interface PhysicalStore {
   _id: string
   name: string
@@ -241,8 +223,6 @@ export interface UpdateStoreInput {
   [key: string]: unknown
 }
 
-// ─── Facebook interfaces ──────────────────────────────────────────────────────
-
 export interface FacebookPage {
   id: string
   name: string
@@ -260,8 +240,6 @@ export interface AuthFacebookResponse {
   pages?: FacebookPage[]
   [key: string]: unknown
 }
-
-// ─── Mail channel interfaces ──────────────────────────────────────────────────
 
 export interface MailChannel {
   _id: string
@@ -286,26 +264,24 @@ export interface InitChannelResponse {
   [key: string]: unknown
 }
 
-// ─── AWS org interfaces ───────────────────────────────────────────────────────
-
 export interface CreateAwsOrgInput {
   customer_id?: string
   [key: string]: unknown
 }
-
-// ─── Contact v2 interfaces ────────────────────────────────────────────────────
 
 export interface UpdateContactV2Input {
   [key: string]: unknown
 }
 
 export class PlatformResource {
-  constructor(private readonly http: HttpTransport, private readonly base: string) {}
+  constructor(
+    private readonly http: HttpTransport,
+    private readonly base: string,
+    private readonly backendBase?: string,
+  ) {}
 
   private get v1() { return `${this.base}/v1` }
   private get v2() { return `${this.base}/v2` }
-
-  // ─── Users ──────────────────────────────────────────────────────────────────
 
   async listUsers(params?: {
     page?: number
@@ -379,8 +355,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/users/${userId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Organizations
-
   async listOrgs(params?: {
     limit?: number
     skip?: number
@@ -406,8 +380,6 @@ export class PlatformResource {
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
-
-  // ─── Teams
 
   async listTeams(params?: { type?: string; limit?: number; skip?: number; q?: string }): Promise<PagedResponse<{ _id: string; name: string; [key: string]: unknown }>> {
     const url = new URL(`${this.v2}/teams`)
@@ -462,8 +434,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Permissions
-
   async listPermissions(userId: string): Promise<Permission[]> {
     return this.http.getFetch()(`${this.v1}/users/${userId}/permissions`, { method: "GET" }).then(r => r.json())
   }
@@ -479,8 +449,6 @@ export class PlatformResource {
   async revokePermission(userId: string, permissionId: string): Promise<void> {
     await this.http.getFetch()(`${this.v1}/users/${userId}/permissions/${permissionId}`, { method: "DELETE" })
   }
-
-  // ─── Credentials / n8n ──────────────────────────────────────────────────────
 
   async listCredentials(): Promise<Credential[]> {
     return this.http.getFetch()(`${this.v1}/credentials`, { method: "GET" }).then(r => r.json())
@@ -526,8 +494,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/n8n/workflows/${workflowId}`, { method: "DELETE" }).then(r => r.json())
   }
 
-  // ─── Knowledge
-
   async listKnowledge(): Promise<KnowledgeListResponse> {
     return this.http.getFetch()(`${this.v1}/knowledge`, { method: "GET" }).then(r => r.json())
   }
@@ -539,13 +505,9 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Resources
-
   async listResources(): Promise<ResourceItem[]> {
     return this.http.getFetch()(`${this.v1}/resources`, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── Apps (journeys)
 
   async listApps(): Promise<AppListResponse> {
     return this.http.getFetch()(`${this.v2}/apps`, { method: "GET" }).then(r => r.json())
@@ -559,8 +521,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/app/_menu_settings`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Contacts v2
-
   async getContactV2(contactId: string): Promise<{ _id: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v2}/contacts/${contactId}`, { method: "GET" }).then(r => r.json())
   }
@@ -572,8 +532,6 @@ export class PlatformResource {
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
-
-  // ─── Users (additional) ─────────────────────────────────────────────────────
 
   async suspendUser(body: { user_id: string }): Promise<UserActionResponse> {
     return this.http.getFetch()(`${this.v1}/users/_suspend`, {
@@ -603,8 +561,6 @@ export class PlatformResource {
       body,
     }).then(r => r.json())
   }
-
-  // ─── Apps (additional) ──────────────────────────────────────────────────────
 
   async updateApp(appId: string, body: UpdateAppInput): Promise<AppItem> {
     return this.http.getFetch()(`${this.v2}/apps/${appId}`, {
@@ -638,8 +594,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v2}/apps/forms/${formId}`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Email Senders ───────────────────────────────────────────────────────────
-
   async listEmailSenders(): Promise<EmailSender[]> {
     return this.http.getFetch()(`${this.v2}/apps/email-senders`, { method: "GET" }).then(r => r.json())
   }
@@ -664,15 +618,11 @@ export class PlatformResource {
     await this.http.getFetch()(`${this.v2}/apps/email-senders/${senderId}`, { method: "DELETE" })
   }
 
-  // ─── Business Units ──────────────────────────────────────────────────────────
-
   async listBusinessUnits(params?: Record<string, string>): Promise<{ _id: string; name: string; [key: string]: unknown }[]> {
     const url = new URL(`${this.v1}/business_units`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── Rooms ───────────────────────────────────────────────────────────────────
 
   async listRooms(params?: Record<string, string>): Promise<Room[]> {
     const url = new URL(`${this.v1}/rooms`)
@@ -716,8 +666,6 @@ export class PlatformResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Physical Stores ─────────────────────────────────────────────────────────
-
   async listStores(): Promise<PhysicalStore[]> {
     return this.http.getFetch()(`${this.v1}/stores`, { method: "GET" }).then(r => r.json())
   }
@@ -742,8 +690,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/stores/${storeId}`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Facebook (platform) ─────────────────────────────────────────────────────
-
   async getFacebookPages(params?: { fbUserId?: string }): Promise<FacebookPage[]> {
     const url = new URL(`${this.v1}/facebooks`)
     if (params?.fbUserId) url.searchParams.set("fbUserId", params.fbUserId)
@@ -766,8 +712,6 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Mail Channels ───────────────────────────────────────────────────────────
-
   async createMailChannel(body: CreateMailChannelInput): Promise<MailChannel> {
     return this.http.getFetch()(`${this.v1}/mail_channels`, {
       method: "POST",
@@ -788,8 +732,6 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  // ─── Organizations (additional) ─────────────────────────────────────────────
-
   async createAwsOrg(body: CreateAwsOrgInput): Promise<Organization> {
     return this.http.getFetch()(`${this.v1}/organizations/aws`, {
       method: "POST",
@@ -797,8 +739,6 @@ export class PlatformResource {
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
-
-  // ─── Workflows / n8n (additional) ──────────────────────────────────────────
 
   async listN8nNodeTypes(params?: { onlyLatest?: boolean }): Promise<{ name: string; [key: string]: unknown }[]> {
     const url = new URL(`${this.v1}/n8n/node-types`)
@@ -832,8 +772,6 @@ export class PlatformResource {
     return this.http.getFetch()(`${this.v1}/n8n/oauth1-credential/auth?id=${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Teams (additional) ─────────────────────────────────────────────────────
-
   async updateTeamV1(teamId: string, body: UpdateTeamInput): Promise<{ _id: string; name: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}`, {
       method: "PUT",
@@ -843,7 +781,8 @@ export class PlatformResource {
   }
 
   async uploadTeamIcon(body: FormData): Promise<{ url: string }> {
-    return this.http.getFetch()(`${this.v1}/teams/_fileupload`, {
+    const base = this.backendBase ?? this.v1
+    return this.http.getFetch()(`${base}/teams/_fileupload`, {
       method: "POST",
       body,
     }).then(r => r.json())

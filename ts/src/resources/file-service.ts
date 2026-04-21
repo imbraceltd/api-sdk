@@ -117,7 +117,7 @@ export class FileServiceResource {
 
   /** Build the public download URL for a file (no auth required). */
   getPublicDownloadUrl(id: string): string {
-    const gatewayBase = this.base.replace(/\/v1\/file-service$/, "")
+    const gatewayBase = this.base.replace(/\/(v1|v2)\/backend\/file-service$/, "").replace(/\/v1\/file-service$/, "")
     return `${gatewayBase}/files/download/${id}`
   }
 }

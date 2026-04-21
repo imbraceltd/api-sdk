@@ -21,7 +21,7 @@ describe("IpsResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  // ─── Profiles ───────────────────────────────────────────────────────────────
+  // ─── Profiles   
 
   it("getProfile() calls GET /ips/v1/profiles/:userId", async () => {
     mockFetch({ _id: "u_1", displayName: "Alice" })
@@ -62,7 +62,7 @@ describe("IpsResource", () => {
     expect(url.searchParams.get("limit")).toBe("10")
   })
 
-  // ─── Follow ─────────────────────────────────────────────────────────────────
+  // ─── Follow   
 
   it("follow() calls POST /ips/v1/profiles/:userId/follow", async () => {
     mockFetch({})
@@ -94,7 +94,7 @@ describe("IpsResource", () => {
     expect(url.pathname).toBe("/ips/v1/profiles/u_1/following")
   })
 
-  // ─── Identities ─────────────────────────────────────────────────────────────
+  // ─── Identities   
 
   it("listIdentities() calls GET /ips/v1/identities/:userId", async () => {
     mockFetch([{ provider: "google", sub: "sub_1" }])

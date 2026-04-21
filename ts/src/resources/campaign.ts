@@ -1,7 +1,5 @@
 import { HttpTransport } from "../http.js"
 
-// ─── Campaign interfaces ──────────────────────────────────────────────────────
-
 export interface Campaign {
   _id: string
   name: string
@@ -23,8 +21,6 @@ export interface CreateCampaignInput {
   channel_type?: string
   [key: string]: unknown
 }
-
-// ─── Touchpoint interfaces ────────────────────────────────────────────────────
 
 export interface Touchpoint {
   _id: string
@@ -74,8 +70,6 @@ export class CampaignResource {
 
   private get v1() { return `${this.base}/v1` }
 
-  // ─── Campaigns ───────────────────────────────────────────────────────────────
-
   async list(params?: Record<string, string>): Promise<CampaignListResponse> {
     const url = new URL(`${this.v1}/campaign`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
@@ -97,8 +91,6 @@ export class CampaignResource {
   async delete(campaignId: string): Promise<void> {
     await this.http.getFetch()(`${this.v1}/campaign/${campaignId}`, { method: "DELETE" })
   }
-
-  // ─── Touchpoints ─────────────────────────────────────────────────────────────
 
   async listTouchpoints(params?: Record<string, string>): Promise<TouchpointListResponse> {
     const url = new URL(`${this.v1}/touchpoints`)

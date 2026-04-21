@@ -25,6 +25,9 @@ ENVIRONMENTS: dict[str, EnvironmentPreset] = {
         gateway="https://app-gateway.sandbox.imbrace.co",
     ),
     "stable": EnvironmentPreset(
-        gateway="https://app-gateway.imbrace.co",
+        gateway="https://app-gatewayv2.imbrace.co",
+    ),
+    "prodv2": EnvironmentPreset(
+        gateway="https://app-gatewayv2.imbrace.co",
     ),
 }

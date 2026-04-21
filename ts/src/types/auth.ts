@@ -1,5 +1,5 @@
 export interface ImbraceApiKey {
-  _id: string
+  id: string
   apiKey: string
   organization_id: string
   user_id: string

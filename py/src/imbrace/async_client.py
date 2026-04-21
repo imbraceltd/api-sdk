@@ -102,22 +102,22 @@ class AsyncImbraceClient:
 
         self.auth          = AsyncAuthResource(self.http, urls.platform, urls.gateway)
         self.account       = AsyncAccountResource(self.http, urls.platform)
-        self.platform      = AsyncPlatformResource(self.http, urls.platform)
+        self.platform      = AsyncPlatformResource(self.http, urls.platform, urls.backend)
         self.organizations = AsyncOrganizationsResource(self.http, urls.platform)
-        self.teams         = AsyncTeamsResource(self.http, urls.platform)
+        self.teams         = AsyncTeamsResource(self.http, urls.platform, urls.backend)
         self.settings      = AsyncSettingsResource(self.http, urls.channel_service, urls.platform)
 
         self.channel       = AsyncChannelResource(self.http, urls.channel_service)
         self.contacts      = AsyncContactsResource(self.http, urls.channel_service)
         self.conversations = AsyncConversationsResource(self.http, urls.channel_service)
-        self.messages      = AsyncMessagesResource(self.http, urls.channel_service)
+        self.messages      = AsyncMessagesResource(self.http, urls.channel_service, urls.backend)
         self.categories    = AsyncCategoriesResource(self.http, urls.channel_service)
         self.workflows     = AsyncWorkflowsResource(self.http, urls.channel_service, urls.platform)
 
-        self.boards        = AsyncBoardsResource(self.http, urls.data_board)
+        self.boards        = AsyncBoardsResource(self.http, urls.data_board, urls.backend)
         self.ips           = AsyncIpsResource(self.http, urls.ips)
         self.ai            = AsyncAiResource(self.http, urls.ai)
-        self.marketplace   = AsyncMarketplaceResource(self.http, urls.marketplaces, urls.platform)
+        self.marketplace   = AsyncMarketplaceResource(self.http, urls.marketplaces)
         self.agent         = AsyncAgentResource(self.http, urls.marketplaces, urls.gateway)
 
         self.health        = AsyncHealthResource(self.http, urls.gateway)

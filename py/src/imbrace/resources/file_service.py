@@ -74,7 +74,9 @@ class FileServiceResource:
 
     def get_public_download_url(self, file_id: str) -> str:
         """Build the public download URL for a file (no auth required)."""
-        gateway_base = self._base.replace("/v1/file-service", "")
+        import re
+        gateway_base = re.sub(r"/(v1|v2)/backend/file-service$", "", self._base)
+        gateway_base = gateway_base.replace("/v1/file-service", "")
         return f"{gateway_base}/files/download/{file_id}"
 
 
@@ -160,5 +162,7 @@ class AsyncFileServiceResource:
 
     def get_public_download_url(self, file_id: str) -> str:
         """Build the public download URL for a file (no auth required)."""
-        gateway_base = self._base.replace("/v1/file-service", "")
+        import re
+        gateway_base = re.sub(r"/(v1|v2)/backend/file-service$", "", self._base)
+        gateway_base = gateway_base.replace("/v1/file-service", "")
         return f"{gateway_base}/files/download/{file_id}"

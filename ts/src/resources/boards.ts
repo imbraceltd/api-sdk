@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Board, BoardItem, PagedResponse } from "../types/index.js"
 
-// ─── Board update / reorder interfaces ───────────────────────────────────────
-
 export interface UpdateBoardInput {
   name?: string
   description?: string
@@ -32,8 +30,6 @@ export interface ImportProgressResponse {
   total?: number
   [key: string]: unknown
 }
-
-// ─── Field interfaces ─────────────────────────────────────────────────────────
 
 export interface BoardField {
   _id: string
@@ -75,8 +71,6 @@ export interface FieldOperationResponse {
   [key: string]: unknown
 }
 
-// ─── Item interfaces ─────────────────────────────────────────────────────────
-
 export interface CreateItemInput {
   [key: string]: unknown
 }
@@ -102,7 +96,6 @@ export interface CheckConflictInput {
 }
 
 export interface LinkItemsInput {
-  related_board_id: string
   related_item_ids: string[]
   [key: string]: unknown
 }
@@ -111,8 +104,6 @@ export interface LinkItemsResponse {
   success: boolean
   [key: string]: unknown
 }
-
-// ─── Segment interfaces ───────────────────────────────────────────────────────
 
 export interface BoardSegment {
   _id: string
@@ -132,8 +123,6 @@ export interface UpdateSegmentInput {
   filter?: Record<string, unknown>
   [key: string]: unknown
 }
-
-// ─── Folder interfaces ────────────────────────────────────────────────────────
 
 export interface KnowledgeFolder {
   _id: string
@@ -165,8 +154,6 @@ export interface DeleteFoldersResponse {
   deleted?: number
   [key: string]: unknown
 }
-
-// ─── File interfaces ──────────────────────────────────────────────────────────
 
 export interface KnowledgeFile {
   _id: string
@@ -226,8 +213,6 @@ export interface LinkPreviewResponse {
   [key: string]: unknown
 }
 
-// ─── Drive interfaces ─────────────────────────────────────────────────────────
-
 export interface DriveAuthResponse {
   auth_url?: string
   [key: string]: unknown
@@ -246,30 +231,31 @@ export interface OneDriveSessionStatus {
 
 export class BoardsResource {
   /**
-   * @param base - data-board base URL (gateway/data-board)
-   *   No version prefix — path is used directly.
+   * @param base    - data-board base URL (`${gateway}/data-board`) — KnowledgeHub folders/files/drive
+   * @param backend - backend base URL (`${gateway}/v1/backend` or `v2/backend`) — board CRUD, items, fields, search
    */
-  constructor(private readonly http: HttpTransport, private readonly base: string) {}
+  constructor(
+    private readonly http: HttpTransport,
+    private readonly base: string,
+    private readonly backend: string,
+  ) {}
 
-  // ─── Boards ──────────────────────────────────────────────────────────────────
-
-  async list(params?: { limit?: number; skip?: number }): Promise<{ data: Board[] }> {
-    const url = new URL(`${this.base}/boards`)
-    if (params?.limit)  url.searchParams.set("limit", String(params.limit))
-    if (params?.skip !== undefined) url.searchParams.set("skip", String(params.skip))
+  async list(params?: { limit?: number; skip?: number; sort?: string; hidden?: boolean; types?: string }): Promise<{ data: Board[] }> {
+    const url = new URL(`${this.backend}/board`)
+    if (params?.limit !== undefined) url.searchParams.set("limit", String(params.limit))
+    if (params?.skip !== undefined)  url.searchParams.set("skip", String(params.skip))
+    if (params?.sort)                url.searchParams.set("sort", params.sort)
+    if (params?.hidden !== undefined) url.searchParams.set("hidden", String(params.hidden))
+    if (params?.types)               url.searchParams.set("types", params.types)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
   async get(boardId: string): Promise<Board> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}`, { method: "GET" }).then(r => r.json())
-  }
-
-  async getByContact(contactId: string): Promise<Board> {
-    return this.http.getFetch()(`${this.base}/boards/by-contact/${contactId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.backend}/board/${boardId}`, { method: "GET" }).then(r => r.json())
   }
 
   async create(body: { name: string; description?: string }): Promise<Board> {
-    return this.http.getFetch()(`${this.base}/boards`, {
+    return this.http.getFetch()(`${this.backend}/board`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -277,7 +263,7 @@ export class BoardsResource {
   }
 
   async update(boardId: string, body: UpdateBoardInput): Promise<Board> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -285,11 +271,11 @@ export class BoardsResource {
   }
 
   async delete(boardId: string): Promise<void> {
-    await this.http.getFetch()(`${this.base}/boards/${boardId}`, { method: "DELETE" })
+    await this.http.getFetch()(`${this.backend}/board/${boardId}`, { method: "DELETE" })
   }
 
   async reorder(body: ReorderBoardsInput): Promise<ReorderBoardsResponse> {
-    return this.http.getFetch()(`${this.base}/boards/_order`, {
+    return this.http.getFetch()(`${this.backend}/board/_order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -297,33 +283,37 @@ export class BoardsResource {
   }
 
   async exportCsv(boardId: string, params?: Record<string, string>): Promise<string> {
-    const url = new URL(`${this.base}/boards/${boardId}/export_csv`)
+    const url = new URL(`${this.backend}/board/${boardId}/export_csv`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.text())
   }
 
+  async exportCsvViaMail(boardId: string, params?: Record<string, string>): Promise<unknown> {
+    const url = new URL(`${this.backend}/board/${boardId}/export_csv`)
+    if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
+    return this.http.getFetch()(url, { method: "POST" }).then(r => r.json())
+  }
+
   async importCsv(boardId: string, body: FormData): Promise<ImportResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/import_csv`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/import_csv`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
   async importExcel(boardId: string, body: FormData): Promise<ImportResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/import_excel`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/import_excel`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
   async getImportProgress(boardId: string): Promise<ImportProgressResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/import_progress`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/import_progress`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Fields ──────────────────────────────────────────────────────────────────
-
   async createField(boardId: string, body: CreateFieldInput): Promise<BoardField> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/fields`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -331,7 +321,7 @@ export class BoardsResource {
   }
 
   async updateField(boardId: string, fieldId: string, body: UpdateFieldInput): Promise<BoardField> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/fields/${fieldId}`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields/${fieldId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -339,11 +329,11 @@ export class BoardsResource {
   }
 
   async deleteField(boardId: string, fieldId: string): Promise<void> {
-    await this.http.getFetch()(`${this.base}/boards/${boardId}/fields/${fieldId}`, { method: "DELETE" })
+    await this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields/${fieldId}`, { method: "DELETE" })
   }
 
   async reorderFields(boardId: string, body: ReorderFieldsInput): Promise<FieldOperationResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/fields/reorder`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields/_order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -351,28 +341,26 @@ export class BoardsResource {
   }
 
   async bulkUpdateFields(boardId: string, body: BulkUpdateFieldsInput): Promise<FieldOperationResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/fields/bulk`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/multiple_board_fields`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  // ─── Items (records) ─────────────────────────────────────────────────────────
-
   async listItems(boardId: string, params?: { limit?: number; skip?: number }): Promise<PagedResponse<BoardItem>> {
-    const url = new URL(`${this.base}/boards/${boardId}/items`)
-    if (params?.limit)  url.searchParams.set("limit", String(params.limit))
-    if (params?.skip !== undefined) url.searchParams.set("skip", String(params.skip))
+    const url = new URL(`${this.backend}/board/${boardId}/board_items`)
+    if (params?.limit !== undefined) url.searchParams.set("limit", String(params.limit))
+    if (params?.skip !== undefined)  url.searchParams.set("skip", String(params.skip))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
   async getItem(boardId: string, itemId: string): Promise<BoardItem> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_items/${itemId}`, { method: "GET" }).then(r => r.json())
   }
 
   async createItem(boardId: string, body: CreateItemInput): Promise<BoardItem> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -380,7 +368,7 @@ export class BoardsResource {
   }
 
   async updateItem(boardId: string, itemId: string, body: UpdateItemInput): Promise<BoardItem> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_items/${itemId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -388,19 +376,19 @@ export class BoardsResource {
   }
 
   async deleteItem(boardId: string, itemId: string): Promise<void> {
-    await this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}`, { method: "DELETE" })
+    await this.http.getFetch()(`${this.backend}/board/${boardId}/board_items/${itemId}`, { method: "DELETE" })
   }
 
   async bulkDeleteItems(boardId: string, body: BulkDeleteItemsInput): Promise<BulkDeleteItemsResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/bulk-delete`, {
-      method: "DELETE",
+    return this.http.getFetch()(`${this.backend}/board/delete/${boardId}/board_items`, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
   async checkConflict(boardId: string, itemId: string, body: CheckConflictInput): Promise<{ is_conflicted: boolean }> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}/_is_conflicted`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_items/${itemId}/_is_conflicted`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -408,43 +396,55 @@ export class BoardsResource {
   }
 
   async getRelatedItems(boardId: string, itemId: string, relatedBoardId: string): Promise<BoardItem[]> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}/related/${relatedBoardId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(
+      `${this.backend}/board/${boardId}/board_items/${itemId}/related_boards/${relatedBoardId}/board_items`,
+      { method: "GET" },
+    ).then(r => r.json())
   }
 
-  async linkItems(boardId: string, itemId: string, body: LinkItemsInput): Promise<LinkItemsResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}/related`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
+  async getLinkedBoardItems(contactBoardId: string, boardItemId: string, type: 'Opportunities' | 'Tasks'): Promise<BoardItem[]> {
+    const url = new URL(`${this.backend}/board/${contactBoardId}/board_items/_related_board_item`)
+    url.searchParams.set("related_board_item_id", boardItemId)
+    url.searchParams.set("type", type)
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async unlinkItems(boardId: string, itemId: string, body: LinkItemsInput): Promise<LinkItemsResponse> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/items/${itemId}/related`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
+  async linkItems(boardId: string, itemId: string, relatedBoardId: string, body?: LinkItemsInput): Promise<LinkItemsResponse> {
+    return this.http.getFetch()(
+      `${this.backend}/board/${boardId}/board_items/${itemId}/related_boards/${relatedBoardId}/link`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body ?? {}),
+      },
+    ).then(r => r.json())
   }
 
-  // ─── Search ──────────────────────────────────────────────────────────────────
+  async unlinkItems(boardId: string, itemId: string, relatedBoardId: string, body?: LinkItemsInput): Promise<LinkItemsResponse> {
+    return this.http.getFetch()(
+      `${this.backend}/board/${boardId}/board_items/${itemId}/related_boards/${relatedBoardId}/unlink`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body ?? {}),
+      },
+    ).then(r => r.json())
+  }
 
   async search(boardId: string, body: { q?: string; limit?: number; offset?: number }): Promise<PagedResponse<BoardItem>> {
-    return this.http.getFetch()(`${this.base}/search/${boardId}`, {
+    return this.http.getFetch()(`${this.backend}/meilisearch/${boardId}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  // ─── Segmentation ────────────────────────────────────────────────────────────
-
   async listSegments(boardId: string): Promise<BoardSegment[]> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/segmentation`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/segmentation`, { method: "GET" }).then(r => r.json())
   }
 
   async createSegment(boardId: string, body: CreateSegmentInput): Promise<BoardSegment> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/segmentation`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/segmentation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -452,7 +452,7 @@ export class BoardsResource {
   }
 
   async updateSegment(boardId: string, segmentId: string, body: UpdateSegmentInput): Promise<BoardSegment> {
-    return this.http.getFetch()(`${this.base}/boards/${boardId}/segmentation/${segmentId}`, {
+    return this.http.getFetch()(`${this.backend}/board/${boardId}/segmentation/${segmentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -460,10 +460,8 @@ export class BoardsResource {
   }
 
   async deleteSegment(boardId: string, segmentId: string): Promise<void> {
-    await this.http.getFetch()(`${this.base}/boards/${boardId}/segmentation/${segmentId}`, { method: "DELETE" })
+    await this.http.getFetch()(`${this.backend}/board/${boardId}/segmentation/${segmentId}`, { method: "DELETE" })
   }
-
-  // ─── Knowledge Hub (folders/files via data-board) ────────────────────────────
 
   async searchFolders(params: { organizationId: string; q?: string }): Promise<KnowledgeFolder[]> {
     const url = new URL(`${this.base}/folders/search`)
@@ -548,29 +546,30 @@ export class BoardsResource {
   }
 
   async getLinkPreview(url: string): Promise<LinkPreviewResponse> {
-    return this.http.getFetch()(`${this.base}/link_preview/getWebsiteInfo`, {
+    return this.http.getFetch()(`${this.backend}/link_preview/getWebsiteInfo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     }).then(r => r.json())
   }
 
-  // ─── Board file upload ───────────────────────────────────────────────────────
-
   async uploadBoardFile(body: FormData): Promise<{ url: string }> {
-    return this.http.getFetch()(`${this.base}/boards/_fileupload`, {
+    return this.http.getFetch()(`${this.backend}/board/_fileupload`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
-  // ─── Folder contents ─────────────────────────────────────────────────────────
+  async uploadBoardFileV2(body: FormData): Promise<{ url: string }> {
+    return this.http.getFetch()(`${this.backend}/board/upload`, {
+      method: "POST",
+      body,
+    }).then(r => r.json())
+  }
 
   async getFolderContents(folderId: string): Promise<KnowledgeFolder> {
     return this.http.getFetch()(`${this.base}/folders/${folderId}/contents`, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── File update ─────────────────────────────────────────────────────────────
 
   async updateFile(fileId: string, body: UpdateFileInput): Promise<KnowledgeFile> {
     return this.http.getFetch()(`${this.base}/files/${fileId}`, {
@@ -579,8 +578,6 @@ export class BoardsResource {
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
-
-  // ─── External Drive integration ──────────────────────────────────────────────
 
   async initiateDriveAuth(type: string): Promise<DriveAuthResponse> {
     return this.http.getFetch()(`${this.base}/auth/${type}/initiate`, { method: "GET" }).then(r => r.json())

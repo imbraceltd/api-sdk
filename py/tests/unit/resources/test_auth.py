@@ -5,7 +5,7 @@ from pytest_httpx import HTTPXMock
 
 from imbrace import ImbraceClient
 
-GW = "https://app-gateway.imbrace.co"
+GW = "https://app-gatewayv2.imbrace.co"
 # third-party token (API key generation) — requires access token, routes via private backend
 # note: "thrid" is a backend typo, preserved intentionally
 TOKEN_URL = f"{GW}/private/backend/v1/thrid_party_token"

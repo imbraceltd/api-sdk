@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { ConversationMessage, PagedResponse } from "../types/index.js"
 
-// ─── Comment interfaces ───────────────────────────────────────────────────────
-
 export interface MessageComment {
   _id: string
   text?: string
@@ -29,9 +27,14 @@ export interface MessageActionResponse {
 
 export class MessagesResource {
   /**
-   * @param base - channel-service base URL (gateway/channel-service)
+   * @param base        - channel-service base URL (gateway/channel-service)
+   * @param backendBase - backend base URL (gateway/v1/backend) for file upload
    */
-  constructor(private readonly http: HttpTransport, private readonly base: string) {}
+  constructor(
+    private readonly http: HttpTransport,
+    private readonly base: string,
+    private readonly backendBase?: string,
+  ) {}
 
   private get v1() { return `${this.base}/v1` }
 
@@ -65,7 +68,8 @@ export class MessagesResource {
   }
 
   async uploadFile(body: FormData): Promise<{ url: string }> {
-    return this.http.getFetch()(`${this.v1}/conversation_messages/_fileupload`, {
+    const base = this.backendBase ?? this.v1
+    return this.http.getFetch()(`${base}/conversation_messages/_fileupload`, {
       method: "POST",
       body,
     }).then(r => r.json())

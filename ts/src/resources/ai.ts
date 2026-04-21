@@ -1,7 +1,7 @@
 import { HttpTransport } from "../http.js"
 import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChunk } from "../types/index.js"
 
-// ─── Assistant interfaces ────────────────────────────────────────────────────
+// ─── Assistant interfaces 
 
 export interface Assistant {
   _id: string
@@ -9,6 +9,39 @@ export interface Assistant {
   description?: string
   instructions?: string
   model?: string
+  mode?: 'standard' | 'advanced'
+  model_id?: string
+  provider_id?: string
+  show_thinking_process?: boolean
+  streaming?: boolean
+  channel?: string
+  channel_id?: string
+  teams?: string | string[]
+  categories?: number[]
+  guardrail_id?: string
+  personality_and_role?: string
+  core_task?: string
+  agent_type?: string
+  sub_agents?: any[]
+  team_leads?: any[]
+  is_orchestrator?: boolean
+  preload_information?: string
+  tone_and_style?: string
+  response_length?: string
+  list_of_banned_words?: string
+  files?: any
+  selected_board_id?: string
+  folder_ids?: string[]
+  default_folder_id?: string
+  board_ids?: string[]
+  knowledge_hubs?: string[]
+  workflow_functions?: any[]
+  temperature?: number
+  use_memory?: boolean
+  tool_server?: any
+  enable_echart?: boolean
+  top_k_relevant_results?: number
+  top_k?: number
   created_at?: string
   updated_at?: string
   [key: string]: unknown
@@ -29,12 +62,17 @@ export interface PatchInstructionsInput {
   [key: string]: unknown
 }
 
-// ─── Assistant App interfaces ────────────────────────────────────────────────
+// ─── Assistant App interfaces   
 
 export interface AssistantApp {
   _id: string
   name: string
   assistant_id?: string
+  mode?: 'standard' | 'advanced'
+  model_id?: string
+  provider_id?: string
+  instructions?: string
+  agent_type?: string
   workflow?: Record<string, unknown>
   created_at?: string
   updated_at?: string
@@ -49,11 +87,21 @@ export interface AssistantAppListResponse {
 export interface CreateAssistantAppInput {
   name: string
   assistant_id?: string
+  mode?: string
+  model_id?: string
+  provider_id?: string
+  instructions?: string
+  agent_type?: string
   [key: string]: unknown
 }
 
 export interface UpdateAssistantAppInput {
   name?: string
+  mode?: string
+  model_id?: string
+  provider_id?: string
+  instructions?: string
+  agent_type?: string
   [key: string]: unknown
 }
 
@@ -62,7 +110,7 @@ export interface UpdateAssistantWorkflowInput {
   [key: string]: unknown
 }
 
-// ─── RAG File interfaces ─────────────────────────────────────────────────────
+// ─── RAG File interfaces  
 
 export interface RagFile {
   _id: string
@@ -78,7 +126,7 @@ export interface RagFileListResponse {
   total?: number
 }
 
-// ─── Guardrail interfaces ─────────────────────────────────────────────────────
+// ─── Guardrail interfaces   
 
 export interface Guardrail {
   _id: string
@@ -108,7 +156,7 @@ export interface UpdateGuardrailInput {
   [key: string]: unknown
 }
 
-// ─── Guardrail Provider interfaces ───────────────────────────────────────────
+// ─── Guardrail Provider interfaces  
 
 export interface GuardrailProvider {
   _id: string
@@ -147,7 +195,7 @@ export interface GuardrailProviderModelsResponse {
   models: Array<{ id: string; name: string; [key: string]: unknown }>
 }
 
-// ─── Custom Provider interfaces ───────────────────────────────────────────────
+// ─── Custom Provider interfaces 
 
 export interface AiProvider {
   _id: string
@@ -195,7 +243,7 @@ export interface VerifyToolServerResponse {
   [key: string]: unknown
 }
 
-// ─── Financial Document interfaces ───────────────────────────────────────────
+// ─── Financial Document interfaces  
 
 export interface FinancialDoc {
   _id: string
@@ -239,10 +287,15 @@ export class AiResource {
    */
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
-  private get v2() { return `${this.base}/v2` }
-  private get v3() { return `${this.base}/v3` }
+  private get v2() { return `${this.base.replace(/\/$/, "")}/v2/ai` }
+  private get v3() { return `${this.base.replace(/\/$/, "")}/v3/ai` }
 
-  // ─── Completions / Embeddings ────────────────────────────────────────────────
+  /** Returns v2 for prodv2, else v3. */
+  private get assistantBase() {
+    return this.base.includes("app-gatewayv2") ? this.v2 : this.v3
+  }
+
+  // ─── Completions / Embeddings   
 
   async complete(input: CompletionInput): Promise<Completion> {
     return this.http.getFetch()(`${this.v3}/completions`, {
@@ -301,38 +354,38 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  // ─── Assistants ──────────────────────────────────────────────────────────────
+  // ─── Assistants   
 
   async listAssistants(): Promise<AssistantListResponse> {
-    return this.http.getFetch()(`${this.v3}/accounts/assistants`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.assistantBase}/accounts/assistants`, { method: "GET" }).then(r => r.json())
   }
 
   async getAssistant(assistantId: string): Promise<Assistant> {
-    return this.http.getFetch()(`${this.v3}/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.assistantBase}/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
   }
 
   async checkAssistantName(name: string): Promise<AssistantNameCheckResponse> {
-    const url = new URL(`${this.v3}/assistants/check-name`)
+    const url = new URL(`${this.assistantBase}/assistants/check-name`)
     url.searchParams.set("name", name)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
   async listAgents(): Promise<AssistantListResponse> {
-    return this.http.getFetch()(`${this.v3}/assistants/agents`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.assistantBase}/assistants/agents`, { method: "GET" }).then(r => r.json())
   }
 
   async patchInstructions(assistantId: string, body: PatchInstructionsInput): Promise<Assistant> {
-    return this.http.getFetch()(`${this.v3}/assistants/${assistantId}/instructions`, {
+    return this.http.getFetch()(`${this.assistantBase}/assistants/${assistantId}/instructions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  // ─── Assistant Apps ──────────────────────────────────────────────────────────
+  // ─── Assistant Apps   
 
   async createAssistantApp(body: CreateAssistantAppInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.v3}/assistant_apps`, {
+    return this.http.getFetch()(`${this.assistantBase}/assistant_apps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -340,7 +393,7 @@ export class AiResource {
   }
 
   async updateAssistantApp(assistantId: string, body: UpdateAssistantAppInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}`, {
+    return this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -348,18 +401,18 @@ export class AiResource {
   }
 
   async deleteAssistantApp(assistantId: string): Promise<void> {
-    await this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}`, { method: "DELETE" })
+    await this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}`, { method: "DELETE" })
   }
 
   async updateAssistantWorkflow(assistantId: string, body: UpdateAssistantWorkflowInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}/workflow`, {
+    return this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}/workflow`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  // ─── RAG Files ───────────────────────────────────────────────────────────────
+  // ─── RAG Files  
 
   async listRagFiles(): Promise<RagFileListResponse> {
     return this.http.getFetch()(`${this.v3}/rag/files`, { method: "GET" }).then(r => r.json())
@@ -380,7 +433,7 @@ export class AiResource {
     await this.http.getFetch()(`${this.v3}/rag/files/${fileId}`, { method: "DELETE" })
   }
 
-  // ─── Guardrails ──────────────────────────────────────────────────────────────
+  // ─── Guardrails   
 
   async listGuardrails(): Promise<GuardrailListResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail/all`, { method: "GET" }).then(r => r.json())
@@ -410,7 +463,7 @@ export class AiResource {
     await this.http.getFetch()(`${this.v3}/guardrail/delete/${guardrailId}`, { method: "DELETE" })
   }
 
-  // ─── Guardrail Providers ─────────────────────────────────────────────────────
+  // ─── Guardrail Providers  
 
   async listGuardrailProviders(): Promise<GuardrailProviderListResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers`, { method: "GET" }).then(r => r.json())
@@ -452,7 +505,7 @@ export class AiResource {
     return this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}/models`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Custom Providers ────────────────────────────────────────────────────────
+  // ─── Custom Providers   
 
   async listProviders(): Promise<AiProviderListResponse> {
     return this.http.getFetch()(`${this.v3}/providers`, { method: "GET" }).then(r => r.json())
@@ -496,7 +549,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  // ─── Financial Documents (v2) ────────────────────────────────────────────────
+  // ─── Financial Documents (v2) 
 
   async getFinancialDoc(docId: string, params?: { page?: number; limit?: number }): Promise<FinancialDoc> {
     const url = new URL(`${this.v2}/financial_documents/${docId}`)

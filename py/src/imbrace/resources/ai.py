@@ -1,11 +1,9 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
 import json
 from typing_extensions import TypedDict
 from ..http import HttpTransport, AsyncHttpTransport
 from ..types.ai import Completion, StreamChunk, Embedding, CompletionInput, EmbeddingInput
 
-
-# ─── Assistant TypedDicts ────────────────────────────────────────────────────
 
 class Assistant(TypedDict, total=False):
     _id: str
@@ -13,6 +11,39 @@ class Assistant(TypedDict, total=False):
     description: Optional[str]
     instructions: Optional[str]
     model: Optional[str]
+    mode: Optional[str]
+    model_id: Optional[str]
+    provider_id: Optional[str]
+    show_thinking_process: Optional[bool]
+    streaming: Optional[bool]
+    channel: Optional[str]
+    channel_id: Optional[str]
+    teams: Optional[Union[str, List[str]]]
+    categories: Optional[List[int]]
+    guardrail_id: Optional[str]
+    personality_and_role: Optional[str]
+    core_task: Optional[str]
+    agent_type: Optional[str]
+    sub_agents: Optional[List[Any]]
+    team_leads: Optional[List[Any]]
+    is_orchestrator: Optional[bool]
+    preload_information: Optional[str]
+    tone_and_style: Optional[str]
+    response_length: Optional[str]
+    list_of_banned_words: Optional[str]
+    files: Optional[Any]
+    selected_board_id: Optional[str]
+    folder_ids: Optional[List[str]]
+    default_folder_id: Optional[List[str]]
+    board_ids: Optional[List[str]]
+    knowledge_hubs: Optional[List[str]]
+    workflow_functions: Optional[List[Any]]
+    temperature: Optional[float]
+    use_memory: Optional[bool]
+    tool_server: Optional[Any]
+    enable_echart: Optional[bool]
+    top_k_relevant_results: Optional[int]
+    top_k: Optional[int]
     created_at: Optional[str]
     updated_at: Optional[str]
 
@@ -31,12 +62,15 @@ class PatchInstructionsInput(TypedDict, total=False):
     instructions: str
 
 
-# ─── Assistant App TypedDicts ────────────────────────────────────────────────
-
 class AssistantApp(TypedDict, total=False):
     _id: str
     name: str
     assistant_id: Optional[str]
+    mode: Optional[str]
+    model_id: Optional[str]
+    provider_id: Optional[str]
+    instructions: Optional[str]
+    agent_type: Optional[str]
     workflow: Optional[Dict[str, Any]]
     created_at: Optional[str]
     updated_at: Optional[str]
@@ -50,17 +84,25 @@ class AssistantAppListResponse(TypedDict, total=False):
 class CreateAssistantAppInput(TypedDict, total=False):
     name: str
     assistant_id: str
+    mode: Optional[str]
+    model_id: Optional[str]
+    provider_id: Optional[str]
+    instructions: Optional[str]
+    agent_type: Optional[str]
 
 
 class UpdateAssistantAppInput(TypedDict, total=False):
     name: str
+    mode: Optional[str]
+    model_id: Optional[str]
+    provider_id: Optional[str]
+    instructions: Optional[str]
+    agent_type: Optional[str]
 
 
 class UpdateAssistantWorkflowInput(TypedDict, total=False):
     workflow: Dict[str, Any]
 
-
-# ─── RAG File TypedDicts ─────────────────────────────────────────────────────
 
 class RagFile(TypedDict, total=False):
     _id: str
@@ -74,8 +116,6 @@ class RagFileListResponse(TypedDict, total=False):
     data: List[RagFile]
     total: Optional[int]
 
-
-# ─── Guardrail TypedDicts ────────────────────────────────────────────────────
 
 class Guardrail(TypedDict, total=False):
     _id: str
@@ -101,8 +141,6 @@ class UpdateGuardrailInput(TypedDict, total=False):
     name: str
     config: Dict[str, Any]
 
-
-# ─── Guardrail Provider TypedDicts ──────────────────────────────────────────
 
 class GuardrailProvider(TypedDict, total=False):
     _id: str
@@ -141,8 +179,6 @@ class GuardrailProviderTestResponse(TypedDict, total=False):
 class GuardrailProviderModelsResponse(TypedDict, total=False):
     models: List[Dict[str, Any]]
 
-
-# ─── Custom Provider TypedDicts ──────────────────────────────────────────────
 
 class AiProvider(TypedDict, total=False):
     _id: str
@@ -185,8 +221,6 @@ class VerifyToolServerResponse(TypedDict, total=False):
     tools: Optional[List[Dict[str, Any]]]
 
 
-# ─── Financial Document TypedDicts ──────────────────────────────────────────
-
 class FinancialDoc(TypedDict, total=False):
     _id: str
     name: Optional[str]
@@ -219,11 +253,15 @@ class AiResource:
 
     @property
     def _v2(self) -> str:
-        return f"{self._base}/v2"
+        return f"{self._base.rstrip('/')}/v2/ai"
 
     @property
     def _v3(self) -> str:
-        return f"{self._base}/v3"
+        return f"{self._base.rstrip('/')}/v3/ai"
+
+    @property
+    def _assistant_base(self) -> str:
+        return self._v2 if "app-gatewayv2" in self._base else self._v3
 
     # --- Completions / Embeddings ---
     def complete(self, input: CompletionInput) -> Completion:
@@ -268,38 +306,38 @@ class AiResource:
 
     # --- Assistants ---
     def list_assistants(self) -> AssistantListResponse:
-        return self._http.request("GET", f"{self._v3}/accounts/assistants").json()
+        return self._http.request("GET", f"{self._assistant_base}/accounts/assistants").json()
 
     def get_assistant(self, assistant_id: str) -> Assistant:
-        return self._http.request("GET", f"{self._v3}/assistants/{assistant_id}").json()
+        return self._http.request("GET", f"{self._assistant_base}/assistants/{assistant_id}").json()
 
     def check_assistant_name(self, name: str) -> AssistantNameCheckResponse:
-        return self._http.request("GET", f"{self._v3}/assistants/check-name", params={"name": name}).json()
+        return self._http.request("GET", f"{self._assistant_base}/assistants/check-name", params={"name": name}).json()
 
     def list_agents(self) -> AssistantListResponse:
-        return self._http.request("GET", f"{self._v3}/assistants/agents").json()
+        return self._http.request("GET", f"{self._assistant_base}/assistants/agents").json()
 
     def patch_instructions(self, assistant_id: str, body: PatchInstructionsInput) -> Assistant:
-        return self._http.request("PATCH", f"{self._v3}/assistants/{assistant_id}/instructions", json=body).json()
+        return self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body).json()
 
     # --- Assistant Apps ---
     def list_assistant_apps(self) -> AssistantAppListResponse:
-        return self._http.request("GET", f"{self._v3}/assistant_apps").json()
+        return self._http.request("GET", f"{self._assistant_base}/assistant_apps").json()
 
     def get_assistant_app(self, assistant_id: str) -> AssistantApp:
-        return self._http.request("GET", f"{self._v3}/assistant_apps/{assistant_id}").json()
+        return self._http.request("GET", f"{self._assistant_base}/assistant_apps/{assistant_id}").json()
 
     def create_assistant_app(self, body: CreateAssistantAppInput) -> AssistantApp:
-        return self._http.request("POST", f"{self._v3}/assistant_apps", json=body).json()
+        return self._http.request("POST", f"{self._assistant_base}/assistant_apps", json=body).json()
 
     def update_assistant_app(self, assistant_id: str, body: UpdateAssistantAppInput) -> AssistantApp:
-        return self._http.request("PUT", f"{self._v3}/assistant_apps/{assistant_id}", json=body).json()
+        return self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}", json=body).json()
 
     def delete_assistant_app(self, assistant_id: str) -> None:
-        self._http.request("DELETE", f"{self._v3}/assistant_apps/{assistant_id}")
+        self._http.request("DELETE", f"{self._assistant_base}/assistant_apps/{assistant_id}")
 
     def update_assistant_workflow(self, assistant_id: str, body: UpdateAssistantWorkflowInput) -> AssistantApp:
-        return self._http.request("PUT", f"{self._v3}/assistant_apps/{assistant_id}/workflow", json=body).json()
+        return self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}/workflow", json=body).json()
 
     # --- RAG Files ---
     def list_rag_files(self) -> RagFileListResponse:
@@ -447,11 +485,15 @@ class AsyncAiResource:
 
     @property
     def _v2(self) -> str:
-        return f"{self._base}/v2"
+        return f"{self._base.rstrip('/')}/v2/ai"
 
     @property
     def _v3(self) -> str:
-        return f"{self._base}/v3"
+        return f"{self._base.rstrip('/')}/v3/ai"
+
+    @property
+    def _assistant_base(self) -> str:
+        return self._v2 if "app-gatewayv2" in self._base else self._v3
 
     # --- Completions / Embeddings ---
 
@@ -500,48 +542,48 @@ class AsyncAiResource:
     # --- Assistants ---
 
     async def list_assistants(self) -> AssistantListResponse:
-        res = await self._http.request("GET", f"{self._v3}/accounts/assistants")
+        res = await self._http.request("GET", f"{self._assistant_base}/accounts/assistants")
         return res.json()
 
     async def get_assistant(self, assistant_id: str) -> Assistant:
-        res = await self._http.request("GET", f"{self._v3}/assistants/{assistant_id}")
+        res = await self._http.request("GET", f"{self._assistant_base}/assistants/{assistant_id}")
         return res.json()
 
     async def check_assistant_name(self, name: str) -> AssistantNameCheckResponse:
-        res = await self._http.request("GET", f"{self._v3}/assistants/check-name", params={"name": name})
+        res = await self._http.request("GET", f"{self._assistant_base}/assistants/check-name", params={"name": name})
         return res.json()
 
     async def list_agents(self) -> AssistantListResponse:
-        res = await self._http.request("GET", f"{self._v3}/assistants/agents")
+        res = await self._http.request("GET", f"{self._assistant_base}/assistants/agents")
         return res.json()
 
     async def patch_instructions(self, assistant_id: str, body: PatchInstructionsInput) -> Assistant:
-        res = await self._http.request("PATCH", f"{self._v3}/assistants/{assistant_id}/instructions", json=body)
+        res = await self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body)
         return res.json()
 
     # --- Assistant Apps ---
 
     async def list_assistant_apps(self) -> AssistantAppListResponse:
-        res = await self._http.request("GET", f"{self._v3}/assistant_apps")
+        res = await self._http.request("GET", f"{self._assistant_base}/assistant_apps")
         return res.json()
 
     async def get_assistant_app(self, assistant_id: str) -> AssistantApp:
-        res = await self._http.request("GET", f"{self._v3}/assistant_apps/{assistant_id}")
+        res = await self._http.request("GET", f"{self._assistant_base}/assistant_apps/{assistant_id}")
         return res.json()
 
     async def create_assistant_app(self, body: CreateAssistantAppInput) -> AssistantApp:
-        res = await self._http.request("POST", f"{self._v3}/assistant_apps", json=body)
+        res = await self._http.request("POST", f"{self._assistant_base}/assistant_apps", json=body)
         return res.json()
 
     async def update_assistant_app(self, assistant_id: str, body: UpdateAssistantAppInput) -> AssistantApp:
-        res = await self._http.request("PUT", f"{self._v3}/assistant_apps/{assistant_id}", json=body)
+        res = await self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}", json=body)
         return res.json()
 
     async def delete_assistant_app(self, assistant_id: str) -> None:
-        await self._http.request("DELETE", f"{self._v3}/assistant_apps/{assistant_id}")
+        await self._http.request("DELETE", f"{self._assistant_base}/assistant_apps/{assistant_id}")
 
     async def update_assistant_workflow(self, assistant_id: str, body: UpdateAssistantWorkflowInput) -> AssistantApp:
-        res = await self._http.request("PUT", f"{self._v3}/assistant_apps/{assistant_id}/workflow", json=body)
+        res = await self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}/workflow", json=body)
         return res.json()
 
     # --- RAG Files ---

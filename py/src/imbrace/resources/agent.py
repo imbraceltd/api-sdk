@@ -16,10 +16,10 @@ class AgentResource:
 
     def __init__(self, http: HttpTransport, base: str, gateway: str):
         self._http = http
-        self._templates = f"{base.rstrip('/')}/v1/market-places/templates"
-        self._use_cases = f"{gateway.rstrip('/')}/v3/marketplaces/use-cases"
+        self._templates = base.rstrip("/").replace("/marketplaces", "/templates")
+        self._use_cases = self._templates
 
-    # ── Marketplace Templates ──────────────────────────────────────────────────
+    # ── Marketplace Templates  
 
     def list(self) -> Dict[str, Any]:
         return self._http.request("GET", self._templates).json()
@@ -51,7 +51,7 @@ class AgentResource:
     def delete_agent(self, agent_id: str) -> Dict[str, Any]:
         return self.delete(agent_id)
 
-    # ── Use-cases ─────────────────────────────────────────────────────────────
+    # ── Use-cases      
 
     def list_use_cases(self) -> Dict[str, Any]:
         return self._http.request("GET", self._use_cases).json()
@@ -74,10 +74,10 @@ class AsyncAgentResource:
 
     def __init__(self, http: AsyncHttpTransport, base: str, gateway: str):
         self._http = http
-        self._templates = f"{base.rstrip('/')}/v1/market-places/templates"
-        self._use_cases = f"{gateway.rstrip('/')}/v3/marketplaces/use-cases"
+        self._templates = base.rstrip("/").replace("/marketplaces", "/templates")
+        self._use_cases = self._templates
 
-    # ── Marketplace Templates ──────────────────────────────────────────────────
+    # ── Marketplace Templates 
 
     async def list(self) -> Dict[str, Any]:
         res = await self._http.request("GET", self._templates)
@@ -114,7 +114,7 @@ class AsyncAgentResource:
     async def delete_agent(self, agent_id: str) -> Dict[str, Any]:
         return await self.delete(agent_id)
 
-    # ── Use-cases ─────────────────────────────────────────────────────────────
+    # ── Use-cases
 
     async def list_use_cases(self) -> Dict[str, Any]:
         res = await self._http.request("GET", self._use_cases)

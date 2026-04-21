@@ -22,7 +22,7 @@ describe("PlatformResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  // ─── Users ──────────────────────────────────────────────────────────────────
+  // ─── Users  
 
   it("listUsers() calls GET /platform/v1/users", async () => {
     mockFetch({ data: [], total: 0 })
@@ -72,7 +72,7 @@ describe("PlatformResource", () => {
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("POST")
   })
 
-  // ─── Organizations ──────────────────────────────────────────────────────────
+  // ─── Organizations  
 
   it("listOrgs() calls GET /platform/v2/organizations", async () => {
     mockFetch({ data: [], total: 0 })
@@ -96,7 +96,7 @@ describe("PlatformResource", () => {
     expect(url.pathname).toBe("/platform/v2/organizations/_all")
   })
 
-  // ─── Permissions ────────────────────────────────────────────────────────────
+  // ─── Permissions  
 
   it("listPermissions() calls GET /platform/v1/users/:userId/permissions", async () => {
     mockFetch([{ _id: "perm_1", resource: "agents", action: "read" }])

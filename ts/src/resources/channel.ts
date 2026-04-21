@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Channel, Team, PagedResponse } from "../types/index.js"
 
-// ─── Channel input interfaces ─────────────────────────────────────────────────
-
 export interface CreateChannelInput {
   name: string
   type?: string
@@ -25,8 +23,6 @@ export interface ConvCountResponse {
   count: number
   [key: string]: unknown
 }
-
-// ─── Channel-type creator inputs ──────────────────────────────────────────────
 
 export interface CreateFacebookInput {
   page_id: string
@@ -66,8 +62,6 @@ export interface CreateWhatsAppInput {
   [key: string]: unknown
 }
 
-// ─── Credential / workflow interfaces ────────────────────────────────────────
-
 export interface ChannelCredential {
   _id: string
   type?: string
@@ -88,8 +82,6 @@ export interface ChannelWorkflowResponse {
   [key: string]: unknown
 }
 
-// ─── Team observer interfaces ─────────────────────────────────────────────────
-
 export interface TeamObserver {
   _id: string
   user_id?: string
@@ -107,8 +99,6 @@ export class ChannelResource {
   private get v1() { return `${this.base}/v1` }
   private get v2() { return `${this.base}/v2` }
   private get v3() { return `${this.base}/v3` }
-
-  // ─── Channels ────────────────────────────────────────────────────────────────
 
   async list(params?: { type?: string }): Promise<Channel[]> {
     const url = new URL(`${this.v1}/channels`)
@@ -162,8 +152,6 @@ export class ChannelResource {
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
-
-  // ─── Channel type creators ───────────────────────────────────────────────────
 
   async createWeb(body: { name: string }): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_web`, {
@@ -273,8 +261,6 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  // ─── Channel credentials & workflows ────────────────────────────────────────
-
   async getCredential(credentialId: string): Promise<ChannelCredential> {
     return this.http.getFetch()(`${this.v1}/channels/credentials/${credentialId}`, { method: "GET" }).then(r => r.json())
   }
@@ -302,8 +288,6 @@ export class ChannelResource {
   async deleteChannelWorkflow(workflowId: string): Promise<void> {
     await this.http.getFetch()(`${this.v1}/channels/workflows/${workflowId}`, { method: "DELETE" })
   }
-
-  // ─── Assign ──────────────────────────────────────────────────────────────────
 
   async listAssignableTeams(): Promise<Team[]> {
     return this.http.getFetch()(`${this.v1}/assign/teams/all`, { method: "GET" }).then(r => r.json())

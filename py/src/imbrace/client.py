@@ -101,28 +101,28 @@ class ImbraceClient:
         self.account       = AccountResource(self.http, urls.platform)
 
         # Platform group
-        self.platform      = PlatformResource(self.http, urls.platform)
+        self.platform      = PlatformResource(self.http, urls.platform, urls.backend)
         self.organizations = OrganizationsResource(self.http, urls.platform)
-        self.teams         = TeamsResource(self.http, urls.platform)
+        self.teams         = TeamsResource(self.http, urls.platform, urls.backend)
         self.settings      = SettingsResource(self.http, urls.channel_service, urls.platform)
 
         # channel-service group
         self.channel       = ChannelResource(self.http, urls.channel_service)
         self.contacts      = ContactsResource(self.http, urls.channel_service)
         self.conversations = ConversationsResource(self.http, urls.channel_service)
-        self.messages      = MessagesResource(self.http, urls.channel_service)
+        self.messages      = MessagesResource(self.http, urls.channel_service, urls.backend)
         self.categories    = CategoriesResource(self.http, urls.channel_service)
 
         # Workflows: channel-service (automation) + platform (n8n)
         self.workflows     = WorkflowsResource(self.http, urls.channel_service, urls.platform)
 
         # Dedicated services
-        self.boards        = BoardsResource(self.http, urls.data_board)
+        self.boards        = BoardsResource(self.http, urls.data_board, urls.backend)
         self.ips           = IpsResource(self.http, urls.ips)
         self.ai            = AiResource(self.http, urls.ai)
 
         # Marketplace: standalone service + platform/v2 sub-paths
-        self.marketplace   = MarketplaceResource(self.http, urls.marketplaces, urls.platform)
+        self.marketplace   = MarketplaceResource(self.http, urls.marketplaces)
 
         # Agent templates + use-cases
         self.agent         = AgentResource(self.http, urls.marketplaces, urls.gateway)

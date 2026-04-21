@@ -2,7 +2,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 from imbrace import ImbraceClient
 
-BASE = "https://app-gateway.imbrace.co"
+BASE = "https://app-gatewayv2.imbrace.co"
 PL = f"{BASE}/platform"
 
 @pytest.fixture

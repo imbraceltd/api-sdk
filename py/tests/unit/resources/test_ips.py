@@ -14,7 +14,7 @@ def test_list_ap_workflows_develop(httpx_mock: HTTPXMock):
 def test_list_schedulers_stable(httpx_mock: HTTPXMock):
     client = ImbraceClient(env="stable", api_key="test_key")
     # IPS URL on stable is through gateway
-    ips_url = "https://app-gateway.imbrace.co/ips/v1"
+    ips_url = "https://app-gatewayv2.imbrace.co/ips/v1"
     httpx_mock.add_response(url=f"{ips_url}/schedulers", json={"data": []})
     
     result = client.ips.list_schedulers()

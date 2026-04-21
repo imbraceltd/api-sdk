@@ -9,21 +9,23 @@ export interface ServiceUrls {
   platform: string
   /** ips/v1 — gateway/ips/v1 for all environments */
   ips: string
-  /** data-board — no version prefix; paths are used directly */
+  /** data-board — no version prefix; paths are used directly (KnowledgeHub folders/files/drive) */
   dataBoard: string
+  /** /v1/backend — board CRUD, items, fields, search, segmentation */
+  backend: string
   /** ai — version (v2/v3) appended per method */
   ai: string
   /** marketplaces/v1 — standalone marketplace service */
   marketplaces: string
   /** file-service — /v1/file-service */
   fileService: string
-  /** message-suggestion â€” /v1/message-suggestion */
+  /** message-suggestion — /v1/message-suggestion */
   messageSuggestion: string
-  /** predict â€” /predict */
+  /** predict — /predict */
   predict: string
-  /** activepieces â€” /activepieces */
+  /** activepieces — /activepieces */
   activepieces: string
-  }
+}
 
 
 export function resolveServiceUrls(
@@ -34,16 +36,20 @@ export function resolveServiceUrls(
     typeof env === 'string' ? ENVIRONMENTS[env] : env
   const gw    = preset.gateway.replace(/\/$/, '')
   const hosts = preset.serviceHosts ?? {}
+  
+  // v2 services check: if environment is 'prodv2' or gateway is app-gatewayv2
+  const isV2 = env === 'prodv2' || gw.includes('app-gatewayv2')
 
   const resolved: ServiceUrls = {
     gateway:           gw,
     channelService:    `${gw}/channel-service`,
     platform:          `${gw}/platform`,
     ips:               `${(hosts.ips ?? gw).replace(/\/$/, '')}/ips/v1`,
-    dataBoard:         `${(hosts.dataBoard ?? gw).replace(/\/$/, '')}/data-board`,
-    ai:                `${gw}/ai`,
-    marketplaces:      `${gw}/marketplaces`,
-    fileService:       `${gw}/v1/file-service`,
+    dataBoard:         `${gw}/data-board`,
+    backend:           isV2 ? `${gw}/v2/backend` : `${gw}/v1/backend`,
+    ai:                gw,
+    marketplaces:      `${gw}/v2/backend/marketplaces`,
+    fileService:       isV2 ? `${gw}/v2/backend/file-service` : `${gw}/v1/backend/file-service`,
     messageSuggestion: `${gw}/v1/message-suggestion`,
     predict:           `${gw}/predict`,
     activepieces:      `${gw}/activepieces`,

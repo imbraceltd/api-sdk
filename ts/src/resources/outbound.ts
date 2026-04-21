@@ -1,7 +1,5 @@
 import { HttpTransport } from "../http.js"
 
-// ─── Outbound message interfaces ─────────────────────────────────────────────
-
 export interface OutboundWhatsAppInput {
   to: string
   template_name?: string

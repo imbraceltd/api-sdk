@@ -22,8 +22,6 @@ class WorkflowsResource:
     def _pl_v1(self) -> str:
         return f"{self._pl}/v1"
 
-    # ─── Channel-service workflows ───────────────────────────────────────────────
-
     def list(self, tag: Optional[str] = None) -> Dict[str, Any]:
         params = {}
         if tag:
@@ -42,8 +40,6 @@ class WorkflowsResource:
 
     def update(self, workflow_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         return self._http.request("PATCH", f"{self._ch_v1}/automations/{workflow_id}", json=body).json()
-
-    # ─── Platform n8n workflows ──────────────────────────────────────────────────
 
     def list_n8n(self) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._pl_v1}/workflows").json()

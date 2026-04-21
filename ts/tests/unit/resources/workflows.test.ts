@@ -22,7 +22,7 @@ describe("WorkflowsResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  // ─── Channel automation ──────────────────────────────────────────────────────
+  // ─── Channel automation   
 
   it("listChannelAutomation() calls GET /channel-service/v1/workflows/channel_automation", async () => {
     mockFetch({ data: [] })
@@ -39,7 +39,7 @@ describe("WorkflowsResource", () => {
     expect(url.searchParams.get("channelType")).toBe("whatsapp")
   })
 
-  // ─── n8n workflows (platform) ────────────────────────────────────────────────
+  // ─── n8n workflows (platform)   
 
   it("list() calls GET /platform/v1/workflows", async () => {
     mockFetch({ data: [] })

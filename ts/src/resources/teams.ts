@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Team, PagedResponse } from "../types/index.js"
 
-// ─── Team input/response interfaces ──────────────────────────────────────────
-
 export interface CreateTeamInput {
   name: string
   type?: string
@@ -57,12 +55,26 @@ export interface UpdateUserRoleInput {
 
 export class TeamsResource {
   /**
-   * @param base - platform base URL (gateway/platform)
+   * @param base        - platform base URL (gateway/platform)
+   * @param backendBase - backend base URL (gateway/v1/backend) for file upload
    */
-  constructor(private readonly http: HttpTransport, private readonly base: string) {}
+  constructor(
+    private readonly http: HttpTransport,
+    private readonly base: string,
+    private readonly backendBase?: string,
+  ) {}
 
   private get v1() { return `${this.base}/v1` }
   private get v2() { return `${this.base}/v2` }
+
+  /** Upload team icon. Endpoint: /v1/backend/teams/_fileupload */
+  async uploadIcon(body: FormData): Promise<{ url: string }> {
+    const base = this.backendBase ?? `${this.v1.replace(/\/platform\/v1$/, '')}/v1/backend`
+    return this.http.getFetch()(`${base}/teams/_fileupload`, {
+      method: "POST",
+      body,
+    }).then(r => r.json())
+  }
 
   async list(params?: { type?: string; limit?: number; skip?: number; q?: string }): Promise<PagedResponse<Team>> {
     const url = new URL(`${this.v2}/teams`)

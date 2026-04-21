@@ -28,7 +28,7 @@ export class HttpTransport {
   }
 
   public getFetch(): typeof fetch {
-    return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       let retries = 0;
       const maxRetries = 2;
 
@@ -130,6 +130,6 @@ export class HttpTransport {
           throw new NetworkError(error instanceof Error ? error.message : "Network error or server unreachable");
         }
       }
-    };
+    }) as unknown as typeof fetch;
   }
 }

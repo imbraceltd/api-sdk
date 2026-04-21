@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Contact, Conversation, Notification, PagedResponse } from "../types/index.js"
 
-// ─── Contact update interface ─────────────────────────────────────────────────
-
 export interface UpdateContactInput {
   name?: string
   email?: string
@@ -10,16 +8,12 @@ export interface UpdateContactInput {
   [key: string]: unknown
 }
 
-// ─── Comment interface ────────────────────────────────────────────────────────
-
 export interface ContactComment {
   _id: string
   text?: string
   created_at?: string
   [key: string]: unknown
 }
-
-// ─── File interface ───────────────────────────────────────────────────────────
 
 export interface ContactFile {
   _id: string
@@ -29,16 +23,12 @@ export interface ContactFile {
   [key: string]: unknown
 }
 
-// ─── Activity interface ───────────────────────────────────────────────────────
-
 export interface ConversationActivity {
   _id: string
   type?: string
   created_at?: string
   [key: string]: unknown
 }
-
-// ─── Notification action interfaces ──────────────────────────────────────────
 
 export interface NotificationActionResponse {
   success: boolean
@@ -52,8 +42,6 @@ export class ContactsResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
   private get v1() { return `${this.base}/v1` }
-
-  // ─── Contacts ────────────────────────────────────────────────────────────────
 
   async list(params?: { limit?: number; skip?: number; sort?: string }): Promise<PagedResponse<Contact>> {
     const url = new URL(`${this.v1}/contacts`)
@@ -123,8 +111,6 @@ export class ContactsResource {
       body,
     }).then(r => r.json())
   }
-
-  // ─── Notifications (moved to channel-service) ────────────────────────────────
 
   async listNotifications(params?: { limit?: number; skip?: number }): Promise<PagedResponse<Notification>> {
     const url = new URL(`${this.v1}/notifications`)

@@ -52,6 +52,9 @@ docs
 file-service
 chat-ai
 
+
+
+
 #Claude
 .claude/
 .claude/commands/

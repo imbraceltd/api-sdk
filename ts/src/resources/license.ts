@@ -1,7 +1,5 @@
 import { HttpTransport } from "../http.js"
 
-// ─── License interfaces ───────────────────────────────────────────────────────
-
 export interface License {
   status?: string
   plan?: string

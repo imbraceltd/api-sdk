@@ -5,9 +5,10 @@ from ..http import HttpTransport, AsyncHttpTransport
 class PlatformResource:
     """Platform domain — Sync. Users, Orgs, Teams, Apps, Rooms, etc."""
 
-    def __init__(self, http: HttpTransport, base: str):
+    def __init__(self, http: HttpTransport, base: str, backend_base: Optional[str] = None):
         self._http = http
         self._base = base.rstrip("/")
+        self._backend_base = backend_base.rstrip("/") if backend_base else None
 
     @property
     def _v1(self) -> str:
@@ -111,7 +112,8 @@ class PlatformResource:
         return self._http.request("GET", f"{self._v1}/teams/{team_id}/workflows").json()
 
     def upload_team_icon(self, files: Any) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._v1}/teams/_fileupload", files=files).json()
+        base = self._backend_base or self._v1
+        return self._http.request("POST", f"{base}/teams/_fileupload", files=files).json()
 
     def list_team_users(self, params: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._v1}/team_users", params=params or {}).json()
@@ -313,9 +315,10 @@ class PlatformResource:
 class AsyncPlatformResource:
     """Platform domain — Async."""
 
-    def __init__(self, http: AsyncHttpTransport, base: str):
+    def __init__(self, http: AsyncHttpTransport, base: str, backend_base: Optional[str] = None):
         self._http = http
         self._base = base.rstrip("/")
+        self._backend_base = backend_base.rstrip("/") if backend_base else None
 
     @property
     def _v1(self) -> str:

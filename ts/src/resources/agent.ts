@@ -1,7 +1,7 @@
 import { HttpTransport } from "../http.js"
 import type { AgentTemplate } from "../types/index.js"
 
-// ─── Agent / use-case interfaces ──────────────────────────────────────────────
+// ─── Agent / use-case interfaces  
 
 export interface AgentAssistantInput {
   name?: string
@@ -70,11 +70,12 @@ export class AgentResource {
     base: string,
     gateway: string,
   ) {
-    this.templates = `${base.replace(/\/$/, "")}/v1/market-places/templates`
-    this.useCases  = `${gateway.replace(/\/$/, "")}/v3/marketplaces/use-cases`
+    const backendV2 = base.replace(/\/marketplaces\/?$/, "").replace(/\/$/, "")
+    this.templates = `${backendV2}/templates`
+    this.useCases  = `${backendV2}/templates` // In new-frontend, use-cases are also under /templates
   }
 
-  // ── Marketplace Templates ────────────────────────────────────────────────
+  // ── Marketplace Templates   
 
   async list(): Promise<AgentTemplate[]> {
     return this.http.getFetch()(this.templates, { method: "GET" }).then(r => r.json())
@@ -104,7 +105,7 @@ export class AgentResource {
     return this.http.getFetch()(`${this.templates}/${templateId}`, { method: "DELETE" }).then(r => r.json())
   }
 
-  // ── Use-cases ────────────────────────────────────────────────────────────
+  // ── Use-cases   
 
   async listUseCases(): Promise<UseCase[]> {
     return this.http.getFetch()(this.useCases, { method: "GET" }).then(r => r.json())

@@ -1,7 +1,5 @@
 import { HttpTransport } from "../http.js"
 
-// ─── Workflow interfaces ──────────────────────────────────────────────────────
-
 export interface N8nWorkflow {
   id: string
   name: string
@@ -37,8 +35,6 @@ export interface ChannelAutomationItem {
   channel_type?: string
   [key: string]: unknown
 }
-
-// ─── Credential interfaces ────────────────────────────────────────────────────
 
 export interface WorkflowCredential {
   id: string
@@ -85,15 +81,11 @@ export class WorkflowsResource {
   private get chV1() { return `${this.channelBase}/v1` }
   private get plV1() { return `${this.platformBase}/v1` }
 
-  // ─── Channel automation (channel-service)
-
   async listChannelAutomation(params?: { channelType?: string }): Promise<ChannelAutomationItem[]> {
     const url = new URL(`${this.chV1}/workflows/channel_automation`)
     if (params?.channelType) url.searchParams.set("channelType", params.channelType)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── n8n workflows (platform)
 
   async list(params?: Record<string, string>): Promise<N8nWorkflowListResponse> {
     const url = new URL(`${this.plV1}/workflows`)
@@ -129,8 +121,6 @@ export class WorkflowsResource {
     return this.http.getFetch()(`${this.plV1}/n8n/workflows/new`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Credentials
-
   async listCredentials(): Promise<WorkflowCredential[]> {
     return this.http.getFetch()(`${this.plV1}/credentials`, { method: "GET" }).then(r => r.json())
   }
@@ -160,8 +150,6 @@ export class WorkflowsResource {
   async deleteCredential(credentialId: string): Promise<void> {
     await this.http.getFetch()(`${this.plV1}/n8n/credentials/${credentialId}`, { method: "DELETE" })
   }
-
-  // ─── Channel credentials (channel-service)
 
   async getChannelCredential(credentialId: string): Promise<ChannelCredential> {
     return this.http.getFetch()(`${this.chV1}/channels/credentials/${credentialId}`, { method: "GET" }).then(r => r.json())

@@ -142,28 +142,27 @@ export class ImbraceClient {
     this.account       = new AccountResource(this.http, urls.platform)
 
     // Platform group
-    this.platform      = new PlatformResource(this.http, urls.platform)
+    this.platform      = new PlatformResource(this.http, urls.platform, urls.backend)
     this.organizations = new OrganizationsResource(this.http, urls.platform)
-    this.teams         = new TeamsResource(this.http, urls.platform)
+    this.teams         = new TeamsResource(this.http, urls.platform, urls.backend)
     this.settings      = new SettingsResource(this.http, urls.channelService, urls.platform)
 
     // channel-service group
     this.channel       = new ChannelResource(this.http, urls.channelService)
     this.contacts      = new ContactsResource(this.http, urls.channelService)
     this.conversations = new ConversationsResource(this.http, urls.channelService)
-    this.messages      = new MessagesResource(this.http, urls.channelService)
+    this.messages      = new MessagesResource(this.http, urls.channelService, urls.backend)
     this.categories    = new CategoriesResource(this.http, urls.channelService)
 
     // Workflows requires both channel-service (automation) and platform (n8n)
     this.workflows     = new WorkflowsResource(this.http, urls.channelService, urls.platform)
 
     // Dedicated services
-    this.boards        = new BoardsResource(this.http, urls.dataBoard)
+    this.boards        = new BoardsResource(this.http, urls.dataBoard, urls.backend)
     this.ips           = new IpsResource(this.http, urls.ips)
     this.ai            = new AiResource(this.http, urls.ai)
 
-    // Marketplace requires both the marketplaces service and platform/v2/marketplaces sub-paths
-    this.marketplace   = new MarketplaceResource(this.http, urls.marketplaces, urls.platform)
+    this.marketplace   = new MarketplaceResource(this.http, urls.marketplaces, urls.gateway)
 
     // Agent templates + use-cases
     this.agent         = new AgentResource(this.http, urls.marketplaces, urls.gateway)
@@ -181,7 +180,7 @@ export class ImbraceClient {
     this.schedule      = new ScheduleResource(this.http, urls.ips)
 
     // New services
-    this.chatAi           = new ChatAiResource(this.http, `${urls.ai}/v3`)
+    this.chatAi           = new ChatAiResource(this.http, `${urls.ai}/v3/ai`)
     this.fileService      = new FileServiceResource(this.http, urls.fileService)       
     this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
     this.predict          = new PredictResource(this.http, urls.predict)

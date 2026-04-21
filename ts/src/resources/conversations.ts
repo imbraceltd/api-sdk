@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Conversation, PagedResponse } from "../types/index.js"
 
-// ─── Conversation action interfaces ──────────────────────────────────────────
-
 export interface ConversationActionResponse {
   success: boolean
   conversation?: Conversation
@@ -74,8 +72,6 @@ export class ConversationsResource {
 
   private get v1() { return `${this.base}/v1` }
   private get v2() { return `${this.base}/v2` }
-
-  // ─── Team Conversations ──────────────────────────────────────────────────────
 
   async list(params?: {
     type?: string
@@ -190,13 +186,9 @@ export class ConversationsResource {
     return this.http.getFetch()(`${this.v1}/team_conversations/${teamConvId}/users`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Single Conversation ─────────────────────────────────────────────────────
-
   async getConversation(conversationId: string): Promise<Conversation> {
     return this.http.getFetch()(`${this.v1}/conversations/${conversationId}`, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── Create standalone conversation ─────────────────────────────────────────
 
   async create(body?: CreateConversationInput): Promise<Conversation> {
     return this.http.getFetch()(`${this.v1}/conversations`, {

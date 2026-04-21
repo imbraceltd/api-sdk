@@ -15,7 +15,7 @@ export interface BoardItem {
   object_name?: string
   id: string
   board_id: string
-  fields: Record<string, unknown>[]
+  fields: Record<string, unknown>
   created_at: string
   updated_at: string
 }

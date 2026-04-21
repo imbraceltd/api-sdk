@@ -30,7 +30,7 @@ def org_id() -> str | None:
     return os.environ.get("IMBRACE_ORGANIZATION_ID")
 
 
-# ── 1. Token is stored correctly ─────────────────────────────────────────────
+# ── 1. Token is stored correctly   
 
 def test_set_access_token_stores_in_manager(access_token: str):
     """set_access_token() stores the token in token_manager."""
@@ -47,7 +47,7 @@ def test_token_is_non_empty(access_token: str):
     assert len(access_token) > 20, f"Token too short, may be invalid: {access_token!r}"
 
 
-# ── 2. Token is attached to requests ─────────────────────────────────────────
+# ── 2. Token is attached to requests   
 
 def test_legacy_token_header_sent(access_token: str):
     """No org_id → legacy mode: only x-access-token, no Authorization: Bearer."""
@@ -115,13 +115,13 @@ def test_jwt_bearer_header_sent():
     client.close()
 
 
-# ── 3. Server accepts the token ───────────────────────────────────────────────
+# ── 3. Server accepts the token    
 
 def test_account_get_with_token(access_token: str, org_id: str | None):
     """API call succeeds — server authenticates the token successfully."""
     client = ImbraceClient(
         env="develop",
-        organization_id=org_id if _is_jwt(access_token) else None,
+        organization_id=org_id,
     )
     client.set_access_token(access_token)
     # channel-service accepts both acc_ and JWT tokens
@@ -135,7 +135,7 @@ def test_set_token_then_api_call(access_token: str, org_id: str | None):
     """Fresh client with set_access_token() can call the API immediately — no login step needed."""
     client = ImbraceClient(
         env="develop",
-        organization_id=org_id if _is_jwt(access_token) else None,
+        organization_id=org_id,
     )
     client.set_access_token(access_token)
 
@@ -145,7 +145,7 @@ def test_set_token_then_api_call(access_token: str, org_id: str | None):
     client.close()
 
 
-# ── 4. Cleared token loses access ────────────────────────────────────────────
+# ── 4. Cleared token loses access  
 
 def test_clear_token_causes_auth_error(access_token: str):
     """After clear_access_token(), the next request raises AuthError (401/403)."""
@@ -160,7 +160,7 @@ def test_clear_token_causes_auth_error(access_token: str):
     client.close()
 
 
-# ── 5. Async ──────────────────────────────────────────────────────────────────
+# ── 5. Async   
 
 @pytest.mark.asyncio
 async def test_async_set_token_stores(access_token: str):
@@ -175,7 +175,7 @@ async def test_async_account_get_with_token(access_token: str, org_id: str | Non
     """AsyncImbraceClient: account.get() succeeds with a valid token."""
     async with AsyncImbraceClient(
         env="develop",
-        organization_id=org_id if _is_jwt(access_token) else None,
+        organization_id=org_id,
     ) as client:
         client.set_access_token(access_token)
         res = await client.channel.list()

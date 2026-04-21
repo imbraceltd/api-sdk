@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { Organization, PagedResponse } from "../types/index.js"
 
-// ─── Organization create interface ───────────────────────────────────────────
-
 export interface CreateOrganizationInput {
   name: string
   plan?: string

@@ -1,7 +1,5 @@
 import { HttpTransport } from "../http.js"
 
-// ─── Message template interfaces ─────────────────────────────────────────────
-
 export interface MessageTemplate {
   _id: string
   name?: string
@@ -37,8 +35,6 @@ export interface DeleteMessageTemplateResponse {
   success: boolean
   [key: string]: unknown
 }
-
-// ─── User interfaces ──────────────────────────────────────────────────────────
 
 export interface SettingsUser {
   _id: string

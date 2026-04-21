@@ -16,10 +16,10 @@ export class MessageSuggestionResource {
 
   /**
    * Get message suggestions
-   * Endpoint: /v1/message-suggestion/
+   * Endpoint: /v1/message-suggestion
    */
   async getSuggestions(body: MessageSuggestionInput): Promise<MessageSuggestionResponse> {
-    return this.http.getFetch()(`${this.base}/`, {
+    return this.http.getFetch()(`${this.base}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

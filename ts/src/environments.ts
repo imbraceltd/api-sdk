@@ -1,4 +1,4 @@
-export type Environment = 'develop' | 'sandbox' | 'stable'
+export type Environment = 'develop' | 'sandbox' | 'stable' | 'prodv2'
 
 export interface EnvironmentPreset {
   gateway: string
@@ -19,6 +19,9 @@ export const ENVIRONMENTS: Record<Environment, EnvironmentPreset> = {
     gateway: 'https://app-gateway.sandbox.imbrace.co',
   },
   stable: {
-    gateway: 'https://app-gateway.imbrace.co',
+    gateway: 'https://app-gatewayv2.imbrace.co',
+  },
+  prodv2: {
+    gateway: 'https://app-gatewayv2.imbrace.co',
   },
 }

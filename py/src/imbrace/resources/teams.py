@@ -5,12 +5,14 @@ from ..http import HttpTransport, AsyncHttpTransport
 class TeamsResource:
     """Teams domain — Sync.
 
-    @param base - platform service base URL (gateway/platform)
+    @param base         - platform service base URL (gateway/platform)
+    @param backend_base - backend base URL (gateway/v1/backend) for file upload
     """
 
-    def __init__(self, http: HttpTransport, base: str):
+    def __init__(self, http: HttpTransport, base: str, backend_base: Optional[str] = None):
         self._http = http
         self._base = base.rstrip("/")
+        self._backend_base = backend_base.rstrip("/") if backend_base else None
 
     @property
     def _v1(self) -> str:
@@ -19,6 +21,11 @@ class TeamsResource:
     @property
     def _v2(self) -> str:
         return f"{self._base}/v2"
+
+    def upload_icon(self, files: Any) -> Dict[str, Any]:
+        """Upload team icon. Endpoint: /v1/backend/teams/_fileupload"""
+        base = self._backend_base or f"{self._v1.replace('/platform/v1', '')}/v1/backend"
+        return self._http.request("POST", f"{base}/teams/_fileupload", files=files).json()
 
     def list(self, limit: Optional[int] = None, skip: Optional[int] = None, q: Optional[str] = None) -> Dict[str, Any]:
         params: Dict[str, Any] = {}
@@ -58,9 +65,10 @@ class TeamsResource:
 class AsyncTeamsResource:
     """Teams domain — Async."""
 
-    def __init__(self, http: AsyncHttpTransport, base: str):
+    def __init__(self, http: AsyncHttpTransport, base: str, backend_base: Optional[str] = None):
         self._http = http
         self._base = base.rstrip("/")
+        self._backend_base = backend_base.rstrip("/") if backend_base else None
 
     @property
     def _v1(self) -> str:
@@ -69,6 +77,12 @@ class AsyncTeamsResource:
     @property
     def _v2(self) -> str:
         return f"{self._base}/v2"
+
+    async def upload_icon(self, files: Any) -> Dict[str, Any]:
+        """Upload team icon. Endpoint: /v1/backend/teams/_fileupload"""
+        base = self._backend_base or f"{self._v1.replace('/platform/v1', '')}/v1/backend"
+        res = await self._http.request("POST", f"{base}/teams/_fileupload", files=files)
+        return res.json()
 
     async def list(self, limit: Optional[int] = None, skip: Optional[int] = None, q: Optional[str] = None) -> Dict[str, Any]:
         params: Dict[str, Any] = {}

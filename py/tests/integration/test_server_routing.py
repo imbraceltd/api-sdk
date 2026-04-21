@@ -13,7 +13,7 @@ pytestmark = pytest.mark.integration
 DEV_GW = "https://app-gateway.dev.imbrace.co"
 
 
-# ── 1. Verify URL construction ─────────────────────────────────────────────
+# ── 1. Verify URL construction 
 
 def test_platform_url(client):
     assert client.auth._base == f"{DEV_GW}/platform", client.auth._base
@@ -26,12 +26,13 @@ def test_channel_service_url(client):
     assert client.channel._base == cs, client.channel._base
     assert client.conversations._base == cs, client.conversations._base
     assert client.contacts._base == cs, client.contacts._base
-    # messages embeds the version path in _base by design
-    assert client.messages._base == f"{cs}/v1/conversation_messages", client.messages._base
+    # messages uses channel-service as base
+    assert client.messages._base == cs, client.messages._base
 
 
 def test_ai_url(client):
-    assert client.ai._base == f"{DEV_GW}/ai", client.ai._base
+    # ai uses gateway as base
+    assert client.ai._base == DEV_GW, client.ai._base
 
 
 def test_boards_url(client):
@@ -48,7 +49,7 @@ def test_health_url(client):
     assert client.health._base == DEV_GW, client.health._base
 
 
-# ── 2. Verify real server calls (smoke) ────────────────────────────────────
+# ── 2. Verify real server calls (smoke) 
 
 def _is_jwt(token: str) -> bool:
     parts = token.split(".")

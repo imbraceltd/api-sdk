@@ -1,8 +1,6 @@
 import { HttpTransport } from "../http.js"
 import type { IpsProfile, Identity, PagedResponse } from "../types/index.js"
 
-// ─── Scheduler interfaces ─────────────────────────────────────────────────────
-
 export interface Scheduler {
   _id: string
   name?: string
@@ -16,16 +14,12 @@ export interface SchedulerFilterOptions {
   [key: string]: unknown
 }
 
-// ─── Workflow interfaces ──────────────────────────────────────────────────────
-
 export interface IpsWorkflow {
   _id: string
   name?: string
   active?: boolean
   [key: string]: unknown
 }
-
-// ─── External data sync interfaces ───────────────────────────────────────────
 
 export interface ExternalDataSync {
   _id: string
@@ -54,8 +48,6 @@ export class IpsResource {
    */
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
-  // ─── Profiles ───────────────────────────────────────────────────────────────
-
   async getProfile(userId: string): Promise<IpsProfile> {
     return this.http.getFetch()(`${this.base}/profiles/${userId}`, { method: "GET" }).then(r => r.json())
   }
@@ -80,8 +72,6 @@ export class IpsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Follow ─────────────────────────────────────────────────────────────────
-
   async follow(targetUserId: string): Promise<void> {
     await this.http.getFetch()(`${this.base}/profiles/${targetUserId}/follow`, { method: "POST" })
   }
@@ -104,8 +94,6 @@ export class IpsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Identities ─────────────────────────────────────────────────────────────
-
   async listIdentities(userId: string): Promise<Identity[]> {
     return this.http.getFetch()(`${this.base}/identities/${userId}`, { method: "GET" }).then(r => r.json())
   }
@@ -113,8 +101,6 @@ export class IpsResource {
   async unlinkIdentity(userId: string, provider: string): Promise<void> {
     await this.http.getFetch()(`${this.base}/identities/${userId}/${provider}`, { method: "DELETE" })
   }
-
-  // ─── Schedulers ─────────────────────────────────────────────────────────────
 
   async listSchedulers(params?: { filter?: string }): Promise<Scheduler[]> {
     const url = new URL(`${this.base}/schedulers`)
@@ -132,8 +118,6 @@ export class IpsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Workflows (IPS) ────────────────────────────────────────────────────────
-
   async listWorkflows(params?: Record<string, string>): Promise<IpsWorkflow[]> {
     const url = new URL(`${this.base}/workflows/all`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
@@ -145,8 +129,6 @@ export class IpsResource {
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
-
-  // ─── External Data Sync ─────────────────────────────────────────────────────
 
   async listExternalDataSync(): Promise<ExternalDataSync[]> {
     return this.http.getFetch()(`${this.base}/external-data-sync`, { method: "GET" }).then(r => r.json())

@@ -1,0 +1,131 @@
+# Testing the SDK locally
+
+This folder lets you test the **built package** (`dist/`) exactly as a consumer would install it — not the raw source.
+
+---
+
+## Prerequisites
+
+- Node 18+
+- AWS credentials configured (`imbrace` profile) if you need to decrypt env vars from Ansible
+
+---
+
+## One-time setup
+
+### 1. Build the SDK
+
+```bash
+cd sdk/ts
+npm install
+npm run build
+```
+
+### 2. Link the package globally
+
+```bash
+# still in sdk/ts
+npm link
+```
+
+This makes `@imbrace/sdk` available as if it were installed from npm.
+
+### 3. Link into this test folder
+
+```bash
+cd sdk/ts/tests/local
+npm link @imbrace/sdk
+```
+
+### 4. Configure credentials
+
+```bash
+cp .env.example .env
+```
+
+Then fill in `.env`. For the dev environment the fastest way is to pull the real vars from Ansible:
+
+```bash
+# from the sdk/ts root (or wherever secrets.enc.env lives)
+AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> tests/local/.env
+```
+
+Minimum required for live calls:
+
+| Variable | Where to get it |
+|---|---|
+| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/thrid_party_token` with an existing access token |
+| `IMBRACE_ORGANIZATION_ID` | Your org UUID from the portal |
+| `IMBRACE_GATEWAY_URL` | Leave blank to use `app-gateway.dev.imbrace.co` |
+
+---
+
+## Running the tests
+
+```bash
+cd sdk/ts/tests/local
+node test-local.mjs
+```
+
+**Without credentials** — runs instantiation + resource surface checks only (no network).
+
+**With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_GATEWAY_URL`.
+
+---
+
+## Switching environments
+
+Edit `.env` (or export inline):
+
+| Environment | `IMBRACE_GATEWAY_URL` |
+|---|---|
+| develop | `https://app-gateway.dev.imbrace.co` |
+| sandbox | `https://app-gateway.sandbox.imbrace.co` |
+| stable  | `https://app-gatewayv2.imbrace.co` |
+
+```bash
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+```
+
+---
+
+## Iterating on SDK changes
+
+Every time you edit source files, rebuild and the link picks up the new dist automatically:
+
+```bash
+# sdk/ts
+npm run build
+
+# tests/local
+node test-local.mjs
+```
+
+Or keep the compiler in watch mode in a separate terminal:
+
+```bash
+# terminal 1 — sdk/ts
+npm run dev
+
+# terminal 2 — sdk/ts/tests/local
+node test-local.mjs   # re-run whenever you want
+```
+
+---
+
+## Troubleshooting
+
+**`Cannot find package '@imbrace/sdk'`**
+Run `npm link @imbrace/sdk` from inside `tests/local/` again. The link can break if you delete and reinstall `node_modules` in `sdk/ts`.
+
+**`ERR_MODULE_NOT_FOUND` for a dist file**
+The build hasn't run yet, or a source file was added without rebuilding. Run `npm run build` in `sdk/ts`.
+
+**401 / 403 on live calls**
+Your `IMBRACE_API_KEY` is expired or wrong. Generate a new one:
+```bash
+curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/thrid_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```

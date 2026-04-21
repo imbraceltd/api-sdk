@@ -20,6 +20,7 @@ export interface SignInResponse {
   token?: string
   userId?: string
   email?: string
+  [key: string]: unknown
 }
 
 export interface SignUpInput {
@@ -135,7 +136,7 @@ export class AuthResource {
 
   private get v1() { return `${this.base}/v1` }
 
-  // ─── Third-party token ───────────────────────────────────────────────────────
+  // ─── Third-party token  
 
   async getThirdPartyToken(expirationDays: number = 10): Promise<ThirdPartyTokenResponse> {
     // Path typo is in the backend and intentionally preserved.
@@ -148,7 +149,7 @@ export class AuthResource {
       .then((r) => r.json())
   }
 
-  // ─── Login ───────────────────────────────────────────────────────────────────
+  // ─── Login  
 
   async signinEmailRequest(email: string): Promise<void> {
     await this.http.getFetch()(`${this.v1}/login/_signin_email_request`, {
@@ -208,7 +209,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  // ─── Access token ────────────────────────────────────────────────────────────
+  // ─── Access token   
 
   async exchangeAccessToken(body: {
     token: string
@@ -237,7 +238,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  // ─── Sign-up verification ────────────────────────────────────────────────────
+  // ─── Sign-up verification   
 
   async verifySignUpCheck(email: string): Promise<VerifySignUpResponse> {
     const url = new URL(`${this.v1}/login/sign_up/verify/check`)
@@ -258,13 +259,13 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  // ─── SSO / Azure AD ──────────────────────────────────────────────────────────
+  // ─── SSO / Azure AD   
 
   async getAzureGroups(): Promise<AzureGroupsResponse> {
     return this.http.getFetch()(`${this.v1}/sso/azure_ad/groups/all`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── OIDC Role Mappings ──────────────────────────────────────────────────────
+  // ─── OIDC Role Mappings   
 
   async listOidcRoleMappings(): Promise<OidcRoleMapping[]> {
     return this.http.getFetch()(`${this.v1}/oidc_role_mappings`, { method: "GET" }).then(r => r.json())
@@ -286,7 +287,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  // ─── Identity ────────────────────────────────────────────────────────────────
+  // ─── Identity   
 
   async signupWithGoogle(body: GoogleAuthInput): Promise<GoogleAuthResponse> {
     return this.http.getFetch()(`${this.v1}/identity/_signup_google`, {
@@ -320,7 +321,7 @@ export class AuthResource {
     }).then(r => r.json())
   }
 
-  // ─── AWS Marketplace ─────────────────────────────────────────────────────────
+  // ─── AWS Marketplace  
 
   async resolveAwsMarketplaceCustomer(body: AwsMarketplaceInput): Promise<AwsMarketplaceResponse> {
     return this.http.getFetch()(`${this.v1}/aws_marketplace/resolve-customer`, {
