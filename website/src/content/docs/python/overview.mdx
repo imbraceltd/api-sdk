@@ -1,0 +1,96 @@
+---
+title: Python SDK — Overview
+description: What the Imbrace Python SDK is, how it works internally, and when to use it.
+---
+
+The `imbrace` package is the official Python client for the Imbrace Gateway. It provides both **synchronous** and **asynchronous** clients, making it suitable for traditional Django/Flask apps and modern async frameworks like FastAPI.
+
+### Key Features
+
+| Feature                 | Detail                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| **Dual Client**         | `ImbraceClient` (sync, `httpx.Client`) and `AsyncImbraceClient` (async, `httpx.AsyncClient`) |
+| **Full Typing**         | All requests and responses typed via Pydantic models and type hints                          |
+| **Dual Authentication** | API Key (server-to-server) or Access Token (JWT / legacy token)                              |
+| **Auto Retry**          | 429 and 5xx errors retry up to 3 times with exponential backoff                              |
+| **Pagination Helper**   | `iterate_paged()` yields items one by one across all pages                                   |
+| **Context Manager**     | `with`/`async with` syntax for automatic connection cleanup                                  |
+| **Multi-Environment**   | `develop` / `sandbox` / `stable` presets with per-service URL overrides                      |
+
+### How It Works
+
+```
+Your Code
+   │
+   ▼
+ImbraceClient / AsyncImbraceClient     ← single entry point
+   ├── TokenManager                    ← thread-safe token storage
+   └── HttpTransport / AsyncHttpTransport
+         ├── Auth strategy selection   ← API Key / JWT Bearer / x-access-token
+         ├── Retry with backoff        ← 429 and 5xx
+         └── Connection pool (httpx)   ← keepalive, max_connections=10
+               │
+               ▼
+         Imbrace Gateway               ← app-gatewayv2.imbrace.co
+```
+
+### Internal Architecture
+
+| Layer            | File                           | Responsibility                                     |
+| ---------------- | ------------------------------ | -------------------------------------------------- |
+| Entry Points     | `client.py`, `async_client.py` | Instantiates resources, login helpers              |
+| HTTP Transport   | `http.py`                      | Auth headers, retry, timeout, error mapping        |
+| Token Manager    | `auth/token_manager.py`        | Thread-safe token read/write                       |
+| Service Registry | `service_registry.py`          | Resolves per-service URLs from env presets         |
+| Resources        | `resources/*.py`               | Domain-specific API method wrappers (29 resources) |
+| Types            | `types/*.py`                   | Pydantic models and dataclasses                    |
+| Exceptions       | `exceptions.py`                | `AuthError`, `ApiError`, `NetworkError`            |
+| Environments     | `environments.py`              | URL presets for each environment                   |
+
+### Available Resources
+
+The Python SDK exposes 29 resource namespaces:
+
+| Namespace              | Purpose                                        |
+| ---------------------- | ---------------------------------------------- |
+| `client.auth`          | OTP signin, verify, signout                    |
+| `client.account`       | Current account info                           |
+| `client.marketplace`   | Products, orders                               |
+| `client.platform`      | Users, organizations, permissions              |
+| `client.channel`       | Channels, messages, conversations              |
+| `client.ips`           | Identity & Profile — profiles, follow/unfollow |
+| `client.agent`         | AI agent templates and runs                    |
+| `client.ai`            | LLM completions, streaming, embeddings         |
+| `client.sessions`      | Session management                             |
+| `client.messages`      | Session-level messages                         |
+| `client.contacts`      | Contact management                             |
+| `client.conversations` | Conversation views                             |
+| `client.teams`         | Team management                                |
+| `client.workflows`     | Workflow automation                            |
+| `client.boards`        | Board CRUD and items                           |
+| `client.settings`      | Org settings, message templates                |
+| `client.organizations` | Organization list                              |
+| `client.health`        | Gateway health check                           |
+| `client.campaigns`     | Campaign management                            |
+| `client.schedule`      | Scheduled tasks                                |
+| `client.categories`    | Category management                            |
+| `client.outbounds`     | Outbound messaging                             |
+| `client.data_files`    | Data file management                           |
+| `client.folders`       | Folder management                              |
+| `client.touchpoints`   | Touchpoint management                          |
+| `client.chat_ai`       | Chat AI sessions                               |
+| `client.file_service`  | File uploads                                   |
+| `client.activepieces`  | Activepieces integration                       |
+
+### Sync vs Async — When to Use Which
+
+| Client               | Framework                      | Import                                   |
+| -------------------- | ------------------------------ | ---------------------------------------- |
+| `ImbraceClient`      | Django, Flask, scripts, Celery | `from imbrace import ImbraceClient`      |
+| `AsyncImbraceClient` | FastAPI, asyncio, aiohttp      | `from imbrace import AsyncImbraceClient` |
+
+:::tip
+Both clients share identical resource interfaces — the only difference is `await` on method calls. You can swap between them without changing business logic.
+:::
+
+---

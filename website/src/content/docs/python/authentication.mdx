@@ -1,0 +1,146 @@
+---
+title: Python SDK — Authentication
+description: API Key, Access Token, OTP login flow, and multi-tenant setup for the Imbrace Python SDK.
+---
+
+The SDK supports three authentication strategies. `HttpTransport` selects the correct strategy automatically based on what you provide to the client constructor.
+
+### Authentication Strategies
+
+| Strategy         | Trigger                                               | Header Sent                                          |
+| ---------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| **API Key**      | `api_key` passed to client                            | `x-api-key: sk-xxx...`                               |
+| **JWT Bearer**   | Token starts with `eyJ` and has 3 dot-separated parts | `Authorization: Bearer eyJ...` + `x-organization-id` |
+| **Legacy Token** | Any other access token string                         | `x-access-token: login_acc_...`                      |
+
+:::note
+JWT detection is automatic — the transport inspects the token at request time. You do not configure the strategy explicitly.
+:::
+
+---
+
+### API Key (Server-Side)
+
+Best for backend scripts, Celery tasks, and server-to-server calls.
+
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORG_ID"),  # optional
+)
+```
+
+The `x-api-key` header is sent on every request. The gateway resolves the organization from the key itself.
+
+---
+
+### Access Token (Client-Side)
+
+Use after a user authenticates. Pass the token at construction time:
+
+```python
+# JWT (auto-detected by eyJ... prefix)
+client = ImbraceClient(
+    access_token="eyJhbGciOiJSUzI1NiJ9...",
+    organization_id="org_xxxxxxxx",  # required for JWT
+)
+
+# Legacy opaque token (auto-detected as non-JWT)
+client = ImbraceClient(
+    access_token="login_acc_xxxxxxxxxxxxx",
+)
+```
+
+---
+
+### OTP Login Flow
+
+```python
+from imbrace import ImbraceClient
+
+client = ImbraceClient()
+
+# Step 1: Send OTP to the user's email
+client.request_otp("user@example.com")
+
+# Step 2: User enters OTP — verify and store token automatically
+client.login_with_otp("user@example.com", "123456")
+
+# Step 3: All subsequent calls are authenticated
+me = client.platform.get_me()
+```
+
+Email + password login is also supported:
+
+```python
+client.login("user@example.com", "password123")
+# Token stored in TokenManager automatically
+```
+
+#### Async OTP Flow
+
+```python
+from imbrace import AsyncImbraceClient
+
+async with AsyncImbraceClient() as client:
+    await client.request_otp("user@example.com")
+    await client.login_with_otp("user@example.com", "123456")
+    me = await client.platform.get_me()
+```
+
+---
+
+### Token Management
+
+```python
+# Replace token (e.g., after OAuth token refresh)
+client.set_access_token("new-eyJhbGci...")
+
+# Clear token (e.g., on logout)
+client.clear_access_token()
+```
+
+---
+
+### Context Manager (Recommended)
+
+Always use the context manager to ensure connections are properly closed:
+
+```python
+# Synchronous
+with ImbraceClient(api_key="sk-xxx") as client:
+    me = client.platform.get_me()
+# httpx.Client is closed automatically here
+
+# Asynchronous
+async with AsyncImbraceClient(api_key="sk-xxx") as client:
+    me = await client.platform.get_me()
+```
+
+---
+
+### Multi-Tenant (Organization ID)
+
+When authenticating with a JWT Bearer token, include the org ID for proper routing:
+
+```python
+client = ImbraceClient(
+    access_token="eyJ...",
+    organization_id="org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+)
+```
+
+`x-organization-id` is sent automatically on every JWT request.
+
+---
+
+### Configuration Priority
+
+The client merges configuration in this order (highest to lowest priority):
+
+1. **Explicit constructor params** — `ImbraceClient(api_key="...")`
+2. **Environment variables** — `IMBRACE_API_KEY`, `IMBRACE_GATEWAY_URL`
+3. **Defaults** — `env="stable"`, gateway `https://app-gateway.imbrace.co`

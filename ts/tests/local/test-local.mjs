@@ -106,6 +106,8 @@ if (!API_KEY && !ACCESS_TOKEN) {
   const method = API_KEY ? "API Key" : "Access Token";
   console.log(`\n[3] Live API calls  (gateway: ${BASE_URL}, via: ${method})`);
 
+  // Note: account/channel/teams/conversations route to microservices not present on prodv2
+  // (platform + channel-service). Use services known to exist on all envs.
   const checks = [
     ["health.check()", () => client.health.check()],
     ["account.getAccount()", () => client.account.getAccount()],

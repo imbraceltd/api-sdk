@@ -1,0 +1,77 @@
+---
+title: Lỗi Thường Gặp
+description: Các lỗi phổ biến và cách khắc phục khi sử dụng Imbrace SDK.
+---
+
+### `AuthError: Invalid or expired access token.` (HTTP 401)
+
+API key trong `.env` đã hết hạn.
+
+```bash
+# Cập nhật .env
+IMBRACE_API_KEY=api_xxx_moi
+```
+
+---
+
+### `ApiError: [400] {"message":"must have required property 'type'"}`
+
+Gọi `channel.list()` thiếu param bắt buộc.
+
+```python
+# Sai
+client.app.channel.list()
+
+# Đúng
+client.app.channel.list(type="web")
+```
+
+---
+
+### `ApiError: [404]` với URL có path kép
+
+URL bị double vì `IMBRACE_BASE_URL` được set nhầm thành full endpoint.
+
+```env
+# Sai
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token
+
+# Đúng
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+---
+
+### Integration test bị skip toàn bộ
+
+`IMBRACE_API_KEY` chưa được set.
+
+```bash
+# Set tạm thời khi chạy
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+
+# Hoặc thêm vào .env
+echo "IMBRACE_API_KEY=api_xxx" >> py/.env
+```
+
+---
+
+### `Cannot find module` (TypeScript tests)
+
+Đường dẫn import trong test file cần đúng cấp thư mục:
+
+| Vị trí test file                 | Import                            |
+| -------------------------------- | --------------------------------- |
+| `tests/unit/*.test.ts`           | `../../src/client.js`             |
+| `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
+| `tests/integration/*.test.ts`    | `../../src/client.js`             |
+
+---
+
+### `mypy` báo lỗi `Pattern matching is only supported in Python 3.10`
+
+mypy scan nhầm vào `site-packages`. Đã config trong `pyproject.toml`. Nếu vẫn lỗi:
+
+```bash
+mypy src/imbrace --exclude site-packages
+```

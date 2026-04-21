@@ -1,0 +1,76 @@
+---
+title: TypeScript SDK — Cài Đặt
+description: Cài đặt package @imbrace/sdk và cấu hình môi trường.
+---
+
+### Cài Đặt
+
+```bash
+npm install @imbrace/sdk
+# hoặc
+yarn add @imbrace/sdk
+# hoặc
+bun add @imbrace/sdk
+```
+
+### Thiết Lập Môi Trường
+
+Copy file env mẫu và điền thông tin xác thực:
+
+```bash
+cp .env.example .env
+```
+
+Mở `.env` và set:
+
+```env
+IMBRACE_API_KEY=your-api-key-here
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
+```
+
+#### Cách Lấy API Key
+
+Gọi endpoint xác thực của Imbrace với access token hiện có:
+
+```bash
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+Response:
+
+```json
+{ "apiKey": { "apiKey": "sk-xxx..." } }
+```
+
+Giá trị cần lấy là `response.apiKey.apiKey`.
+
+---
+
+### Build Scripts
+
+```bash
+npm run build      # compile TypeScript → dist/
+npm run dev        # watch mode — tự rebuild khi thay đổi
+npm run typecheck  # chỉ type-check (không emit)
+npm run test       # chạy unit tests
+npm run clean      # xóa dist/
+```
+
+---
+
+### Biến Môi Trường
+
+| Biến                  | Bắt Buộc | Mặc Định | Mô Tả                                            |
+| --------------------- | -------- | -------- | ------------------------------------------------ |
+| `IMBRACE_API_KEY`     | Có\*     | —        | Server-side API Key                              |
+| `IMBRACE_ENV`         | Không    | `stable` | Preset: `develop`, `sandbox`, `stable`           |
+| `IMBRACE_GATEWAY_URL` | Không    | auto     | Override URL gateway (ưu tiên hơn `IMBRACE_ENV`) |
+
+\*Hoặc truyền `accessToken` trực tiếp cho client-side usage.
+
+---
+
+Tiếp theo: [Xác Thực →](authentication/) | [Bắt Đầu Nhanh →](quick-start/)

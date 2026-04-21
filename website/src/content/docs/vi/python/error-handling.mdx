@@ -1,0 +1,160 @@
+---
+title: Python SDK — Xử Lý Lỗi
+description: Phân cấp exception, hành vi retry tự động, và best practices trong Imbrace Python SDK.
+---
+
+Tất cả SDK exceptions đều kế thừa từ `ImbraceError`, cho phép bắt mọi lỗi SDK trong một `except` clause duy nhất.
+
+### Phân Cấp Exception
+
+```
+Exception
+└── ImbraceError          (base — catch-all cho SDK errors)
+    ├── AuthError          (401, 403 — credentials không hợp lệ hoặc hết hạn)
+    ├── ApiError           (4xx/5xx — server từ chối request)
+    └── NetworkError       (timeout, kết nối bị từ chối, DNS failure)
+```
+
+---
+
+### AuthError
+
+Được raise khi server trả về **401** hoặc **403**.
+
+```python
+from imbrace import ImbraceClient, AuthError
+
+try:
+    me = client.platform.get_me()
+except AuthError as e:
+    # Credentials không hợp lệ hoặc đã hết hạn
+    print(f"Xác thực thất bại: {e}")
+    # Cần xác thực lại trước khi thử tiếp
+```
+
+:::caution
+`AuthError` **không bao giờ được retry**. SDK raise ngay lập tức khi nhận 401/403 — cần fix credentials trước khi thử lại.
+:::
+
+---
+
+### ApiError
+
+Được raise cho tất cả **4xx và 5xx** khác (sau khi retry đã hết cho 429/5xx).
+
+```python
+from imbrace import ApiError
+
+try:
+    client.marketplace.get_product("id_khong_ton_tai")
+except ApiError as e:
+    print(f"HTTP {e.status_code}: {e}")
+    # Ví dụ: "HTTP 404: Product not found"
+```
+
+| Attribute     | Type  | Mô tả                            |
+| ------------- | ----- | -------------------------------- |
+| `status_code` | `int` | HTTP status code                 |
+| `message`     | `str` | Thông báo lỗi từ server response |
+
+---
+
+### NetworkError
+
+Được raise khi request không đến được server — timeout, DNS failure, hoặc connection reset.
+
+```python
+from imbrace import NetworkError
+
+try:
+    client.platform.get_me()
+except NetworkError as e:
+    print(f"Lỗi mạng: {e}")
+    # Ví dụ: "Request timed out after 30s"
+```
+
+---
+
+### Bắt Tất Cả SDK Errors
+
+```python
+from imbrace import ImbraceError, AuthError, ApiError, NetworkError
+
+try:
+    result = client.platform.get_me()
+except AuthError as e:
+    xử_lý_auth_error(e)
+except ApiError as e:
+    xử_lý_api_error(e)
+except NetworkError as e:
+    xử_lý_network_error(e)
+except ImbraceError as e:
+    xử_lý_lỗi_không_xác_định(e)
+```
+
+---
+
+### Hành Vi Retry Tự Động
+
+| Điều kiện                   | Hành động                                    |
+| --------------------------- | -------------------------------------------- |
+| HTTP **429** (rate limit)   | Retry tối đa 3 lần                           |
+| HTTP **5xx** (server error) | Retry tối đa 3 lần                           |
+| Network error / timeout     | Retry tối đa 3 lần                           |
+| HTTP **401 / 403**          | Không retry — raise `AuthError` ngay lập tức |
+| HTTP **4xx** (khác)         | Không retry — raise `ApiError` ngay lập tức  |
+
+**Công thức backoff:** `2^retryCount` giây (2s → 4s → 8s).
+
+Tổng tệ nhất: 4 lần thử (1 lần đầu + 3 retry) trước khi raise.
+
+:::note
+Python SDK retry tối đa **3 lần** (4 tổng), trong khi TypeScript SDK retry tối đa **2 lần** (3 tổng). Cả hai dùng cùng công thức exponential backoff.
+:::
+
+---
+
+### Xử Lý Lỗi Async
+
+Exception types hoàn toàn giống nhau — chỉ thêm `await`:
+
+```python
+from imbrace import AsyncImbraceClient, AuthError, ApiError
+
+async with AsyncImbraceClient() as client:
+    try:
+        me = await client.platform.get_me()
+    except AuthError:
+        print("Cần xác thực lại")
+    except ApiError as e:
+        print(f"[{e.status_code}] {e}")
+```
+
+---
+
+### Best Practices
+
+```python
+# 1. Dùng context manager để đảm bảo connection được đóng
+with ImbraceClient() as client:
+    ...
+
+# 2. Xử lý AuthError riêng biệt — credentials cần refresh trước khi retry
+def safe_get_me(client):
+    try:
+        return client.platform.get_me()
+    except AuthError:
+        refresh_credentials(client)
+        return client.platform.get_me()  # retry một lần sau khi refresh
+
+# 3. Log ApiError.status_code để debug
+try:
+    client.marketplace.create_product(data)
+except ApiError as e:
+    if e.status_code == 409:
+        print("Sản phẩm đã tồn tại")
+    elif e.status_code == 400:
+        print(f"Dữ liệu không hợp lệ: {e}")
+
+# 4. Không catch ImbraceError và im lặng bỏ qua — luôn log hoặc re-raise
+```

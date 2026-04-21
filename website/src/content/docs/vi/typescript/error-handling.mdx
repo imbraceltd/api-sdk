@@ -1,0 +1,165 @@
+---
+title: TypeScript SDK — Xử Lý Lỗi
+description: Các loại lỗi, hành vi retry tự động, và best practices trong Imbrace TypeScript SDK.
+---
+
+Tất cả lỗi do SDK ném ra đều extend từ một base class chung và được type đầy đủ, cho phép xử lý chính xác bằng `instanceof`.
+
+### Phân Cấp Lỗi
+
+```
+Error
+└── ImbraceError          (base — catch-all cho SDK errors)
+    ├── AuthError          (401, 403 — credentials không hợp lệ hoặc hết hạn)
+    ├── ApiError           (4xx/5xx — server từ chối request)
+    └── NetworkError       (timeout, kết nối bị từ chối, DNS failure)
+```
+
+---
+
+### AuthError
+
+Được ném khi server trả về **401** hoặc **403**.
+
+```typescript
+import { AuthError } from "@imbrace/sdk";
+
+try {
+  const me = await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) {
+    // API Key hết hạn, token bị thu hồi, hoặc sai credentials
+    console.error("Cần xác thực lại:", e.message);
+  }
+}
+```
+
+:::caution
+`AuthError` **không bao giờ được retry**. SDK throw ngay lập tức khi nhận 401/403 — cần fix credentials trước khi thử lại.
+:::
+
+---
+
+### ApiError
+
+Được ném cho tất cả **4xx và 5xx** khác (sau khi retry đã hết cho 429/5xx).
+
+```typescript
+import { ApiError } from "@imbrace/sdk";
+
+try {
+  await client.marketplace.getProduct("id_khong_ton_tai");
+} catch (e) {
+  if (e instanceof ApiError) {
+    console.error(`HTTP ${e.statusCode}: ${e.message}`);
+    // Ví dụ: "HTTP 404: Product not found"
+  }
+}
+```
+
+| Property     | Type     | Mô tả                            |
+| ------------ | -------- | -------------------------------- |
+| `statusCode` | `number` | HTTP status code                 |
+| `message`    | `string` | Thông báo lỗi từ server response |
+
+---
+
+### NetworkError
+
+Được ném khi request không đến được server — timeout, DNS failure, hoặc connection refused.
+
+```typescript
+import { NetworkError } from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof NetworkError) {
+    console.error("Không thể kết nối gateway:", e.message);
+    // Ví dụ: "Request timed out after 30000ms"
+  }
+}
+```
+
+---
+
+### Bắt Tất Cả SDK Errors
+
+```typescript
+import { ImbraceError, AuthError, ApiError, NetworkError } from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) return xử_lý_auth_error(e);
+  if (e instanceof ApiError) return xử_lý_api_error(e);
+  if (e instanceof NetworkError) return xử_lý_network_error(e);
+  if (e instanceof ImbraceError) return xử_lý_lỗi_không_xác_định(e);
+  throw e; // re-throw lỗi không phải SDK
+}
+```
+
+---
+
+### Hành Vi Retry Tự Động
+
+`HttpTransport` tự động retry trên các lỗi tạm thời:
+
+| Điều kiện                   | Hành động                                    |
+| --------------------------- | -------------------------------------------- |
+| HTTP **429** (rate limit)   | Retry tối đa 2 lần                           |
+| HTTP **5xx** (server error) | Retry tối đa 2 lần                           |
+| Network error / timeout     | Retry tối đa 2 lần                           |
+| HTTP **401 / 403**          | Không retry — throw `AuthError` ngay lập tức |
+| HTTP **4xx** (khác)         | Không retry — throw `ApiError` ngay lập tức  |
+
+**Công thức backoff:** `2^retryCount` giây giữa các lần thử (2s → 4s).
+
+Tổng tệ nhất: 3 lần thử (1 lần đầu + 2 retry) trước khi throw.
+
+---
+
+### Hủy Request
+
+Dùng `AbortController` tiêu chuẩn để hủy request đang chạy:
+
+```typescript
+const controller = new AbortController();
+
+// Hủy sau 5 giây
+setTimeout(() => controller.abort(), 5000);
+
+try {
+  const result = await client.marketplace.listProducts(
+    { page: 1 },
+    { signal: controller.signal },
+  );
+} catch (e) {
+  if (e instanceof NetworkError && e.message.includes("aborted")) {
+    console.log("Request đã bị hủy");
+  }
+}
+```
+
+---
+
+### Best Practices
+
+```typescript
+// 1. Xử lý AuthError riêng biệt — credentials cần được refresh
+// 2. Log ApiError.statusCode để debug — 400=params sai, 404=không tìm thấy
+// 3. Wrap entry points bằng try/catch — đừng để NetworkError crash app
+// 4. Không retry khi AuthError — sẽ không có tác dụng cho đến khi credentials được sửa
+
+async function safeGetMe(client: ImbraceClient) {
+  try {
+    return await client.platform.getMe();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      await refreshCredentials();
+      return await client.platform.getMe(); // retry một lần sau khi refresh
+    }
+    throw e;
+  }
+}
+```

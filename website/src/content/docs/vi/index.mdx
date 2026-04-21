@@ -1,0 +1,129 @@
+---
+title: Imbrace SDK
+description: Bộ SDK TypeScript và Python chính thức cho Imbrace Gateway — type-safe, đầy đủ tính năng, sẵn sàng cho production.
+template: splash
+hero:
+  title: Xây dựng nhanh hơn với Imbrace SDK
+  tagline: SDK type-safe, đầy đủ tính năng cho Imbrace Gateway. Kết nối ứng dụng TypeScript và Python với nền tảng Imbrace trong vài phút.
+  image:
+    file: ../../../assets/imbrace_logo_small.svg
+    alt: Imbrace
+  actions:
+    - text: Bắt Đầu
+      link: getting-started/overview/
+      icon: right-arrow
+      variant: primary
+    - text: TypeScript SDK
+      link: typescript/overview/
+      variant: secondary
+    - text: Python SDK
+      link: python/overview/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+<div class="splash-features">
+
+## Tại Sao Chọn Imbrace SDK?
+
+<CardGrid>
+  <Card title="Type-safe Theo Thiết Kế" icon="approve-check-circle">
+    Định nghĩa TypeScript đầy đủ và type hints Python trên 27+ resource
+    namespace. Bắt lỗi lúc compile, không phải lúc chạy.
+  </Card>
+  <Card title="Tự Động Retry & Độ Bền" icon="random">
+    Exponential backoff tích hợp sẵn cho lỗi 429 và 5xx. Không cần cấu hình —
+    ứng dụng vẫn hoạt động ổn định dưới tải cao.
+  </Card>
+  <Card title="Xác Thực 3 Tầng" icon="setting">
+    API Key, JWT Bearer, và legacy access token — tất cả được xử lý trong suốt.
+    Đổi chiến lược xác thực mà không cần thay đổi logic nghiệp vụ.
+  </Card>
+  <Card title="Python Async-first" icon="rocket">
+    `AsyncImbraceClient` song song với client đồng bộ. Tích hợp ngay vào
+    FastAPI, asyncio, hoặc Django với một lệnh import.
+  </Card>
+</CardGrid>
+
+</div>
+
+<div class="splash-install">
+
+## Cài Đặt Nhanh
+
+<div class="install-grid">
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--ts">TypeScript</span>
+    </div>
+
+    ```bash
+    npm install @imbrace/sdk
+    ```
+
+    ```ts
+    import { ImbraceClient } from "@imbrace/sdk";
+    const client = new ImbraceClient();
+    const me = await client.platform.getMe();
+    ```
+
+  </div>
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--py">Python</span>
+    </div>
+
+    ```bash
+    pip install imbrace
+    ```
+
+    ```python
+    from imbrace import ImbraceClient
+    client = ImbraceClient()
+    me = client.platform.get_me()
+    ```
+
+  </div>
+</div>
+
+</div>
+
+<div class="splash-links">
+
+## Khám Phá Tài Liệu
+
+<CardGrid>
+  <LinkCard
+    title="TypeScript — Tổng Quan"
+    description="Kiến trúc, 27 resource namespace, chiến lược xác thực."
+    href="typescript/overview/"
+  />
+  <LinkCard
+    title="Python — Tổng Quan"
+    description="Client sync vs async, 29 namespace, vòng đời client."
+    href="python/overview/"
+  />
+  <LinkCard
+    title="Xác Thực"
+    description="API Key, JWT Bearer, luồng đăng nhập OTP."
+    href="typescript/authentication/"
+  />
+  <LinkCard
+    title="Xử Lý Lỗi"
+    description="Phân cấp exception, hành vi retry, best practices."
+    href="typescript/error-handling/"
+  />
+  <LinkCard
+    title="Tích Hợp — TypeScript"
+    description="Patterns với React, Next.js, Node.js service."
+    href="typescript/integrations/"
+  />
+  <LinkCard
+    title="Tích Hợp — Python"
+    description="Patterns với FastAPI, asyncio, Django, Celery."
+    href="python/integrations/"
+  />
+</CardGrid>
+
+</div>

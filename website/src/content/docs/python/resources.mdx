@@ -1,0 +1,270 @@
+---
+title: Python SDK — Resources
+description: Complete reference for all domain resource namespaces available on ImbraceClient.
+---
+
+Every resource is accessed as an attribute on the client. Sync methods return dicts/Pydantic models; async methods are coroutines.
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+```
+
+---
+
+### Marketplace
+
+Manage products and orders in the Imbrace Marketplace.
+
+```python
+# Products
+client.marketplace.list_products(category="electronics", page=1, limit=20)
+client.marketplace.get_product("prod_id")
+client.marketplace.create_product({"name": "Product A", "price": 99.0})
+client.marketplace.update_product("prod_id", {"price": 89.0})
+client.marketplace.delete_product("prod_id")
+
+# Orders
+client.marketplace.list_orders(status="pending")
+client.marketplace.get_order("order_id")
+client.marketplace.create_order({
+    "items": [{"product_id": "prod_id", "quantity": 2}],
+    "shipping_address": {"city": "Ho Chi Minh", "country": "VN"},
+})
+client.marketplace.update_order_status("order_id", "confirmed")
+```
+
+---
+
+### Platform
+
+User and organization management, plus permission control.
+
+```python
+# Users
+client.platform.get_me()
+client.platform.list_users(search="john", page=1, limit=20)
+client.platform.get_user("user_id")
+client.platform.update_user("user_id", {"display_name": "John"})
+client.platform.delete_user("user_id")
+
+# Organizations
+client.platform.list_orgs()
+client.platform.create_org({"name": "My Org"})
+client.platform.update_org("org_id", {"name": "New Name"})
+
+# Permissions
+client.platform.list_permissions("user_id")
+client.platform.grant_permission("user_id", "flows", "write")
+client.platform.revoke_permission("user_id", "perm_id")
+```
+
+---
+
+### Channel
+
+Channel lifecycle and real-time messaging.
+
+```python
+# Channels
+client.channel.list_channels(type="group")
+client.channel.create_channel({"name": "general", "type": "group"})
+client.channel.add_participants("channel_id", ["user_1", "user_2"])
+
+# Messages in a conversation
+client.channel.list_messages("conversation_id")
+client.channel.send_message("conversation_id", "Hello!", type="text")
+client.channel.mark_read("conversation_id")
+```
+
+---
+
+### IPS — Identity & Profile Service
+
+User profiles, social graph, and identity management.
+
+```python
+client.ips.get_my_profile()
+client.ips.get_profile("user_id")
+client.ips.update_profile("user_id", {"bio": "Developer"})
+client.ips.search_profiles("john doe", page=1, limit=10)
+
+# Social graph
+client.ips.follow("target_user_id")
+client.ips.unfollow("target_user_id")
+client.ips.get_followers("user_id")
+client.ips.get_following("user_id")
+
+# Identities
+client.ips.list_identities("user_id")
+```
+
+---
+
+### Agent
+
+Create and run AI agent templates.
+
+```python
+client.agent.list_agents()
+client.agent.get_agent("agent_id")
+client.agent.create_agent({"name": "Data Analyzer", "model": "gpt-4o"})
+client.agent.update_agent("agent_id", {"system_prompt": "You are helpful."})
+client.agent.delete_agent("agent_id")
+
+# Run an agent
+client.agent.run_agent("agent_id", {"task": "Analyze Q1 sales data"})
+client.agent.get_run("run_id")
+client.agent.cancel_run("run_id")
+```
+
+---
+
+### AI
+
+LLM completions, streaming output, and text embeddings.
+
+```python
+# Non-streaming completion
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Summarize this report."},
+    ],
+    temperature=0.7,
+    max_tokens=1000,
+)
+print(response["choices"][0]["message"]["content"])
+
+# Streaming completion — yields chunks
+for chunk in client.ai.stream(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Count from 1 to 5."}],
+):
+    content = chunk["choices"][0]["delta"].get("content", "")
+    print(content, end="", flush=True)
+
+# Text embeddings
+result = client.ai.embed(
+    model="text-embedding-ada-002",
+    input=["Hello world", "Imbrace SDK"],
+)
+```
+
+---
+
+### Sessions & Messages
+
+Session lifecycle and message exchange within a session.
+
+```python
+# Sessions
+client.sessions.list()
+session = client.sessions.create(directory="/my/project")
+client.sessions.get(session["id"])
+client.sessions.delete(session["id"])
+
+# Messages within a session
+client.messages.list(session["id"])
+client.messages.send(session["id"], parts=[{"type": "text", "text": "Hi"}])
+client.messages.delete(session["id"], "message_id")
+```
+
+---
+
+### Auth
+
+OTP and password-based login.
+
+```python
+# Request OTP
+client.auth.request_otp({"email": "user@example.com"})
+
+# Verify OTP and sign in
+client.auth.verify_otp({"email": "user@example.com", "otp": "123456"})
+
+# Sign out
+client.auth.sign_out()
+```
+
+> Shorthand helpers are also on the client: `client.request_otp(email)`, `client.login_with_otp(email, otp)`, `client.login(email, password)`
+
+---
+
+### Contacts
+
+```python
+client.contacts.list(search="alice")
+client.contacts.get("contact_id")
+client.contacts.update("contact_id", {"name": "Alice B."})
+```
+
+---
+
+### Conversations
+
+```python
+client.conversations.get_views_count()
+client.conversations.create({"channel_id": "ch_xxx"})
+client.conversations.search({"query": "support"})
+```
+
+---
+
+### Teams
+
+```python
+client.teams.list()
+client.teams.get_my_teams()
+client.teams.add_user("team_id", "user_id")
+client.teams.remove_user("team_id", "user_id")
+```
+
+---
+
+### Workflows
+
+```python
+client.workflows.list(tag="automation")
+client.workflows.create({"name": "My Workflow", "channel_id": "ch_xxx"})
+client.workflows.update("workflow_id", {"name": "Updated"})
+```
+
+---
+
+### Boards
+
+```python
+client.boards.list()
+board = client.boards.create({"name": "My Board"})
+client.boards.get_items("board_id")
+client.boards.search("board_id", {"query": "task"})
+```
+
+---
+
+### Pagination
+
+List endpoints return a consistent shape:
+
+```python
+result = client.marketplace.list_products(page=1, limit=20)
+products   = result["data"]          # list of items
+has_next   = result["pagination"]["has_next"]  # bool
+total      = result["pagination"]["total"]      # int
+```
+
+#### Iterate All Pages
+
+Use the transport's `iterate_paged()` helper to automatically page through all results:
+
+```python
+for product in client._http.iterate_paged(
+    "GET",
+    "/marketplace/products",
+    model=dict,
+    params={"limit": 50},
+):
+    process(product)
+```

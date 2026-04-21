@@ -1,0 +1,74 @@
+---
+title: TypeScript SDK — Installation
+description: Install the @imbrace/sdk package and configure your environment.
+---
+
+### Install
+
+```bash
+npm install @imbrace/sdk
+# or
+yarn add @imbrace/sdk
+# or
+bun add @imbrace/sdk
+```
+
+### Environment Setup
+
+Copy the example env file and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set:
+
+```env
+IMBRACE_API_KEY=your-api-key-here
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
+```
+
+#### Get an API Key
+
+Call the Imbrace auth endpoint with an existing access token:
+
+```bash
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+Response:
+
+```json
+{ "apiKey": { "apiKey": "sk-xxx..." } }
+```
+
+The value you need is `response.apiKey.apiKey`.
+
+---
+
+### Build Scripts
+
+```bash
+npm run build      # compile TypeScript → dist/
+npm run dev        # watch mode — rebuild on change
+npm run typecheck  # type-check only (no emit)
+npm run test       # run unit tests
+npm run clean      # delete dist/
+```
+
+---
+
+### Environment Variables Reference
+
+| Variable              | Required | Default  | Description                                              |
+| --------------------- | -------- | -------- | -------------------------------------------------------- |
+| `IMBRACE_API_KEY`     | Yes\*    | —        | Server-side API Key                                      |
+| `IMBRACE_ENV`         | No       | `stable` | Preset: `develop`, `sandbox`, `stable`                   |
+| `IMBRACE_GATEWAY_URL` | No       | auto     | Override gateway URL (takes priority over `IMBRACE_ENV`) |
+
+\*Or pass `accessToken` directly for client-side usage.
+
+---

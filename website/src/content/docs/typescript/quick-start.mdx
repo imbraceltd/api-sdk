@@ -1,0 +1,131 @@
+---
+title: TypeScript SDK — Quick Start
+description: From zero to your first successful Imbrace API call in under 5 minutes.
+---
+
+### Prerequisites
+
+- Node.js 18+
+- `@imbrace/sdk` installed ([Installation →](installation/))
+- `IMBRACE_API_KEY` set in `.env`
+
+---
+
+### 1. Initialize the Client
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+import "dotenv/config"; // loads .env automatically
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+  env: "stable", // "develop" | "sandbox" | "stable"
+  timeout: 30000, // ms, default 30000
+});
+```
+
+The client is stateful — create it once and reuse across your application.
+
+---
+
+### 2. Make Your First Call
+
+```typescript
+// Get current account info
+const me = await client.platform.getMe();
+console.log("Authenticated as:", me.displayName);
+
+// List marketplace products
+const { data: products } = await client.marketplace.listProducts({
+  page: 1,
+  limit: 10,
+});
+console.log(`Found ${products.length} products`);
+```
+
+---
+
+### 3. Health Check (Optional)
+
+Ping the gateway on startup to verify connectivity:
+
+```typescript
+await client.init();
+console.log("Gateway connection OK");
+```
+
+---
+
+### 4. Full Script Example
+
+```typescript
+// main.ts
+import { ImbraceClient, AuthError, ApiError } from "@imbrace/sdk";
+import "dotenv/config";
+
+const client = new ImbraceClient();
+
+async function main() {
+  try {
+    await client.init();
+
+    const me = await client.platform.getMe();
+    console.log("User:", me.displayName, me.email);
+
+    const { data: channels } = await client.channel.listChannels({
+      type: "group",
+    });
+    console.log(`Channels: ${channels.length}`);
+  } catch (e) {
+    if (e instanceof AuthError) {
+      console.error("Authentication failed — check IMBRACE_API_KEY");
+    } else if (e instanceof ApiError) {
+      console.error(`API error [${e.statusCode}]:`, e.message);
+    } else {
+      throw e;
+    }
+  }
+}
+
+main();
+```
+
+```bash
+# Run with ts-node
+npx ts-node main.ts
+
+# Or build first
+npm run build && node dist/main.js
+```
+
+---
+
+### 5. Environment Switching
+
+```typescript
+// Development gateway
+const client = new ImbraceClient({ env: "develop" });
+
+// Sandbox gateway
+const client = new ImbraceClient({ env: "sandbox" });
+
+// Stable (production) gateway — default
+const client = new ImbraceClient({ env: "stable" });
+
+// Completely custom gateway URL
+const client = new ImbraceClient({
+  gateway: "https://my-custom-gateway.example.com",
+});
+```
+
+| Environment | Gateway URL                              |
+| ----------- | ---------------------------------------- |
+| `develop`   | `https://app-gateway.dev.imbrace.co`     |
+| `sandbox`   | `https://app-gateway.sandbox.imbrace.co` |
+| `stable`    | `https://app-gatewayv2.imbrace.co`       |
+
+:::tip
+Set `IMBRACE_GATEWAY_URL` in `.env` for environment switching without code changes. It takes precedence over the `env` preset.
+:::
+
+---

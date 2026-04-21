@@ -1,0 +1,294 @@
+---
+title: TypeScript SDK — Resources
+description: Complete reference for all domain resource namespaces available on ImbraceClient.
+---
+
+Every resource is accessed as a property on the `ImbraceClient` instance. All methods return Promises and are fully typed.
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+const client = new ImbraceClient();
+```
+
+---
+
+### Marketplace
+
+Manage products and orders in the Imbrace Marketplace.
+
+```typescript
+// Products
+const { data: products } = await client.marketplace.listProducts({
+  category: "electronics",
+  page: 1,
+  limit: 20,
+});
+const product = await client.marketplace.getProduct("prod_id");
+await client.marketplace.createProduct({ name: "Product A", price: 99 });
+await client.marketplace.updateProduct("prod_id", { price: 89 });
+await client.marketplace.deleteProduct("prod_id");
+
+// Orders
+const { data: orders } = await client.marketplace.listOrders({
+  status: "pending",
+});
+const order = await client.marketplace.getOrder("order_id");
+await client.marketplace.createOrder({
+  items: [{ productId: "prod_id", quantity: 2 }],
+  shippingAddress: { city: "Ho Chi Minh", country: "VN" },
+});
+await client.marketplace.updateOrderStatus("order_id", "confirmed");
+```
+
+---
+
+### Platform
+
+User and organization management, plus permission control.
+
+```typescript
+// Users
+const me = await client.platform.getMe();
+const users = await client.platform.listUsers({ search: "john", page: 1 });
+const user = await client.platform.getUser("user_id");
+await client.platform.updateUser("user_id", { displayName: "John" });
+await client.platform.deleteUser("user_id");
+
+// Organizations
+const orgs = await client.platform.listOrgs();
+const org = await client.platform.createOrg({ name: "My Org" });
+await client.platform.updateOrg("org_id", { name: "New Name" });
+
+// Permissions
+const perms = await client.platform.listPermissions("user_id");
+await client.platform.grantPermission("user_id", "flows", "write");
+await client.platform.revokePermission("user_id", "perm_id");
+```
+
+---
+
+### Channel
+
+Channel lifecycle and real-time messaging.
+
+```typescript
+// Channels
+const channels = await client.channel.listChannels({ type: "group" });
+const channel = await client.channel.createChannel({
+  name: "general",
+  type: "group",
+});
+await client.channel.addParticipants("channel_id", ["user_1", "user_2"]);
+
+// Messages in a conversation
+const msgs = await client.channel.listMessages("conversation_id");
+const msg = await client.channel.sendMessage("conversation_id", {
+  content: "Hello!",
+  type: "text",
+});
+await client.channel.markRead("conversation_id");
+```
+
+---
+
+### IPS — Identity & Profile Service
+
+User profiles, social graph (follow/unfollow), and identity management.
+
+```typescript
+const profile = await client.ips.getMyProfile();
+await client.ips.updateProfile("user_id", { bio: "Developer" });
+const results = await client.ips.searchProfiles("john doe", { limit: 10 });
+
+// Social graph
+await client.ips.follow("target_user_id");
+await client.ips.unfollow("target_user_id");
+const followers = await client.ips.getFollowers("user_id");
+const following = await client.ips.getFollowing("user_id");
+
+// Identities
+const identities = await client.ips.listIdentities("user_id");
+```
+
+---
+
+### Agent
+
+Create and run AI agent templates.
+
+```typescript
+// Manage agents
+const agents = await client.agent.listAgents();
+const agent = await client.agent.createAgent({
+  name: "Data Analyzer",
+  model: "gpt-4o",
+  systemPrompt: "You are a data analysis expert.",
+});
+await client.agent.updateAgent("agent_id", { systemPrompt: "Updated prompt." });
+await client.agent.deleteAgent("agent_id");
+
+// Run an agent
+const run = await client.agent.runAgent("agent_id", {
+  task: "Analyze Q1 sales data",
+});
+const status = await client.agent.getRun(run.id);
+await client.agent.cancelRun(run.id);
+```
+
+---
+
+### AI
+
+LLM completions, streaming output, and text embeddings.
+
+```typescript
+// Non-streaming completion
+const completion = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: "Summarize this report." },
+  ],
+  temperature: 0.7,
+  maxTokens: 1000,
+});
+console.log(completion.choices[0].message.content);
+
+// Streaming completion — yields chunks via AsyncGenerator
+for await (const chunk of client.ai.stream({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Count from 1 to 5." }],
+})) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+}
+
+// Text embeddings
+const embeddings = await client.ai.embed({
+  model: "text-embedding-ada-002",
+  input: ["Hello world", "Imbrace SDK"],
+});
+```
+
+---
+
+### Sessions & Messages
+
+Session lifecycle and message exchange within a session.
+
+```typescript
+// Sessions
+const sessions = await client.sessions.list();
+const session = await client.sessions.create({ directory: "/my/project" });
+await client.sessions.delete(session.id);
+
+// Messages within a session
+const messages = await client.messages.list(session.id);
+await client.messages.send(session.id, {
+  parts: [{ type: "text", text: "Hello from SDK!" }],
+});
+```
+
+---
+
+### Auth
+
+OTP and password-based login. Token is stored automatically after successful login.
+
+```typescript
+// Request OTP
+await client.auth.requestOtp({ email: "user@example.com" });
+
+// Verify OTP and sign in
+const result = await client.auth.verifyOtp({
+  email: "user@example.com",
+  otp: "123456",
+});
+
+// Sign out
+await client.auth.signOut();
+```
+
+> Shorthand login helpers are also available directly on the client:
+> `client.requestOtp(email)`, `client.loginWithOtp(email, otp)`, `client.login(email, password)`
+
+---
+
+### Contacts
+
+```typescript
+const contacts = await client.contacts.list({ search: "alice" });
+const contact = await client.contacts.get("contact_id");
+await client.contacts.update("contact_id", { name: "Alice B." });
+```
+
+---
+
+### Conversations
+
+```typescript
+const viewsCount = await client.conversations.getViewsCount();
+const conv = await client.conversations.create({ channelId: "ch_xxx" });
+const results = await client.conversations.search({ query: "support" });
+```
+
+---
+
+### Teams
+
+```typescript
+const teams = await client.teams.list();
+const myTeams = await client.teams.getMyTeams();
+await client.teams.addUser("team_id", "user_id");
+await client.teams.removeUser("team_id", "user_id");
+```
+
+---
+
+### Workflows
+
+```typescript
+const workflows = await client.workflows.list({ tag: "automation" });
+await client.workflows.create({ name: "My Workflow", channelId: "ch_xxx" });
+await client.workflows.update("workflow_id", { name: "Updated" });
+```
+
+---
+
+### Boards
+
+```typescript
+const boards = await client.boards.list();
+const board = await client.boards.create({ name: "My Board" });
+const items = await client.boards.getItems("board_id");
+await client.boards.search("board_id", { query: "task" });
+```
+
+---
+
+### Settings
+
+```typescript
+// Message templates
+const templates = await client.settings.listMessageTemplates();
+
+// Users
+const users = await client.settings.listUsers();
+await client.settings.bulkInviteUsers(["user1@x.com", "user2@x.com"]);
+```
+
+---
+
+### Pagination
+
+List endpoints return a consistent shape:
+
+```typescript
+const { data, pagination } = await client.marketplace.listProducts({
+  page: 1,
+  limit: 20,
+});
+
+console.log(data); // Product[]
+console.log(pagination.hasNext); // boolean
+console.log(pagination.total); // number
+```

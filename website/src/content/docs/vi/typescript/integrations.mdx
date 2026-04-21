@@ -1,0 +1,227 @@
+---
+title: TypeScript SDK — Tích Hợp
+description: Sử dụng Imbrace TypeScript SDK với React, Next.js, và Node.js.
+---
+
+### React
+
+#### Singleton Client
+
+Tạo client một lần bên ngoài component tree và tái sử dụng:
+
+```typescript
+// lib/imbrace.ts
+import { ImbraceClient } from "@imbrace/sdk";
+
+export const client = new ImbraceClient({
+  accessToken:
+    typeof window !== "undefined"
+      ? (localStorage.getItem("imbrace_token") ?? undefined)
+      : undefined,
+});
+```
+
+#### Custom Hook Fetch Data
+
+```tsx
+// hooks/useProducts.ts
+import { useState, useEffect } from "react";
+import { client } from "@/lib/imbrace";
+import type { Product } from "@imbrace/sdk";
+
+export function useProducts(category?: string) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    client.marketplace
+      .listProducts({ category })
+      .then((res) => setProducts(res.data))
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [category]);
+
+  return { products, loading, error };
+}
+```
+
+```tsx
+// components/ProductList.tsx
+import { useProducts } from "@/hooks/useProducts";
+
+export function ProductList() {
+  const { products, loading, error } = useProducts("electronics");
+
+  if (loading) return <p>Đang tải...</p>;
+  if (error) return <p>Lỗi: {error.message}</p>;
+
+  return (
+    <ul>
+      {products.map((p) => (
+        <li key={p.id}>
+          {p.name} — {p.price} {p.currency}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+#### Luồng OTP Login Trong React
+
+```tsx
+// components/LoginForm.tsx
+import { useState } from "react";
+import { ImbraceClient, AuthError } from "@imbrace/sdk";
+
+const client = new ImbraceClient();
+
+export function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+
+  async function requestOtp() {
+    await client.requestOtp(email);
+    setStep("otp");
+  }
+
+  async function verifyOtp() {
+    try {
+      await client.loginWithOtp(email, otp);
+      // Token đã được lưu — client sẵn sàng sử dụng
+      window.location.href = "/dashboard";
+    } catch (e) {
+      if (e instanceof AuthError) alert("OTP không đúng");
+    }
+  }
+
+  return step === "email" ? (
+    <div>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+      />
+      <button onClick={requestOtp}>Gửi OTP</button>
+    </div>
+  ) : (
+    <div>
+      <input
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+        placeholder="Nhập OTP"
+      />
+      <button onClick={verifyOtp}>Xác nhận</button>
+    </div>
+  );
+}
+```
+
+---
+
+### Next.js
+
+#### API Route (App Router)
+
+```typescript
+// app/api/products/route.ts
+import { NextResponse } from "next/server";
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category") ?? undefined;
+
+  const { data } = await client.marketplace.listProducts({ category });
+  return NextResponse.json(data);
+}
+```
+
+#### Server Component (App Router)
+
+```tsx
+// app/products/page.tsx
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+
+export default async function ProductsPage() {
+  const { data: products } = await client.marketplace.listProducts({
+    limit: 20,
+  });
+
+  return (
+    <main>
+      <h1>Sản Phẩm</h1>
+      <ul>
+        {products.map((p) => (
+          <li key={p.id}>{p.name}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+---
+
+### Node.js
+
+#### Long-Running Service
+
+```typescript
+// service.ts
+import { ImbraceClient, NetworkError } from "@imbrace/sdk";
+
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+
+async function processOrders() {
+  const { data: orders } = await client.marketplace.listOrders({
+    status: "pending",
+  });
+  for (const order of orders) {
+    await client.marketplace.updateOrderStatus(order.id, "processing");
+    console.log(`Đã xử lý đơn hàng ${order.id}`);
+  }
+}
+
+// Chạy mỗi phút
+setInterval(async () => {
+  try {
+    await processOrders();
+  } catch (e) {
+    if (e instanceof NetworkError) {
+      console.warn("Gateway không khả dụng, sẽ thử lại sau");
+    } else throw e;
+  }
+}, 60_000);
+```
+
+#### CLI Script
+
+```typescript
+// scripts/export-contacts.ts
+import { ImbraceClient } from "@imbrace/sdk";
+import { writeFileSync } from "fs";
+
+const client = new ImbraceClient();
+
+async function exportContacts() {
+  const { data: contacts } = await client.contacts.list({ limit: 1000 });
+  writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
+  console.log(`Đã xuất ${contacts.length} liên hệ`);
+}
+
+exportContacts().catch(console.error);
+```
+
+```bash
+npx ts-node scripts/export-contacts.ts
+```

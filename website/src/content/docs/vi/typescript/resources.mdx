@@ -1,0 +1,243 @@
+---
+title: TypeScript SDK — Tài Nguyên API
+description: Tham chiếu đầy đủ cho tất cả resource namespaces có trên ImbraceClient.
+---
+
+Mỗi resource được truy cập như một property trên `ImbraceClient`. Tất cả methods đều trả về Promise và được type đầy đủ.
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+const client = new ImbraceClient();
+```
+
+---
+
+### Marketplace
+
+Quản lý sản phẩm và đơn hàng trong Imbrace Marketplace.
+
+```typescript
+// Sản phẩm
+const { data: products } = await client.marketplace.listProducts({
+  category: "electronics",
+  page: 1,
+  limit: 20,
+});
+const product = await client.marketplace.getProduct("prod_id");
+await client.marketplace.createProduct({ name: "Product A", price: 99 });
+await client.marketplace.updateProduct("prod_id", { price: 89 });
+await client.marketplace.deleteProduct("prod_id");
+
+// Đơn hàng
+const { data: orders } = await client.marketplace.listOrders({
+  status: "pending",
+});
+await client.marketplace.createOrder({
+  items: [{ productId: "prod_id", quantity: 2 }],
+  shippingAddress: { city: "Ho Chi Minh", country: "VN" },
+});
+await client.marketplace.updateOrderStatus("order_id", "confirmed");
+```
+
+---
+
+### Platform
+
+Quản lý người dùng, tổ chức, và phân quyền.
+
+```typescript
+// Người dùng
+const me = await client.platform.getMe();
+const users = await client.platform.listUsers({ search: "john", page: 1 });
+await client.platform.updateUser("user_id", { displayName: "John" });
+await client.platform.deleteUser("user_id");
+
+// Tổ chức
+const orgs = await client.platform.listOrgs();
+const org = await client.platform.createOrg({ name: "My Org" });
+await client.platform.updateOrg("org_id", { name: "Tên Mới" });
+
+// Phân quyền
+const perms = await client.platform.listPermissions("user_id");
+await client.platform.grantPermission("user_id", "flows", "write");
+await client.platform.revokePermission("user_id", "perm_id");
+```
+
+---
+
+### Channel
+
+Vòng đời kênh và nhắn tin realtime.
+
+```typescript
+// Kênh
+const channels = await client.channel.listChannels({ type: "group" });
+const channel = await client.channel.createChannel({
+  name: "general",
+  type: "group",
+});
+await client.channel.addParticipants("channel_id", ["user_1", "user_2"]);
+
+// Tin nhắn trong conversation
+const msgs = await client.channel.listMessages("conversation_id");
+await client.channel.sendMessage("conversation_id", {
+  content: "Xin chào!",
+  type: "text",
+});
+await client.channel.markRead("conversation_id");
+```
+
+---
+
+### IPS — Identity & Profile Service
+
+Hồ sơ người dùng, mạng xã hội (follow/unfollow), và quản lý định danh.
+
+```typescript
+const profile = await client.ips.getMyProfile();
+await client.ips.updateProfile("user_id", { bio: "Developer" });
+const results = await client.ips.searchProfiles("nguyen van a", { limit: 10 });
+
+// Mạng xã hội
+await client.ips.follow("target_user_id");
+await client.ips.unfollow("target_user_id");
+const followers = await client.ips.getFollowers("user_id");
+const following = await client.ips.getFollowing("user_id");
+
+// Định danh
+const identities = await client.ips.listIdentities("user_id");
+```
+
+---
+
+### Agent
+
+Tạo và chạy AI agent templates.
+
+```typescript
+// Quản lý agents
+const agents = await client.agent.listAgents();
+const agent = await client.agent.createAgent({
+  name: "Data Analyzer",
+  model: "gpt-4o",
+  systemPrompt: "Bạn là chuyên gia phân tích dữ liệu.",
+});
+await client.agent.deleteAgent("agent_id");
+
+// Chạy agent
+const run = await client.agent.runAgent("agent_id", {
+  task: "Phân tích dữ liệu Q1",
+});
+const status = await client.agent.getRun(run.id);
+await client.agent.cancelRun(run.id);
+```
+
+---
+
+### AI
+
+LLM completions, streaming output, và text embeddings.
+
+```typescript
+// Completion không streaming
+const completion = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "Bạn là trợ lý hữu ích." },
+    { role: "user", content: "Tóm tắt báo cáo này." },
+  ],
+  temperature: 0.7,
+  maxTokens: 1000,
+});
+console.log(completion.choices[0].message.content);
+
+// Streaming — sinh ra từng chunk qua AsyncGenerator
+for await (const chunk of client.ai.stream({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Đếm từ 1 đến 5." }],
+})) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+}
+
+// Text embeddings
+const embeddings = await client.ai.embed({
+  model: "text-embedding-ada-002",
+  input: ["Xin chào thế giới", "Imbrace SDK"],
+});
+```
+
+---
+
+### Sessions & Messages
+
+Vòng đời session và trao đổi tin nhắn trong session.
+
+```typescript
+const sessions = await client.sessions.list();
+const session = await client.sessions.create({ directory: "/my/project" });
+await client.sessions.delete(session.id);
+
+const messages = await client.messages.list(session.id);
+await client.messages.send(session.id, {
+  parts: [{ type: "text", text: "Xin chào từ SDK!" }],
+});
+```
+
+---
+
+### Auth
+
+Đăng nhập OTP và password-based. Token được lưu tự động sau khi đăng nhập thành công.
+
+```typescript
+// Yêu cầu OTP
+await client.auth.requestOtp({ email: "user@example.com" });
+
+// Verify OTP và đăng nhập
+const result = await client.auth.verifyOtp({
+  email: "user@example.com",
+  otp: "123456",
+});
+
+// Đăng xuất
+await client.auth.signOut();
+```
+
+---
+
+### Contacts / Conversations / Teams / Boards
+
+```typescript
+// Contacts
+const contacts = await client.contacts.list({ search: "alice" });
+await client.contacts.update("contact_id", { name: "Alice B." });
+
+// Conversations
+const viewsCount = await client.conversations.getViewsCount();
+const results = await client.conversations.search({ query: "hỗ trợ" });
+
+// Teams
+const teams = await client.teams.list();
+await client.teams.addUser("team_id", "user_id");
+
+// Boards
+const boards = await client.boards.list();
+const items = await client.boards.getItems("board_id");
+```
+
+---
+
+### Pagination
+
+List endpoints trả về shape nhất quán:
+
+```typescript
+const { data, pagination } = await client.marketplace.listProducts({
+  page: 1,
+  limit: 20,
+});
+
+console.log(data); // Product[]
+console.log(pagination.hasNext); // boolean
+console.log(pagination.total); // number
+```

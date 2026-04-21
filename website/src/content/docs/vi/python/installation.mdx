@@ -1,0 +1,79 @@
+---
+title: Python SDK — Cài Đặt
+description: Cài đặt package imbrace và cấu hình môi trường.
+---
+
+### Cài Đặt
+
+```bash
+pip install imbrace
+```
+
+Chế độ development (từ source, bao gồm dev tools):
+
+```bash
+cd py
+pip install -e ".[dev]"
+# Cài thêm: pytest, ruff, mypy, pytest-httpx, python-dotenv
+```
+
+### Thiết Lập Môi Trường
+
+Copy file env mẫu và điền thông tin xác thực:
+
+```bash
+cp .env.example .env
+```
+
+Mở `.env` và set:
+
+```env
+IMBRACE_API_KEY=your-api-key-here
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+#### Cách Lấy API Key
+
+Gọi endpoint xác thực của Imbrace với access token hiện có:
+
+```bash
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+Response:
+
+```json
+{ "apiKey": { "apiKey": "sk-xxx..." } }
+```
+
+Giá trị cần lấy là `response.apiKey.apiKey`.
+
+---
+
+### Kiểm Tra Cài Đặt
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+print("SDK sẵn sàng")
+```
+
+---
+
+### Biến Môi Trường
+
+| Biến               | Bắt Buộc | Mặc Định | Mô Tả                                   |
+| ------------------ | -------- | -------- | --------------------------------------- |
+| `IMBRACE_API_KEY`  | Có\*     | —        | Server-side API Key                     |
+| `IMBRACE_ENV`      | Không    | `stable` | Preset: `develop`, `sandbox`, `stable`  |
+| `IMBRACE_BASE_URL` | Không    | auto     | Override URL gateway                    |
+| `IMBRACE_ORG_ID`   | Không    | —        | Organization ID (cho integration tests) |
+
+\*Hoặc truyền `access_token` trực tiếp cho client-side usage.
+
+---
+
+Tiếp theo: [Xác Thực →](authentication/) | [Bắt Đầu Nhanh →](quick-start/)

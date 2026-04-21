@@ -1,0 +1,214 @@
+---
+title: Python SDK — Tài Nguyên API
+description: Tham chiếu đầy đủ cho tất cả resource namespaces có trên ImbraceClient.
+---
+
+Mỗi resource được truy cập như attribute trên client. Method sync trả về dict/Pydantic model; method async là coroutine.
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+```
+
+---
+
+### Marketplace
+
+Quản lý sản phẩm và đơn hàng.
+
+```python
+# Sản phẩm
+client.marketplace.list_products(category="electronics", page=1, limit=20)
+client.marketplace.get_product("prod_id")
+client.marketplace.create_product({"name": "Sản phẩm A", "price": 99.0})
+client.marketplace.update_product("prod_id", {"price": 89.0})
+client.marketplace.delete_product("prod_id")
+
+# Đơn hàng
+client.marketplace.list_orders(status="pending")
+client.marketplace.create_order({
+    "items": [{"product_id": "prod_id", "quantity": 2}],
+    "shipping_address": {"city": "Ho Chi Minh", "country": "VN"},
+})
+client.marketplace.update_order_status("order_id", "confirmed")
+```
+
+---
+
+### Platform
+
+Quản lý người dùng, tổ chức, và phân quyền.
+
+```python
+# Người dùng
+client.platform.get_me()
+client.platform.list_users(search="nguyen", page=1, limit=20)
+client.platform.update_user("user_id", {"display_name": "Nguyễn Văn A"})
+client.platform.delete_user("user_id")
+
+# Tổ chức
+client.platform.list_orgs()
+client.platform.create_org({"name": "My Org"})
+client.platform.update_org("org_id", {"name": "Tên Mới"})
+
+# Phân quyền
+client.platform.list_permissions("user_id")
+client.platform.grant_permission("user_id", "flows", "write")
+client.platform.revoke_permission("user_id", "perm_id")
+```
+
+---
+
+### Channel
+
+Vòng đời kênh và nhắn tin realtime.
+
+```python
+# Kênh
+client.channel.list_channels(type="group")
+client.channel.create_channel({"name": "general", "type": "group"})
+client.channel.add_participants("channel_id", ["user_1", "user_2"])
+
+# Tin nhắn
+client.channel.list_messages("conversation_id")
+client.channel.send_message("conversation_id", "Xin chào!", type="text")
+client.channel.mark_read("conversation_id")
+```
+
+---
+
+### IPS — Identity & Profile Service
+
+```python
+client.ips.get_my_profile()
+client.ips.update_profile("user_id", {"bio": "Developer"})
+client.ips.search_profiles("nguyen van a", page=1, limit=10)
+
+# Mạng xã hội
+client.ips.follow("target_user_id")
+client.ips.unfollow("target_user_id")
+client.ips.get_followers("user_id")
+client.ips.get_following("user_id")
+
+# Định danh
+client.ips.list_identities("user_id")
+```
+
+---
+
+### Agent
+
+```python
+client.agent.list_agents()
+client.agent.create_agent({"name": "Data Analyzer", "model": "gpt-4o"})
+client.agent.update_agent("agent_id", {"system_prompt": "Bạn là chuyên gia phân tích."})
+client.agent.delete_agent("agent_id")
+
+# Chạy agent
+client.agent.run_agent("agent_id", {"task": "Phân tích dữ liệu Q1"})
+client.agent.get_run("run_id")
+client.agent.cancel_run("run_id")
+```
+
+---
+
+### AI
+
+```python
+# Completion không streaming
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "Bạn là trợ lý hữu ích."},
+        {"role": "user", "content": "Tóm tắt báo cáo này."},
+    ],
+    temperature=0.7,
+    max_tokens=1000,
+)
+print(response["choices"][0]["message"]["content"])
+
+# Streaming completion — yield từng chunk
+for chunk in client.ai.stream(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Đếm từ 1 đến 5."}],
+):
+    content = chunk["choices"][0]["delta"].get("content", "")
+    print(content, end="", flush=True)
+
+# Text embeddings
+result = client.ai.embed(
+    model="text-embedding-ada-002",
+    input=["Xin chào thế giới", "Imbrace SDK"],
+)
+```
+
+---
+
+### Sessions & Messages
+
+```python
+# Sessions
+client.sessions.list()
+session = client.sessions.create(directory="/my/project")
+client.sessions.get(session["id"])
+client.sessions.delete(session["id"])
+
+# Tin nhắn trong session
+client.messages.list(session["id"])
+client.messages.send(session["id"], parts=[{"type": "text", "text": "Xin chào"}])
+client.messages.delete(session["id"], "message_id")
+```
+
+---
+
+### Auth / Contacts / Conversations / Teams / Boards
+
+```python
+# Auth
+client.auth.request_otp({"email": "user@example.com"})
+client.auth.verify_otp({"email": "user@example.com", "otp": "123456"})
+client.auth.sign_out()
+
+# Contacts
+client.contacts.list(search="alice")
+client.contacts.update("contact_id", {"name": "Alice B."})
+
+# Conversations
+client.conversations.get_views_count()
+client.conversations.search({"query": "hỗ trợ"})
+
+# Teams
+client.teams.list()
+client.teams.get_my_teams()
+client.teams.add_user("team_id", "user_id")
+
+# Boards
+client.boards.list()
+client.boards.get_items("board_id")
+client.boards.search("board_id", {"query": "task"})
+```
+
+---
+
+### Pagination
+
+```python
+result = client.marketplace.list_products(page=1, limit=20)
+products = result["data"]                        # list items
+has_next = result["pagination"]["has_next"]      # bool
+total    = result["pagination"]["total"]          # int
+```
+
+#### Duyệt Tất Cả Trang Tự Động
+
+`iterate_paged()` tự động chuyển trang và yield từng item:
+
+```python
+for product in client._http.iterate_paged(
+    "GET",
+    "/marketplace/products",
+    model=dict,
+    params={"limit": 50},
+):
+    process(product)
+```

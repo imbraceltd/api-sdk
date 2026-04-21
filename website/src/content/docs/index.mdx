@@ -1,0 +1,129 @@
+---
+title: Imbrace SDK
+description: Official TypeScript and Python SDKs for the Imbrace Gateway — type-safe, batteries-included, production-ready.
+template: splash
+hero:
+  title: Ship faster with Imbrace SDK
+  tagline: Type-safe, batteries-included SDKs for the Imbrace Gateway. Connect TypeScript and Python apps to the Imbrace platform in minutes.
+  image:
+    file: ../../assets/imbrace_logo_small.svg
+    alt: Imbrace
+  actions:
+    - text: Get Started
+      link: getting-started/overview/
+      icon: right-arrow
+      variant: primary
+    - text: TypeScript SDK
+      link: typescript/overview/
+      variant: secondary
+    - text: Python SDK
+      link: python/overview/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+<div class="splash-features">
+
+## Why Imbrace SDK?
+
+<CardGrid>
+  <Card title="Type-safe by Design" icon="approve-check-circle">
+    Full TypeScript definitions and Python type hints across all 27+ resource
+    namespaces. Catch errors at compile time, not runtime.
+  </Card>
+  <Card title="Auto-retry & Resilience" icon="random">
+    Built-in exponential backoff for 429 and 5xx responses. Zero configuration
+    needed — your app stays alive under load.
+  </Card>
+  <Card title="3-Tier Authentication" icon="setting">
+    API Key, JWT Bearer, and legacy access token — all handled transparently.
+    Switch auth strategy without changing business logic.
+  </Card>
+  <Card title="Async-first Python" icon="rocket">
+    Parallel `AsyncImbraceClient` alongside the sync client. Drop into FastAPI,
+    asyncio, or Django with one import.
+  </Card>
+</CardGrid>
+
+</div>
+
+<div class="splash-install">
+
+## Quick Install
+
+<div class="install-grid">
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--ts">TypeScript</span>
+    </div>
+
+    ```bash
+    npm install @imbrace/sdk
+    ```
+
+    ```ts
+    import { ImbraceClient } from "@imbrace/sdk";
+    const client = new ImbraceClient();
+    const me = await client.platform.getMe();
+    ```
+
+  </div>
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--py">Python</span>
+    </div>
+
+    ```bash
+    pip install imbrace
+    ```
+
+    ```python
+    from imbrace import ImbraceClient
+    client = ImbraceClient()
+    me = client.platform.get_me()
+    ```
+
+  </div>
+</div>
+
+</div>
+
+<div class="splash-links">
+
+## Explore the Docs
+
+<CardGrid>
+  <LinkCard
+    title="TypeScript — Overview"
+    description="Architecture, 27 resource namespaces, auth strategy."
+    href="typescript/overview/"
+  />
+  <LinkCard
+    title="Python — Overview"
+    description="Sync vs async client, 29 namespaces, lifecycle."
+    href="python/overview/"
+  />
+  <LinkCard
+    title="Authentication"
+    description="API Key, JWT Bearer, OTP login flow."
+    href="typescript/authentication/"
+  />
+  <LinkCard
+    title="Error Handling"
+    description="Exception hierarchy, retry behavior, best practices."
+    href="typescript/error-handling/"
+  />
+  <LinkCard
+    title="Integrations — TypeScript"
+    description="React, Next.js, Node.js service patterns."
+    href="typescript/integrations/"
+  />
+  <LinkCard
+    title="Integrations — Python"
+    description="FastAPI, asyncio, Django, Celery patterns."
+    href="python/integrations/"
+  />
+</CardGrid>
+
+</div>

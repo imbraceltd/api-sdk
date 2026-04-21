@@ -1,0 +1,73 @@
+---
+title: Tổng Quan Kiến Trúc
+description: Phạm vi, cấu trúc SDK và sự khác biệt giữa các gateway của Imbrace SDK.
+---
+
+### Phạm Vi
+
+- SDK bao gồm **App Gateway + Server Gateway**.
+- **Journey API** và **các HTTP path dành riêng cho n8n** nằm ngoài phạm vi của repo này.
+
+### Cấu Trúc SDK
+
+```
+sdk/
+├── py/src/imbrace/
+│   ├── core/                  ← transport, auth, errors, api_key
+│   │   ├── http.py
+│   │   ├── exceptions.py
+│   │   ├── api_key.py
+│   │   └── auth/token_manager.py
+│   ├── app/                   ← App Gateway (xác thực OTP)
+│   │   ├── client.py
+│   │   └── resources/         (auth, account, agent, ai, boards, channel,
+│   │                            contacts, conversations, health, ips,
+│   │                            messages, organizations, sessions,
+│   │                            settings, teams, workflows)
+│   ├── server/                ← Server Gateway (xác thực API Key)
+│   │   ├── client.py
+│   │   └── resources/         (ai_agent, boards, categories, marketplace,
+│   │                            platform, schedule)
+│   ├── types/                 ← định nghĩa type chung
+│   └── client.py              ← ImbraceClient (entry point thống nhất)
+│
+└── ts/src/
+    ├── core/                  ← transport, auth, errors
+    │   ├── http.ts
+    │   ├── errors.ts
+    │   └── auth/token-manager.ts
+    ├── app/                   ← App Gateway
+    │   ├── client.ts
+    │   └── resources/         (auth, account, agent, ai, boards, channel,
+    │                            contacts, conversations, health, ips,
+    │                            messages, organizations, sessions,
+    │                            settings, teams, workflows)
+    ├── server/                ← Server Gateway
+    │   ├── client.ts
+    │   └── resources/         (ai-agent, boards, categories, marketplace,
+    │                            platform, schedule)
+    ├── types/                 ← định nghĩa type chung
+    └── client.ts              ← ImbraceClient (entry point thống nhất)
+```
+
+### Sự Khác Biệt Giữa Các Gateway
+
+| Gateway        | Auth Header                     | Pattern Path              |
+| -------------- | ------------------------------- | ------------------------- |
+| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
+| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+
+### Các Tầng Test
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  UNIT TESTS  (Không cần server, không cần API key)       │
+│  → Mock toàn bộ HTTP: pytest-httpx (Python) / vitest (TS)│
+│  → Chạy offline, phù hợp cho CI/CD                       │
+│  → Kiểm tra: SDK logic, headers, URL, params, errors     │
+├──────────────────────────────────────────────────────────┤
+│  INTEGRATION TESTS (Cần server thật + API key hợp lệ)    │
+│  → Gọi thật tới app-gatewayv2.imbrace.co                 │
+│  → Tự động bỏ qua nếu IMBRACE_API_KEY không được set     │
+└──────────────────────────────────────────────────────────┘
+```

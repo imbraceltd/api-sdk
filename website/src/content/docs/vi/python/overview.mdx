@@ -1,0 +1,92 @@
+---
+title: Python SDK — Giới Thiệu
+description: Tổng quan về Imbrace Python SDK, cách hoạt động nội bộ, và khi nào nên sử dụng.
+---
+
+Package `imbrace` là client Python chính thức cho Imbrace Gateway. Cung cấp cả **synchronous** và **asynchronous** client, phù hợp cho Django/Flask truyền thống và các framework async hiện đại như FastAPI.
+
+### Tính Năng Nổi Bật
+
+| Tính năng               | Chi tiết                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| **Dual Client**         | `ImbraceClient` (sync, `httpx.Client`) và `AsyncImbraceClient` (async, `httpx.AsyncClient`) |
+| **Full Typing**         | Mọi request/response được type qua Pydantic models và type hints                            |
+| **Dual Authentication** | API Key (server-to-server) hoặc Access Token (JWT / legacy token)                           |
+| **Auto Retry**          | 429 và 5xx retry tối đa 3 lần với exponential backoff                                       |
+| **Pagination Helper**   | `iterate_paged()` yield từng item qua tất cả các trang                                      |
+| **Context Manager**     | Cú pháp `with`/`async with` tự động dọn dẹp kết nối                                         |
+| **Multi-Environment**   | Preset `develop` / `sandbox` / `stable`                                                     |
+
+### Cách Hoạt Động
+
+```
+Your Code
+   │
+   ▼
+ImbraceClient / AsyncImbraceClient     ← entry point duy nhất
+   ├── TokenManager                    ← lưu token thread-safe
+   └── HttpTransport / AsyncHttpTransport
+         ├── Chọn chiến lược auth       ← API Key / JWT Bearer / x-access-token
+         ├── Retry với backoff          ← 429 và 5xx
+         └── Connection pool (httpx)   ← keepalive, max_connections=10
+               │
+               ▼
+         Imbrace Gateway               ← app-gatewayv2.imbrace.co
+```
+
+### Kiến Trúc Nội Bộ
+
+| Tầng             | File                           | Trách nhiệm                                       |
+| ---------------- | ------------------------------ | ------------------------------------------------- |
+| Entry Points     | `client.py`, `async_client.py` | Khởi tạo resources, login helpers                 |
+| HTTP Transport   | `http.py`                      | Auth headers, retry, timeout, error mapping       |
+| Token Manager    | `auth/token_manager.py`        | Đọc/ghi token thread-safe                         |
+| Service Registry | `service_registry.py`          | Resolve per-service URL từ env preset             |
+| Resources        | `resources/*.py`               | API method wrapper cho từng domain (29 resources) |
+| Types            | `types/*.py`                   | Pydantic models và dataclasses                    |
+| Exceptions       | `exceptions.py`                | `AuthError`, `ApiError`, `NetworkError`           |
+
+### Danh Sách Resources (29 resources)
+
+| Namespace              | Mục đích                                    |
+| ---------------------- | ------------------------------------------- |
+| `client.auth`          | OTP signin, verify, signout                 |
+| `client.account`       | Thông tin tài khoản                         |
+| `client.marketplace`   | Sản phẩm, đơn hàng                          |
+| `client.platform`      | Người dùng, tổ chức, phân quyền             |
+| `client.channel`       | Kênh, tin nhắn                              |
+| `client.ips`           | Identity & Profile — hồ sơ, follow/unfollow |
+| `client.agent`         | AI agent templates và runs                  |
+| `client.ai`            | LLM completions, streaming, embeddings      |
+| `client.sessions`      | Quản lý session                             |
+| `client.messages`      | Tin nhắn trong session                      |
+| `client.contacts`      | Quản lý liên hệ                             |
+| `client.conversations` | Cuộc hội thoại                              |
+| `client.teams`         | Quản lý team                                |
+| `client.workflows`     | Workflow automation                         |
+| `client.boards`        | Board CRUD và items                         |
+| `client.settings`      | Cài đặt org                                 |
+| `client.campaigns`     | Quản lý campaign                            |
+| `client.schedule`      | Tác vụ theo lịch                            |
+| `client.data_files`    | Quản lý file dữ liệu                        |
+| `client.folders`       | Quản lý thư mục                             |
+| `client.outbounds`     | Outbound messaging                          |
+| `client.touchpoints`   | Quản lý touchpoint                          |
+| `client.chat_ai`       | Chat AI sessions                            |
+| `client.file_service`  | Upload file                                 |
+| `client.activepieces`  | Tích hợp Activepieces                       |
+
+### Sync vs Async — Khi Nào Dùng Cái Nào
+
+| Client               | Framework                      | Import                                   |
+| -------------------- | ------------------------------ | ---------------------------------------- |
+| `ImbraceClient`      | Django, Flask, scripts, Celery | `from imbrace import ImbraceClient`      |
+| `AsyncImbraceClient` | FastAPI, asyncio, aiohttp      | `from imbrace import AsyncImbraceClient` |
+
+:::tip
+Cả hai client có interface resource giống hệt nhau — sự khác biệt duy nhất là `await` trên các method calls. Bạn có thể hoán đổi mà không cần thay business logic.
+:::
+
+---
+
+Tiếp theo: [Cài Đặt →](installation/)

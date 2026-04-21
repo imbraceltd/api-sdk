@@ -1,0 +1,73 @@
+---
+title: Architecture Overview
+description: SDK scope, structure, and gateway differences for the Imbrace SDK.
+---
+
+### Scope
+
+- The SDK covers **App Gateway + Server Gateway** only.
+- **Journey API** and **n8n-specific HTTP paths** are out of scope for this repo.
+
+### SDK Structure
+
+```
+sdk/
+├── py/src/imbrace/
+│   ├── core/                  ← transport, auth, errors, api_key
+│   │   ├── http.py
+│   │   ├── exceptions.py
+│   │   ├── api_key.py
+│   │   └── auth/token_manager.py
+│   ├── app/                   ← App Gateway (OTP auth)
+│   │   ├── client.py
+│   │   └── resources/         (auth, account, agent, ai, boards, channel,
+│   │                            contacts, conversations, health, ips,
+│   │                            messages, organizations, sessions,
+│   │                            settings, teams, workflows)
+│   ├── server/                ← Server Gateway (API Key auth)
+│   │   ├── client.py
+│   │   └── resources/         (ai_agent, boards, categories, marketplace,
+│   │                            platform, schedule)
+│   ├── types/                 ← shared type definitions
+│   └── client.py              ← ImbraceClient (unified entry point)
+│
+└── ts/src/
+    ├── core/                  ← transport, auth, errors
+    │   ├── http.ts
+    │   ├── errors.ts
+    │   └── auth/token-manager.ts
+    ├── app/                   ← App Gateway
+    │   ├── client.ts
+    │   └── resources/         (auth, account, agent, ai, boards, channel,
+    │                            contacts, conversations, health, ips,
+    │                            messages, organizations, sessions,
+    │                            settings, teams, workflows)
+    ├── server/                ← Server Gateway
+    │   ├── client.ts
+    │   └── resources/         (ai-agent, boards, categories, marketplace,
+    │                            platform, schedule)
+    ├── types/                 ← shared type definitions
+    └── client.ts              ← ImbraceClient (unified entry point)
+```
+
+### Gateway Differences
+
+| Gateway        | Auth Header                     | Path Pattern              |
+| -------------- | ------------------------------- | ------------------------- |
+| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
+| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+
+### Test Layers
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  UNIT TESTS  (No server required, no API key needed)     │
+│  → Mocks all HTTP: pytest-httpx (Python) / vitest (TS)   │
+│  → Runs offline, suitable for CI/CD                      │
+│  → Verifies: SDK logic, headers, URL, params, errors     │
+├──────────────────────────────────────────────────────────┤
+│  INTEGRATION TESTS (Requires real server + valid API key)│
+│  → Real calls to app-gatewayv2.imbrace.co                │
+│  → Automatically skips if IMBRACE_API_KEY is missing     │
+└──────────────────────────────────────────────────────────┘
+```
