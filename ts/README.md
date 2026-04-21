@@ -24,7 +24,7 @@ Open `.env` and set:
 
 ```env
 IMBRACE_API_KEY=your-api-key-here
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
 ```
 
 **Where to get the API Key**
@@ -50,22 +50,18 @@ The value you need is `response.apiKey.apiKey`.
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk"
 
-// Option 1: auto-read from .env (Node.js / server)
-const client = new ImbraceClient()
-
-// Option 2: explicit configuration (server-side)
+// Explicit configuration (server-to-server)
 const client = new ImbraceClient({
   apiKey: "sk-xxx...",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
+  env: "stable", // defaults to 'stable'
   timeout: 30000,
-  checkHealth: true,
 })
 
-// Option 3: Access Token (browser / client-side)
-const client = new ImbraceClient({
-  accessToken: "eyJhbGci...",
+// Or manually override the gateway URL
+const clientWithCustomGateway = new ImbraceClient({
+  gateway: "https://app-gateway.imbrace.co",
 })
-
+```
 // Update token after OAuth refresh
 client.setAccessToken("new-token")
 client.clearAccessToken()

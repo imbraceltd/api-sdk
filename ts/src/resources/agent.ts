@@ -1,6 +1,61 @@
 import { HttpTransport } from "../http.js"
 import type { AgentTemplate } from "../types/index.js"
 
+// ─── Agent / use-case interfaces ──────────────────────────────────────────────
+
+export interface AgentAssistantInput {
+  name?: string
+  description?: string
+  model?: string
+  instructions?: string
+  [key: string]: unknown
+}
+
+export interface AgentUseCaseInput {
+  name?: string
+  description?: string
+  category?: string
+  [key: string]: unknown
+}
+
+export interface CreateAgentInput {
+  assistant: AgentAssistantInput
+  usecase: AgentUseCaseInput
+}
+
+export interface UpdateAgentInput {
+  assistant?: AgentAssistantInput
+  usecase?: AgentUseCaseInput
+}
+
+export interface DeleteAgentResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+export interface UseCase {
+  _id: string
+  name?: string
+  description?: string
+  category?: string
+  [key: string]: unknown
+}
+
+export interface CreateUseCaseInput {
+  name: string
+  description?: string
+  category?: string
+  assistant_id?: string
+  [key: string]: unknown
+}
+
+export interface UpdateUseCaseInput {
+  name?: string
+  description?: string
+  category?: string
+  [key: string]: unknown
+}
+
 export class AgentResource {
   private readonly templates: string
   private readonly useCases: string
@@ -25,14 +80,11 @@ export class AgentResource {
     return this.http.getFetch()(this.templates, { method: "GET" }).then(r => r.json())
   }
 
-  async get(templateId: string): Promise<AgentTemplate> {
+  async get(templateId: string): Promise<{ data: AgentTemplate }> {
     return this.http.getFetch()(`${this.templates}/${templateId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: {
-    assistant: Record<string, unknown>
-    usecase: Record<string, unknown>
-  }): Promise<AgentTemplate> {
+  async create(body: CreateAgentInput): Promise<AgentTemplate> {
     return this.http.getFetch()(`${this.templates}/custom`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -40,10 +92,7 @@ export class AgentResource {
     }).then(r => r.json())
   }
 
-  async update(templateId: string, body: {
-    assistant?: Record<string, unknown>
-    usecase?: Record<string, unknown>
-  }): Promise<AgentTemplate> {
+  async update(templateId: string, body: UpdateAgentInput): Promise<AgentTemplate> {
     return this.http.getFetch()(`${this.templates}/${templateId}/custom`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -51,21 +100,21 @@ export class AgentResource {
     }).then(r => r.json())
   }
 
-  async delete(templateId: string): Promise<Record<string, unknown>> {
+  async delete(templateId: string): Promise<DeleteAgentResponse> {
     return this.http.getFetch()(`${this.templates}/${templateId}`, { method: "DELETE" }).then(r => r.json())
   }
 
   // ── Use-cases ────────────────────────────────────────────────────────────
 
-  async listUseCases(): Promise<Record<string, unknown>[]> {
+  async listUseCases(): Promise<UseCase[]> {
     return this.http.getFetch()(this.useCases, { method: "GET" }).then(r => r.json())
   }
 
-  async getUseCase(useCaseId: string): Promise<Record<string, unknown>> {
+  async getUseCase(useCaseId: string): Promise<UseCase> {
     return this.http.getFetch()(`${this.useCases}/${useCaseId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createUseCase(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async createUseCase(body: CreateUseCaseInput): Promise<UseCase> {
     return this.http.getFetch()(`${this.useCases}/v2/custom`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,7 +122,7 @@ export class AgentResource {
     }).then(r => r.json())
   }
 
-  async updateUseCase(useCaseId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateUseCase(useCaseId: string, body: UpdateUseCaseInput): Promise<UseCase> {
     return this.http.getFetch()(`${this.useCases}/${useCaseId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -81,7 +130,7 @@ export class AgentResource {
     }).then(r => r.json())
   }
 
-  async deleteUseCase(useCaseId: string): Promise<Record<string, unknown>> {
+  async deleteUseCase(useCaseId: string): Promise<DeleteAgentResponse> {
     return this.http.getFetch()(`${this.useCases}/${useCaseId}`, { method: "DELETE" }).then(r => r.json())
   }
 }

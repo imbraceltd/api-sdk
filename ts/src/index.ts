@@ -1,28 +1,12 @@
-// Types
-export * from "./types/index.js"
-// Errors
-export * from "./errors.js"
-// Resources
-export * from "./resources/auth.js"
-export * from "./resources/account.js"
-export * from "./resources/organizations.js"
-export * from "./resources/agent.js"
-export * from "./resources/ai.js"
-export * from "./resources/channel.js"
-export * from "./resources/conversations.js"
-export * from "./resources/messages.js"
-export * from "./resources/contacts.js"
-export * from "./resources/teams.js"
-export * from "./resources/workflows.js"
-export * from "./resources/boards.js"
-export * from "./resources/settings.js"
-export * from "./resources/health.js"
-export * from "./resources/ips.js"
-export * from "./resources/marketplace.js"
-export * from "./resources/platform.js"
-export * from "./resources/sessions.js"
-export * from "./resources/campaign.js"
-export * from "./resources/outbound.js"
-export * from "./resources/license.js"
-// Client (main entry)
+// Main Client Entry
 export * from "./client.js"
+
+// Environment & Service Discovery
+export * from "./environments.js"
+export * from "./service-registry.js"
+
+// Types (Unified Models)
+export * from "./types/index.js"
+
+// Errors (For error handling)
+export * from "./errors.js"

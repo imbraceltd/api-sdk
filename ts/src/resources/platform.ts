@@ -1,6 +1,304 @@
 import { HttpTransport } from "../http.js"
 import type { User, Organization, Permission, PagedResponse } from "../types/index.js"
 
+// ─── User action interfaces ───────────────────────────────────────────────────
+
+export interface ChangeRoleResponse {
+  success: boolean
+  user?: User
+  [key: string]: unknown
+}
+
+export interface UserActionResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+export interface BulkInviteInput {
+  users: Array<{ email: string; role?: string; [key: string]: unknown }>
+  [key: string]: unknown
+}
+
+export interface BulkInviteResponse {
+  invited: number
+  errors?: unknown[]
+  [key: string]: unknown
+}
+
+export interface UserWorkflowsResponse {
+  workflows: unknown[]
+  [key: string]: unknown
+}
+
+// ─── Team interfaces ──────────────────────────────────────────────────────────
+
+export interface CreateTeamInput {
+  name: string
+  type?: string
+  description?: string
+  [key: string]: unknown
+}
+
+export interface UpdateTeamInput {
+  name?: string
+  description?: string
+  [key: string]: unknown
+}
+
+export interface TeamOperationResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+export interface TeamWorkflowsResponse {
+  workflows: unknown[]
+  [key: string]: unknown
+}
+
+// ─── Credential / n8n interfaces ─────────────────────────────────────────────
+
+export interface Credential {
+  id: string
+  name: string
+  type: string
+  [key: string]: unknown
+}
+
+export interface CredentialTypeItem {
+  name: string
+  displayName: string
+  [key: string]: unknown
+}
+
+export interface N8nLoginResponse {
+  cookie?: string
+  [key: string]: unknown
+}
+
+export interface N8nWorkflow {
+  id: string
+  name: string
+  active?: boolean
+  [key: string]: unknown
+}
+
+export interface CreateN8nWorkflowInput {
+  name: string
+  nodes?: unknown[]
+  connections?: unknown
+  [key: string]: unknown
+}
+
+export interface UpdateN8nWorkflowInput {
+  name?: string
+  active?: boolean
+  nodes?: unknown[]
+  connections?: unknown
+  [key: string]: unknown
+}
+
+// ─── Knowledge interfaces ─────────────────────────────────────────────────────
+
+export interface KnowledgeItem {
+  _id: string
+  name?: string
+  [key: string]: unknown
+}
+
+export interface KnowledgeListResponse {
+  data: KnowledgeItem[]
+  [key: string]: unknown
+}
+
+export interface KnowledgeUploadResponse {
+  url?: string
+  [key: string]: unknown
+}
+
+// ─── Resource interface ───────────────────────────────────────────────────────
+
+export interface ResourceItem {
+  _id: string
+  name: string
+  [key: string]: unknown
+}
+
+// ─── App interfaces ───────────────────────────────────────────────────────────
+
+export interface AppItem {
+  _id: string
+  name: string
+  active?: boolean
+  [key: string]: unknown
+}
+
+export interface AppListResponse {
+  data: AppItem[]
+  [key: string]: unknown
+}
+
+export interface UpdateAppInput {
+  name?: string
+  active?: boolean
+  [key: string]: unknown
+}
+
+export interface AppOperationResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+export interface MenuSettingsResponse {
+  menu?: unknown[]
+  [key: string]: unknown
+}
+
+export interface AppForm {
+  _id: string
+  name?: string
+  fields?: unknown[]
+  [key: string]: unknown
+}
+
+export interface OrgMembersEmailResponse {
+  emails: string[]
+  [key: string]: unknown
+}
+
+// ─── Email sender interfaces ──────────────────────────────────────────────────
+
+export interface EmailSender {
+  _id: string
+  name: string
+  email: string
+  [key: string]: unknown
+}
+
+export interface CreateEmailSenderInput {
+  name: string
+  email: string
+  [key: string]: unknown
+}
+
+export interface UpdateEmailSenderInput {
+  name?: string
+  email?: string
+  [key: string]: unknown
+}
+
+// ─── Room interfaces ──────────────────────────────────────────────────────────
+
+export interface Room {
+  _id: string
+  name?: string
+  status?: string
+  [key: string]: unknown
+}
+
+export interface UpdateRoomInput {
+  name?: string
+  status?: string
+  [key: string]: unknown
+}
+
+export interface RoomStatusResponse {
+  status: string
+  [key: string]: unknown
+}
+
+export interface JoinRoomInput {
+  room_id: string
+  [key: string]: unknown
+}
+
+export interface JoinRoomResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+export interface RoomStatusCountResponse {
+  [status: string]: number
+}
+
+// ─── Store interfaces ─────────────────────────────────────────────────────────
+
+export interface PhysicalStore {
+  _id: string
+  name: string
+  address?: string
+  [key: string]: unknown
+}
+
+export interface CreateStoreInput {
+  name: string
+  address?: string
+  [key: string]: unknown
+}
+
+export interface UpdateStoreInput {
+  name?: string
+  address?: string
+  [key: string]: unknown
+}
+
+// ─── Facebook interfaces ──────────────────────────────────────────────────────
+
+export interface FacebookPage {
+  id: string
+  name: string
+  access_token?: string
+  [key: string]: unknown
+}
+
+export interface AuthFacebookInput {
+  access_token: string
+  [key: string]: unknown
+}
+
+export interface AuthFacebookResponse {
+  success: boolean
+  pages?: FacebookPage[]
+  [key: string]: unknown
+}
+
+// ─── Mail channel interfaces ──────────────────────────────────────────────────
+
+export interface MailChannel {
+  _id: string
+  name?: string
+  email?: string
+  [key: string]: unknown
+}
+
+export interface CreateMailChannelInput {
+  name?: string
+  email?: string
+  [key: string]: unknown
+}
+
+export interface InitChannelInput {
+  type: string
+  [key: string]: unknown
+}
+
+export interface InitChannelResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+// ─── AWS org interfaces ───────────────────────────────────────────────────────
+
+export interface CreateAwsOrgInput {
+  customer_id?: string
+  [key: string]: unknown
+}
+
+// ─── Contact v2 interfaces ────────────────────────────────────────────────────
+
+export interface UpdateContactV2Input {
+  [key: string]: unknown
+}
+
 export class PlatformResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
@@ -45,7 +343,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async changeRole(body: { user_id: string; role: string }) {
+  async changeRole(body: { user_id: string; role: string }): Promise<ChangeRoleResponse> {
     return this.http.getFetch()(`${this.v1}/users/_change_role`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,7 +351,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async archiveUser(body: { user_id: string }) {
+  async archiveUser(body: { user_id: string }): Promise<UserActionResponse> {
     return this.http.getFetch()(`${this.v1}/users/_archive`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,7 +359,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async reactivateUser(body: { user_id: string }) {
+  async reactivateUser(body: { user_id: string }): Promise<UserActionResponse> {
     return this.http.getFetch()(`${this.v1}/users/_reactivate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,7 +367,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async bulkInvite(body: Record<string, unknown>) {
+  async bulkInvite(body: BulkInviteInput): Promise<BulkInviteResponse> {
     return this.http.getFetch()(`${this.v1}/users/_bulk_invite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,11 +375,11 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getUserWorkflows(userId: string) {
+  async getUserWorkflows(userId: string): Promise<UserWorkflowsResponse> {
     return this.http.getFetch()(`${this.v1}/users/${userId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Organizations 
+  // ─── Organizations
 
   async listOrgs(params?: {
     limit?: number
@@ -111,7 +409,7 @@ export class PlatformResource {
 
   // ─── Teams
 
-  async listTeams(params?: { type?: string; limit?: number; skip?: number; q?: string }) {
+  async listTeams(params?: { type?: string; limit?: number; skip?: number; q?: string }): Promise<PagedResponse<{ _id: string; name: string; [key: string]: unknown }>> {
     const url = new URL(`${this.v2}/teams`)
     if (params?.type)   url.searchParams.set("type",  params.type)
     if (params?.limit)  url.searchParams.set("limit", String(params.limit))
@@ -120,11 +418,11 @@ export class PlatformResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getMyTeams() {
+  async getMyTeams(): Promise<{ _id: string; name: string; [key: string]: unknown }[]> {
     return this.http.getFetch()(`${this.v2}/teams/my`, { method: "GET" }).then(r => r.json())
   }
 
-  async createTeam(body: Record<string, unknown>) {
+  async createTeam(body: CreateTeamInput): Promise<{ _id: string; name: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v1}/teams`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -132,7 +430,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async updateTeam(teamId: string, body: Record<string, unknown>) {
+  async updateTeam(teamId: string, body: UpdateTeamInput): Promise<{ _id: string; name: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -140,11 +438,11 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async deleteTeam(teamId: string) {
+  async deleteTeam(teamId: string): Promise<TeamOperationResponse> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}`, { method: "DELETE" }).then(r => r.json())
   }
 
-  async addTeamUsers(body: { team_id: string; user_ids: string[] }) {
+  async addTeamUsers(body: { team_id: string; user_ids: string[] }): Promise<TeamOperationResponse> {
     return this.http.getFetch()(`${this.v2}/teams/_add_users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -152,7 +450,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async removeTeamUsers(body: { user_ids: string[] }) {
+  async removeTeamUsers(body: { user_ids: string[] }): Promise<TeamOperationResponse> {
     return this.http.getFetch()(`${this.v2}/teams/_remove_users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -160,11 +458,11 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getTeamWorkflows(teamId: string) {
+  async getTeamWorkflows(teamId: string): Promise<TeamWorkflowsResponse> {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}/workflows`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Permissions  
+  // ─── Permissions
 
   async listPermissions(userId: string): Promise<Permission[]> {
     return this.http.getFetch()(`${this.v1}/users/${userId}/permissions`, { method: "GET" }).then(r => r.json())
@@ -184,31 +482,31 @@ export class PlatformResource {
 
   // ─── Credentials / n8n ──────────────────────────────────────────────────────
 
-  async listCredentials() {
+  async listCredentials(): Promise<Credential[]> {
     return this.http.getFetch()(`${this.v1}/credentials`, { method: "GET" }).then(r => r.json())
   }
 
-  async getCredentialTypes(params?: Record<string, string>) {
+  async getCredentialTypes(params?: Record<string, string>): Promise<CredentialTypeItem[]> {
     const url = new URL(`${this.v1}/workflow/credential-types`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async n8nLogin() {
+  async n8nLogin(): Promise<N8nLoginResponse> {
     return this.http.getFetch()(`${this.v1}/_n8nlogin`, { method: "GET" }).then(r => r.json())
   }
 
-  async listN8nWorkflows(params?: Record<string, string>) {
+  async listN8nWorkflows(params?: Record<string, string>): Promise<N8nWorkflow[]> {
     const url = new URL(`${this.v1}/workflows`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getN8nWorkflow(workflowId: string) {
+  async getN8nWorkflow(workflowId: string): Promise<N8nWorkflow> {
     return this.http.getFetch()(`${this.v1}/n8n/workflows/${workflowId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createN8nWorkflow(body: Record<string, unknown>) {
+  async createN8nWorkflow(body: CreateN8nWorkflowInput): Promise<N8nWorkflow> {
     return this.http.getFetch()(`${this.v1}/n8n/workflows`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -216,7 +514,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async updateN8nWorkflow(workflowId: string, body: Record<string, unknown>) {
+  async updateN8nWorkflow(workflowId: string, body: UpdateN8nWorkflowInput): Promise<N8nWorkflow> {
     return this.http.getFetch()(`${this.v1}/n8n/workflows/${workflowId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -224,50 +522,50 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async deleteN8nWorkflow(workflowId: string) {
+  async deleteN8nWorkflow(workflowId: string): Promise<TeamOperationResponse> {
     return this.http.getFetch()(`${this.v1}/n8n/workflows/${workflowId}`, { method: "DELETE" }).then(r => r.json())
   }
 
-  // ─── Knowledge 
+  // ─── Knowledge
 
-  async listKnowledge() {
+  async listKnowledge(): Promise<KnowledgeListResponse> {
     return this.http.getFetch()(`${this.v1}/knowledge`, { method: "GET" }).then(r => r.json())
   }
 
-  async uploadKnowledge(body: FormData) {
+  async uploadKnowledge(body: FormData): Promise<KnowledgeUploadResponse> {
     return this.http.getFetch()(`${this.v1}/knowledge/upload`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
-  // ─── Resources 
+  // ─── Resources
 
-  async listResources() {
+  async listResources(): Promise<ResourceItem[]> {
     return this.http.getFetch()(`${this.v1}/resources`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Apps (journeys) 
+  // ─── Apps (journeys)
 
-  async listApps() {
+  async listApps(): Promise<AppListResponse> {
     return this.http.getFetch()(`${this.v2}/apps`, { method: "GET" }).then(r => r.json())
   }
 
-  async getApp(appId: string) {
+  async getApp(appId: string): Promise<AppItem> {
     return this.http.getFetch()(`${this.v2}/apps/${appId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async getMenuSettings() {
+  async getMenuSettings(): Promise<MenuSettingsResponse> {
     return this.http.getFetch()(`${this.v1}/app/_menu_settings`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Contacts v2 
+  // ─── Contacts v2
 
-  async getContactV2(contactId: string) {
+  async getContactV2(contactId: string): Promise<{ _id: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v2}/contacts/${contactId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async updateContactV2(contactId: string, body: Record<string, unknown>) {
+  async updateContactV2(contactId: string, body: UpdateContactV2Input): Promise<{ _id: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v2}/contacts/${contactId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -277,7 +575,7 @@ export class PlatformResource {
 
   // ─── Users (additional) ─────────────────────────────────────────────────────
 
-  async suspendUser(body: { user_id: string }) {
+  async suspendUser(body: { user_id: string }): Promise<UserActionResponse> {
     return this.http.getFetch()(`${this.v1}/users/_suspend`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -285,7 +583,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async deactivateUser(body: { user_id: string }) {
+  async deactivateUser(body: { user_id: string }): Promise<UserActionResponse> {
     return this.http.getFetch()(`${this.v1}/users/_deactivate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -293,13 +591,13 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async listAllUsers(params?: Record<string, string>) {
+  async listAllUsers(params?: Record<string, string>): Promise<User[]> {
     const url = new URL(`${this.v1}/users/_all`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async uploadUserAvatar(body: FormData) {
+  async uploadUserAvatar(body: FormData): Promise<{ url: string }> {
     return this.http.getFetch()(`${this.v1}/users/_fileupload`, {
       method: "POST",
       body,
@@ -308,7 +606,7 @@ export class PlatformResource {
 
   // ─── Apps (additional) ──────────────────────────────────────────────────────
 
-  async updateApp(appId: string, body: Record<string, unknown>) {
+  async updateApp(appId: string, body: UpdateAppInput): Promise<AppItem> {
     return this.http.getFetch()(`${this.v2}/apps/${appId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -320,33 +618,33 @@ export class PlatformResource {
     await this.http.getFetch()(`${this.v2}/apps/${appId}`, { method: "DELETE" })
   }
 
-  async activateApp(appId: string) {
+  async activateApp(appId: string): Promise<AppOperationResponse> {
     return this.http.getFetch()(`${this.v2}/apps/activate/${appId}`, { method: "PATCH" }).then(r => r.json())
   }
 
-  async deactivateApp(appId: string) {
+  async deactivateApp(appId: string): Promise<AppOperationResponse> {
     return this.http.getFetch()(`${this.v2}/apps/de-activate/${appId}`, { method: "PATCH" }).then(r => r.json())
   }
 
-  async getOrgMembersEmail() {
+  async getOrgMembersEmail(): Promise<OrgMembersEmailResponse> {
     return this.http.getFetch()(`${this.v2}/apps/org-members-email`, { method: "GET" }).then(r => r.json())
   }
 
-  async listAppForms() {
+  async listAppForms(): Promise<AppForm[]> {
     return this.http.getFetch()(`${this.v2}/apps/forms`, { method: "GET" }).then(r => r.json())
   }
 
-  async getAppForm(formId: string) {
+  async getAppForm(formId: string): Promise<AppForm> {
     return this.http.getFetch()(`${this.v2}/apps/forms/${formId}`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── Email Senders ───────────────────────────────────────────────────────────
 
-  async listEmailSenders() {
+  async listEmailSenders(): Promise<EmailSender[]> {
     return this.http.getFetch()(`${this.v2}/apps/email-senders`, { method: "GET" }).then(r => r.json())
   }
 
-  async createEmailSender(body: Record<string, unknown>) {
+  async createEmailSender(body: CreateEmailSenderInput): Promise<EmailSender> {
     return this.http.getFetch()(`${this.v2}/apps/email-senders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -354,7 +652,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async updateEmailSender(senderId: string, body: Record<string, unknown>) {
+  async updateEmailSender(senderId: string, body: UpdateEmailSenderInput): Promise<EmailSender> {
     return this.http.getFetch()(`${this.v2}/apps/email-senders/${senderId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -368,7 +666,7 @@ export class PlatformResource {
 
   // ─── Business Units ──────────────────────────────────────────────────────────
 
-  async listBusinessUnits(params?: Record<string, string>) {
+  async listBusinessUnits(params?: Record<string, string>): Promise<{ _id: string; name: string; [key: string]: unknown }[]> {
     const url = new URL(`${this.v1}/business_units`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
@@ -376,17 +674,17 @@ export class PlatformResource {
 
   // ─── Rooms ───────────────────────────────────────────────────────────────────
 
-  async listRooms(params?: Record<string, string>) {
+  async listRooms(params?: Record<string, string>): Promise<Room[]> {
     const url = new URL(`${this.v1}/rooms`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getRoom(roomId: string) {
+  async getRoom(roomId: string): Promise<Room> {
     return this.http.getFetch()(`${this.v1}/rooms/${roomId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async updateRoom(roomId: string, body: Record<string, unknown>) {
+  async updateRoom(roomId: string, body: UpdateRoomInput): Promise<Room> {
     return this.http.getFetch()(`${this.v1}/rooms/${roomId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -394,13 +692,13 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getRoomStatus(params?: Record<string, string>) {
+  async getRoomStatus(params?: Record<string, string>): Promise<RoomStatusResponse> {
     const url = new URL(`${this.v1}/rooms/_status`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async joinRoom(body: Record<string, unknown>) {
+  async joinRoom(body: JoinRoomInput): Promise<JoinRoomResponse> {
     return this.http.getFetch()(`${this.v1}/rooms/_join`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -408,11 +706,11 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getRoomStatusCount() {
+  async getRoomStatusCount(): Promise<RoomStatusCountResponse> {
     return this.http.getFetch()(`${this.v1}/rooms/_status_count`, { method: "GET" }).then(r => r.json())
   }
 
-  async searchRooms(params: { q: string }) {
+  async searchRooms(params: { q: string }): Promise<Room[]> {
     const url = new URL(`${this.v1}/rooms/_search`)
     url.searchParams.set("q", params.q)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
@@ -420,11 +718,11 @@ export class PlatformResource {
 
   // ─── Physical Stores ─────────────────────────────────────────────────────────
 
-  async listStores() {
+  async listStores(): Promise<PhysicalStore[]> {
     return this.http.getFetch()(`${this.v1}/stores`, { method: "GET" }).then(r => r.json())
   }
 
-  async createStore(body: Record<string, unknown>) {
+  async createStore(body: CreateStoreInput): Promise<PhysicalStore> {
     return this.http.getFetch()(`${this.v1}/stores/_create_with_fp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -432,7 +730,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async updateStore(body: Record<string, unknown>) {
+  async updateStore(body: UpdateStoreInput): Promise<PhysicalStore> {
     return this.http.getFetch()(`${this.v1}/stores/_modify_with_fp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -440,19 +738,19 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getStore(storeId: string) {
+  async getStore(storeId: string): Promise<PhysicalStore> {
     return this.http.getFetch()(`${this.v1}/stores/${storeId}`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── Facebook (platform) ─────────────────────────────────────────────────────
 
-  async getFacebookPages(params?: { fbUserId?: string }) {
+  async getFacebookPages(params?: { fbUserId?: string }): Promise<FacebookPage[]> {
     const url = new URL(`${this.v1}/facebooks`)
     if (params?.fbUserId) url.searchParams.set("fbUserId", params.fbUserId)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async authFacebookPages(body: Record<string, unknown>) {
+  async authFacebookPages(body: AuthFacebookInput): Promise<AuthFacebookResponse> {
     return this.http.getFetch()(`${this.v1}/facebook/_auth_pages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -460,7 +758,7 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async cancelFacebookPages(body: Record<string, unknown>) {
+  async cancelFacebookPages(body: AuthFacebookInput): Promise<AuthFacebookResponse> {
     return this.http.getFetch()(`${this.v1}/facebook/_cancel_pages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -470,7 +768,7 @@ export class PlatformResource {
 
   // ─── Mail Channels ───────────────────────────────────────────────────────────
 
-  async createMailChannel(body: Record<string, unknown>) {
+  async createMailChannel(body: CreateMailChannelInput): Promise<MailChannel> {
     return this.http.getFetch()(`${this.v1}/mail_channels`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -478,11 +776,11 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async getMailChannel(channelId: string) {
+  async getMailChannel(channelId: string): Promise<MailChannel> {
     return this.http.getFetch()(`${this.v1}/mail_channels/${channelId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async initChannel(body: Record<string, unknown>) {
+  async initChannel(body: InitChannelInput): Promise<InitChannelResponse> {
     return this.http.getFetch()(`${this.v1}/init_channel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -492,7 +790,7 @@ export class PlatformResource {
 
   // ─── Organizations (additional) ─────────────────────────────────────────────
 
-  async createAwsOrg(body: Record<string, unknown>) {
+  async createAwsOrg(body: CreateAwsOrgInput): Promise<Organization> {
     return this.http.getFetch()(`${this.v1}/organizations/aws`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -502,41 +800,41 @@ export class PlatformResource {
 
   // ─── Workflows / n8n (additional) ──────────────────────────────────────────
 
-  async listN8nNodeTypes(params?: { onlyLatest?: boolean }) {
+  async listN8nNodeTypes(params?: { onlyLatest?: boolean }): Promise<{ name: string; [key: string]: unknown }[]> {
     const url = new URL(`${this.v1}/n8n/node-types`)
     if (params?.onlyLatest !== undefined) url.searchParams.set("onlyLatest", String(params.onlyLatest))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getCredentialTypeByName(name: string) {
+  async getCredentialTypeByName(name: string): Promise<CredentialTypeItem> {
     return this.http.getFetch()(`${this.v1}/workflow/credential-types/${name}`, { method: "GET" }).then(r => r.json())
   }
 
-  async listProcessedCredentialTypes() {
+  async listProcessedCredentialTypes(): Promise<CredentialTypeItem[]> {
     return this.http.getFetch()(`${this.v1}/workflow/processed-credential-types`, { method: "GET" }).then(r => r.json())
   }
 
-  async listN8nCredentialTypes() {
+  async listN8nCredentialTypes(): Promise<CredentialTypeItem[]> {
     return this.http.getFetch()(`${this.v1}/n8n/credential-types`, { method: "GET" }).then(r => r.json())
   }
 
-  async getCredentialParam(params?: Record<string, string>) {
+  async getCredentialParam(params?: Record<string, string>): Promise<{ [key: string]: unknown }> {
     const url = new URL(`${this.v1}/workflow/_credentialParam`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getN8nOAuth2AuthUrl(credentialId: string) {
+  async getN8nOAuth2AuthUrl(credentialId: string): Promise<{ url: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v1}/n8n/oauth2-credential/auth?id=${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async getN8nOAuth1AuthUrl(credentialId: string) {
+  async getN8nOAuth1AuthUrl(credentialId: string): Promise<{ url: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v1}/n8n/oauth1-credential/auth?id=${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── Teams (additional) ─────────────────────────────────────────────────────
 
-  async updateTeamV1(teamId: string, body: Record<string, unknown>) {
+  async updateTeamV1(teamId: string, body: UpdateTeamInput): Promise<{ _id: string; name: string; [key: string]: unknown }> {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -544,36 +842,36 @@ export class PlatformResource {
     }).then(r => r.json())
   }
 
-  async uploadTeamIcon(body: FormData) {
+  async uploadTeamIcon(body: FormData): Promise<{ url: string }> {
     return this.http.getFetch()(`${this.v1}/teams/_fileupload`, {
       method: "POST",
       body,
     }).then(r => r.json())
   }
 
-  async listTeamUsers(params?: Record<string, string>) {
+  async listTeamUsers(params?: Record<string, string>): Promise<User[]> {
     const url = new URL(`${this.v1}/team_users`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async listTeamInvites(version: "v1" | "v2" = "v2") {
+  async listTeamInvites(version: "v1" | "v2" = "v2"): Promise<{ _id: string; [key: string]: unknown }[]> {
     return this.http.getFetch()(`${this.base}/${version}/team_users/_invite_list`, { method: "GET" }).then(r => r.json())
   }
 
-  async listTeamUsersV2(params?: Record<string, string>) {
+  async listTeamUsersV2(params?: Record<string, string>): Promise<User[]> {
     const url = new URL(`${this.v2}/team_users`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async acceptTeamJoinRequest(teamId: string, teamUserId: string) {
+  async acceptTeamJoinRequest(teamId: string, teamUserId: string): Promise<TeamOperationResponse> {
     return this.http.getFetch()(`${this.v2}/teams/${teamId}/user/${teamUserId}/accept`, {
       method: "POST",
     }).then(r => r.json())
   }
 
-  async getTeamLabels(teamId: string) {
+  async getTeamLabels(teamId: string): Promise<{ _id: string; name: string; [key: string]: unknown }[]> {
     return this.http.getFetch()(`${this.v1}/teams/${teamId}/team_labels`, { method: "GET" }).then(r => r.json())
   }
 }

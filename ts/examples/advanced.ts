@@ -2,8 +2,9 @@
 import { ImbraceClient, AuthError, NetworkError } from "../src/index.js"
 
 const client = new ImbraceClient({
-  baseUrl: process.env.IMBRACE_BASE_URL ?? "http://localhost:4096",
-  apiKey: process.env.IMBRACE_API_KEY,
+  // Use 'gateway' to override the default gateway for the environment
+  gateway: process.env.IMBRACE_BASE_URL ?? "http://localhost:4096",
+  apiKey: process.env.IMBRACE_API_KEY, // Explicitly pass API key
   timeout: 60000,
   checkHealth: true,
 })

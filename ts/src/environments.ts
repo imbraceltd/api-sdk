@@ -4,9 +4,9 @@ export interface EnvironmentPreset {
   gateway: string
   /** Per-service host overrides (for services with a dedicated host that bypass the gateway) */
   serviceHosts?: {
-    /** IPS service — develop uses ips.dev.imbrace.lan directly */
+    /** Override IPS service host (e.g. for internal direct access). Defaults to gateway/ips/v1. */
     ips?: string
-    /** Data Board service — develop uses data-board.dev.imbrace.lan directly */
+    /** Override Data Board service host. Defaults to gateway/data-board. */
     dataBoard?: string
   }
 }

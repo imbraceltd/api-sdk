@@ -1,6 +1,71 @@
 import { HttpTransport } from "../http.js"
 import type { Product, Order, CreateOrderInput, OrderStatus, PagedResponse } from "../types/index.js"
 
+// ─── Email template interfaces ────────────────────────────────────────────────
+
+export interface EmailTemplate {
+  _id: string
+  name?: string
+  subject?: string
+  body?: string
+  [key: string]: unknown
+}
+
+export interface CreateEmailTemplateInput {
+  name: string
+  subject?: string
+  body?: string
+  [key: string]: unknown
+}
+
+// ─── Channel workflow interfaces ──────────────────────────────────────────────
+
+export interface ChannelWorkflowInput {
+  channel_id?: string
+  workflow_id?: string
+  [key: string]: unknown
+}
+
+export interface ChannelWorkflowResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+// ─── Install from JSON interface ──────────────────────────────────────────────
+
+export interface InstallFromJsonInput {
+  template?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface InstallFromJsonResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+// ─── File interfaces ──────────────────────────────────────────────────────────
+
+export interface MarketplaceFileDetails {
+  _id: string
+  name?: string
+  url?: string
+  [key: string]: unknown
+}
+
+export interface MarketplaceFileUploadResponse {
+  url: string
+  file_id?: string
+  [key: string]: unknown
+}
+
+// ─── Category interface ───────────────────────────────────────────────────────
+
+export interface MarketplaceCategory {
+  _id: string
+  name: string
+  [key: string]: unknown
+}
+
 export class MarketplaceResource {
   /**
    * @param marketplacesBase - Standalone marketplaces service (gateway/marketplaces/v1)
@@ -17,11 +82,11 @@ export class MarketplaceResource {
 
   // ─── Standalone marketplaces service (/marketplaces/v1) ─────────────────────
 
-  async listUseCaseTemplates() {
+  async listUseCaseTemplates(): Promise<{ _id: string; name?: string; [key: string]: unknown }[]> {
     return this.http.getFetch()(`${this.standaloneV1}/market-places/templates`, { method: "GET" }).then(r => r.json())
   }
 
-  async installFromJson(body: Record<string, unknown>) {
+  async installFromJson(body: InstallFromJsonInput): Promise<InstallFromJsonResponse> {
     return this.http.getFetch()(`${this.standaloneV1}/market-places/templates/install-from-json`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,7 +150,7 @@ export class MarketplaceResource {
 
   // ─── Files ───────────────────────────────────────────────────────────────────
 
-  async uploadFile(body: FormData) {
+  async uploadFile(body: FormData): Promise<MarketplaceFileUploadResponse> {
     return this.http.getFetch()(`${this.platformV2}/marketplaces/files`, {
       method: "POST",
       body,
@@ -96,19 +161,19 @@ export class MarketplaceResource {
     await this.http.getFetch()(`${this.platformV2}/marketplaces/files/${fileId}`, { method: "DELETE" })
   }
 
-  async getFileDetails(fileId: string) {
+  async getFileDetails(fileId: string): Promise<MarketplaceFileDetails> {
     return this.http.getFetch()(`${this.platformV2}/marketplaces/file-details/${fileId}`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── Email Templates ─────────────────────────────────────────────────────────
 
-  async listEmailTemplates(params?: Record<string, string>) {
+  async listEmailTemplates(params?: Record<string, string>): Promise<EmailTemplate[]> {
     const url = new URL(`${this.platformV2}/marketplaces/email-templates/search`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async createEmailTemplate(body: Record<string, unknown>) {
+  async createEmailTemplate(body: CreateEmailTemplateInput): Promise<EmailTemplate> {
     return this.http.getFetch()(`${this.platformV2}/marketplaces/email-templates`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -116,7 +181,7 @@ export class MarketplaceResource {
     }).then(r => r.json())
   }
 
-  async postChannelWorkflows(body: Record<string, unknown>) {
+  async postChannelWorkflows(body: ChannelWorkflowInput): Promise<ChannelWorkflowResponse> {
     return this.http.getFetch()(`${this.platformV2}/marketplaces/channel-workflows`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,13 +189,13 @@ export class MarketplaceResource {
     }).then(r => r.json())
   }
 
-  async downloadMarketPlaceFile(shortPath: string) {
+  async downloadMarketPlaceFile(shortPath: string): Promise<Response> {
     return this.http.getFetch()(`${this.platformV2}/marketplaces/download/${shortPath}`, { method: "GET" })
   }
 
   // ─── Categories ──────────────────────────────────────────────────────────────
 
-  async listCategories(params?: Record<string, string>) {
+  async listCategories(params?: Record<string, string>): Promise<MarketplaceCategory[]> {
     const url = new URL(`${this.platformV2}/marketplaces/categories`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())

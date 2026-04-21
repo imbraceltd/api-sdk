@@ -1,6 +1,32 @@
 import { HttpTransport } from "../http.js"
 import type { ConversationMessage, PagedResponse } from "../types/index.js"
 
+// ─── Comment interfaces ───────────────────────────────────────────────────────
+
+export interface MessageComment {
+  _id: string
+  text?: string
+  user_id?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+export interface AddCommentInput {
+  text: string
+  [key: string]: unknown
+}
+
+export interface UpdateCommentInput {
+  text?: string
+  [key: string]: unknown
+}
+
+export interface MessageActionResponse {
+  success: boolean
+  message?: ConversationMessage
+  [key: string]: unknown
+}
+
 export class MessagesResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
@@ -45,7 +71,7 @@ export class MessagesResource {
     }).then(r => r.json())
   }
 
-  async addComment(convId: string, messageId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async addComment(convId: string, messageId: string, body: AddCommentInput): Promise<MessageComment> {
     return this.http.getFetch()(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,7 +79,7 @@ export class MessagesResource {
     }).then(r => r.json())
   }
 
-  async updateComment(convId: string, commentId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateComment(convId: string, commentId: string, body: UpdateCommentInput): Promise<MessageComment> {
     return this.http.getFetch()(`${this.v1}/conversations/${convId}/comments/${commentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -65,13 +91,13 @@ export class MessagesResource {
     await this.http.getFetch()(`${this.v1}/conversations/${convId}/comments/${commentId}`, { method: "DELETE" })
   }
 
-  async pin(convId: string, messageId: string): Promise<Record<string, unknown>> {
+  async pin(convId: string, messageId: string): Promise<MessageActionResponse> {
     const url = new URL(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}`)
     url.searchParams.set("action", "pin")
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async unpin(convId: string, messageId: string): Promise<Record<string, unknown>> {
+  async unpin(convId: string, messageId: string): Promise<MessageActionResponse> {
     const url = new URL(`${this.v1}/conversations/${convId}/conversation_messages/${messageId}`)
     url.searchParams.set("action", "unpin")
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())

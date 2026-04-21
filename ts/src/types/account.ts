@@ -14,6 +14,7 @@ export interface TeamRole {
 export interface Account {
   object_name: "account"
   id: string
+  name?: string
   organization_id: string
   display_name: string
   avatar_url: string

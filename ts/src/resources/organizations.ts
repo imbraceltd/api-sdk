@@ -1,6 +1,15 @@
 import { HttpTransport } from "../http.js"
 import type { Organization, PagedResponse } from "../types/index.js"
 
+// ─── Organization create interface ───────────────────────────────────────────
+
+export interface CreateOrganizationInput {
+  name: string
+  plan?: string
+  is_active?: boolean
+  [key: string]: unknown
+}
+
 export class OrganizationsResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
@@ -21,7 +30,7 @@ export class OrganizationsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: Record<string, unknown>): Promise<Organization> {
+  async create(body: CreateOrganizationInput): Promise<Organization> {
     return this.http.getFetch()(`${this.v1}/organizations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -45,10 +45,12 @@ Thumbs.db
 .claude/settings.local.json
 
 #document
-app-gateway-review
+app-gateway
 new-frontend
 opencode
 docs
+file-service
+chat-ai
 
 #Claude
 .claude/

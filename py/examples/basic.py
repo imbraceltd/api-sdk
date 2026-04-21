@@ -4,8 +4,13 @@ import os
 
 load_dotenv()
 
+# Initialize client with explicit API Key (e.g. from environment)
+api_key = os.environ.get("IMBRACE_API_KEY")
+if not api_key:
+    print("Warning: IMBRACE_API_KEY not set")
+
 client = ImbraceClient(
-    api_key=os.getenv("IMBRACE_API_KEY"),
+    api_key=api_key,
 )
 
 

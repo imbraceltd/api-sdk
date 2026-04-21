@@ -1,10 +1,10 @@
 import { ImbraceClient } from './src/client';
 
-process.env.IMBRACE_ENV = 'develop';
-
 console.log('=== [DEV ENV] TS SDK VALIDATION ===');
 
-const client = new ImbraceClient();
+const client = new ImbraceClient({
+  env: 'develop',
+});
 
 const services = {
   auth: (client.auth as any).base,
@@ -19,9 +19,9 @@ const services = {
 console.table(services);
 
 const devGateway = 'https://app-gateway.dev.imbrace.co';
-const isPassed = 
+const isPassed =
   services.auth.startsWith(`${devGateway}/platform`) &&
-  services.ips === 'http://ips.dev.imbrace.lan/ips/v1' &&
+  services.ips === `${devGateway}/ips/v1` &&
   services.channel.startsWith(`${devGateway}/channel-service`);
 
 if (isPassed) {

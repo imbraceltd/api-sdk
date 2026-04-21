@@ -1,6 +1,237 @@
 import { HttpTransport } from "../http.js"
 import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChunk } from "../types/index.js"
 
+// ─── Assistant interfaces ────────────────────────────────────────────────────
+
+export interface Assistant {
+  _id: string
+  name: string
+  description?: string
+  instructions?: string
+  model?: string
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface AssistantListResponse {
+  data: Assistant[]
+  total?: number
+}
+
+export interface AssistantNameCheckResponse {
+  available: boolean
+  name: string
+}
+
+export interface PatchInstructionsInput {
+  instructions: string
+  [key: string]: unknown
+}
+
+// ─── Assistant App interfaces ────────────────────────────────────────────────
+
+export interface AssistantApp {
+  _id: string
+  name: string
+  assistant_id?: string
+  workflow?: Record<string, unknown>
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface AssistantAppListResponse {
+  data: AssistantApp[]
+  total?: number
+}
+
+export interface CreateAssistantAppInput {
+  name: string
+  assistant_id?: string
+  [key: string]: unknown
+}
+
+export interface UpdateAssistantAppInput {
+  name?: string
+  [key: string]: unknown
+}
+
+export interface UpdateAssistantWorkflowInput {
+  workflow: Record<string, unknown>
+  [key: string]: unknown
+}
+
+// ─── RAG File interfaces ─────────────────────────────────────────────────────
+
+export interface RagFile {
+  _id: string
+  name: string
+  size?: number
+  status?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+export interface RagFileListResponse {
+  data: RagFile[]
+  total?: number
+}
+
+// ─── Guardrail interfaces ─────────────────────────────────────────────────────
+
+export interface Guardrail {
+  _id: string
+  name: string
+  type?: string
+  config?: Record<string, unknown>
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface GuardrailListResponse {
+  data: Guardrail[]
+  total?: number
+}
+
+export interface CreateGuardrailInput {
+  name: string
+  type?: string
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface UpdateGuardrailInput {
+  name?: string
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+// ─── Guardrail Provider interfaces ───────────────────────────────────────────
+
+export interface GuardrailProvider {
+  _id: string
+  name: string
+  type?: string
+  config?: Record<string, unknown>
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface GuardrailProviderListResponse {
+  data: GuardrailProvider[]
+  total?: number
+}
+
+export interface CreateGuardrailProviderInput {
+  name: string
+  type?: string
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface UpdateGuardrailProviderInput {
+  name?: string
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface TestGuardrailProviderInput {
+  prompt?: string
+  [key: string]: unknown
+}
+
+export interface GuardrailProviderModelsResponse {
+  models: Array<{ id: string; name: string; [key: string]: unknown }>
+}
+
+// ─── Custom Provider interfaces ───────────────────────────────────────────────
+
+export interface AiProvider {
+  _id: string
+  name: string
+  type?: string
+  api_key?: string
+  base_url?: string
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface AiProviderListResponse {
+  data: AiProvider[]
+  total?: number
+}
+
+export interface CreateAiProviderInput {
+  name: string
+  type?: string
+  api_key?: string
+  base_url?: string
+  [key: string]: unknown
+}
+
+export interface UpdateAiProviderInput {
+  name?: string
+  api_key?: string
+  base_url?: string
+  [key: string]: unknown
+}
+
+export interface LlmModelsResponse {
+  models: Array<{ id: string; name: string; provider?: string; [key: string]: unknown }>
+}
+
+export interface VerifyToolServerInput {
+  url: string
+  [key: string]: unknown
+}
+
+export interface VerifyToolServerResponse {
+  success: boolean
+  tools?: Array<{ name: string; description?: string; [key: string]: unknown }>
+  [key: string]: unknown
+}
+
+// ─── Financial Document interfaces ───────────────────────────────────────────
+
+export interface FinancialDoc {
+  _id: string
+  name?: string
+  status?: string
+  pages?: unknown[]
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface UpdateFinancialDocInput {
+  [key: string]: unknown
+}
+
+export interface FinancialFixInput {
+  doc_id?: string
+  [key: string]: unknown
+}
+
+export interface FinancialErrorFilesResponse {
+  files?: unknown[]
+  [key: string]: unknown
+}
+
+export interface FinancialReport {
+  _id: string
+  name?: string
+  status?: string
+  [key: string]: unknown
+}
+
+export interface UpdateFinancialReportInput {
+  [key: string]: unknown
+}
+
 export class AiResource {
   /**
    * @param base - Fully resolved AI base URL (gateway/ai).
@@ -72,25 +303,25 @@ export class AiResource {
 
   // ─── Assistants ──────────────────────────────────────────────────────────────
 
-  async listAssistants() {
+  async listAssistants(): Promise<AssistantListResponse> {
     return this.http.getFetch()(`${this.v3}/accounts/assistants`, { method: "GET" }).then(r => r.json())
   }
 
-  async getAssistant(assistantId: string) {
+  async getAssistant(assistantId: string): Promise<Assistant> {
     return this.http.getFetch()(`${this.v3}/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async checkAssistantName(name: string) {
+  async checkAssistantName(name: string): Promise<AssistantNameCheckResponse> {
     const url = new URL(`${this.v3}/assistants/check-name`)
     url.searchParams.set("name", name)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async listAgents() {
+  async listAgents(): Promise<AssistantListResponse> {
     return this.http.getFetch()(`${this.v3}/assistants/agents`, { method: "GET" }).then(r => r.json())
   }
 
-  async patchInstructions(assistantId: string, body: Record<string, unknown>) {
+  async patchInstructions(assistantId: string, body: PatchInstructionsInput): Promise<Assistant> {
     return this.http.getFetch()(`${this.v3}/assistants/${assistantId}/instructions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -100,7 +331,7 @@ export class AiResource {
 
   // ─── Assistant Apps ──────────────────────────────────────────────────────────
 
-  async createAssistantApp(body: Record<string, unknown>) {
+  async createAssistantApp(body: CreateAssistantAppInput): Promise<AssistantApp> {
     return this.http.getFetch()(`${this.v3}/assistant_apps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,7 +339,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async updateAssistantApp(assistantId: string, body: Record<string, unknown>) {
+  async updateAssistantApp(assistantId: string, body: UpdateAssistantAppInput): Promise<AssistantApp> {
     return this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -120,7 +351,7 @@ export class AiResource {
     await this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}`, { method: "DELETE" })
   }
 
-  async updateAssistantWorkflow(assistantId: string, body: Record<string, unknown>) {
+  async updateAssistantWorkflow(assistantId: string, body: UpdateAssistantWorkflowInput): Promise<AssistantApp> {
     return this.http.getFetch()(`${this.v3}/assistant_apps/${assistantId}/workflow`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -130,15 +361,15 @@ export class AiResource {
 
   // ─── RAG Files ───────────────────────────────────────────────────────────────
 
-  async listRagFiles() {
+  async listRagFiles(): Promise<RagFileListResponse> {
     return this.http.getFetch()(`${this.v3}/rag/files`, { method: "GET" }).then(r => r.json())
   }
 
-  async getRagFile(fileId: string) {
+  async getRagFile(fileId: string): Promise<RagFile> {
     return this.http.getFetch()(`${this.v3}/rag/files/${fileId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async uploadRagFile(body: FormData) {
+  async uploadRagFile(body: FormData): Promise<RagFile> {
     return this.http.getFetch()(`${this.v3}/rag/files`, {
       method: "POST",
       body,
@@ -151,15 +382,15 @@ export class AiResource {
 
   // ─── Guardrails ──────────────────────────────────────────────────────────────
 
-  async listGuardrails() {
+  async listGuardrails(): Promise<GuardrailListResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail/all`, { method: "GET" }).then(r => r.json())
   }
 
-  async getGuardrail(guardrailId: string) {
+  async getGuardrail(guardrailId: string): Promise<Guardrail> {
     return this.http.getFetch()(`${this.v3}/guardrail/${guardrailId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createGuardrail(body: Record<string, unknown>) {
+  async createGuardrail(body: CreateGuardrailInput): Promise<Guardrail> {
     return this.http.getFetch()(`${this.v3}/guardrail/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -167,7 +398,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async updateGuardrail(guardrailId: string, body: Record<string, unknown>) {
+  async updateGuardrail(guardrailId: string, body: UpdateGuardrailInput): Promise<Guardrail> {
     return this.http.getFetch()(`${this.v3}/guardrail/update/${guardrailId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -181,15 +412,15 @@ export class AiResource {
 
   // ─── Guardrail Providers ─────────────────────────────────────────────────────
 
-  async listGuardrailProviders() {
+  async listGuardrailProviders(): Promise<GuardrailProviderListResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers`, { method: "GET" }).then(r => r.json())
   }
 
-  async getGuardrailProvider(providerId: string) {
+  async getGuardrailProvider(providerId: string): Promise<GuardrailProvider> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createGuardrailProvider(body: Record<string, unknown>) {
+  async createGuardrailProvider(body: CreateGuardrailProviderInput): Promise<GuardrailProvider> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -197,7 +428,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async updateGuardrailProvider(providerId: string, body: Record<string, unknown>) {
+  async updateGuardrailProvider(providerId: string, body: UpdateGuardrailProviderInput): Promise<GuardrailProvider> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -209,7 +440,7 @@ export class AiResource {
     await this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}`, { method: "DELETE" })
   }
 
-  async testGuardrailProvider(providerId: string, body: Record<string, unknown>) {
+  async testGuardrailProvider(providerId: string, body: TestGuardrailProviderInput): Promise<VerifyToolServerResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}/test`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -217,17 +448,17 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async getGuardrailProviderModels(providerId: string) {
+  async getGuardrailProviderModels(providerId: string): Promise<GuardrailProviderModelsResponse> {
     return this.http.getFetch()(`${this.v3}/guardrail-providers/${providerId}/models`, { method: "GET" }).then(r => r.json())
   }
 
   // ─── Custom Providers ────────────────────────────────────────────────────────
 
-  async listProviders() {
+  async listProviders(): Promise<AiProviderListResponse> {
     return this.http.getFetch()(`${this.v3}/providers`, { method: "GET" }).then(r => r.json())
   }
 
-  async createProvider(body: Record<string, unknown>) {
+  async createProvider(body: CreateAiProviderInput): Promise<AiProvider> {
     return this.http.getFetch()(`${this.v3}/providers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -235,7 +466,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async updateProvider(providerId: string, body: Record<string, unknown>) {
+  async updateProvider(providerId: string, body: UpdateAiProviderInput): Promise<AiProvider> {
     return this.http.getFetch()(`${this.v3}/providers/${providerId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -247,17 +478,17 @@ export class AiResource {
     await this.http.getFetch()(`${this.v3}/providers/${providerId}`, { method: "DELETE" })
   }
 
-  async refreshProviderModels(providerId: string) {
+  async refreshProviderModels(providerId: string): Promise<AiProvider> {
     return this.http.getFetch()(`${this.v3}/providers/${providerId}/models/refresh`, {
       method: "POST",
     }).then(r => r.json())
   }
 
-  async getLlmModels() {
+  async getLlmModels(): Promise<LlmModelsResponse> {
     return this.http.getFetch()(`${this.v3}/workflow-agent/models`, { method: "GET" }).then(r => r.json())
   }
 
-  async verifyToolServer(body: Record<string, unknown>) {
+  async verifyToolServer(body: VerifyToolServerInput): Promise<VerifyToolServerResponse> {
     return this.http.getFetch()(`${this.v3}/configs/tool_servers/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -267,14 +498,14 @@ export class AiResource {
 
   // ─── Financial Documents (v2) ────────────────────────────────────────────────
 
-  async getFinancialDoc(docId: string, params?: { page?: number; limit?: number }) {
+  async getFinancialDoc(docId: string, params?: { page?: number; limit?: number }): Promise<FinancialDoc> {
     const url = new URL(`${this.v2}/financial_documents/${docId}`)
     if (params?.page)  url.searchParams.set("page",  String(params.page))
     if (params?.limit) url.searchParams.set("limit", String(params.limit))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async updateFinancialDoc(docId: string, body: Record<string, unknown>) {
+  async updateFinancialDoc(docId: string, body: UpdateFinancialDocInput): Promise<FinancialDoc> {
     return this.http.getFetch()(`${this.v2}/financial_documents/${docId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -286,7 +517,7 @@ export class AiResource {
     await this.http.getFetch()(`${this.v2}/financial_documents/${docId}`, { method: "DELETE" })
   }
 
-  async suggestFinancialFix(body: Record<string, unknown>) {
+  async suggestFinancialFix(body: FinancialFixInput): Promise<FinancialDoc> {
     return this.http.getFetch()(`${this.v2}/financial_documents/suggest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -294,7 +525,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async fixFinancialDoc(body: Record<string, unknown>) {
+  async fixFinancialDoc(body: FinancialFixInput): Promise<FinancialDoc> {
     return this.http.getFetch()(`${this.v2}/financial_documents/fix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -302,7 +533,7 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async resetFinancialDoc(body: Record<string, unknown>) {
+  async resetFinancialDoc(body: FinancialFixInput): Promise<FinancialDoc> {
     return this.http.getFetch()(`${this.v2}/financial_documents/reset`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -310,18 +541,18 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async getFinancialDocErrorFiles(fileId: string) {
+  async getFinancialDocErrorFiles(fileId: string): Promise<FinancialErrorFilesResponse> {
     return this.http.getFetch()(`${this.v2}/financial_documents/errors-files/${fileId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async getFinancialReport(reportId: string, params?: { page?: number; limit?: number }) {
+  async getFinancialReport(reportId: string, params?: { page?: number; limit?: number }): Promise<FinancialReport> {
     const url = new URL(`${this.v2}/financial_documents/reports/${reportId}`)
     if (params?.page)  url.searchParams.set("page",  String(params.page))
     if (params?.limit) url.searchParams.set("limit", String(params.limit))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async updateFinancialReport(reportId: string, body: Record<string, unknown>) {
+  async updateFinancialReport(reportId: string, body: UpdateFinancialReportInput): Promise<FinancialReport> {
     return this.http.getFetch()(`${this.v2}/financial_documents/reports/${reportId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -329,7 +560,37 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async deleteFinancialReport(reportId: string): Promise<void> {
-    await this.http.getFetch()(`${this.v2}/financial_documents/reports/${reportId}`, { method: "DELETE" })
+  // --- AI Assistants (v2) ---
+
+  async listAssistantsV2(): Promise<AssistantListResponse> {
+    return this.http.getFetch()(`${this.v2}/ai/assistants`, { method: "GET" }).then(r => r.json())
+  }
+
+  async createAssistantV2(body: any): Promise<Assistant> {
+    return this.http.getFetch()(`${this.v2}/ai/assistants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  async updateAssistantV2(assistantId: string, body: any): Promise<Assistant> {
+    return this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  async deleteAssistantV2(assistantId: string): Promise<void> {
+    await this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, { method: "DELETE" })
+  }
+
+  async createAssistantAppV2(body: any): Promise<AssistantApp> {
+    return this.http.getFetch()(`${this.v2}/ai/assistant_apps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
   }
 }

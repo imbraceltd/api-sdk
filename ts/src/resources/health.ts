@@ -2,6 +2,7 @@ import { HttpTransport } from "../http.js"
 
 export interface HealthStatus {
   status: string
+  name?: string
   uptime?: number
   version?: string
 }

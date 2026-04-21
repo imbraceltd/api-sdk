@@ -1,87 +1,48 @@
 from typing import Any, Dict, List, Optional
 from typing_extensions import TypedDict
 from ..http import HttpTransport, AsyncHttpTransport
+from ..types.auth import (
+    SignInResponse, SignUpInput, SignUpResponse, ForgotPasswordResponse,
+    LoginProvidersResponse, OtpSignInResponse, ExchangeTokenResponse,
+    VerifySignUpResponse, AzureGroupsResponse, OidcRoleMapping,
+    OidcRoleMappingInput, GoogleAuthResponse, AwsMarketplaceResponse,
+    ImbraceApiKeyResponse
+)
 
 
-class SignInResponse(TypedDict):
-    accessToken: str
-    token: Optional[str]
-    userId: Optional[str]
-    email: Optional[str]
+class SigninSSOInput(TypedDict, total=False):
+    code: str
+    state: str
+    redirectUri: str
 
 
-class SignUpInput(TypedDict, total=False):
-    email: str
-    password: str
-    name: str
-    organizationName: str
-
-
-class SignUpResponse(TypedDict):
-    userId: str
-    email: str
-
-
-class ForgotPasswordResponse(TypedDict):
-    message: str
-
-
-class LoginProvider(TypedDict):
-    name: str
-    type: str
-    url: Optional[str]
-
-
-class LoginProvidersResponse(TypedDict):
-    providers: List[LoginProvider]
-
-
-class OtpSignInResponse(TypedDict):
+class ExchangeAccessTokenWithTokenInput(TypedDict, total=False):
     token: str
-    email: str
-    expired_at: str
+    organization_id: str
 
 
-class ExchangeTokenResponse(TypedDict):
+class SigninWithIdentityInput(TypedDict):
+    identity_token: str
+    provider: str
+
+
+class BulkUpdateOidcInput(TypedDict):
+    mappings: List[OidcRoleMappingInput]
+
+
+class GoogleAuthInput(TypedDict, total=False):
+    id_token: str
     access_token: str
 
 
-class VerifySignUpResponse(TypedDict):
-    verified: bool
+class EmailIdentityInput(TypedDict, total=False):
     email: str
+    password: str
+    otp: str
 
 
-class AzureGroup(TypedDict):
-    id: str
-    displayName: str
-
-
-class AzureGroupsResponse(TypedDict):
-    groups: List[AzureGroup]
-
-
-class OidcRoleMapping(TypedDict):
-    _id: str
-    role: str
-    claim: str
-    value: str
-
-
-class OidcRoleMappingInput(TypedDict):
-    role: str
-    claim: str
-    value: str
-
-
-class GoogleAuthResponse(TypedDict):
-    accessToken: str
-    userId: str
-    email: Optional[str]
-
-
-class AwsMarketplaceResponse(TypedDict):
-    customerId: str
-    productCode: str
+class AwsMarketplaceInput(TypedDict):
+    registrationToken: str
 
 
 class AuthResource:
@@ -97,7 +58,7 @@ class AuthResource:
         return f"{self._base}/v1"
 
     # --- Third-party token (API Key generation) ---
-    def get_third_party_token(self, expiration_days: int = 10) -> Dict[str, Any]:
+    def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
         # Path typo is in the backend and intentionally preserved.
         return self._http.request(
             "POST",
@@ -136,7 +97,7 @@ class AuthResource:
     def get_login_providers(self) -> LoginProvidersResponse:
         return self._http.request("GET", f"{self._v1}/login/providers").json()
 
-    def signin_sso(self, body: Dict[str, Any]) -> SignInResponse:
+    def signin_sso(self, body: SigninSSOInput) -> SignInResponse:
         return self._http.request("POST", f"{self._v1}/sso/login-success", json=body).json()
 
     # --- Access token ---
@@ -146,13 +107,13 @@ class AuthResource:
             json={"token": token, "organization_id": organization_id},
         ).json()
 
-    def exchange_access_token_with_token(self, body: Dict[str, Any]) -> ExchangeTokenResponse:
+    def exchange_access_token_with_token(self, body: ExchangeAccessTokenWithTokenInput) -> ExchangeTokenResponse:
         return self._http.request(
             "POST", f"{self._v1}/access/_exchange_access_token_with_access_token",
             json=body,
         ).json()
 
-    def signin_with_identity(self, body: Dict[str, Any]) -> SignInResponse:
+    def signin_with_identity(self, body: SigninWithIdentityInput) -> SignInResponse:
         return self._http.request("POST", f"{self._v1}/access/_signin_with_identity", json=body).json()
 
     # --- Sign-up verification ---
@@ -176,24 +137,24 @@ class AuthResource:
     def create_oidc_role_mapping(self, body: OidcRoleMappingInput) -> OidcRoleMapping:
         return self._http.request("POST", f"{self._v1}/oidc_role_mappings", json=body).json()
 
-    def bulk_update_oidc_role_mappings(self, body: Dict[str, Any]) -> List[OidcRoleMapping]:
+    def bulk_update_oidc_role_mappings(self, body: BulkUpdateOidcInput) -> List[OidcRoleMapping]:
         return self._http.request("PUT", f"{self._v1}/oidc_role_mappings/bulk", json=body).json()
 
     # --- Identity ---
-    def signup_with_google(self, body: Dict[str, Any]) -> GoogleAuthResponse:
+    def signup_with_google(self, body: GoogleAuthInput) -> GoogleAuthResponse:
         return self._http.request("POST", f"{self._v1}/identity/_signup_google", json=body).json()
 
-    def signin_with_google(self, body: Dict[str, Any]) -> GoogleAuthResponse:
+    def signin_with_google(self, body: GoogleAuthInput) -> GoogleAuthResponse:
         return self._http.request("POST", f"{self._v1}/identity_access/_signin_google", json=body).json()
 
-    def signup_with_email(self, body: Dict[str, Any]) -> SignUpResponse:
+    def signup_with_email(self, body: EmailIdentityInput) -> SignUpResponse:
         return self._http.request("POST", f"{self._v1}/identity/_signup_email", json=body).json()
 
-    def signin_with_email_identity(self, body: Dict[str, Any]) -> SignInResponse:
+    def signin_with_email_identity(self, body: EmailIdentityInput) -> SignInResponse:
         return self._http.request("POST", f"{self._v1}/identity_access/_signin_email", json=body).json()
 
     # --- AWS Marketplace ---
-    def resolve_aws_marketplace_customer(self, body: Dict[str, Any]) -> AwsMarketplaceResponse:
+    def resolve_aws_marketplace_customer(self, body: AwsMarketplaceInput) -> AwsMarketplaceResponse:
         return self._http.request("POST", f"{self._v1}/aws_marketplace/resolve-customer", json=body).json()
 
 
@@ -209,7 +170,7 @@ class AsyncAuthResource:
     def _v1(self) -> str:
         return f"{self._base}/v1"
 
-    async def get_third_party_token(self, expiration_days: int = 10) -> Dict[str, Any]:
+    async def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
         # Path typo is in the backend and intentionally preserved.
         res = await self._http.request(
             "POST",
@@ -248,7 +209,7 @@ class AsyncAuthResource:
         res = await self._http.request("GET", f"{self._v1}/login/providers")
         return res.json()
 
-    async def signin_sso(self, body: Dict[str, Any]) -> SignInResponse:
+    async def signin_sso(self, body: SigninSSOInput) -> SignInResponse:
         res = await self._http.request("POST", f"{self._v1}/sso/login-success", json=body)
         return res.json()
 
@@ -259,11 +220,11 @@ class AsyncAuthResource:
         )
         return res.json()
 
-    async def exchange_access_token_with_token(self, body: Dict[str, Any]) -> ExchangeTokenResponse:
+    async def exchange_access_token_with_token(self, body: ExchangeAccessTokenWithTokenInput) -> ExchangeTokenResponse:
         res = await self._http.request("POST", f"{self._v1}/access/_exchange_access_token_with_access_token", json=body)
         return res.json()
 
-    async def signin_with_identity(self, body: Dict[str, Any]) -> SignInResponse:
+    async def signin_with_identity(self, body: SigninWithIdentityInput) -> SignInResponse:
         res = await self._http.request("POST", f"{self._v1}/access/_signin_with_identity", json=body)
         return res.json()
 
@@ -291,26 +252,26 @@ class AsyncAuthResource:
         res = await self._http.request("POST", f"{self._v1}/oidc_role_mappings", json=body)
         return res.json()
 
-    async def bulk_update_oidc_role_mappings(self, body: Dict[str, Any]) -> List[OidcRoleMapping]:
+    async def bulk_update_oidc_role_mappings(self, body: BulkUpdateOidcInput) -> List[OidcRoleMapping]:
         res = await self._http.request("PUT", f"{self._v1}/oidc_role_mappings/bulk", json=body)
         return res.json()
 
-    async def signup_with_google(self, body: Dict[str, Any]) -> GoogleAuthResponse:
+    async def signup_with_google(self, body: GoogleAuthInput) -> GoogleAuthResponse:
         res = await self._http.request("POST", f"{self._v1}/identity/_signup_google", json=body)
         return res.json()
 
-    async def signin_with_google(self, body: Dict[str, Any]) -> GoogleAuthResponse:
+    async def signin_with_google(self, body: GoogleAuthInput) -> GoogleAuthResponse:
         res = await self._http.request("POST", f"{self._v1}/identity_access/_signin_google", json=body)
         return res.json()
 
-    async def signup_with_email(self, body: Dict[str, Any]) -> SignUpResponse:
+    async def signup_with_email(self, body: EmailIdentityInput) -> SignUpResponse:
         res = await self._http.request("POST", f"{self._v1}/identity/_signup_email", json=body)
         return res.json()
 
-    async def signin_with_email_identity(self, body: Dict[str, Any]) -> SignInResponse:
+    async def signin_with_email_identity(self, body: EmailIdentityInput) -> SignInResponse:
         res = await self._http.request("POST", f"{self._v1}/identity_access/_signin_email", json=body)
         return res.json()
 
-    async def resolve_aws_marketplace_customer(self, body: Dict[str, Any]) -> AwsMarketplaceResponse:
+    async def resolve_aws_marketplace_customer(self, body: AwsMarketplaceInput) -> AwsMarketplaceResponse:
         res = await self._http.request("POST", f"{self._v1}/aws_marketplace/resolve-customer", json=body)
         return res.json()

@@ -1,6 +1,71 @@
 import { HttpTransport } from "../http.js"
 import type { Conversation, PagedResponse } from "../types/index.js"
 
+// ─── Conversation action interfaces ──────────────────────────────────────────
+
+export interface ConversationActionResponse {
+  success: boolean
+  conversation?: Conversation
+  [key: string]: unknown
+}
+
+export interface JoinConversationInput {
+  conversation_id: string
+  [key: string]: unknown
+}
+
+export interface LeaveConversationInput {
+  conversation_id: string
+  [key: string]: unknown
+}
+
+export interface UpdateStatusInput {
+  conversation_id: string
+  status: string
+  [key: string]: unknown
+}
+
+export interface UpdateNameInput {
+  conversation_id: string
+  name: string
+  [key: string]: unknown
+}
+
+export interface InitVideoCallInput {
+  conversation_id: string
+  [key: string]: unknown
+}
+
+export interface AssignTeamMemberInput {
+  conversation_id: string
+  user_id: string
+  [key: string]: unknown
+}
+
+export interface RemoveTeamMemberInput {
+  conversation_id: string
+  user_id: string
+  [key: string]: unknown
+}
+
+export interface InvitableUser {
+  _id: string
+  name?: string
+  email?: string
+  [key: string]: unknown
+}
+
+export interface CreateConversationInput {
+  channel_id?: string
+  contact_id?: string
+  [key: string]: unknown
+}
+
+export interface JoinRequestInput {
+  conversation_id: string
+  [key: string]: unknown
+}
+
 export class ConversationsResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
@@ -49,7 +114,7 @@ export class ConversationsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getViewsCount(params?: { type?: string; q?: string }): Promise<Record<string, unknown>> {
+  async getViewsCount(params?: { type?: string; q?: string }): Promise<{ [view: string]: number }> {
     const url = new URL(`${this.v2}/team_conversations/_views_count`)
     if (params?.type) url.searchParams.set("type", params.type)
     if (params?.q)    url.searchParams.set("q",    params.q)
@@ -65,7 +130,7 @@ export class ConversationsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async join(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async join(body: JoinConversationInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_join`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,7 +138,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async leave(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async leave(body: LeaveConversationInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_leave`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -81,7 +146,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async updateStatus(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateStatus(body: UpdateStatusInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_update_status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,7 +154,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async updateName(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateName(body: UpdateNameInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_update_name`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,7 +162,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async initVideoCall(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async initVideoCall(body: InitVideoCallInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_init_jaas_conference`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +170,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async assignTeamMember(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async assignTeamMember(body: AssignTeamMemberInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/assign_team_member`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -113,7 +178,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async removeTeamMember(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async removeTeamMember(body: RemoveTeamMemberInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/remove_team_member`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,7 +186,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async getInvitableUsers(teamConvId: string): Promise<Record<string, unknown>[]> {
+  async getInvitableUsers(teamConvId: string): Promise<InvitableUser[]> {
     return this.http.getFetch()(`${this.v1}/team_conversations/${teamConvId}/users`, { method: "GET" }).then(r => r.json())
   }
 
@@ -133,7 +198,7 @@ export class ConversationsResource {
 
   // ─── Create standalone conversation ─────────────────────────────────────────
 
-  async create(body?: Record<string, unknown>): Promise<Conversation> {
+  async create(body?: CreateConversationInput): Promise<Conversation> {
     return this.http.getFetch()(`${this.v1}/conversations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -141,7 +206,7 @@ export class ConversationsResource {
     }).then(r => r.json())
   }
 
-  async joinRequest(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async joinRequest(body: JoinRequestInput): Promise<ConversationActionResponse> {
     return this.http.getFetch()(`${this.v1}/team_conversations/_join_request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

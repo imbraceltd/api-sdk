@@ -11,7 +11,13 @@
     "url": "https://github.com/imbrace/sdk.git",
     "directory": "ts"
   },
-  "keywords": ["imbrace", "sdk", "api", "typescript", "javascript"],
+  "keywords": [
+    "imbrace",
+    "sdk",
+    "api",
+    "typescript",
+    "javascript"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -67,13 +73,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "imbrace-sdk-workspace": "file:.."
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@vitest/ui": "^1.6.0",
     "typescript": "^5.4.0",
-    "vitest": "^1.6.0",
-    "@vitest/ui": "^1.6.0"
+    "vitest": "^1.6.0"
   },
   "engines": {
     "node": ">=18.0.0"

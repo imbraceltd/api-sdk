@@ -1,5 +1,71 @@
 import { HttpTransport } from "../http.js"
 
+// ─── Campaign interfaces ──────────────────────────────────────────────────────
+
+export interface Campaign {
+  _id: string
+  name: string
+  status?: string
+  channel_type?: string
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface CampaignListResponse {
+  data: Campaign[]
+  total?: number
+  [key: string]: unknown
+}
+
+export interface CreateCampaignInput {
+  name: string
+  channel_type?: string
+  [key: string]: unknown
+}
+
+// ─── Touchpoint interfaces ────────────────────────────────────────────────────
+
+export interface Touchpoint {
+  _id: string
+  name?: string
+  type?: string
+  campaign_id?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+export interface TouchpointListResponse {
+  data: Touchpoint[]
+  total?: number
+  [key: string]: unknown
+}
+
+export interface CreateTouchpointInput {
+  name?: string
+  type?: string
+  campaign_id?: string
+  message?: string | Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface UpdateTouchpointInput {
+  name?: string
+  message?: string | Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface ValidateTouchpointInput {
+  touchpoint_id?: string
+  [key: string]: unknown
+}
+
+export interface ValidateTouchpointResponse {
+  valid: boolean
+  errors?: string[]
+  [key: string]: unknown
+}
+
 export class CampaignResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
@@ -10,17 +76,17 @@ export class CampaignResource {
 
   // ─── Campaigns ───────────────────────────────────────────────────────────────
 
-  async list(params?: Record<string, string>) {
+  async list(params?: Record<string, string>): Promise<CampaignListResponse> {
     const url = new URL(`${this.v1}/campaign`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async get(campaignId: string) {
+  async get(campaignId: string): Promise<Campaign> {
     return this.http.getFetch()(`${this.v1}/campaign/${campaignId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: Record<string, unknown>) {
+  async create(body: CreateCampaignInput): Promise<Campaign> {
     return this.http.getFetch()(`${this.v1}/campaign`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,17 +100,17 @@ export class CampaignResource {
 
   // ─── Touchpoints ─────────────────────────────────────────────────────────────
 
-  async listTouchpoints(params?: Record<string, string>) {
+  async listTouchpoints(params?: Record<string, string>): Promise<TouchpointListResponse> {
     const url = new URL(`${this.v1}/touchpoints`)
     if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getTouchpoint(touchpointId: string) {
+  async getTouchpoint(touchpointId: string): Promise<Touchpoint> {
     return this.http.getFetch()(`${this.v1}/touchpoints/${touchpointId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createTouchpoint(body: Record<string, unknown>) {
+  async createTouchpoint(body: CreateTouchpointInput): Promise<Touchpoint> {
     return this.http.getFetch()(`${this.v1}/touchpoints`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +118,7 @@ export class CampaignResource {
     }).then(r => r.json())
   }
 
-  async updateTouchpoint(touchpointId: string, body: Record<string, unknown>) {
+  async updateTouchpoint(touchpointId: string, body: UpdateTouchpointInput): Promise<Touchpoint> {
     return this.http.getFetch()(`${this.v1}/touchpoints/${touchpointId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -64,7 +130,7 @@ export class CampaignResource {
     await this.http.getFetch()(`${this.v1}/touchpoints/${touchpointId}`, { method: "DELETE" })
   }
 
-  async validateTouchpoint(body: Record<string, unknown>) {
+  async validateTouchpoint(body: ValidateTouchpointInput): Promise<ValidateTouchpointResponse> {
     return this.http.getFetch()(`${this.v1}/touchpoints/_validate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -1,10 +1,9 @@
 // Imbrace TS SDK — Basic usage with real Imbrace Gateway
 import { ImbraceClient, extractApiKey } from "../src/index.js"
 
-// --- Option 1: Using the API Key string directly ---
+// Initialize client with explicit API Key
 const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
-  // Default baseUrl: https://app-gatewayv2.imbrace.co
+  apiKey: process.env.IMBRACE_API_KEY, // Explicitly pass from env if desired
 })
 
 // Or --- Option 2: From the auth endpoint response ---

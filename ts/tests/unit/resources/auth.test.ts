@@ -7,7 +7,7 @@ const BASE = "https://app-gatewayv2.imbrace.co"
 
 function makeResource() {
   const http = new HttpTransport({ apiKey: "test_key", timeout: 5000, tokenManager: new TokenManager() })
-  return new AuthResource(http, BASE)
+  return new AuthResource(http, BASE, BASE)
 }
 
 function mockFetch(data: unknown, status = 200) {

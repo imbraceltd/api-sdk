@@ -5,8 +5,6 @@ from imbrace.environments import ENVIRONMENTS
 
 
 def test_default_env_is_stable():
-    os.environ.pop("IMBRACE_ENV", None)
-    os.environ.pop("IMBRACE_GATEWAY_URL", None)
     client = ImbraceClient(api_key="test_key")
     assert client.auth._base == f"{ENVIRONMENTS['stable'].gateway}/platform"
 

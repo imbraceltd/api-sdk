@@ -30,20 +30,25 @@ import { ScheduleResource } from "./resources/schedule.js"
 import { CampaignResource } from "./resources/campaign.js"
 import { OutboundResource } from "./resources/outbound.js"
 import { LicenseResource } from "./resources/license.js"
+import { ChatAiResource } from "./resources/chat-ai.js"
+import { FileServiceResource } from "./resources/file-service.js"
+import { MessageSuggestionResource } from "./resources/message-suggestion.js"
+import { PredictResource } from "./resources/predict.js"
+import { ActivePiecesResource } from "./resources/activepieces.js"
 
 export interface ImbraceClientConfig {
   /**
    * Environment preset.
-   * - 'develop'  → app-gateway.dev.imbrace.co
-   * - 'sandbox'  → app-gateway.sandbox.imbrace.co
-   * - 'stable'   → app-gatewayv2.imbrace.co (default)
+   * - 'develop'  - app-gateway.dev.imbrace.co
+   * - 'sandbox'  - app-gateway.sandbox.imbrace.co
+   * - 'stable'   - app-gatewayv2.imbrace.co (default)
    */
   env?: Environment
   /** Override the gateway URL for the selected environment. */
   gateway?: string
   /** Override the base URL for individual services. */
   services?: Partial<ServiceUrls>
-  /** API key (server-side) — from POST /private/backend/v1/thrid_party_token */
+  /** API key (server-side) - from POST /private/backend/v1/thrid_party_token */
   apiKey?: string
   /** User access token (client-side OAuth/JWT). */
   accessToken?: string
@@ -89,13 +94,18 @@ export class ImbraceClient {
   public readonly campaign: CampaignResource
   public readonly outbound: OutboundResource
   public readonly license: LicenseResource
+  public readonly chatAi: ChatAiResource
+  public readonly fileService: FileServiceResource
+  public readonly messageSuggestion: MessageSuggestionResource
+  public readonly predict: PredictResource
+  public readonly activepieces: ActivePiecesResource
 
   constructor(opts?: ImbraceClientConfig) {
     this.opts = opts ?? {}
 
     const mergedServices = opts?.services ?? {}
 
-    // ── Resolve environment & service URLs ──────────────────────────────────
+    // -- Resolve environment & service URLs ----------------------------------
     const envName = opts?.env ?? 'stable'
     const gatewayOverride = opts?.gateway
 
@@ -107,7 +117,7 @@ export class ImbraceClient {
 
     const resolvedApiKey = opts?.apiKey
 
-    // ── Warn when no credentials ─────────────────────────────────────────────
+    // -- Warn when no credentials ---------------------------------------------
     if (!resolvedApiKey && !opts?.accessToken) {
       console.warn(
         '[ImbraceClient] No credentials provided. ' +
@@ -115,7 +125,7 @@ export class ImbraceClient {
       )
     }
 
-    // ── HTTP Transport ───────────────────────────────────────────────────────
+    // -- HTTP Transport -------------------------------------------------------
 
     this.tokenManager = new TokenManager(opts?.accessToken)
     this.http = new HttpTransport({
@@ -125,9 +135,9 @@ export class ImbraceClient {
       organizationId: opts?.organizationId,
     })
 
-    // ── Wire resources with per-service base URLs ────────────────────────────
+    // -- Wire resources with per-service base URLs ----------------------------
 
-    // Auth & Account → platform service
+    // Auth & Account - platform service
     this.auth          = new AuthResource(this.http, urls.platform, urls.gateway)
     this.account       = new AccountResource(this.http, urls.platform)
 
@@ -158,39 +168,45 @@ export class ImbraceClient {
     // Agent templates + use-cases
     this.agent         = new AgentResource(this.http, urls.marketplaces, urls.gateway)
 
-    // Campaign & Outbound → channel-service
+    // Campaign & Outbound - channel-service
     this.campaign      = new CampaignResource(this.http, urls.channelService)
     this.outbound      = new OutboundResource(this.http, urls.channelService)
 
-    // License → gateway root
+    // License - gateway root
     this.license       = new LicenseResource(this.http, urls.gateway)
 
     // Gateway fallback
     this.health        = new HealthResource(this.http, urls.gateway)
     this.sessions      = new SessionsResource(this.http, urls.gateway)
     this.schedule      = new ScheduleResource(this.http, urls.ips)
-  }
 
-  // ── Convenience auth ────────────────────────────────────────────────────────
+    // New services
+    this.chatAi           = new ChatAiResource(this.http, `${urls.ai}/v3`)
+    this.fileService      = new FileServiceResource(this.http, urls.fileService)       
+    this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
+    this.predict          = new PredictResource(this.http, urls.predict)
+    this.activepieces      = new ActivePiecesResource(this.http, urls.activepieces)    
+    }
+  // -- Convenience auth ------------------------------------------------------
 
   /** Sign in with email/password and store the returned access token. */
   public async login(email: string, password: string): Promise<Record<string, unknown>> {
     const res = await this.auth.signIn({ email, password })
-    const token = (res as Record<string, unknown>).accessToken
-      ?? (res as Record<string, unknown>).token
-      ?? (res as Record<string, unknown>).access_token
+    const token = (res as any).accessToken
+      ?? (res as any).token
+      ?? (res as any).access_token
     if (typeof token === 'string') this.tokenManager.setToken(token)
-    return res as Record<string, unknown>
+    return res as any
   }
 
   /** Sign in with an OTP (after calling requestOtp) and store the returned access token. */
   public async loginWithOtp(email: string, otp: string): Promise<Record<string, unknown>> {
     const res = await this.auth.signinWithEmail(email, otp)
-    const token = (res as Record<string, unknown>).accessToken
-      ?? (res as Record<string, unknown>).token
-      ?? (res as Record<string, unknown>).access_token
+    const token = (res as any).accessToken
+      ?? (res as any).token
+      ?? (res as any).access_token
     if (typeof token === 'string') this.tokenManager.setToken(token)
-    return res as Record<string, unknown>
+    return res as any
   }
 
   /** Send an OTP to the given email. Call before loginWithOtp(). */

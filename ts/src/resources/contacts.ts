@@ -1,6 +1,50 @@
 import { HttpTransport } from "../http.js"
 import type { Contact, Conversation, Notification, PagedResponse } from "../types/index.js"
 
+// ─── Contact update interface ─────────────────────────────────────────────────
+
+export interface UpdateContactInput {
+  name?: string
+  email?: string
+  phone?: string
+  [key: string]: unknown
+}
+
+// ─── Comment interface ────────────────────────────────────────────────────────
+
+export interface ContactComment {
+  _id: string
+  text?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+// ─── File interface ───────────────────────────────────────────────────────────
+
+export interface ContactFile {
+  _id: string
+  name?: string
+  url?: string
+  size?: number
+  [key: string]: unknown
+}
+
+// ─── Activity interface ───────────────────────────────────────────────────────
+
+export interface ConversationActivity {
+  _id: string
+  type?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+// ─── Notification action interfaces ──────────────────────────────────────────
+
+export interface NotificationActionResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
 export class ContactsResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
@@ -23,7 +67,7 @@ export class ContactsResource {
     return this.http.getFetch()(`${this.v1}/contacts/${contactId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async update(contactId: string, body: Record<string, unknown>): Promise<Contact> {
+  async update(contactId: string, body: UpdateContactInput): Promise<Contact> {
     return this.http.getFetch()(`${this.v1}/contacts/${contactId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -57,7 +101,7 @@ export class ContactsResource {
     channelType?: string
     skip?: number
     limit?: number
-  }): Promise<Record<string, unknown>[]> {
+  }): Promise<ContactComment[]> {
     const url = new URL(`${this.v1}/contacts/${contactId}/comments`)
     if (params?.channelType) url.searchParams.set("channel_types", params.channelType)
     if (params?.skip !== undefined) url.searchParams.set("skip",  String(params.skip))
@@ -65,11 +109,11 @@ export class ContactsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async getFiles(contactId: string): Promise<Record<string, unknown>[]> {
+  async getFiles(contactId: string): Promise<ContactFile[]> {
     return this.http.getFetch()(`${this.v1}/contact/${contactId}/files`, { method: "GET" }).then(r => r.json())
   }
 
-  async getActivities(conversationId: string): Promise<Record<string, unknown>[]> {
+  async getActivities(conversationId: string): Promise<ConversationActivity[]> {
     return this.http.getFetch()(`${this.v1}/conversations_activities/${conversationId}`, { method: "GET" }).then(r => r.json())
   }
 
@@ -89,7 +133,7 @@ export class ContactsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async markNotificationsRead(notificationIds: string[]): Promise<Record<string, unknown>> {
+  async markNotificationsRead(notificationIds: string[]): Promise<NotificationActionResponse> {
     return this.http.getFetch()(`${this.v1}/notifications/read`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -97,7 +141,7 @@ export class ContactsResource {
     }).then(r => r.json())
   }
 
-  async dismissNotification(notificationId: string): Promise<Record<string, unknown>> {
+  async dismissNotification(notificationId: string): Promise<NotificationActionResponse> {
     return this.http.getFetch()(`${this.v1}/notifications/dismiss`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +149,7 @@ export class ContactsResource {
     }).then(r => r.json())
   }
 
-  async dismissAllNotifications(): Promise<Record<string, unknown>> {
+  async dismissAllNotifications(): Promise<NotificationActionResponse> {
     return this.http.getFetch()(`${this.v1}/notifications/dismiss/all`, {
       method: "DELETE",
     }).then(r => r.json())

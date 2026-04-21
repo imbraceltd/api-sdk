@@ -53,20 +53,16 @@ The value you need is `response.apiKey.apiKey`.
 ```python
 from imbrace import ImbraceClient
 
-# Option 1: auto-read from .env (recommended)
-client = ImbraceClient()
-
-# Option 2: explicit configuration
+# Explicit configuration (server-to-server)
 client = ImbraceClient(
     api_key="sk-xxx...",
-    base_url="https://app-gatewayv2.imbrace.co",
+    env="stable", # defaults to 'stable'
     timeout=30,
-    check_health=True,
 )
 
-# Option 3: Access Token (browser / client-side)
+# Or use Access Token (user login)
 client = ImbraceClient(access_token="eyJhbGci...")
-
+```
 # Update token after OAuth refresh
 client.set_access_token("new-token")
 client.clear_access_token()

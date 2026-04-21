@@ -30,10 +30,11 @@ describe("ImbraceClient", () => {
     expect(() => new ImbraceClient({ gateway: "https://staging.imbrace.co/", apiKey: "key" })).not.toThrow()
   })
 
-  it("reads IMBRACE_API_KEY from env", () => {
-    process.env.IMBRACE_API_KEY = "env_key"
-    const client = new ImbraceClient()
-    expect(client).toBeDefined()
+  it("warns when no credentials are provided", () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    new ImbraceClient()
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("No credentials provided"))
+    warnSpy.mockRestore()
   })
 
   it("accepts env='develop' and resolves correct gateway", () => {

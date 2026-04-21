@@ -1,6 +1,102 @@
 import { HttpTransport } from "../http.js"
 import type { Channel, Team, PagedResponse } from "../types/index.js"
 
+// ─── Channel input interfaces ─────────────────────────────────────────────────
+
+export interface CreateChannelInput {
+  name: string
+  type?: string
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface UpdateChannelInput {
+  active?: boolean
+  config?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface ReplaceChannelInput {
+  channel_id: string
+  [key: string]: unknown
+}
+
+export interface ConvCountResponse {
+  count: number
+  [key: string]: unknown
+}
+
+// ─── Channel-type creator inputs ──────────────────────────────────────────────
+
+export interface CreateFacebookInput {
+  page_id: string
+  access_token?: string
+  credential_id?: string
+  [key: string]: unknown
+}
+
+export interface CreateInstagramInput {
+  page_id?: string
+  access_token?: string
+  credential_id?: string
+  [key: string]: unknown
+}
+
+export interface CreateEmailInput {
+  name: string
+  email?: string
+  [key: string]: unknown
+}
+
+export interface CreateWechatInput {
+  app_id?: string
+  app_secret?: string
+  [key: string]: unknown
+}
+
+export interface CreateLineInput {
+  channel_access_token?: string
+  channel_secret?: string
+  [key: string]: unknown
+}
+
+export interface CreateWhatsAppInput {
+  phone_number_id?: string
+  access_token?: string
+  [key: string]: unknown
+}
+
+// ─── Credential / workflow interfaces ────────────────────────────────────────
+
+export interface ChannelCredential {
+  _id: string
+  type?: string
+  name?: string
+  [key: string]: unknown
+}
+
+export interface UpdateCredentialInput {
+  [key: string]: unknown
+}
+
+export interface UpdateChannelWorkflowInput {
+  [key: string]: unknown
+}
+
+export interface ChannelWorkflowResponse {
+  success: boolean
+  [key: string]: unknown
+}
+
+// ─── Team observer interfaces ─────────────────────────────────────────────────
+
+export interface TeamObserver {
+  _id: string
+  user_id?: string
+  team_id?: string
+  [key: string]: unknown
+}
+
 export class ChannelResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service).
@@ -24,7 +120,7 @@ export class ChannelResource {
     return this.http.getFetch()(`${this.v1}/channels/${channelId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: Record<string, unknown>): Promise<Channel> {
+  async create(body: CreateChannelInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,7 +128,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async update(channelId: string, body: { active?: boolean; config?: Record<string, unknown> }): Promise<Channel> {
+  async update(channelId: string, body: UpdateChannelInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/${channelId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -52,14 +148,14 @@ export class ChannelResource {
     return this.http.getFetch()(`${this.v1}/channels/_count`, { method: "GET" }).then(r => r.json())
   }
 
-  async getConvCount(params?: { view?: string; teamId?: string }): Promise<Record<string, unknown>> {
+  async getConvCount(params?: { view?: string; teamId?: string }): Promise<ConvCountResponse> {
     const url = new URL(`${this.v1}/channels/_conv_count`)
     if (params?.view)   url.searchParams.set("view",    params.view)
     if (params?.teamId) url.searchParams.set("team_id", params.teamId)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async replace(body: Record<string, unknown>): Promise<Channel> {
+  async replace(body: ReplaceChannelInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_replace`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,11 +181,11 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async getFacebookPages(credentialId: string): Promise<Record<string, unknown>[]> {
+  async getFacebookPages(credentialId: string): Promise<ChannelCredential[]> {
     return this.http.getFetch()(`${this.v1}/channels/_facebook/credential/${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createFacebook(body: Record<string, unknown>): Promise<Channel> {
+  async createFacebook(body: CreateFacebookInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v3}/channels/_facebook`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,7 +193,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async updateFacebook(body: Record<string, unknown>): Promise<Channel> {
+  async updateFacebook(body: CreateFacebookInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v2}/channels/_facebook`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +201,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createInstagram(body: Record<string, unknown>): Promise<Channel> {
+  async createInstagram(body: CreateInstagramInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_instagram`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -113,7 +209,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createInstagramV2(body: Record<string, unknown>): Promise<Channel> {
+  async createInstagramV2(body: CreateInstagramInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_instagramV2`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,7 +217,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createEmail(body: Record<string, unknown>): Promise<Channel> {
+  async createEmail(body: CreateEmailInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -129,7 +225,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createWechat(body: Record<string, unknown>): Promise<Channel> {
+  async createWechat(body: CreateWechatInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_wechat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,7 +233,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createLine(body: Record<string, unknown>): Promise<Channel> {
+  async createLine(body: CreateLineInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_line`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -145,7 +241,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createWhatsApp(body: Record<string, unknown>): Promise<Channel> {
+  async createWhatsApp(body: CreateWhatsAppInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v1}/channels/_whatsapp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -153,7 +249,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createWhatsAppV2(body: Record<string, unknown>): Promise<Channel> {
+  async createWhatsAppV2(body: CreateWhatsAppInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v2}/channels/_whatsapp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -161,7 +257,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async createWhatsAppV3(body: Record<string, unknown>): Promise<Channel> {
+  async createWhatsAppV3(body: CreateWhatsAppInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v3}/channels/_whatsapp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -169,7 +265,7 @@ export class ChannelResource {
     }).then(r => r.json())
   }
 
-  async updateWhatsApp(body: Record<string, unknown>): Promise<Channel> {
+  async updateWhatsApp(body: CreateWhatsAppInput): Promise<Channel> {
     return this.http.getFetch()(`${this.v2}/channels/_whatsapp`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -179,11 +275,11 @@ export class ChannelResource {
 
   // ─── Channel credentials & workflows ────────────────────────────────────────
 
-  async getCredential(credentialId: string): Promise<Record<string, unknown>> {
+  async getCredential(credentialId: string): Promise<ChannelCredential> {
     return this.http.getFetch()(`${this.v1}/channels/credentials/${credentialId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async updateCredential(credentialId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateCredential(credentialId: string, body: UpdateCredentialInput): Promise<ChannelCredential> {
     return this.http.getFetch()(`${this.v1}/channels/credentials/${credentialId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -195,7 +291,7 @@ export class ChannelResource {
     await this.http.getFetch()(`${this.v1}/channels/credentials/${credentialId}`, { method: "DELETE" })
   }
 
-  async updateChannelWorkflow(workflowId: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateChannelWorkflow(workflowId: string, body: UpdateChannelWorkflowInput): Promise<ChannelWorkflowResponse> {
     return this.http.getFetch()(`${this.v1}/channels/workflows/${workflowId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -213,7 +309,7 @@ export class ChannelResource {
     return this.http.getFetch()(`${this.v1}/assign/teams/all`, { method: "GET" }).then(r => r.json())
   }
 
-  async listTeamObservers(teamId: string): Promise<Record<string, unknown>[]> {
+  async listTeamObservers(teamId: string): Promise<TeamObserver[]> {
     return this.http.getFetch()(`${this.v1}/assign/team/${teamId}/observers`, { method: "GET" }).then(r => r.json())
   }
 }

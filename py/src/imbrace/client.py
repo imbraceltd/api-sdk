@@ -31,6 +31,9 @@ from .resources.data_files import DataFilesResource
 from .resources.folders import FoldersResource
 from .resources.outbounds import OutboundsResource
 from .resources.touchpoints import TouchpointsResource
+from .resources.chat_ai import ChatAiResource
+from .resources.file_service import FileServiceResource
+from .resources.activepieces import ActivePiecesResource
 
 
 class ImbraceClient:
@@ -41,7 +44,7 @@ class ImbraceClient:
         client = ImbraceClient(env="develop", access_token="...")
 
         # Stable (default)
-        client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+        client = ImbraceClient(api_key="sk-...")
 
         # Override a single service (e.g. local dev)
         client = ImbraceClient(env="develop", services={"data_board": "http://localhost:3001/data-board"})
@@ -57,7 +60,7 @@ class ImbraceClient:
         organization_id: Optional[str] = None,
         timeout: int = 30,
         check_health: bool = False,
-        # Legacy compat — takes precedence over env if set
+        # Legacy compat - takes precedence over env if set
         base_url: Optional[str] = None,
     ):
         resolved_key = api_key
@@ -93,7 +96,7 @@ class ImbraceClient:
             organization_id=organization_id,
         )
 
-        # Auth & Account → platform service
+        # Auth & Account - platform service
         self.auth          = AuthResource(self.http, urls.platform, urls.gateway)
         self.account       = AccountResource(self.http, urls.platform)
 
@@ -134,10 +137,15 @@ class ImbraceClient:
         self.outbounds     = OutboundsResource(self.http, urls.channel_service)
         self.touchpoints   = TouchpointsResource(self.http, urls.channel_service)
 
+        # New services
+        self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3")
+        self.file_service  = FileServiceResource(self.http, urls.file_service)
+        self.activepieces  = ActivePiecesResource(self.http, urls.activepieces)
+
         if check_health:
             self.init()
 
-    # ── Convenience auth ──────────────────────────────────────────────────────
+    # -- Convenience auth ------------------------------------------------------
 
     def login(self, email: str, password: str) -> dict:
         """Sign in with email and password. Stores the returned access token on the client."""

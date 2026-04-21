@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 from dataclasses import dataclass
 
 from .environments import EnvironmentPreset, ENVIRONMENTS
@@ -14,11 +14,15 @@ class ServiceUrls:
     data_board: str
     ai: str
     marketplaces: str
+    file_service: str
+    message_suggestion: str
+    predict: str
+    activepieces: str
 
 
 def resolve_service_urls(
     env: Union[str, EnvironmentPreset],
-    overrides: Optional[dict] = None,
+    overrides: Optional[Dict[str, str]] = None,
 ) -> ServiceUrls:
     if isinstance(env, str):
         preset = ENVIRONMENTS[env]
@@ -35,6 +39,10 @@ def resolve_service_urls(
         data_board=f"{(preset.service_hosts.data_board or gw).rstrip('/')}/data-board",
         ai=f"{gw}/ai",
         marketplaces=f"{gw}/marketplaces",
+        file_service=f"{gw}/v1/file-service",
+        message_suggestion=f"{gw}/v1/message-suggestion",
+        predict=f"{gw}/predict",
+        activepieces=f"{gw}/activepieces",
     )
 
     if overrides:

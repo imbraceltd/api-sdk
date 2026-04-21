@@ -5,11 +5,9 @@
 import { ImbraceClient } from "imbrace-ts"
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-// Automatically reads IMBRACE_API_KEY, IMBRACE_BASE_URL from env
 const client = new ImbraceClient({
-  // apiKey: process.env.IMBRACE_API_KEY,          // server-side
-  // accessToken: "eyJhbGci...",                   // client-side (browser)
-  // baseUrl: "https://app-gatewayv2.imbrace.co",  // optional
+  apiKey: process.env.IMBRACE_API_KEY,          // Explicitly pass from env
+  // accessToken: "eyJhbGci...",                   // Or use client-side token
   checkHealth: true,
 })
 

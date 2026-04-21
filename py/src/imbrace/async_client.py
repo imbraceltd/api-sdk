@@ -31,10 +31,22 @@ from .resources.data_files import AsyncDataFilesResource
 from .resources.folders import AsyncFoldersResource
 from .resources.outbounds import AsyncOutboundsResource
 from .resources.touchpoints import AsyncTouchpointsResource
+from .resources.chat_ai import AsyncChatAiResource
+from .resources.file_service import AsyncFileServiceResource
+from .resources.activepieces import AsyncActivePiecesResource
 
 
 class AsyncImbraceClient:
     """Asynchronous Imbrace SDK Client.
+
+    When check_health=True, use as an async context manager so the health
+    check can run:
+
+        async with AsyncImbraceClient(api_key="...", check_health=True) as client:
+            ...
+
+    Using check_health=True without 'async with' has no effect unless
+    you manually call await client.init().
 
     Usage:
         async with AsyncImbraceClient(env="develop", access_token="...") as client:
@@ -117,7 +129,11 @@ class AsyncImbraceClient:
         self.outbounds     = AsyncOutboundsResource(self.http, urls.channel_service)
         self.touchpoints   = AsyncTouchpointsResource(self.http, urls.channel_service)
 
-    # ── Convenience auth   
+        # New services
+        self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3")
+        self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)    
+        self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
+        # —— Convenience auth
 
     async def login(self, email: str, password: str) -> dict:
         """Sign in with email and password. Stores the returned access token on the client."""
