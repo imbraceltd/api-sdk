@@ -86,6 +86,7 @@ export interface AssistantAppListResponse {
 
 export interface CreateAssistantAppInput {
   name: string
+  workflow_name: string
   assistant_id?: string
   mode?: string
   model_id?: string
@@ -145,14 +146,25 @@ export interface GuardrailListResponse {
 
 export interface CreateGuardrailInput {
   name: string
-  type?: string
-  config?: Record<string, unknown>
+  model: string
+  instructions: string
+  unsafe_categories?: string[]
+  custom_unsafe_patterns?: string[]
+  competitor_keywords?: string[]
+  description?: string
+  guardrail_provider_id?: string
   [key: string]: unknown
 }
 
 export interface UpdateGuardrailInput {
-  name?: string
-  config?: Record<string, unknown>
+  name: string
+  model: string
+  instructions: string
+  unsafe_categories?: string[]
+  custom_unsafe_patterns?: string[]
+  competitor_keywords?: string[]
+  description?: string
+  guardrail_provider_id?: string
   [key: string]: unknown
 }
 

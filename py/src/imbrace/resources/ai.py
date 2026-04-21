@@ -83,6 +83,7 @@ class AssistantAppListResponse(TypedDict, total=False):
 
 class CreateAssistantAppInput(TypedDict, total=False):
     name: str
+    workflow_name: str
     assistant_id: str
     mode: Optional[str]
     model_id: Optional[str]
@@ -133,13 +134,24 @@ class GuardrailListResponse(TypedDict, total=False):
 
 class CreateGuardrailInput(TypedDict, total=False):
     name: str
-    type: str
-    config: Dict[str, Any]
+    model: str
+    instructions: str
+    unsafe_categories: Optional[List[str]]
+    custom_unsafe_patterns: Optional[List[str]]
+    competitor_keywords: Optional[List[str]]
+    description: Optional[str]
+    guardrail_provider_id: Optional[str]
 
 
 class UpdateGuardrailInput(TypedDict, total=False):
     name: str
-    config: Dict[str, Any]
+    model: str
+    instructions: str
+    unsafe_categories: Optional[List[str]]
+    custom_unsafe_patterns: Optional[List[str]]
+    competitor_keywords: Optional[List[str]]
+    description: Optional[str]
+    guardrail_provider_id: Optional[str]
 
 
 class GuardrailProvider(TypedDict, total=False):
