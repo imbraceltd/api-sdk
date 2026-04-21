@@ -221,31 +221,8 @@ class VerifyToolServerResponse(TypedDict, total=False):
     tools: Optional[List[Dict[str, Any]]]
 
 
-class FinancialDoc(TypedDict, total=False):
-    _id: str
-    name: Optional[str]
-    status: Optional[str]
-    pages: Optional[List[Any]]
-    created_at: Optional[str]
-    updated_at: Optional[str]
-
-
-class FinancialFixInput(TypedDict, total=False):
-    doc_id: str
-
-
-class FinancialErrorFilesResponse(TypedDict, total=False):
-    files: Optional[List[Any]]
-
-
-class FinancialReport(TypedDict, total=False):
-    _id: str
-    name: Optional[str]
-    status: Optional[str]
-
-
 class AiResource:
-    """AI domain — Sync. Completions, embeddings, assistants, RAG, guardrails, financial docs."""
+    """AI domain — Sync. Completions, embeddings, assistants, RAG, guardrails."""
 
     def __init__(self, http: HttpTransport, base: str):
         self._http = http
@@ -411,47 +388,6 @@ class AiResource:
 
     def verify_tool_server(self, body: VerifyToolServerInput) -> VerifyToolServerResponse:
         return self._http.request("POST", f"{self._v3}/configs/tool_servers/verify", json=body).json()
-
-    # --- Financial Documents (v2) ---
-    def get_financial_doc(self, doc_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> FinancialDoc:
-        params: Dict[str, Any] = {}
-        if page is not None:
-            params["page"] = page
-        if limit is not None:
-            params["limit"] = limit
-        return self._http.request("GET", f"{self._v2}/financial_documents/{doc_id}", params=params).json()
-
-    def update_financial_doc(self, doc_id: str, body: Dict[str, Any]) -> FinancialDoc:
-        return self._http.request("PUT", f"{self._v2}/financial_documents/{doc_id}", json=body).json()
-
-    def delete_financial_doc(self, doc_id: str) -> None:
-        self._http.request("DELETE", f"{self._v2}/financial_documents/{doc_id}")
-
-    def suggest_financial_fix(self, body: FinancialFixInput) -> FinancialDoc:
-        return self._http.request("POST", f"{self._v2}/financial_documents/suggest", json=body).json()
-
-    def fix_financial_doc(self, body: FinancialFixInput) -> FinancialDoc:
-        return self._http.request("POST", f"{self._v2}/financial_documents/fix", json=body).json()
-
-    def reset_financial_doc(self, body: FinancialFixInput) -> FinancialDoc:
-        return self._http.request("POST", f"{self._v2}/financial_documents/reset", json=body).json()
-
-    def get_financial_doc_error_files(self, file_id: str) -> FinancialErrorFilesResponse:
-        return self._http.request("GET", f"{self._v2}/financial_documents/errors-files/{file_id}").json()
-
-    def get_financial_report(self, report_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> FinancialReport:
-        params: Dict[str, Any] = {}
-        if page is not None:
-            params["page"] = page
-        if limit is not None:
-            params["limit"] = limit
-        return self._http.request("GET", f"{self._v2}/financial_documents/reports/{report_id}", params=params).json()
-
-    def update_financial_report(self, report_id: str, body: Dict[str, Any]) -> FinancialReport:
-        return self._http.request("PUT", f"{self._v2}/financial_documents/reports/{report_id}", json=body).json()
-
-    def delete_financial_report(self, report_id: str) -> None:
-        self._http.request("DELETE", f"{self._v2}/financial_documents/reports/{report_id}")
 
     # --- AI Assistants (v2) ---
 
@@ -681,56 +617,6 @@ class AsyncAiResource:
     async def verify_tool_server(self, body: VerifyToolServerInput) -> VerifyToolServerResponse:
         res = await self._http.request("POST", f"{self._v3}/configs/tool_servers/verify", json=body)
         return res.json()
-
-    # --- Financial Documents (v2) ---
-
-    async def get_financial_doc(self, doc_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> FinancialDoc:
-        params: Dict[str, Any] = {}
-        if page is not None:
-            params["page"] = page
-        if limit is not None:
-            params["limit"] = limit
-        res = await self._http.request("GET", f"{self._v2}/financial_documents/{doc_id}", params=params)
-        return res.json()
-
-    async def update_financial_doc(self, doc_id: str, body: Dict[str, Any]) -> FinancialDoc:
-        res = await self._http.request("PUT", f"{self._v2}/financial_documents/{doc_id}", json=body)
-        return res.json()
-
-    async def delete_financial_doc(self, doc_id: str) -> None:
-        await self._http.request("DELETE", f"{self._v2}/financial_documents/{doc_id}")
-
-    async def suggest_financial_fix(self, body: FinancialFixInput) -> FinancialDoc:
-        res = await self._http.request("POST", f"{self._v2}/financial_documents/suggest", json=body)
-        return res.json()
-
-    async def fix_financial_doc(self, body: FinancialFixInput) -> FinancialDoc:
-        res = await self._http.request("POST", f"{self._v2}/financial_documents/fix", json=body)
-        return res.json()
-
-    async def reset_financial_doc(self, body: FinancialFixInput) -> FinancialDoc:
-        res = await self._http.request("POST", f"{self._v2}/financial_documents/reset", json=body)
-        return res.json()
-
-    async def get_financial_doc_error_files(self, file_id: str) -> FinancialErrorFilesResponse:
-        res = await self._http.request("GET", f"{self._v2}/financial_documents/errors-files/{file_id}")
-        return res.json()
-
-    async def get_financial_report(self, report_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> FinancialReport:
-        params: Dict[str, Any] = {}
-        if page is not None:
-            params["page"] = page
-        if limit is not None:
-            params["limit"] = limit
-        res = await self._http.request("GET", f"{self._v2}/financial_documents/reports/{report_id}", params=params)
-        return res.json()
-
-    async def update_financial_report(self, report_id: str, body: Dict[str, Any]) -> FinancialReport:
-        res = await self._http.request("PUT", f"{self._v2}/financial_documents/reports/{report_id}", json=body)
-        return res.json()
-
-    async def delete_financial_report(self, report_id: str) -> None:
-        await self._http.request("DELETE", f"{self._v2}/financial_documents/reports/{report_id}")
 
     # --- AI Assistants (v2) ---
 

@@ -245,40 +245,6 @@ export interface VerifyToolServerResponse {
 
 // ─── Financial Document interfaces  
 
-export interface FinancialDoc {
-  _id: string
-  name?: string
-  status?: string
-  pages?: unknown[]
-  created_at?: string
-  updated_at?: string
-  [key: string]: unknown
-}
-
-export interface UpdateFinancialDocInput {
-  [key: string]: unknown
-}
-
-export interface FinancialFixInput {
-  doc_id?: string
-  [key: string]: unknown
-}
-
-export interface FinancialErrorFilesResponse {
-  files?: unknown[]
-  [key: string]: unknown
-}
-
-export interface FinancialReport {
-  _id: string
-  name?: string
-  status?: string
-  [key: string]: unknown
-}
-
-export interface UpdateFinancialReportInput {
-  [key: string]: unknown
-}
 
 export class AiResource {
   /**
@@ -548,69 +514,6 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  // ─── Financial Documents (v2) 
-
-  async getFinancialDoc(docId: string, params?: { page?: number; limit?: number }): Promise<FinancialDoc> {
-    const url = new URL(`${this.v2}/financial_documents/${docId}`)
-    if (params?.page)  url.searchParams.set("page",  String(params.page))
-    if (params?.limit) url.searchParams.set("limit", String(params.limit))
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
-  }
-
-  async updateFinancialDoc(docId: string, body: UpdateFinancialDocInput): Promise<FinancialDoc> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/${docId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async deleteFinancialDoc(docId: string): Promise<void> {
-    await this.http.getFetch()(`${this.v2}/financial_documents/${docId}`, { method: "DELETE" })
-  }
-
-  async suggestFinancialFix(body: FinancialFixInput): Promise<FinancialDoc> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/suggest`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async fixFinancialDoc(body: FinancialFixInput): Promise<FinancialDoc> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/fix`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async resetFinancialDoc(body: FinancialFixInput): Promise<FinancialDoc> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/reset`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async getFinancialDocErrorFiles(fileId: string): Promise<FinancialErrorFilesResponse> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/errors-files/${fileId}`, { method: "GET" }).then(r => r.json())
-  }
-
-  async getFinancialReport(reportId: string, params?: { page?: number; limit?: number }): Promise<FinancialReport> {
-    const url = new URL(`${this.v2}/financial_documents/reports/${reportId}`)
-    if (params?.page)  url.searchParams.set("page",  String(params.page))
-    if (params?.limit) url.searchParams.set("limit", String(params.limit))
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
-  }
-
-  async updateFinancialReport(reportId: string, body: UpdateFinancialReportInput): Promise<FinancialReport> {
-    return this.http.getFetch()(`${this.v2}/financial_documents/reports/${reportId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
 
   // --- AI Assistants (v2) ---
 
