@@ -190,8 +190,8 @@ class BoardsResource:
         r = self._http.request("PUT", f"{self._base}/files/{file_id}", json=body).json()
         return r.get("data", r)
 
-    def delete_files(self, file_ids: list) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/files/delete", json={"file_ids": file_ids}).json()
+    def delete_files(self, ids: list) -> Dict[str, Any]:
+        return self._http.request("POST", f"{self._base}/files/delete", json={"ids": ids}).json()
 
     def generate_ai_tags(self, body: Dict[str, Any]) -> Dict[str, Any]:
         r = self._http.request("POST", f"{self._base}/ai/tag-generation", json=body).json()
@@ -336,8 +336,8 @@ class AsyncBoardsResource:
         r = res.json()
         return r.get("data", r)
 
-    async def delete_files(self, file_ids: list) -> Dict[str, Any]:
-        res = await self._http.request("POST", f"{self._base}/files/delete", json={"file_ids": file_ids})
+    async def delete_files(self, ids: list) -> Dict[str, Any]:
+        res = await self._http.request("POST", f"{self._base}/files/delete", json={"ids": ids})
         return res.json()
 
     async def upload_file(self, files: Any) -> Dict[str, Any]:

@@ -178,7 +178,7 @@ export interface UpdateFileInput {
 }
 
 export interface DeleteFilesInput {
-  file_ids: string[]
+  ids: string[]
   [key: string]: unknown
 }
 
