@@ -5,7 +5,7 @@ const GATEWAY      = 'https://app-gatewayv2.imbrace.co'
 const ASSISTANT_ID = 'a5ffe364-c136-40a0-aa49-84866e4d8485'
 const ORG_ID       = 'org_6d4ae4f2-f75c-4324-9269-c3fec12078cc'
 
-const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, gateway: GATEWAY })
+const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, baseUrl: GATEWAY })
 
 console.log('Testing streamChat (token streaming)...')
 // user_id omitted — SDK fetches it automatically via chat-client/auth/user

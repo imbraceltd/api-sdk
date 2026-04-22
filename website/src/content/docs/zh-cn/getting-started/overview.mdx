@@ -1,0 +1,65 @@
+---
+title: 架构概览
+description: Imbrace SDK 的范围、结构以及各网关之间的区别。
+---
+
+### 范围
+
+- SDK 覆盖 **App Gateway + Server Gateway**。
+- **Journey API** 和 **n8n 专用 HTTP 路径**不在本仓库范围内。
+
+### SDK 结构
+
+```
+sdk/
+├── py/src/imbrace/
+│   ├── client.py              ← ImbraceClient（同步入口）
+│   ├── async_client.py        ← AsyncImbraceClient
+│   ├── http.py                ← 传输、认证头、重试
+│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
+│   ├── environments.py        ← URL 预设（develop/sandbox/stable）
+│   ├── service_registry.py    ← 解析各服务 base URL
+│   ├── auth/token_manager.py  ← 线程安全令牌存储
+│   ├── resources/             ← 每个文件对应一个资源命名空间
+│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
+│   │   ├── platform.py
+│   │   ├── channel.py
+│   │   └── ...                （共 29 个资源）
+│   └── types/                 ← 公共 Pydantic 模型
+│
+└── ts/src/
+    ├── client.ts              ← ImbraceClient（入口）
+    ├── http.ts                ← 传输、认证头、重试
+    ├── errors.ts              ← AuthError, ApiError, NetworkError
+    ├── environments.ts        ← URL 预设
+    ├── service-registry.ts    ← 解析各服务 base URL
+    ├── auth/token-manager.ts  ← 令牌存储
+    ├── resources/             ← 每个文件对应一个资源命名空间
+    │   ├── ai-agent.ts        (AiAgentResource)
+    │   ├── platform.ts
+    │   ├── channel.ts
+    │   └── ...                （共 29 个资源）
+    └── types/                 ← TypeScript 公共接口
+```
+
+### 各网关的区别
+
+| 网关           | 认证头                          | 路径模式                  |
+| -------------- | ------------------------------- | ------------------------- |
+| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
+| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+
+### 测试层级
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  单元测试（无需服务器，无需 API key）                      │
+│  → 完整 HTTP 模拟：pytest-httpx (Python) / vitest (TS)   │
+│  → 离线运行，适合 CI/CD                                   │
+│  → 检查：SDK 逻辑、请求头、URL、参数、错误                 │
+├──────────────────────────────────────────────────────────┤
+│  集成测试（需要真实服务器 + 有效 API key）                 │
+│  → 真实调用 app-gatewayv2.imbrace.co                     │
+│  → 未设置 IMBRACE_API_KEY 时自动跳过                      │
+└──────────────────────────────────────────────────────────┘
+```

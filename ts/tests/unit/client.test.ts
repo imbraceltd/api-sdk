@@ -27,7 +27,7 @@ describe("ImbraceClient", () => {
 
   it("strips trailing slash from gateway", () => {
     // No error means construction succeeded; trailing slash is stripped internally
-    expect(() => new ImbraceClient({ gateway: "https://staging.imbrace.co/", apiKey: "key" })).not.toThrow()
+    expect(() => new ImbraceClient({ baseUrl: "https://staging.imbrace.co/", apiKey: "key" })).not.toThrow()
   })
 
   it("warns when no credentials are provided", () => {

@@ -2,7 +2,7 @@ import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({
   accessToken: 'acc_c10f483f-0e45-4966-a275-2fb0356365e7',
-  gateway: 'https://app-gatewayv2.imbrace.co',
+  baseUrl: 'https://app-gatewayv2.imbrace.co',
 })
 
 async function test(name, fn) {

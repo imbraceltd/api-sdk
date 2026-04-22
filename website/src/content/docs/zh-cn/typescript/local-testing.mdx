@@ -1,0 +1,126 @@
+---
+title: TypeScript SDK — 本地测试
+description: 在本地测试已构建的 @imbrace/sdk 包，模拟真实消费者从 npm 安装的方式。
+---
+
+本指南允许测试**已构建的包**（`dist/`），方式与消费者从 npm 安装完全相同 — 而非原始源码。
+
+### 前提条件
+
+- Node 18+
+- 如需从 Ansible 解密环境变量，需配置 AWS credentials（profile `imbrace`）
+
+### 初始设置（一次性）
+
+#### 1. 构建 SDK
+
+```bash
+cd ts
+npm install
+npm run build
+```
+
+#### 2. 全局链接包
+
+```bash
+# 在 ts/ 目录中
+npm link
+```
+
+此命令使 `@imbrace/sdk` 可用，就像从 npm 安装一样。
+
+#### 3. 链接到测试目录
+
+```bash
+cd ts/tests/local
+npm link @imbrace/sdk
+```
+
+#### 4. 配置凭证
+
+```bash
+cp .env.example .env
+```
+
+然后填写 `.env`。对于开发环境，最快的方式是从 Ansible 拉取变量：
+
+```bash
+# 从 ts/ 根目录（或包含 secrets.enc.env 的位置）
+AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> tests/local/.env
+```
+
+实时调用所需的最低配置：
+
+| 变量                      | 获取方式                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| `IMBRACE_API_KEY`         | Imbrace Portal，或使用现有 access token 调用 `POST /private/backend/v1/third_party_token`  |
+| `IMBRACE_ORGANIZATION_ID` | Portal 中的组织 UUID                                                                       |
+| `IMBRACE_GATEWAY_URL`     | 留空则使用 `app-gateway.dev.imbrace.co`                                                    |
+
+### 运行测试
+
+```bash
+cd ts/tests/local
+node test-local.mjs
+```
+
+**未提供凭证** — 仅运行实例化 + 资源接口检查（无网络请求）。
+
+**设置了 `IMBRACE_API_KEY`** — 对 `IMBRACE_GATEWAY_URL` 中的网关运行完整实时 API 检查。
+
+### 切换环境
+
+修改 `.env`（或内联导出）：
+
+| 环境       | `IMBRACE_GATEWAY_URL`                    |
+| ---------- | ---------------------------------------- |
+| develop    | `https://app-gateway.dev.imbrace.co`     |
+| sandbox    | `https://app-gateway.sandbox.imbrace.co` |
+| stable     | `https://app-gatewayv2.imbrace.co`       |
+
+```bash
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+```
+
+### SDK 更改的迭代流程
+
+每次修改源文件后，重新构建即可使用新的 dist：
+
+```bash
+# ts/
+npm run build
+
+# tests/local
+node test-local.mjs
+```
+
+或在单独的终端中保持编译器监视模式：
+
+```bash
+# 终端 1 — ts/
+npm run dev
+
+# 终端 2 — ts/tests/local
+node test-local.mjs   # 随时重新运行
+```
+
+### 故障排查
+
+**`Cannot find package '@imbrace/sdk'`**
+
+在 `tests/local/` 内重新运行 `npm link @imbrace/sdk`。如果删除并重新安装 `ts/` 中的 `node_modules`，链接可能会断开。
+
+**`ERR_MODULE_NOT_FOUND`（dist 文件）**
+
+包尚未构建，或添加了新的源文件但未重新构建。在 `ts/` 中运行 `npm run build`。
+
+**实时调用返回 401 / 403**
+
+`IMBRACE_API_KEY` 已过期或无效。生成新密钥：
+
+```bash
+curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```

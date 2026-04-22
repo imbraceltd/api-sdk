@@ -12,7 +12,7 @@ const ORG_ID       = process.env.IMBRACE_ORG_ID       || 'org_8d2a2d53-20ef-4c54
 // Small Chinese VAT invoice image — publicly accessible on prodv2
 const TEST_IMAGE_URL = 'https://app-gatewayv2.imbrace.co/files/download/118615471-5b33f600-b7f3-11eb-94a1-78e635e66558.png'
 
-const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, gateway: GATEWAY, organizationId: ORG_ID })
+const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, baseUrl: GATEWAY, organizationId: ORG_ID })
 const chatAi = client.chatAi
 
 let passed = 0, failed = 0, skipped = 0

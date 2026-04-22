@@ -7,7 +7,7 @@ import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN || 'acc_c8c27f3b-e147-4735-b641-61e8d3706692',
-  gateway: process.env.IMBRACE_GATEWAY_URL || 'https://app-gatewayv2.imbrace.co',
+  baseUrl: process.env.IMBRACE_GATEWAY_URL || 'https://app-gatewayv2.imbrace.co',
 })
 
 const ap = client.activepieces

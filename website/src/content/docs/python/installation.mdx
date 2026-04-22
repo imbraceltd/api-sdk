@@ -7,6 +7,8 @@ description: Install the imbrace package and configure your environment.
 
 ```bash
 pip install imbrace
+# or
+uv add imbrace
 ```
 
 Development mode (from source, includes dev tools):
@@ -14,42 +16,10 @@ Development mode (from source, includes dev tools):
 ```bash
 cd py
 pip install -e ".[dev]"
-# Installs: pytest, ruff, mypy, pytest-httpx, python-dotenv
+# Installs: pytest, ruff, mypy, pytest-httpx
 ```
 
-### Environment Setup
-
-Copy the example env file and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and set:
-
-```env
-IMBRACE_API_KEY=your-api-key-here
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
-```
-
-#### Get an API Key
-
-Call the Imbrace auth endpoint with an existing access token:
-
-```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"expirationDays": 30}'
-```
-
-Response:
-
-```json
-{ "apiKey": { "apiKey": "sk-xxx..." } }
-```
-
-The value you need is `response.apiKey.apiKey`.
+For credentials, environments, and service URL overrides, see the [Setup Guide](/getting-started/setup/).
 
 ---
 
@@ -73,5 +43,3 @@ print("SDK ready")
 | `IMBRACE_ORG_ID`   | No       | —        | Organization ID (for integration tests)                  |
 
 \*Or pass `access_token` directly for client-side usage.
-
----

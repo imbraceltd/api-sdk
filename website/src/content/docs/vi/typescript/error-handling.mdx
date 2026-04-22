@@ -75,7 +75,7 @@ try {
   await client.platform.getMe();
 } catch (e) {
   if (e instanceof NetworkError) {
-    console.error("Không thể kết nối gateway:", e.message);
+    console.error("Không thể kết nối baseUrl:", e.message);
     // Ví dụ: "Request timed out after 30000ms"
   }
 }

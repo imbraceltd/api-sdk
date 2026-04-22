@@ -1,0 +1,94 @@
+---
+title: Python SDK — 简介
+description: Imbrace Python SDK 概览、内部工作原理及使用场景。
+---
+
+`imbrace` 包是 Imbrace Gateway 的官方 Python 客户端。提供**同步**和**异步**客户端，适用于传统 Django/Flask 和 FastAPI 等现代异步框架。
+
+### 主要特性
+
+| 特性                    | 详情                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| **双客户端**            | `ImbraceClient`（同步，`httpx.Client`）和 `AsyncImbraceClient`（异步，`httpx.AsyncClient`）|
+| **完整类型提示**        | 所有请求/响应通过 Pydantic models 和 type hints 进行类型标注                                |
+| **双重认证**            | API Key（服务端对服务端）或 Access Token（JWT / 传统 token）                                |
+| **自动重试**            | 429 和 5xx 最多重试 3 次，使用指数退避                                                      |
+| **分页辅助**            | `iterate_paged()` 遍历所有页面逐个产出条目                                                  |
+| **上下文管理器**        | `with`/`async with` 语法自动清理连接                                                        |
+| **多环境支持**          | 预设 `develop` / `sandbox` / `stable`                                                       |
+
+### 工作原理
+
+```
+Your Code
+   │
+   ▼
+ImbraceClient / AsyncImbraceClient     ← 唯一入口点
+   ├── TokenManager                    ← 线程安全的 token 存储
+   └── HttpTransport / AsyncHttpTransport
+         ├── 选择认证策略               ← API Key / JWT Bearer / x-access-token
+         ├── 指数退避重试               ← 429 和 5xx
+         └── 连接池（httpx）            ← keepalive, max_connections=10
+               │
+               ▼
+         Imbrace Gateway               ← app-gatewayv2.imbrace.co
+```
+
+### 内部架构
+
+| 层级             | 文件                           | 职责                                              |
+| ---------------- | ------------------------------ | ------------------------------------------------- |
+| 入口点           | `client.py`, `async_client.py` | 初始化 resources，登录辅助方法                    |
+| HTTP 传输        | `http.py`                      | 认证头、重试、超时、错误映射                      |
+| Token 管理器     | `auth/token_manager.py`        | 线程安全的 token 读写                             |
+| 服务注册表       | `service_registry.py`          | 从环境预设解析每个服务的 URL                      |
+| Resources        | `resources/*.py`               | 每个领域的 API 方法封装（29 个 resources）        |
+| 类型             | `types/*.py`                   | Pydantic models 和 dataclasses                    |
+| 异常             | `exceptions.py`                | `AuthError`、`ApiError`、`NetworkError`            |
+
+### Resource 列表（29 个）
+
+| 命名空间               | 用途                                        |
+| ---------------------- | ------------------------------------------- |
+| `client.auth`          | OTP 登录、验证、登出                        |
+| `client.account`       | 账户信息                                    |
+| `client.marketplace`   | 产品、订单                                  |
+| `client.platform`      | 用户、组织、权限                            |
+| `client.channel`       | 渠道、消息                                  |
+| `client.ips`           | 身份与档案 — 档案、关注/取消关注            |
+| `client.agent`         | AI agent 模板和运行                         |
+| `client.ai`            | LLM 补全、流式传输、嵌入                    |
+| `client.sessions`      | 会话管理                                    |
+| `client.messages`      | 会话内消息                                  |
+| `client.contacts`      | 联系人管理                                  |
+| `client.conversations` | 对话                                        |
+| `client.teams`         | 团队管理                                    |
+| `client.workflows`     | 工作流自动化                                |
+| `client.boards`        | 看板 CRUD 和条目                            |
+| `client.settings`      | 组织设置                                    |
+| `client.organizations` | 组织列表                                    |
+| `client.health`        | Gateway 健康检查                            |
+| `client.campaigns`     | 营销活动管理                                |
+| `client.schedule`      | 定时任务                                    |
+| `client.categories`    | 分类管理                                    |
+| `client.data_files`    | 数据文件管理                                |
+| `client.folders`       | 文件夹管理                                  |
+| `client.outbounds`     | 外呼消息                                    |
+| `client.touchpoints`   | Touchpoint 管理                             |
+| `client.chat_ai`       | Chat AI 会话                                |
+| `client.file_service`  | 文件上传                                    |
+| `client.activepieces`  | Activepieces 集成                           |
+| `client.ai_agent`      | Chat AI agent、embeddings、parquet、trace   |
+
+### 同步 vs 异步 — 何时使用哪个
+
+| 客户端               | 框架                           | 导入                                             |
+| -------------------- | ------------------------------ | ------------------------------------------------ |
+| `ImbraceClient`      | Django、Flask、脚本、Celery    | `from imbrace import ImbraceClient`              |
+| `AsyncImbraceClient` | FastAPI、asyncio、aiohttp      | `from imbrace import AsyncImbraceClient`         |
+
+:::tip
+两个客户端具有完全相同的 resource 接口 — 唯一的区别是方法调用前的 `await`。您可以在不更改业务逻辑的情况下相互替换。
+:::
+
+---

@@ -35,6 +35,24 @@ export interface ChatAiKnowledge {
   [key: string]: unknown
 }
 
+export interface Assistant {
+  id: string
+  name: string
+  description?: string
+  model?: string
+  instructions?: string
+  [key: string]: unknown
+}
+
+export interface CreateAssistantInput {
+  name: string
+  workflow_name: string
+  description?: string
+  model?: string
+  instructions?: string
+  [key: string]: unknown
+}
+
 export interface DocumentAIInput {
   modelName: string
   url: string
@@ -415,5 +433,48 @@ export class ChatAiResource {
    */
   async listDocumentModels(): Promise<any[]> {
     return this.http.getFetch()(`${this.base}/providers`, { method: "GET" }).then(r => r.json())
+  }
+
+  // ─── Assistants ───────────────────────────────────────────────────────────
+
+  async listAssistants(): Promise<Assistant[]> {
+    return this.http.getFetch()(`${this.base}/accounts/assistants`, { method: "GET" }).then(r => r.json())
+  }
+
+  async getAssistant(id: string): Promise<Assistant> {
+    return this.http.getFetch()(`${this.base}/assistants/${id}`, { method: "GET" }).then(r => r.json())
+  }
+
+  async createAssistant(body: CreateAssistantInput): Promise<Assistant> {
+    return this.http.getFetch()(`${this.base}/assistant_apps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  async updateAssistant(id: string, body: Partial<CreateAssistantInput>): Promise<Assistant> {
+    return this.http.getFetch()(`${this.base}/assistant_apps/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  async deleteAssistant(id: string): Promise<boolean> {
+    const r = await this.http.getFetch()(`${this.base}/assistant_apps/${id}`, { method: "DELETE" })
+    return r.ok
+  }
+
+  async updateAssistantInstructions(id: string, instructions: string): Promise<Assistant> {
+    return this.http.getFetch()(`${this.base}/assistants/${id}/instructions`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instructions }),
+    }).then(r => r.json())
+  }
+
+  async listAssistantAgents(): Promise<any[]> {
+    return this.http.getFetch()(`${this.base}/assistants/agents`, { method: "GET" }).then(r => r.json())
   }
 }

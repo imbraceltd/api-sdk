@@ -1,0 +1,77 @@
+---
+title: 常见问题
+description: 使用 Imbrace SDK 时的常见错误及解决方法。
+---
+
+## `AuthError: Invalid or expired access token.`（HTTP 401）
+
+`.env` 中的 API key 已过期。
+
+```bash
+# 更新 .env
+IMBRACE_API_KEY=api_xxx_new
+```
+
+---
+
+## `ApiError: [400] {"message":"must have required property 'type'"}`
+
+调用 `channel.list()` 时缺少必填参数。
+
+```python
+# 错误
+client.app.channel.list()
+
+# 正确
+client.app.channel.list(type="web")
+```
+
+---
+
+## `ApiError: [404]` 且 URL 路径重复
+
+`IMBRACE_BASE_URL` 被错误地设置为完整的 endpoint 路径，导致 URL 重复。
+
+```env
+# 错误
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
+
+# 正确
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+---
+
+## 集成测试全部被跳过
+
+`IMBRACE_API_KEY` 未设置。
+
+```bash
+# 运行时临时设置
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+
+# 或添加到 .env
+echo "IMBRACE_API_KEY=api_xxx" >> py/.env
+```
+
+---
+
+## `Cannot find module`（TypeScript 测试）
+
+测试文件中的导入路径需要正确的目录层级：
+
+| 测试文件位置                     | 导入路径                          |
+| -------------------------------- | --------------------------------- |
+| `tests/unit/*.test.ts`           | `../../src/client.js`             |
+| `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
+| `tests/integration/*.test.ts`    | `../../src/client.js`             |
+
+---
+
+## `mypy` 报错 `Pattern matching is only supported in Python 3.10`
+
+mypy 错误地扫描了 `site-packages`。已在 `pyproject.toml` 中配置。如果仍然报错：
+
+```bash
+mypy src/imbrace --exclude site-packages
+```

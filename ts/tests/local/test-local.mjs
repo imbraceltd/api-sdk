@@ -56,7 +56,7 @@ try {
   client = new ImbraceClient({
     apiKey: API_KEY || undefined,
     accessToken: ACCESS_TOKEN || undefined,
-    gateway: BASE_URL,
+    baseUrl: BASE_URL,
   });
   ok("ImbraceClient created");
 } catch (e) {
@@ -103,7 +103,7 @@ if (!API_KEY && !ACCESS_TOKEN) {
   );
 } else {
   const method = API_KEY ? "API Key" : "Access Token";
-  console.log(`\n[3] Live API calls  (gateway: ${BASE_URL}, via: ${method})`);
+  console.log(`\n[3] Live API calls  (baseUrl: ${BASE_URL}, via: ${method})`);
 
   // Note: account/channel/teams/conversations route to microservices not present on prodv2
   // (platform + channel-service). Use services known to exist on all envs.

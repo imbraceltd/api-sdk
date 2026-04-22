@@ -1,0 +1,294 @@
+---
+title: TypeScript SDK — AI Agent
+description: Tham chiếu đầy đủ cho resource aiAgent — streaming chat, embeddings, parquet, distributed tracing, và chat-client sub-API.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`client.aiAgent` kết nối đến AI Agent service riêng biệt, chạy trên một base URL khác so với API gateway chính. Resource này cung cấp streaming chat, quản lý embedding knowledge base, dữ liệu dạng cột (Parquet), distributed tracing (Tempo), và toàn bộ Chat Client sub-API được sử dụng bởi các ứng dụng frontend.
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+const client = new ImbraceClient();
+```
+
+---
+
+#### Hệ Thống
+
+```typescript
+const config   = await client.aiAgent.getConfig();
+const health   = await client.aiAgent.getHealth();        // kiểm tra cơ bản
+const healthD  = await client.aiAgent.getHealth(true);    // thống kê chi tiết
+const version  = await client.aiAgent.getVersion();
+```
+
+---
+
+#### Chat v1 — Lịch Sử Hội Thoại
+
+Liệt kê, đọc và xóa các bản ghi chat được lưu trữ.
+
+```typescript
+// Liệt kê chats của một tổ chức
+const chats = await client.aiAgent.listChats({
+  organization_id: "org_abc",
+  user_id: "user_123",
+  limit: 20,
+});
+
+// Lấy một chat (truyền true để bao gồm messages)
+const chat = await client.aiAgent.getChat("chat_id", true);
+
+// Xóa chat
+await client.aiAgent.deleteChat("chat_id", {
+  organization_id: "org_abc",
+  user_id: "user_123",
+});
+```
+
+---
+
+#### Chat v2 — Streaming (SSE)
+
+`streamChat` trả về `Response` thô. Consume body dưới dạng luồng Server-Sent Events.
+
+```typescript
+const response = await client.aiAgent.streamChat({
+  id: "chat_id",
+  assistant_id: "asst_abc",
+  organization_id: "org_abc",
+  messages: [{ role: "user", content: "Bạn có thể làm gì?" }],
+});
+
+// Đọc các SSE chunk
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  process.stdout.write(decoder.decode(value));
+}
+```
+
+---
+
+#### Sub-agent Chat v2
+
+Stream phản hồi từ sub-agent và lấy lịch sử hội thoại của nó.
+
+```typescript
+// Stream từ sub-agent
+const res = await client.aiAgent.streamSubAgentChat({
+  assistant_id: "asst_sub",
+  organization_id: "org_abc",
+  session_id: "sess_xyz",
+  chat_id: "chat_id",
+  messages: [{ role: "user", content: "Giải thích dữ liệu." }],
+});
+
+// Lấy lịch sử sub-agent session
+const history = await client.aiAgent.getSubAgentHistory({
+  session_id: "sess_xyz",
+  chat_id: "chat_id",
+});
+```
+
+---
+
+#### Gợi Ý Prompt
+
+Lấy danh sách prompt gợi ý cho một assistant.
+
+```typescript
+const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_abc");
+```
+
+---
+
+#### Embeddings & Knowledge Base
+
+Quản lý các file được dùng cho Retrieval-Augmented Generation (RAG). File cần được upload qua `client.fileService` trước khi có thể embed.
+
+```typescript
+// Kích hoạt xử lý embedding cho file đã upload
+await client.aiAgent.processEmbedding({ fileId: "file_abc" });
+
+// Liệt kê và kiểm tra embedding files
+const files   = await client.aiAgent.listEmbeddingFiles({ page: 1, limit: 20 });
+const file    = await client.aiAgent.getEmbeddingFile("file_abc");
+const preview = await client.aiAgent.previewEmbeddingFile({ file_id: "file_abc" });
+
+// Cập nhật trạng thái và xóa
+await client.aiAgent.updateEmbeddingFileStatus("file_abc", "active");
+await client.aiAgent.deleteEmbeddingFile("file_abc");
+
+// Phân loại file cho RAG
+const classification = await client.aiAgent.classifyFile({ file_id: "file_abc" });
+```
+
+---
+
+#### Data Board
+
+Gợi ý kiểu dữ liệu bằng AI cho các tập dữ liệu có cấu trúc.
+
+```typescript
+const result = await client.aiAgent.suggestFieldTypes({
+  fields: [
+    { name: "created_at", samples: ["2024-01-01", "2024-02-15"] },
+    { name: "amount",     samples: [100, 200.5, 999] },
+    { name: "is_active",  samples: [true, false, true] },
+  ],
+});
+// result.fields[i].suggestedType → "datetime" | "number" | "boolean" | ...
+```
+
+---
+
+#### Parquet
+
+Tạo và quản lý các file dữ liệu dạng cột Parquet cho pipeline phân tích.
+
+```typescript
+// Tạo file Parquet từ dữ liệu JSON
+const result = await client.aiAgent.generateParquet({
+  data: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
+  fileName: "users",
+  folderName: "exports",
+});
+
+// Liệt kê tất cả Parquet files
+const files = await client.aiAgent.listParquetFiles();
+
+// Xóa một file cụ thể
+await client.aiAgent.deleteParquetFile("exports/users.parquet");
+```
+
+---
+
+#### Distributed Tracing (Tempo)
+
+Truy vấn Grafana Tempo traces từ AI Agent service để quan sát và debug.
+
+```typescript
+// Liệt kê traces gần đây
+const traces = await client.aiAgent.getTraces({
+  service:   "ai-agent",
+  limit:     50,
+  timeRange: 3600,      // giây
+  orgId:     "org_abc",
+  details:   true,
+});
+
+// Xem chi tiết một trace
+const trace = await client.aiAgent.getTrace("trace_id_hex");
+
+// Liệt kê services, tags và giá trị tag
+const services = await client.aiAgent.getTraceServices();
+const tags     = await client.aiAgent.getTraceTags();
+const values   = await client.aiAgent.getTraceTagValues("http.status_code");
+
+// Tìm kiếm bằng TraceQL
+const results = await client.aiAgent.searchTraceQL(
+  `{ .service.name = "ai-agent" && .http.status = 500 }`
+);
+```
+
+---
+
+#### Chat Client
+
+Chat Client sub-API phục vụ các ứng dụng frontend (ví dụ: embedded chat widget). Bao gồm xác thực, CRUD cho chat/message, bình chọn và tài liệu do AI tạo ra.
+
+##### Xác Thực
+
+```typescript
+await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
+await client.aiAgent.registerChatClient({ name: "web-app", secret: "s3cr3t" });
+const user = await client.aiAgent.getChatClientUser({ token: "tok_xxx" });
+```
+
+##### Chats
+
+```typescript
+// Tạo session chat mới
+await client.aiAgent.createClientChat({
+  id: "chat_uuid",
+  message: {
+    id: "msg_uuid",
+    role: "user",
+    parts: [{ type: "text", text: "Xin chào!" }],
+  },
+  assistantId:    "asst_abc",
+  organizationId: "org_abc",
+});
+
+// Liệt kê, đọc, cập nhật, xóa
+const chats = await client.aiAgent.listClientChats({
+  organization_id: "org_abc",
+  limit: 20,
+});
+const chat = await client.aiAgent.getClientChat("chat_id");
+await client.aiAgent.updateClientChat("chat_id", { visibility: "private" });
+await client.aiAgent.deleteClientChat("chat_id");
+await client.aiAgent.deleteAllClientChats({ organization_id: "org_abc" });
+
+// Tự động tạo tiêu đề cho chat
+await client.aiAgent.generateClientChatTitle("chat_id");
+
+// Stream trạng thái chat thời gian thực dưới dạng SSE
+const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
+```
+
+##### Messages
+
+```typescript
+// Lưu một message
+await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Xin chào" });
+
+// Liệt kê tất cả messages trong chat
+const messages = await client.aiAgent.listClientMessages("chat_id");
+
+// Xóa message và tất cả messages sau đó trong thread
+await client.aiAgent.deleteTrailingMessages("message_id");
+```
+
+##### Bình Chọn
+
+```typescript
+const votes = await client.aiAgent.getVotes("chat_id");
+await client.aiAgent.updateVote({ messageId: "msg_id", vote: "up" });
+```
+
+##### Tài Liệu (AI-generated artifacts)
+
+```typescript
+// Tạo tài liệu do AI sinh ra
+await client.aiAgent.createDocument({ kind: "text", content: "Bản nháp..." });
+
+// Lấy tài liệu
+const doc        = await client.aiAgent.getDocument("doc_id");
+const latest     = await client.aiAgent.getDocumentLatest("doc_id");
+const pub        = await client.aiAgent.getDocumentPublic("doc_id");
+const byKind     = await client.aiAgent.getDocumentLatestByKind({ kind: "text" });
+const suggestion = await client.aiAgent.getDocumentSuggestions("doc_id");
+
+// Xóa tài liệu
+await client.aiAgent.deleteDocument("doc_id");
+```
+
+---
+
+#### Admin Guides
+
+Truy cập tài liệu admin được lưu trữ bởi AI Agent service. File guide được trả về dưới dạng luồng nhị phân thô (thường là PDF).
+
+```typescript
+// Liệt kê các guide có sẵn
+const guides = await client.aiAgent.listAdminGuides();
+
+// Tải một guide cụ thể — trả về Response thô (luồng PDF)
+const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
+const blob = await response.blob();
+```

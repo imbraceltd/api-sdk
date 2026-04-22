@@ -1,0 +1,319 @@
+---
+title: 完整流程指南
+description: 端到端指南 — 从初始化 client 到 AI agents、工作流、knowledge hubs 和数据看板。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+本指南从头到尾演示 Imbrace SDK 的四个主要流程。每个部分相互独立 — 可以按顺序阅读，也可以直接跳到需要的部分。
+
+---
+
+### 1. 创建 AI 助手并开始聊天
+
+<Steps>
+
+1. **初始化 client**
+
+   ```typescript
+   import { ImbraceClient } from "@imbrace/sdk"
+
+   const client = new ImbraceClient({
+     baseUrl: "https://app-gatewayv2.imbrace.co",
+     accessToken: "acc_your_token",
+   })
+   ```
+
+2. **创建助手**
+
+   `workflow_name` 在组织内必须唯一。
+
+   ```typescript
+   const assistant = await client.chatAi.createAssistant({
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     description: "处理一级客户支持问题",
+     instructions: "您是支持助手。请简洁友好地回答。",
+   })
+
+   const assistantId = assistant.id  // UUID — 用于所有后续调用
+   console.log("Assistant created:", assistantId)
+   ```
+
+3. **从助手流式获取聊天响应**
+
+   ```typescript
+   const response = await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     messages: [{ role: "user", content: "如何重置密码？" }],
+     // id 是会话 UUID — 重复传入以保留对话历史
+     // 若省略，每次调用将自动生成新 UUID
+   })
+
+   const reader = response.body!.getReader()
+   const decoder = new TextDecoder()
+
+   while (true) {
+     const { done, value } = await reader.read()
+     if (done) break
+     const text = decoder.decode(value)
+     for (const line of text.split("\n")) {
+       if (line.startsWith("data: ")) {
+         const data = line.slice(6).trim()
+         if (data && data !== "[DONE]") {
+           try {
+             const chunk = JSON.parse(data)
+             process.stdout.write(chunk.content ?? "")
+           } catch {}
+         }
+       }
+     }
+   }
+   ```
+
+4. **维护对话历史（session ID）**
+
+   在多次调用中传入相同的 `id`（必须是 UUID）以保留上下文：
+
+   ```typescript
+   import { randomUUID } from "crypto"
+
+   const sessionId = randomUUID()
+
+   // 第一条消息
+   await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     id: sessionId,
+     messages: [{ role: "user", content: "您的退款政策是什么？" }],
+   })
+
+   // 下一条消息 — 同一会话，助手记住上下文
+   await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     id: sessionId,
+     messages: [{ role: "user", content: "需要多长时间处理？" }],
+   })
+   ```
+
+</Steps>
+
+---
+
+### 2. 使用 Activepieces 创建工作流并与助手关联
+
+<Steps>
+
+1. **列出现有 flows 以获取 project ID**
+
+   ```typescript
+   const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
+   const projectId = flows[0]?.projectId
+   console.log("Project ID:", projectId)
+   ```
+
+2. **创建新 flow**
+
+   ```typescript
+   const flow = await client.activepieces.createFlow({
+     displayName: "新 Lead 时更新 CRM",
+     projectId,
+   })
+   console.log("Flow created:", flow.id)
+   ```
+
+3. **手动触发 flow 并传入 payload**
+
+   ```typescript
+   // 异步（fire and forget）
+   await client.activepieces.triggerFlow(flow.id, {
+     contact_name: "张三",
+     email: "zhangsan@example.com",
+   })
+
+   // 或等待结果（同步）
+   const result = await client.activepieces.triggerFlowSync(flow.id, {
+     contact_name: "张三",
+     email: "zhangsan@example.com",
+   })
+   console.log("Flow result:", result)
+   ```
+
+4. **将 flow 与助手关联**
+
+   在 Imbrace dashboard 中打开助手，进入 **Tools → Workflows** 并绑定 flow。助手在对话中将能够在适当时机触发 flow。
+
+   或更新助手以按名称引用工作流：
+
+   ```typescript
+   await client.chatAi.updateAssistant(assistantId, {
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     // workflow_function_call 将助手与 Activepieces flows 关联
+     workflow_function_call: [{ flow_id: flow.id, description: "新 lead 时更新 CRM" }],
+   })
+   ```
+
+5. **查看运行历史**
+
+   ```typescript
+   const { data: runs } = await client.activepieces.listRuns({
+     flowId: flow.id,
+     limit: 10,
+   })
+   for (const run of runs) {
+     console.log(run.id, run.status, run.startTime)
+   }
+   ```
+
+</Steps>
+
+---
+
+### 3. 管理 Knowledge Hub 并绑定到助手
+
+Knowledge Hub 在 **data-board** 服务（`client.boards`）中存储文件和文件夹。文件夹的 `_id` 是您传给助手作为知识来源的值。
+
+<Steps>
+
+1. **创建文件夹**
+
+   ```typescript
+   const folder = await client.boards.createFolder({
+     name: "产品文档",
+     organization_id: "org_your_org_id",
+     parent_folder_id: "root",
+     source_type: "upload",
+   })
+   console.log("Folder ID:", folder._id)
+   ```
+
+2. **上传文件到文件夹**
+
+   ```typescript
+   import { readFileSync } from "fs"
+
+   const fileBuffer = readFileSync("./docs/faq.pdf")
+   const formData = new FormData()
+   formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
+   formData.append("folder_id", folder._id)
+   formData.append("organization_id", "org_your_org_id")
+
+   const uploaded = await client.boards.uploadFile(formData)
+   console.log("File uploaded:", uploaded.file_id)
+   ```
+
+3. **将文件夹绑定到助手**
+
+   将文件夹的 `_id` 传入 `knowledge_hubs` — 助手将使用该文件夹中的所有文件。
+
+   ```typescript
+   await client.chatAi.updateAssistant(assistantId, {
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     knowledge_hubs: [folder._id],
+   })
+   ```
+
+4. **查看和管理文件夹/文件**
+
+   ```typescript
+   // 搜索文件夹
+   const folders = await client.boards.searchFolders({ q: "产品" })
+
+   // 获取文件夹内容
+   const contents = await client.boards.getFolderContents(folder._id)
+   console.log("Files:", contents.files?.length)
+
+   // 重命名文件夹
+   await client.boards.updateFolder(folder._id, { name: "产品文档 v2" })
+
+   // 搜索文件夹中的文件
+   const files = await client.boards.searchFiles({ folderId: folder._id })
+
+   // 删除文件夹
+   await client.boards.deleteFolders({ ids: [folder._id] })
+   ```
+
+</Steps>
+
+---
+
+### 4. 管理数据看板和条目（CRM Pipeline）
+
+<Steps>
+
+1. **创建看板**
+
+   看板是一个 CRM pipeline — leads、deals、tasks 或任何结构化数据。
+
+   ```typescript
+   const board = await client.boards.create({
+     name: "Sales Pipeline",
+     description: "跟踪所有活跃交易",
+   })
+   console.log("Board ID:", board._id)
+   ```
+
+2. **添加自定义字段**
+
+   字段类型：`ShortText`、`LongText`、`Number`、`Dropdown`、`Date`、`Checkbox` 等。
+   `createField` 返回已更新的看板 — 新字段位于 `board.fields` 中。
+
+   ```typescript
+   const updated = await client.boards.createField(board._id, {
+     name: "公司",
+     type: "ShortText",
+   })
+   // 获取标识符字段（每个看板自动创建）
+   const identifierField = updated.fields.find(f => f.is_identifier)
+   ```
+
+3. **创建看板条目（记录）**
+
+   条目使用格式 `{ fields: [{ board_field_id, value }] }`：
+
+   ```typescript
+   const item = await client.boards.createItem(board._id, {
+     fields: [
+       { board_field_id: identifierField._id, value: "Acme Corp" },
+     ],
+   })
+   console.log("Item ID:", item._id)
+   ```
+
+4. **列出和搜索条目**
+
+   ```typescript
+   // 分页条目
+   const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 })
+
+   // 全文搜索
+   const { data: results } = await client.boards.search(board._id, {
+     q: "Acme",
+     limit: 10,
+   })
+   ```
+
+5. **更新和删除条目**
+
+   `updateItem` 使用数组格式 `{ data: [{ key: fieldId, value }] }`：
+
+   ```typescript
+   await client.boards.updateItem(board._id, item._id, {
+     data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
+   })
+
+   await client.boards.deleteItem(board._id, item._id)
+   ```
+
+6. **导出看板为 CSV**
+
+   ```typescript
+   const csv = await client.boards.exportCsv(board._id)
+   // csv 是字符串 — 写入文件或作为下载发送
+   ```
+
+</Steps>

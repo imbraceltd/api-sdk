@@ -1,0 +1,319 @@
+---
+title: Full Flow Guide
+description: End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need.
+
+---
+
+## 1. Create an AI Assistant and Start Chatting
+
+<Steps>
+
+1. **Initialize the client**
+
+   ```typescript
+   import { ImbraceClient } from "@imbrace/sdk"
+
+   const client = new ImbraceClient({
+     baseUrl: "https://app-gatewayv2.imbrace.co",
+     accessToken: "acc_your_token",
+   })
+   ```
+
+2. **Create an assistant**
+
+   `workflow_name` must be unique within your organization.
+
+   ```typescript
+   const assistant = await client.chatAi.createAssistant({
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     description: "Handles tier-1 customer support queries",
+     instructions: "You are a helpful support agent. Be concise and friendly.",
+   })
+
+   const assistantId = assistant.id  // UUID — use this for all subsequent calls
+   console.log("Assistant created:", assistantId)
+   ```
+
+3. **Stream a chat response using the assistant**
+
+   ```typescript
+   const response = await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     messages: [{ role: "user", content: "How do I reset my password?" }],
+     // id is the session UUID — reuse it to maintain conversation history
+     // If omitted, a new UUID is auto-generated each call
+   })
+
+   const reader = response.body!.getReader()
+   const decoder = new TextDecoder()
+
+   while (true) {
+     const { done, value } = await reader.read()
+     if (done) break
+     const text = decoder.decode(value)
+     for (const line of text.split("\n")) {
+       if (line.startsWith("data: ")) {
+         const data = line.slice(6).trim()
+         if (data && data !== "[DONE]") {
+           try {
+             const chunk = JSON.parse(data)
+             process.stdout.write(chunk.content ?? "")
+           } catch {}
+         }
+       }
+     }
+   }
+   ```
+
+4. **Maintain conversation history (session ID)**
+
+   Pass the same `id` (must be a UUID) across calls to keep context:
+
+   ```typescript
+   import { randomUUID } from "crypto"
+
+   const sessionId = randomUUID()
+
+   // First message
+   await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     id: sessionId,
+     messages: [{ role: "user", content: "What's your refund policy?" }],
+   })
+
+   // Follow-up — same session, assistant remembers context
+   await client.aiAgent.streamChat({
+     assistant_id: assistantId,
+     organization_id: "org_your_org_id",
+     id: sessionId,
+     messages: [{ role: "user", content: "How long does it take?" }],
+   })
+   ```
+
+</Steps>
+
+---
+
+## 2. Create a Workflow with Activepieces and Bind it to an Assistant
+
+<Steps>
+
+1. **List existing flows to find your project ID**
+
+   ```typescript
+   const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
+   const projectId = flows[0]?.projectId
+   console.log("Project ID:", projectId)
+   ```
+
+2. **Create a new flow**
+
+   ```typescript
+   const flow = await client.activepieces.createFlow({
+     displayName: "CRM Update on New Lead",
+     projectId,
+   })
+   console.log("Flow created:", flow.id)
+   ```
+
+3. **Trigger the flow manually with a payload**
+
+   ```typescript
+   // Fire and forget (async)
+   await client.activepieces.triggerFlow(flow.id, {
+     contact_name: "Jane Smith",
+     email: "jane@example.com",
+   })
+
+   // Or wait for the result (sync)
+   const result = await client.activepieces.triggerFlowSync(flow.id, {
+     contact_name: "Jane Smith",
+     email: "jane@example.com",
+   })
+   console.log("Flow result:", result)
+   ```
+
+4. **Bind the flow to your assistant**
+
+   Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
+
+   Alternatively, update the assistant to reference the workflow by name:
+
+   ```typescript
+   await client.chatAi.updateAssistant(assistantId, {
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     // workflow_function_call links the assistant to Activepieces flows
+     workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
+   })
+   ```
+
+5. **Check run history**
+
+   ```typescript
+   const { data: runs } = await client.activepieces.listRuns({
+     flowId: flow.id,
+     limit: 10,
+   })
+   for (const run of runs) {
+     console.log(run.id, run.status, run.startTime)
+   }
+   ```
+
+</Steps>
+
+---
+
+## 3. Manage Knowledge Hubs and Attach to an Assistant
+
+Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an assistant as its knowledge source.
+
+<Steps>
+
+1. **Create a folder**
+
+   ```typescript
+   const folder = await client.boards.createFolder({
+     name: "Product Documentation",
+     organization_id: "org_your_org_id",
+     parent_folder_id: "root",
+     source_type: "upload",
+   })
+   console.log("Folder ID:", folder._id)
+   ```
+
+2. **Upload a file to the folder**
+
+   ```typescript
+   import { readFileSync } from "fs"
+
+   const fileBuffer = readFileSync("./docs/faq.pdf")
+   const formData = new FormData()
+   formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
+   formData.append("folder_id", folder._id)
+   formData.append("organization_id", "org_your_org_id")
+
+   const uploaded = await client.boards.uploadFile(formData)
+   console.log("File uploaded:", uploaded.file_id)
+   ```
+
+3. **Attach the folder to the assistant**
+
+   Pass the folder `_id` in `knowledge_hubs` — the assistant will use all files in that folder.
+
+   ```typescript
+   await client.chatAi.updateAssistant(assistantId, {
+     name: "Support Bot",
+     workflow_name: "support_bot_v1",
+     knowledge_hubs: [folder._id],
+   })
+   ```
+
+4. **Inspect and manage folders and files**
+
+   ```typescript
+   // Search folders
+   const folders = await client.boards.searchFolders({ q: "Product" })
+
+   // Get folder with contents
+   const contents = await client.boards.getFolderContents(folder._id)
+   console.log("Files:", contents.files?.length)
+
+   // Rename a folder
+   await client.boards.updateFolder(folder._id, { name: "Product Docs v2" })
+
+   // Search files in a folder
+   const files = await client.boards.searchFiles({ folderId: folder._id })
+
+   // Delete folders
+   await client.boards.deleteFolders({ ids: [folder._id] })
+   ```
+
+</Steps>
+
+---
+
+## 4. Manage Data Boards and Items (CRM Pipelines)
+
+<Steps>
+
+1. **Create a board**
+
+   A board is a CRM pipeline — leads, deals, tasks, or any structured data.
+
+   ```typescript
+   const board = await client.boards.create({
+     name: "Sales Pipeline",
+     description: "Track all active deals",
+   })
+   console.log("Board ID:", board._id)
+   ```
+
+2. **Add a custom field**
+
+   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc.
+   `createField` returns the updated board — find your new field inside `board.fields`.
+
+   ```typescript
+   const updated = await client.boards.createField(board._id, {
+     name: "Company",
+     type: "ShortText",
+   })
+   // Find the identifier field (auto-created with every board)
+   const identifierField = updated.fields.find(f => f.is_identifier)
+   ```
+
+3. **Create board items (records)**
+
+   Items use `{ fields: [{ board_field_id, value }] }` format:
+
+   ```typescript
+   const item = await client.boards.createItem(board._id, {
+     fields: [
+       { board_field_id: identifierField._id, value: "Acme Corp" },
+     ],
+   })
+   console.log("Item ID:", item._id)
+   ```
+
+4. **List and search items**
+
+   ```typescript
+   // Paginate through items
+   const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 })
+
+   // Full-text search
+   const { data: results } = await client.boards.search(board._id, {
+     q: "Acme",
+     limit: 10,
+   })
+   ```
+
+5. **Update and delete items**
+
+   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
+
+   ```typescript
+   await client.boards.updateItem(board._id, item._id, {
+     data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
+   })
+
+   await client.boards.deleteItem(board._id, item._id)
+   ```
+
+6. **Export the board to CSV**
+
+   ```typescript
+   const csv = await client.boards.exportCsv(board._id)
+   // csv is a string — write to file or send as download
+   ```
+
+</Steps>

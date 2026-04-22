@@ -77,7 +77,7 @@ try {
   await client.platform.getMe();
 } catch (e) {
   if (e instanceof NetworkError) {
-    console.error("Cannot reach gateway:", e.message);
+    console.error("Cannot reach baseUrl:", e.message);
     // e.g. "Request timed out after 30000ms"
   }
 }

@@ -43,7 +43,7 @@ import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
   accessToken: "your-access-token",
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 })
 
 const stream = await client.aiAgent.streamChat({
@@ -54,5 +54,3 @@ const stream = await client.aiAgent.streamChat({
 ```
 
 ---
-
-Next: [TypeScript Installation →](../typescript/installation/)

@@ -1,0 +1,312 @@
+---
+title: Python SDK — AI Agent
+description: Tham chiếu đầy đủ cho resource ai_agent — streaming chat, embeddings, parquet, distributed tracing, và chat-client sub-API.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`client.ai_agent` kết nối đến AI Agent service riêng biệt, chạy trên một base URL khác so với API gateway chính. Resource này cung cấp streaming chat, quản lý embedding knowledge base, dữ liệu dạng cột (Parquet), distributed tracing (Tempo), và toàn bộ Chat Client sub-API.
+
+Cả client sync (`ImbraceClient`) và async (`AsyncImbraceClient`) đều có cùng interface — method async dùng `await` và tự động sử dụng `AsyncAiAgentResource`.
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+```
+
+---
+
+#### Hệ Thống
+
+```python
+config   = client.ai_agent.get_config()
+health   = client.ai_agent.get_health()                  # kiểm tra cơ bản
+health_d = client.ai_agent.get_health(detailed=True)     # thống kê chi tiết
+version  = client.ai_agent.get_version()
+```
+
+---
+
+#### Chat v1 — Lịch Sử Hội Thoại
+
+Liệt kê, đọc và xóa các bản ghi chat được lưu trữ.
+
+```python
+# Liệt kê chats của một tổ chức
+chats = client.ai_agent.list_chats(
+    organization_id="org_abc",
+    user_id="user_123",
+    limit=20,
+)
+
+# Lấy một chat (include_messages=True để lấy kèm messages)
+chat = client.ai_agent.get_chat("chat_id", include_messages=True)
+
+# Xóa chat
+client.ai_agent.delete_chat(
+    "chat_id",
+    organization_id="org_abc",
+    user_id="user_123",
+)
+```
+
+---
+
+#### Chat v2 — Streaming (SSE)
+
+`stream_chat` trả về `httpx.Response` thô. Dùng `.iter_lines()` để đọc Server-Sent Events.
+
+```python
+response = client.ai_agent.stream_chat({
+    "id": "chat_id",
+    "assistant_id": "asst_abc",
+    "organization_id": "org_abc",
+    "messages": [{"role": "user", "content": "Bạn có thể làm gì?"}],
+})
+
+for line in response.iter_lines():
+    if line:
+        print(line)
+```
+
+**Phiên bản async:**
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def main():
+    async with AsyncImbraceClient() as client:
+        response = await client.ai_agent.stream_chat({
+            "id": "chat_id",
+            "assistant_id": "asst_abc",
+            "organization_id": "org_abc",
+            "messages": [{"role": "user", "content": "Xin chào"}],
+        })
+        async for line in response.aiter_lines():
+            if line:
+                print(line)
+
+asyncio.run(main())
+```
+
+---
+
+#### Sub-agent Chat v2
+
+Stream phản hồi từ sub-agent và lấy lịch sử hội thoại.
+
+```python
+# Stream từ sub-agent
+res = client.ai_agent.stream_sub_agent_chat({
+    "assistant_id": "asst_sub",
+    "organization_id": "org_abc",
+    "session_id": "sess_xyz",
+    "chat_id": "chat_id",
+    "messages": [{"role": "user", "content": "Giải thích dữ liệu."}],
+})
+
+# Lấy lịch sử sub-agent session
+history = client.ai_agent.get_sub_agent_history(
+    session_id="sess_xyz",
+    chat_id="chat_id",
+)
+```
+
+---
+
+#### Gợi Ý Prompt
+
+Lấy danh sách prompt gợi ý cho một assistant.
+
+```python
+suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
+```
+
+---
+
+#### Embeddings & Knowledge Base
+
+Quản lý các file được dùng cho Retrieval-Augmented Generation (RAG). File cần upload qua `client.file_service` trước.
+
+```python
+# Kích hoạt xử lý embedding cho file đã upload
+client.ai_agent.process_embedding("file_abc")
+
+# Với tùy chọn xử lý
+client.ai_agent.process_embedding("file_abc", options={"chunk_size": 512})
+
+# Liệt kê và kiểm tra embedding files
+files   = client.ai_agent.list_embedding_files(page=1, limit=20)
+file    = client.ai_agent.get_embedding_file("file_abc")
+preview = client.ai_agent.preview_embedding_file(file_id="file_abc")
+
+# Cập nhật trạng thái và xóa
+client.ai_agent.update_embedding_file_status("file_abc", "active")
+client.ai_agent.delete_embedding_file("file_abc")
+
+# Phân loại file cho RAG
+classification = client.ai_agent.classify_file(file_id="file_abc")
+```
+
+---
+
+#### Data Board
+
+Gợi ý kiểu dữ liệu bằng AI cho các tập dữ liệu có cấu trúc.
+
+```python
+result = client.ai_agent.suggest_field_types(fields=[
+    {"name": "created_at", "samples": ["2024-01-01", "2024-02-15"]},
+    {"name": "amount",     "samples": [100, 200.5, 999]},
+    {"name": "is_active",  "samples": [True, False, True]},
+])
+# result["fields"][i]["suggestedType"] → "datetime" | "number" | "boolean" | ...
+```
+
+---
+
+#### Parquet
+
+Tạo và quản lý các file dữ liệu dạng cột Parquet cho pipeline phân tích.
+
+```python
+# Tạo file Parquet từ danh sách dict
+result = client.ai_agent.generate_parquet(
+    data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+    file_name="users",
+    folder_name="exports",
+)
+
+# Liệt kê tất cả Parquet files
+files = client.ai_agent.list_parquet_files()
+
+# Xóa một file (đường dẫn được URL-encode tự động)
+client.ai_agent.delete_parquet_file("exports/users.parquet")
+```
+
+---
+
+#### Distributed Tracing (Tempo)
+
+Truy vấn Grafana Tempo traces từ AI Agent service để quan sát và debug.
+
+```python
+# Liệt kê traces gần đây
+traces = client.ai_agent.get_traces(
+    service="ai-agent",
+    limit=50,
+    time_range=3600,     # giây
+    org_id="org_abc",
+    details=True,
+)
+
+# Xem chi tiết một trace
+trace = client.ai_agent.get_trace("trace_id_hex")
+
+# Liệt kê services, tags và giá trị tag
+services = client.ai_agent.get_trace_services()
+tags     = client.ai_agent.get_trace_tags()
+values   = client.ai_agent.get_trace_tag_values("http.status_code")
+
+# Tìm kiếm bằng TraceQL
+results = client.ai_agent.search_traceql(
+    '{ .service.name = "ai-agent" && .http.status = 500 }'
+)
+```
+
+---
+
+#### Chat Client
+
+Chat Client sub-API phục vụ các ứng dụng frontend. Bao gồm xác thực, CRUD cho chat/message, bình chọn và tài liệu do AI tạo ra.
+
+##### Xác Thực
+
+```python
+client.ai_agent.verify_chat_client_credentials({"token": "tok_xxx"})
+client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
+user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
+```
+
+##### Chats
+
+```python
+# Tạo session chat mới
+client.ai_agent.create_client_chat({
+    "id": "chat_uuid",
+    "message": {
+        "id": "msg_uuid",
+        "role": "user",
+        "parts": [{"type": "text", "text": "Xin chào!"}],
+    },
+    "assistantId":    "asst_abc",
+    "organizationId": "org_abc",
+})
+
+# Liệt kê, đọc, cập nhật, xóa
+chats = client.ai_agent.list_client_chats(organization_id="org_abc", limit=20)
+chat  = client.ai_agent.get_client_chat("chat_id")
+client.ai_agent.update_client_chat("chat_id", {"visibility": "private"})
+client.ai_agent.delete_client_chat("chat_id")
+client.ai_agent.delete_all_client_chats("org_abc")
+
+# Tự động tạo tiêu đề cho chat
+client.ai_agent.generate_client_chat_title("chat_id")
+
+# Stream trạng thái chat thời gian thực dưới dạng SSE
+status_stream = client.ai_agent.stream_client_chat_status("chat_id")
+```
+
+##### Messages
+
+```python
+# Lưu một message
+client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "Xin chào"})
+
+# Liệt kê tất cả messages trong chat
+messages = client.ai_agent.list_client_messages("chat_id")
+
+# Xóa message và tất cả messages sau đó trong thread
+client.ai_agent.delete_trailing_messages("message_id")
+```
+
+##### Bình Chọn
+
+```python
+votes = client.ai_agent.get_votes("chat_id")
+client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
+```
+
+##### Tài Liệu (AI-generated artifacts)
+
+```python
+# Tạo tài liệu do AI sinh ra
+client.ai_agent.create_document({"kind": "text", "content": "Bản nháp..."})
+
+# Lấy tài liệu
+doc        = client.ai_agent.get_document("doc_id")
+latest     = client.ai_agent.get_document_latest("doc_id")
+pub        = client.ai_agent.get_document_public("doc_id")
+by_kind    = client.ai_agent.get_document_latest_by_kind(kind="text")
+suggestion = client.ai_agent.get_document_suggestions("doc_id")
+
+# Xóa tài liệu
+client.ai_agent.delete_document("doc_id")
+```
+
+---
+
+#### Admin Guides
+
+Truy cập tài liệu admin được lưu trữ bởi AI Agent service. File được trả về dưới dạng luồng nhị phân thô (thường là PDF).
+
+```python
+# Liệt kê các guide có sẵn
+guides = client.ai_agent.list_admin_guides()
+
+# Tải một guide cụ thể — trả về httpx.Response thô
+response = client.ai_agent.get_admin_guide("onboarding.pdf")
+with open("onboarding.pdf", "wb") as f:
+    f.write(response.content)
+```

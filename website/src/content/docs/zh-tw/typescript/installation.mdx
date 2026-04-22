@@ -1,0 +1,40 @@
+---
+title: TypeScript SDK — 安裝
+description: 安裝 @imbrace/sdk 套件並初始化客戶端。
+---
+
+### 安裝
+
+```bash
+npm install @imbrace/sdk
+# 或
+yarn add @imbrace/sdk
+# 或
+pnpm add @imbrace/sdk
+```
+
+憑證、環境和服務 URL 覆蓋的配置，請參閱[安裝指南](/zh-tw/getting-started/setup/)。
+
+---
+
+### 建置腳本
+
+```bash
+npm run build      # 編譯 TypeScript → dist/
+npm run dev        # 監視模式 — 檔案變更時自動重新建置
+npm run typecheck  # 僅型別檢查（不生成檔案）
+npm run test       # 執行單元測試
+npm run clean      # 清除 dist/
+```
+
+---
+
+### 環境變數參考
+
+| 變數                  | 必填 | 預設值   | 說明                                             |
+| --------------------- | ---- | -------- | ------------------------------------------------ |
+| `IMBRACE_API_KEY`     | 是\* | —        | 伺服器端 API Key                                 |
+| `IMBRACE_ENV`         | 否   | `stable` | 預設：`develop`、`sandbox`、`stable`              |
+| `IMBRACE_BASE_URL`    | 否   | 自動     | 覆蓋閘道 URL（優先於 `IMBRACE_ENV`）              |
+
+\*或直接傳入 `accessToken` 用於客戶端使用。

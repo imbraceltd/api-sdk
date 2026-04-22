@@ -1,0 +1,227 @@
+---
+title: TypeScript SDK — 整合
+description: 在 React、Next.js 和 Node.js 中使用 Imbrace TypeScript SDK。
+---
+
+### React
+
+#### 單例客戶端
+
+在元件樹外建立一次客戶端並複用：
+
+```typescript
+// lib/imbrace.ts
+import { ImbraceClient } from "@imbrace/sdk";
+
+export const client = new ImbraceClient({
+  accessToken:
+    typeof window !== "undefined"
+      ? (localStorage.getItem("imbrace_token") ?? undefined)
+      : undefined,
+});
+```
+
+#### 自訂資料擷取 Hook
+
+```tsx
+// hooks/useProducts.ts
+import { useState, useEffect } from "react";
+import { client } from "@/lib/imbrace";
+import type { Product } from "@imbrace/sdk";
+
+export function useProducts(category?: string) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    client.marketplace
+      .listProducts({ category })
+      .then((res) => setProducts(res.data))
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [category]);
+
+  return { products, loading, error };
+}
+```
+
+```tsx
+// components/ProductList.tsx
+import { useProducts } from "@/hooks/useProducts";
+
+export function ProductList() {
+  const { products, loading, error } = useProducts("electronics");
+
+  if (loading) return <p>載入中...</p>;
+  if (error) return <p>錯誤：{error.message}</p>;
+
+  return (
+    <ul>
+      {products.map((p) => (
+        <li key={p.id}>
+          {p.name} — {p.price} {p.currency}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+#### React OTP 登入流程
+
+```tsx
+// components/LoginForm.tsx
+import { useState } from "react";
+import { ImbraceClient, AuthError } from "@imbrace/sdk";
+
+const client = new ImbraceClient();
+
+export function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+
+  async function requestOtp() {
+    await client.requestOtp(email);
+    setStep("otp");
+  }
+
+  async function verifyOtp() {
+    try {
+      await client.loginWithOtp(email, otp);
+      // 令牌已儲存 — 客戶端可以使用
+      window.location.href = "/dashboard";
+    } catch (e) {
+      if (e instanceof AuthError) alert("OTP 不正確");
+    }
+  }
+
+  return step === "email" ? (
+    <div>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="信箱"
+      />
+      <button onClick={requestOtp}>發送 OTP</button>
+    </div>
+  ) : (
+    <div>
+      <input
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+        placeholder="輸入 OTP"
+      />
+      <button onClick={verifyOtp}>確認</button>
+    </div>
+  );
+}
+```
+
+---
+
+### Next.js
+
+#### API 路由（App Router）
+
+```typescript
+// app/api/products/route.ts
+import { NextResponse } from "next/server";
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category") ?? undefined;
+
+  const { data } = await client.marketplace.listProducts({ category });
+  return NextResponse.json(data);
+}
+```
+
+#### 伺服器端元件（App Router）
+
+```tsx
+// app/products/page.tsx
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+
+export default async function ProductsPage() {
+  const { data: products } = await client.marketplace.listProducts({
+    limit: 20,
+  });
+
+  return (
+    <main>
+      <h1>商品</h1>
+      <ul>
+        {products.map((p) => (
+          <li key={p.id}>{p.name}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+---
+
+### Node.js
+
+#### 長期運行服務
+
+```typescript
+// service.ts
+import { ImbraceClient, NetworkError } from "@imbrace/sdk";
+
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+
+async function processOrders() {
+  const { data: orders } = await client.marketplace.listOrders({
+    status: "pending",
+  });
+  for (const order of orders) {
+    await client.marketplace.updateOrderStatus(order.id, "processing");
+    console.log(`已處理訂單 ${order.id}`);
+  }
+}
+
+// 每分鐘執行一次
+setInterval(async () => {
+  try {
+    await processOrders();
+  } catch (e) {
+    if (e instanceof NetworkError) {
+      console.warn("閘道不可用，稍後重試");
+    } else throw e;
+  }
+}, 60_000);
+```
+
+#### CLI 腳本
+
+```typescript
+// scripts/export-contacts.ts
+import { ImbraceClient } from "@imbrace/sdk";
+import { writeFileSync } from "fs";
+
+const client = new ImbraceClient();
+
+async function exportContacts() {
+  const { data: contacts } = await client.contacts.list({ limit: 1000 });
+  writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
+  console.log(`已匯出 ${contacts.length} 個聯絡人`);
+}
+
+exportContacts().catch(console.error);
+```
+
+```bash
+npx ts-node scripts/export-contacts.ts
+```

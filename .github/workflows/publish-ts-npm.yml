@@ -1,21 +1,22 @@
 name: Publish NPM (TypeScript SDK)
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'   # trigger by pushing a version tag: git tag v1.2.3 && git push origin v1.2.3
+  release:
+    types: [published] # Triggered only when you click "Publish Release" in GitHub UI
 
 concurrency:
   group: publish-npm
   cancel-in-progress: false
 
 jobs:
+  # ---------------------------------------------------------
+  # JOB 1: Quality Assurance (Lint, Typecheck, Test)
+  # ---------------------------------------------------------
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ts
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,13 +40,16 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+  # ---------------------------------------------------------
+  # JOB 2: Sync version and Publish to npm
+  # ---------------------------------------------------------
   publish:
-    needs: test
+    needs: test # Only runs if the Test job passes
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write   # required for npm provenance attestation
-
+      contents: write # Required to read repo content
+      id-token: write # REQUIRED for OIDC authentication and --provenance
+    
     defaults:
       run:
         working-directory: ts
@@ -54,7 +58,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20 for publishing
+
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -74,13 +79,13 @@ jobs:
           echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
           if npm view "$PKG_NAME@$PKG_VERSION" version > /dev/null 2>&1; then
             echo "published=true" >> $GITHUB_OUTPUT
-            echo "::notice ::Version $PKG_VERSION already exists on npm. Skipping publish step."
+            echo "::notice ::Version $PKG_VERSION already exists on npm. Skipping publish."
           else
             echo "published=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Publish to npm
         if: steps.check.outputs.published == 'false'
-        run: npm publish --access public --provenance
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
