@@ -134,7 +134,7 @@ export class AuthResource {
     private readonly gateway: string,
   ) {}
 
-  private get v1() { return `${this.base}/v1` }
+  private get v1() { return this.base }
 
   // ─── Third-party token  
 
@@ -210,14 +210,11 @@ export class AuthResource {
 
   // ─── Access token   
 
-  async exchangeAccessToken(body: {
-    token: string
-    organization_id: string
-  }): Promise<{ access_token: string }> {
+  async exchangeAccessToken(organization_id: string): Promise<{ token: string; refresh_token: string }> {
     return this.http.getFetch()(`${this.v1}/access/_exchange_access_token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ organization_id }),
     }).then(r => r.json())
   }
 

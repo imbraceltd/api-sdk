@@ -140,7 +140,7 @@ export class ImbraceClient {
     // -- Wire resources with per-service base URLs ----------------------------
 
     // Auth & Account - platform service
-    this.auth          = new AuthResource(this.http, urls.platform, urls.gateway)
+    this.auth          = new AuthResource(this.http, urls.backend, urls.gateway)
     this.account       = new AccountResource(this.http, urls.platform)
 
     // Platform group
