@@ -1,0 +1,125 @@
+---
+title: Imbrace SDK
+description: Imbrace Gateway 官方 TypeScript 和 Python SDK — 类型安全、功能完整、生产就绪。
+template: splash
+hero:
+  title: 使用 Imbrace SDK 更快构建
+  tagline: 类型安全、功能完整的 Imbrace Gateway SDK。几分钟内将 TypeScript 和 Python 应用连接到 Imbrace 平台。
+  image:
+    file: ../../../assets/imbrace_logo_small.svg
+    alt: Imbrace
+  actions:
+    - text: 快速开始
+      link: getting-started/overview/
+      icon: right-arrow
+      variant: primary
+    - text: TypeScript SDK
+      link: typescript/overview/
+      variant: secondary
+    - text: Python SDK
+      link: python/overview/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+<div class="splash-features">
+
+## 为什么选择 Imbrace SDK？
+
+<CardGrid>
+  <Card title="类型安全设计" icon="approve-check-circle">
+    覆盖 27+ 资源命名空间的完整 TypeScript 定义和 Python 类型注解。在编译时捕获错误，而非运行时。
+  </Card>
+  <Card title="自动重试与弹性" icon="random">
+    针对 429 和 5xx 响应内置指数退避重试。无需配置 — 高负载下应用依然稳定运行。
+  </Card>
+  <Card title="三层身份验证" icon="setting">
+    API Key、JWT Bearer 和 legacy access token — 全部透明处理。无需更改业务逻辑即可切换认证策略。
+  </Card>
+  <Card title="Python 异步优先" icon="rocket">
+    `AsyncImbraceClient` 与同步客户端并行存在。一行导入即可接入 FastAPI、asyncio 或 Django。
+  </Card>
+</CardGrid>
+
+</div>
+
+<div class="splash-install">
+
+## 快速安装
+
+<div class="install-grid">
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--ts">TypeScript</span>
+    </div>
+
+    ```bash
+    npm install @imbrace/sdk
+    ```
+
+    ```ts
+    import { ImbraceClient } from "@imbrace/sdk";
+    const client = new ImbraceClient();
+    const me = await client.platform.getMe();
+    ```
+
+  </div>
+  <div class="install-card">
+    <div class="install-card__header">
+      <span class="install-badge install-badge--py">Python</span>
+    </div>
+
+    ```bash
+    pip install imbrace
+    ```
+
+    ```python
+    from imbrace import ImbraceClient
+    client = ImbraceClient()
+    me = client.platform.get_me()
+    ```
+
+  </div>
+</div>
+
+</div>
+
+<div class="splash-links">
+
+## 探索文档
+
+<CardGrid>
+  <LinkCard
+    title="TypeScript — 概览"
+    description="架构、27 个资源命名空间、认证策略。"
+    href="typescript/overview/"
+  />
+  <LinkCard
+    title="Python — 概览"
+    description="同步与异步客户端、29 个命名空间、生命周期。"
+    href="python/overview/"
+  />
+  <LinkCard
+    title="TypeScript — 安装指南"
+    description="安装、配置凭证、环境和服务 URL 覆盖。"
+    href="getting-started/setup/"
+  />
+  <LinkCard
+    title="Python — 安装指南"
+    description="安装、配置凭证、环境和服务 URL 覆盖。"
+    href="getting-started/setup/"
+  />
+  <LinkCard
+    title="测试指南"
+    description="单元测试、模拟、集成测试模式。"
+    href="guides/testing/"
+  />
+  <LinkCard
+    title="常见问题"
+    description="常见错误、调试技巧、已知问题。"
+    href="guides/troubleshooting/"
+  />
+</CardGrid>
+
+</div>

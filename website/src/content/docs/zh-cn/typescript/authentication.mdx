@@ -1,0 +1,84 @@
+---
+title: TypeScript SDK — 身份验证
+description: Imbrace TypeScript SDK 中的 API Key 和 Access Token。
+---
+
+SDK 支持两种认证策略。初始化 `ImbraceClient` 时传入 `apiKey` 或 `accessToken` — 传输层自动处理请求头。
+
+### 认证策略
+
+| 策略             | 使用场景                              | 发送的请求头              |
+| ---------------- | ------------------------------------- | ------------------------- |
+| **API Key**      | 后端脚本、定时任务、服务端调用        | `x-api-key: sk-xxx...`    |
+| **Access Token** | 用户登录后（OTP 或密码）              | `x-access-token: acc_...` |
+
+---
+
+### API Key（服务端）
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
+```
+
+---
+
+### Access Token（客户端）
+
+用户认证后使用：
+
+```typescript
+const client = new ImbraceClient({
+  accessToken: "acc_xxxxxxxxxxxxx",
+});
+```
+
+---
+
+### OTP 登录流程
+
+面向用户应用的推荐方式 — 登录成功后 SDK 自动存储令牌。
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient();
+
+// 步骤 1：向用户邮箱发送 OTP
+await client.requestOtp("user@example.com");
+
+// 步骤 2：用户输入 OTP — 令牌自动存储
+await client.loginWithOtp("user@example.com", "123456");
+
+// 步骤 3：后续所有调用均已通过认证
+const me = await client.platform.getMe();
+```
+
+也支持邮箱 + 密码登录：
+
+```typescript
+await client.login("user@example.com", "password123");
+```
+
+---
+
+### 令牌管理
+
+```typescript
+// 替换令牌（例如 OAuth 刷新后）
+client.setAccessToken("new_token...");
+
+// 清除令牌（例如登出时）
+client.clearAccessToken();
+```
+
+---
+
+### 配置优先级
+
+1. **显式构造函数选项** — `new ImbraceClient({ apiKey: "..." })`
+2. **环境变量** — `IMBRACE_API_KEY`、`IMBRACE_GATEWAY_URL`
+3. **默认值** — `env: "stable"`，网关 `https://app-gatewayv2.imbrace.co`

@@ -1,0 +1,131 @@
+---
+title: TypeScript SDK — 快速入門
+description: 從零到第一個成功 API 呼叫，5 分鐘內完成。
+---
+
+### 前置條件
+
+- Node.js 18+
+- 已安裝 `@imbrace/sdk`（[安裝 →](installation/)）
+- `.env` 中已設置 `IMBRACE_API_KEY`
+
+---
+
+### 1. 初始化客戶端
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+import "dotenv/config"; // 讀取 .env
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+  env: "stable", // "develop" | "sandbox" | "stable"
+  timeout: 30000, // 毫秒，預設 30000
+});
+```
+
+客戶端是有狀態的 — 建立一次並在整個應用中複用。
+
+---
+
+### 2. 第一個 API 呼叫
+
+```typescript
+// 取得當前帳戶資訊
+const me = await client.platform.getMe();
+console.log("已登入：", me.displayName);
+
+// 列出 marketplace 商品
+const { data: products } = await client.marketplace.listProducts({
+  page: 1,
+  limit: 10,
+});
+console.log(`找到 ${products.length} 個商品`);
+```
+
+---
+
+### 3. 健康檢查（可選）
+
+啟動時 ping 閘道以驗證連線：
+
+```typescript
+await client.init();
+console.log("閘道連線正常");
+```
+
+---
+
+### 4. 完整範例腳本
+
+```typescript
+// main.ts
+import { ImbraceClient, AuthError, ApiError } from "@imbrace/sdk";
+import "dotenv/config";
+
+const client = new ImbraceClient();
+
+async function main() {
+  try {
+    await client.init();
+
+    const me = await client.platform.getMe();
+    console.log("使用者：", me.displayName, me.email);
+
+    const { data: channels } = await client.channel.listChannels({
+      type: "group",
+    });
+    console.log(`頻道數量：${channels.length}`);
+  } catch (e) {
+    if (e instanceof AuthError) {
+      console.error("認證失敗 — 請檢查 IMBRACE_API_KEY");
+    } else if (e instanceof ApiError) {
+      console.error(`API 錯誤 [${e.statusCode}]：`, e.message);
+    } else {
+      throw e;
+    }
+  }
+}
+
+main();
+```
+
+```bash
+# 使用 ts-node 執行
+npx ts-node main.ts
+
+# 或先建置
+npm run build && node dist/main.js
+```
+
+---
+
+### 5. 切換環境
+
+```typescript
+// 開發環境
+const client = new ImbraceClient({ env: "develop" });
+
+// 沙箱環境
+const client = new ImbraceClient({ env: "sandbox" });
+
+// 穩定版（生產）— 預設
+const client = new ImbraceClient({ env: "stable" });
+
+// 自訂閘道 URL
+const client = new ImbraceClient({
+  baseUrl: "https://my-custom-gateway.example.com",
+});
+```
+
+| 環境       | 閘道 URL                                 |
+| ---------- | ---------------------------------------- |
+| `develop`  | `https://app-gateway.dev.imbrace.co`     |
+| `sandbox`  | `https://app-gateway.sandbox.imbrace.co` |
+| `stable`   | `https://app-gatewayv2.imbrace.co`       |
+
+:::tip
+在 `.env` 中設置 `IMBRACE_GATEWAY_URL` 即可切換環境而無需修改程式碼。該變數優先於 `env` 預設。
+:::
+
+---

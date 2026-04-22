@@ -1,0 +1,137 @@
+---
+title: Python SDK — 快速開始
+description: 從零到第一次成功 API 呼叫，使用 Python SDK。
+---
+
+### 前置條件
+
+- Python 3.10+
+- `imbrace` 已安裝（[安裝 →](installation/)）
+- `IMBRACE_API_KEY` 已在 `.env` 或環境變數中設定
+
+---
+
+### 1. 初始化同步客戶端
+
+```python
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient
+
+load_dotenv()  # 讀取 .env 檔案
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    env="stable",  # "develop" | "sandbox" | "stable"
+    timeout=30,    # 秒
+)
+```
+
+---
+
+### 2. 第一次 API 呼叫
+
+```python
+# 取得目前使用者資訊
+me = client.platform.get_me()
+print(f"登入使用者：{me['displayName']}")
+
+# 列出 marketplace 產品
+result = client.marketplace.list_products(page=1, limit=10)
+print(f"找到 {len(result['data'])} 個產品")
+```
+
+---
+
+### 3. 使用上下文管理器
+
+上下文管理器確保連接池被正確關閉：
+
+```python
+with ImbraceClient() as client:
+    me = client.platform.get_me()
+    print(me)
+# 連接在此處自動關閉
+```
+
+---
+
+### 4. 完整腳本範例
+
+```python
+# main.py
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient, AuthError, ApiError, NetworkError
+
+load_dotenv()
+
+def main():
+    with ImbraceClient() as client:
+        try:
+            me = client.platform.get_me()
+            print(f"User: {me['displayName']} ({me['email']})")
+
+            channels = client.channel.list_channels(type="group")
+            print(f"頻道數量：{len(channels.get('data', []))}")
+
+        except AuthError:
+            print("認證失敗 — 請檢查 IMBRACE_API_KEY")
+        except ApiError as e:
+            print(f"API 錯誤 [{e.status_code}]: {e}")
+        except NetworkError:
+            print("無法連接到 Imbrace Gateway")
+
+if __name__ == "__main__":
+    main()
+```
+
+```bash
+python main.py
+```
+
+---
+
+### 5. 非同步客戶端（FastAPI / asyncio）
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def main():
+    async with AsyncImbraceClient() as client:
+        me = await client.platform.get_me()
+        print(f"User: {me['displayName']}")
+
+        products = await client.marketplace.list_products(limit=10)
+        print(f"產品：{len(products['data'])}")
+
+asyncio.run(main())
+```
+
+---
+
+### 6. 切換環境
+
+```python
+# Development gateway
+client = ImbraceClient(env="develop")
+
+# Sandbox gateway
+client = ImbraceClient(env="sandbox")
+
+# 自訂 gateway URL
+client = ImbraceClient(gateway="https://my-custom-gateway.example.com")
+```
+
+| 環境       | Gateway URL                              |
+| ---------- | ---------------------------------------- |
+| `develop`  | `https://app-gateway.dev.imbrace.co`     |
+| `sandbox`  | `https://app-gateway.sandbox.imbrace.co` |
+| `stable`   | `https://app-gatewayv2.imbrace.co`       |
+
+:::tip
+在 `.env` 中設定 `IMBRACE_GATEWAY_URL` 以在不修改程式碼的情況下切換環境。
+:::
+
+---

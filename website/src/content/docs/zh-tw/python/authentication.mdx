@@ -1,0 +1,110 @@
+---
+title: Python SDK — 身份驗證
+description: Imbrace Python SDK 中的 API Key 和 Access Token。
+---
+
+SDK 支援兩種認證策略。向建構函式傳入 `api_key` 或 `access_token` — transport 自動處理請求標頭。
+
+### 認證策略
+
+| 策略             | 使用場景                                    | 發送的請求標頭            |
+| ---------------- | ------------------------------------------- | ------------------------- |
+| **API Key**      | 後端腳本、Celery 任務、伺服器端呼叫         | `x-api-key: sk-xxx...`    |
+| **Access Token** | 使用者登入後（OTP 或密碼）                  | `x-access-token: acc_...` |
+
+---
+
+### API Key（伺服器端）
+
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+)
+```
+
+---
+
+### Access Token（客戶端）
+
+使用者認證後使用：
+
+```python
+client = ImbraceClient(
+    access_token="acc_xxxxxxxxxxxxx",
+)
+```
+
+---
+
+### OTP 登入流程
+
+使用者端應用的建議方式 — 登入成功後 SDK 自動儲存 token。
+
+```python
+from imbrace import ImbraceClient
+
+client = ImbraceClient()
+
+# 步驟 1：向使用者信箱發送 OTP
+client.request_otp("user@example.com")
+
+# 步驟 2：使用者輸入 OTP — token 自動儲存
+client.login_with_otp("user@example.com", "123456")
+
+# 步驟 3：後續所有呼叫已完成認證
+me = client.platform.get_me()
+```
+
+也支援信箱 + 密碼登入：
+
+```python
+client.login("user@example.com", "password123")
+```
+
+#### 非同步 OTP 流程
+
+```python
+from imbrace import AsyncImbraceClient
+
+async with AsyncImbraceClient() as client:
+    await client.request_otp("user@example.com")
+    await client.login_with_otp("user@example.com", "123456")
+    me = await client.platform.get_me()
+```
+
+---
+
+### Token 管理
+
+```python
+# 替換 token（例如：OAuth refresh 後）
+client.set_access_token("new_token...")
+
+# 清除 token（例如：登出時）
+client.clear_access_token()
+```
+
+---
+
+### 上下文管理器（建議）
+
+```python
+# 同步
+with ImbraceClient(api_key="sk-xxx") as client:
+    me = client.platform.get_me()
+
+# 非同步
+async with AsyncImbraceClient(api_key="sk-xxx") as client:
+    me = await client.platform.get_me()
+```
+
+---
+
+### 設定優先級
+
+1. **明確建構函式參數** — `ImbraceClient(api_key="...")`
+2. **環境變數** — `IMBRACE_API_KEY`、`IMBRACE_GATEWAY_URL`
+3. **預設值** — `env="stable"`，gateway `https://app-gatewayv2.imbrace.co`

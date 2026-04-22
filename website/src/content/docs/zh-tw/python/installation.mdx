@@ -1,0 +1,45 @@
+---
+title: Python SDK — 安裝
+description: 安裝 imbrace 套件並設定環境。
+---
+
+### 安裝
+
+```bash
+pip install imbrace
+# 或
+uv add imbrace
+```
+
+開發模式（從原始碼安裝，包含開發工具）：
+
+```bash
+cd py
+pip install -e ".[dev]"
+# 額外安裝：pytest, ruff, mypy, pytest-httpx
+```
+
+如需設定認證資訊、環境和服務 URL 覆蓋，請參閱[安裝指南](/zh-tw/getting-started/setup/)。
+
+---
+
+### 驗證安裝
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+print("SDK 就緒")
+```
+
+---
+
+### 環境變數
+
+| 變數               | 必填  | 預設值   | 描述                                    |
+| ------------------ | ----- | -------- | --------------------------------------- |
+| `IMBRACE_API_KEY`  | 是\*  | —        | 伺服器端 API Key                        |
+| `IMBRACE_ENV`      | 否    | `stable` | 預設：`develop`、`sandbox`、`stable`    |
+| `IMBRACE_BASE_URL` | 否    | 自動     | 覆蓋 gateway URL                        |
+| `IMBRACE_ORG_ID`   | 否    | —        | Organization ID（用於整合測試）         |
+
+\*或直接向客戶端傳入 `access_token` 用於客戶端使用。

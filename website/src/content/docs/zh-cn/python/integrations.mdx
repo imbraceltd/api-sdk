@@ -1,0 +1,213 @@
+---
+title: Python SDK — 整合
+description: 将 Imbrace Python SDK 与 FastAPI、asyncio、Django 和 Celery 整合使用。
+---
+
+### FastAPI
+
+#### 依赖注入
+
+FastAPI 推荐的模式 — 通过 `Depends` 为每个请求建立异步 client：
+
+```python
+from fastapi import FastAPI, Depends
+from imbrace import AsyncImbraceClient
+
+app = FastAPI()
+
+async def get_imbrace() -> AsyncImbraceClient:
+    async with AsyncImbraceClient() as client:
+        yield client
+
+@app.get("/products")
+async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
+    result = await client.marketplace.list_products(limit=20)
+    return result["data"]
+
+@app.get("/products/{product_id}")
+async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.marketplace.get_product(product_id)
+
+@app.post("/ai/chat")
+async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.ai.complete(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": message}],
+    )
+```
+
+#### 全域单例 (高吞吐量)
+
+在应用程式整个生命周期中建立单一 client 以重复使用连线池：
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from imbrace import AsyncImbraceClient
+
+imbrace: AsyncImbraceClient = None  # type: ignore
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global imbrace
+    imbrace = AsyncImbraceClient()
+    await imbrace.init()  # 启动时健康检查
+    yield
+    await imbrace.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/me")
+async def get_me():
+    return await imbrace.platform.get_me()
+```
+
+#### 端点 OTP 认证
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from imbrace import AsyncImbraceClient, AuthError
+
+app = FastAPI()
+
+class OtpRequest(BaseModel):
+    email: str
+
+class OtpVerify(BaseModel):
+    email: str
+    otp: str
+
+@app.post("/auth/request-otp")
+async def request_otp(body: OtpRequest):
+    async with AsyncImbraceClient() as client:
+        await client.request_otp(body.email)
+    return {"message": "OTP 已发送"}
+
+@app.post("/auth/verify-otp")
+async def verify_otp(body: OtpVerify):
+    async with AsyncImbraceClient() as client:
+        try:
+            await client.login_with_otp(body.email, body.otp)
+            token = client._token_manager.get_token()
+            return {"access_token": token}
+        except AuthError:
+            raise HTTPException(status_code=401, detail="OTP 不正确")
+```
+
+---
+
+### asyncio
+
+#### 并发请求
+
+使用 `asyncio.gather` 进行多个 API 呼叫的扇出：
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def fetch_dashboard_data():
+    async with AsyncImbraceClient() as client:
+        # 三个请求并行执行
+        me, products, channels = await asyncio.gather(
+            client.platform.get_me(),
+            client.marketplace.list_products(limit=5),
+            client.channel.list_channels(type="group"),
+        )
+        return {
+            "user": me,
+            "products": products["data"],
+            "channels": channels["data"],
+        }
+
+data = asyncio.run(fetch_dashboard_data())
+```
+
+#### 使用 asyncio 流式 AI
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def stream_response():
+    async with AsyncImbraceClient() as client:
+        async for chunk in client.ai.stream(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "解说 async/await 在 Python 中。"}],
+        ):
+            content = chunk["choices"][0]["delta"].get("content", "")
+            print(content, end="", flush=True)
+
+asyncio.run(stream_response())
+```
+
+---
+
+### Django
+
+#### 同步视图
+
+```python
+# views.py
+from django.http import JsonResponse
+from imbrace import ImbraceClient, ApiError
+
+def product_list(request):
+    with ImbraceClient() as client:
+        try:
+            result = client.marketplace.list_products(
+                category=request.GET.get("category"),
+                page=int(request.GET.get("page", 1)),
+            )
+            return JsonResponse(result)
+        except ApiError as e:
+            return JsonResponse({"error": str(e)}, status=e.status_code)
+```
+
+#### Django 设定
+
+```python
+# settings.py
+IMBRACE_API_KEY = env("IMBRACE_API_KEY")
+IMBRACE_ENV = env("IMBRACE_ENV", default="stable")
+
+# utils/imbrace.py
+from django.conf import settings
+from imbrace import ImbraceClient
+
+def get_client() -> ImbraceClient:
+    return ImbraceClient(
+        api_key=settings.IMBRACE_API_KEY,
+        env=settings.IMBRACE_ENV,
+    )
+```
+
+---
+
+### Celery
+
+对于背景工作程序 worker，在 task 内部建立 client — 不要在 worker 之间共享：
+
+```python
+# tasks.py
+from celery import Celery
+from imbrace import ImbraceClient, NetworkError
+
+app = Celery("tasks")
+
+@app.task(bind=True, max_retries=3)
+def sync_products(self):
+    try:
+        with ImbraceClient() as client:
+            result = client.marketplace.list_products(limit=100)
+            for product in result["data"]:
+                save_to_db(product)
+    except NetworkError as exc:
+        # 网络失败时重试 Celery task
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+```
+
+:::tip
+不要在 Celery worker 之间共享单一 `ImbraceClient` — 在每个 task 中建立新的。httpx 连线池无法安全地在程序间共享。
+:::

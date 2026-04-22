@@ -1,0 +1,95 @@
+---
+title: TypeScript SDK — 概览
+description: Imbrace TypeScript SDK 的总体介绍、内部运作机制及适用场景。
+---
+
+`@imbrace/sdk` 是 Imbrace Gateway 的官方 TypeScript/JavaScript 客户端，为所有 Imbrace 服务提供完全类型化的访问，支持服务端（Node.js）和客户端（浏览器）。
+
+### 核心特性
+
+| 特性                     | 说明                                                                 |
+| ------------------------ | -------------------------------------------------------------------- |
+| **完整类型安全**          | 100% TypeScript — 所有请求和响应通过 `types/` 完全类型化             |
+| **双重认证**              | API Key（服务端对服务端）或 Access Token（JWT / legacy token）        |
+| **自动重试**              | 429 和 5xx 自动重试最多 2 次，使用指数退避                           |
+| **请求取消**              | 支持 AbortSignal 取消正在进行的请求                                  |
+| **多环境**                | `develop` / `sandbox` / `stable` 预设，支持按服务覆盖 URL            |
+| **AI 流式输出**           | 基于 AsyncGenerator 的 AI 补全流式传输                               |
+
+### 工作原理
+
+```
+Your Code
+   │
+   ▼
+ImbraceClient          ← 唯一入口，连接所有资源
+   ├── TokenManager    ← 线程安全令牌存储（OTP / JWT / API Key）
+   └── HttpTransport   ← 认证头、重试、超时、错误映射
+         │
+         ▼
+   Imbrace Gateway     ← app-gatewayv2.imbrace.co（+ 按服务 URL）
+```
+
+`ImbraceClient` 创建一个 `HttpTransport` 并在所有资源类之间共享。每个资源（`client.marketplace`、`client.platform` 等）是轻薄封装，只负责构造正确的 URL 并调用 `transport.request()`。
+
+### 内部架构
+
+| 层级             | 文件                    | 职责                                               |
+| ---------------- | ----------------------- | -------------------------------------------------- |
+| 入口点            | `client.ts`             | 初始化所有资源，处理登录辅助函数                    |
+| HTTP 传输         | `http.ts`               | 认证头、重试逻辑、超时、错误映射                    |
+| 令牌管理器        | `auth/token-manager.ts` | 存储和获取 access token                             |
+| 服务注册表        | `service-registry.ts`   | 从环境预设解析按服务 URL                            |
+| 资源              | `resources/*.ts`        | 各领域 API 方法封装（29 个资源）                   |
+| 类型              | `types/*.ts`            | 所有 API 形状的 TypeScript 接口                     |
+| 错误              | `errors.ts`             | 定义 `AuthError`、`ApiError`、`NetworkError`        |
+
+### 资源列表
+
+SDK 在客户端上暴露 29 个资源命名空间：
+
+| 命名空间                   | 用途                                        |
+| -------------------------- | ------------------------------------------- |
+| `client.auth`              | OTP 登录、验证、登出                        |
+| `client.account`           | 当前账户信息                                |
+| `client.marketplace`       | 商品、订单                                  |
+| `client.platform`          | 用户、组织、权限                            |
+| `client.channel`           | 频道、消息、会话                            |
+| `client.ips`               | 身份与档案 — 个人资料、关注/取消关注        |
+| `client.agent`             | AI agent 模板与运行记录                     |
+| `client.ai`                | LLM 补全、流式传输、嵌入                    |
+| `client.sessions`          | 会话管理                                    |
+| `client.messages`          | 会话中的消息                                |
+| `client.contacts`          | 联系人管理                                  |
+| `client.conversations`     | 查看会话                                    |
+| `client.teams`             | 团队管理                                    |
+| `client.workflows`         | 工作流自动化                                |
+| `client.boards`            | 看板 CRUD 和条目                            |
+| `client.settings`          | 组织设置、消息模板                          |
+| `client.organizations`     | 组织列表                                    |
+| `client.health`            | 网关健康检查                                |
+| `client.campaign`          | 营销活动管理                                |
+| `client.schedule`          | 定时任务                                    |
+| `client.categories`        | 分类管理                                    |
+| `client.outbound`          | 外发消息                                    |
+| `client.chatAi`            | Chat AI 会话                                |
+| `client.fileService`       | 文件上传                                    |
+| `client.messageSuggestion` | AI 消息建议                                 |
+| `client.predict`           | 预测服务                                    |
+| `client.activepieces`      | Activepieces 集成                           |
+| `client.license`           | 许可证管理与激活                            |
+| `client.aiAgent`           | Chat AI agent、嵌入、parquet、追踪          |
+
+### 适用场景
+
+| 场景                                    | 推荐认证方式                                |
+| --------------------------------------- | ------------------------------------------- |
+| Node.js 后端、定时任务、数据管道        | `apiKey` → 请求头 `x-api-key`              |
+| OTP/OAuth 登录后的前端                  | `accessToken` JWT → `Authorization: Bearer` |
+| 使用不透明令牌的 legacy 集成            | `accessToken` opaque → `x-access-token`     |
+
+:::tip
+服务端使用 `apiKey`。面向用户的应用使用 OTP，让 SDK 自动管理令牌。
+:::
+
+---

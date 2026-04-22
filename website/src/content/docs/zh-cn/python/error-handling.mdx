@@ -1,0 +1,160 @@
+---
+title: Python SDK — 错误处理
+description: 例外状况阶层、自动重试机制，以及 Imbrace Python SDK 的最佳实践。
+---
+
+所有 SDK 例外都继承自 `ImbraceError`，让您可以在单一的 `except` 子句中捕获所有 SDK 错误。
+
+### 例外阶层
+
+```
+Exception
+└── ImbraceError          (base — catch-all SDK errors)
+    ├── AuthError          (401, 403 — 认证无效或过期)
+    ├── ApiError           (4xx/5xx — 服务器拒绝请求)
+    └── NetworkError       (timeout、连线被拒、DNS 失败)
+```
+
+---
+
+### AuthError
+
+当服务器返回 **401** 或 **403** 时引发。
+
+```python
+from imbrace import ImbraceClient, AuthError
+
+try:
+    me = client.platform.get_me()
+except AuthError as e:
+    # 认证无效或已过期
+    print(f"认证失败: {e}")
+    # 需要重新认证后再试
+```
+
+:::caution
+`AuthError` **永远不会再试**。SDK 在收到 401/403 时会立即引发 — 需要先修复认证数据再重试。
+:::
+
+---
+
+### ApiError
+
+对所有其他 **4xx 和 5xx** 错误（429/5xx 重试后）引发。
+
+```python
+from imbrace import ApiError
+
+try:
+    client.marketplace.get_product("id_khong_ton_tai")
+except ApiError as e:
+    print(f"HTTP {e.status_code}: {e}")
+    # 例如："HTTP 404: Product not found"
+    ```
+
+| Attribute     | Type  | 说明                            |
+| ------------- | ----- | -------------------------------- |
+| `status_code` | `int` | HTTP 状态码                 |
+| `message`     | `str` | 服务器响应的错误信息 |
+
+---
+
+### NetworkError
+
+当请求无法到达服务器时引发 — timeout、DNS 失败或连线重置。
+
+```python
+from imbrace import NetworkError
+
+try:
+    client.platform.get_me()
+except NetworkError as e:
+    print(f"网络错误: {e}")
+    # 例如："Request timed out after 30s"
+```
+
+---
+
+### 捕获所有 SDK 错误
+
+```python
+from imbrace import ImbraceError, AuthError, ApiError, NetworkError
+
+try:
+    result = client.platform.get_me()
+except AuthError as e:
+    handle_auth_error(e)
+except ApiError as e:
+    handle_api_error(e)
+except NetworkError as e:
+    handle_network_error(e)
+except ImbraceError as e:
+    handle_unknown_error(e)
+```
+
+---
+
+### 自动重试行为
+
+| 条件                   | 动作                                    |
+| --------------------------- | -------------------------------------------- |
+| HTTP **429** (rate limit)   | 最多重试 3 次                           |
+| HTTP **5xx** (server error) | 最多重试 3 次                           |
+| 网络错误 / timeout         | 最多重试 3 次                           |
+| HTTP **401 / 403**          | 不重试 — 立即引发 `AuthError` |
+| HTTP **4xx** (其他)        | 不重试 — 立即引发 `ApiError`  |
+
+**退避公式：** `2^retryCount` 秒（2s → 4s → 8s）。
+
+最坏情况：4 次尝试（1 次初始 + 3 次重试）后才引发。
+
+:::note
+Python SDK 最多重试 **3 次**（总共 4 次），而 TypeScript SDK 最多重试 **2 次**（总共 3 次）。两者都使用相同的指数退避公式。
+:::
+
+---
+
+### Async 错误处理
+
+例外状况完全相同 — 只需加上 `await`：
+
+```python
+from imbrace import AsyncImbraceClient, AuthError, ApiError
+
+async with AsyncImbraceClient() as client:
+    try:
+        me = await client.platform.get_me()
+    except AuthError:
+        print("需要重新认证")
+    except ApiError as e:
+        print(f"[{e.status_code}] {e}")
+```
+
+---
+
+### 最佳实践
+
+```python
+# 1. 使用 context manager 确保连线关闭
+with ImbraceClient() as client:
+    ...
+
+# 2. 分开处理 AuthError — 认证数据需要 refresh 后再重试
+def safe_get_me(client):
+    try:
+        return client.platform.get_me()
+    except AuthError:
+        refresh_credentials(client)
+        return client.platform.get_me()  # refresh 后重试一次
+
+# 3. 记录 ApiError.status_code 以便 debug
+try:
+    client.marketplace.create_product(data)
+except ApiError as e:
+    if e.status_code == 409:
+        print("产品已存在")
+    elif e.status_code == 400:
+        print(f"数据无效: {e}")
+
+# 4. 不要捕获 ImbraceError 并静默忽略 — 永远记录或重新引发
+```

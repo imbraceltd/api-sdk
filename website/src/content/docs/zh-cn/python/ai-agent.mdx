@@ -1,0 +1,312 @@
+---
+title: Python SDK — AI Agent
+description: ai_agent 资源的完整参考 — 流式聊天、嵌入向量、Parquet、分布式追踪，以及 chat-client 子 API。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`client.ai_agent` 连接到独立的 AI Agent service，运作在不同的 base URL。此资源提供流式聊天、管理嵌入向量知识库、栏式数据 (Parquet)、分布式追踪 (Tempo)，以及完整的 Chat Client 子 API。
+
+同步 (`ImbraceClient`) 和异步 (`AsyncImbraceClient`) client 接口相同 — 异步方法使用 `await` 并自动使用 `AsyncAiAgentResource`。
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+```
+
+---
+
+#### 系统
+
+```python
+config   = client.ai_agent.get_config()
+health   = client.ai_agent.get_health()                  # 基本检查
+health_d = client.ai_agent.get_health(detailed=True)     # 详细统计
+version  = client.ai_agent.get_version()
+```
+
+---
+
+#### 聊天 v1 — 对话记录
+
+列出、读取和删除已储存的聊天记录。
+
+```python
+# 列出组织的聊天
+chats = client.ai_agent.list_chats(
+    organization_id="org_abc",
+    user_id="user_123",
+    limit=20,
+)
+
+# 取得单一聊天 (include_messages=True 会同时取得讯息)
+chat = client.ai_agent.get_chat("chat_id", include_messages=True)
+
+# 删除聊天
+client.ai_agent.delete_chat(
+    "chat_id",
+    organization_id="org_abc",
+    user_id="user_123",
+)
+```
+
+---
+
+#### 聊天 v2 — 流式 (SSE)
+
+`stream_chat` 返回原始 `httpx.Response`。使用 `.iter_lines()` 来读取 Server-Sent Events。
+
+```python
+response = client.ai_agent.stream_chat({
+    "id": "chat_id",
+    "assistant_id": "asst_abc",
+    "organization_id": "org_abc",
+    "messages": [{"role": "user", "content": "你能做什么？"}],
+})
+
+for line in response.iter_lines():
+    if line:
+        print(line)
+```
+
+**异步版本：**
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def main():
+    async with AsyncImbraceClient() as client:
+        response = await client.ai_agent.stream_chat({
+            "id": "chat_id",
+            "assistant_id": "asst_abc",
+            "organization_id": "org_abc",
+            "messages": [{"role": "user", "content": "你好"}],
+        })
+        async for line in response.aiter_lines():
+            if line:
+                print(line)
+
+asyncio.run(main())
+```
+
+---
+
+#### 子代理聊天 v2
+
+从子代理流式响应并取得对话记录。
+
+```python
+# 从子代理流式
+res = client.ai_agent.stream_sub_agent_chat({
+    "assistant_id": "asst_sub",
+    "organization_id": "org_abc",
+    "session_id": "sess_xyz",
+    "chat_id": "chat_id",
+    "messages": [{"role": "user", "content": "解说资料。"}],
+})
+
+# 取得子代理会话记录
+history = client.ai_agent.get_sub_agent_history(
+    session_id="sess_xyz",
+    chat_id="chat_id",
+)
+```
+
+---
+
+#### 提示建议
+
+取得助手的提示建议清单。
+
+```python
+suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
+```
+
+---
+
+#### 嵌入向量与知识库
+
+管理用于检索增强生成 (RAG) 的档案。档案需先通过 `client.file_service` 上传。
+
+```python
+# 启动嵌入向量处理已上传的档案
+client.ai_agent.process_embedding("file_abc")
+
+# 带处理选项
+client.ai_agent.process_embedding("file_abc", options={"chunk_size": 512})
+
+# 列出并检查嵌入向量档案
+files   = client.ai_agent.list_embedding_files(page=1, limit=20)
+file    = client.ai_agent.get_embedding_file("file_abc")
+preview = client.ai_agent.preview_embedding_file(file_id="file_abc")
+
+# 更新状态并删除
+client.ai_agent.update_embedding_file_status("file_abc", "active")
+client.ai_agent.delete_embedding_file("file_abc")
+
+# 档案分类供 RAG 使用
+classification = client.ai_agent.classify_file(file_id="file_abc")
+```
+
+---
+
+#### Data Board
+
+通过 AI 为结构化数据集建议数据类型。
+
+```python
+result = client.ai_agent.suggest_field_types(fields=[
+    {"name": "created_at", "samples": ["2024-01-01", "2024-02-15"]},
+    {"name": "amount",     "samples": [100, 200.5, 999]},
+    {"name": "is_active",  "samples": [True, False, True]},
+])
+# result["fields"][i]["suggestedType"] → "datetime" | "number" | "boolean" | ...
+```
+
+---
+
+#### Parquet
+
+建立和管理分析管线的栏式 Parquet 数据档案。
+
+```python
+# 从字典清单建立 Parquet 档案
+result = client.ai_agent.generate_parquet(
+    data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+    file_name="users",
+    folder_name="exports",
+)
+
+# 列出所有 Parquet 档案
+files = client.ai_agent.list_parquet_files()
+
+# 删除档案 (路径会自动 URL编码)
+client.ai_agent.delete_parquet_file("exports/users.parquet")
+```
+
+---
+
+#### 分布式追踪 (Tempo)
+
+从 AI Agent service 查询 Grafana Tempo 追踪以进行观察和除错。
+
+```python
+# 列出最近的追踪
+traces = client.ai_agent.get_traces(
+    service="ai-agent",
+    limit=50,
+    time_range=3600,     # 秒
+    org_id="org_abc",
+    details=True,
+)
+
+# 查看单一追踪详情
+trace = client.ai_agent.get_trace("trace_id_hex")
+
+# 列出服务、标签和标签值
+services = client.ai_agent.get_trace_services()
+tags     = client.ai_agent.get_trace_tags()
+values   = client.ai_agent.get_trace_tag_values("http.status_code")
+
+# 使用 TraceQL 搜索
+results = client.ai_agent.search_traceql(
+    '{ .service.name = "ai-agent" && .http.status = 500 }'
+)
+```
+
+---
+
+#### Chat Client
+
+Chat Client 子 API 服务前端应用。包括聊天/讯息的认证、CRUD、评价和 AI 生成的成品。
+
+##### 认证
+
+```python
+client.ai_agent.verify_chat_client_credentials({"token": "tok_xxx"})
+client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
+user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
+```
+
+##### 聊天
+
+```python
+# 建立新聊天会话
+client.ai_agent.create_client_chat({
+    "id": "chat_uuid",
+    "message": {
+        "id": "msg_uuid",
+        "role": "user",
+        "parts": [{"type": "text", "text": "你好！"}],
+    },
+    "assistantId":    "asst_abc",
+    "organizationId": "org_abc",
+})
+
+# 列出、读取、更新、删除
+chats = client.ai_agent.list_client_chats(organization_id="org_abc", limit=20)
+chat  = client.ai_agent.get_client_chat("chat_id")
+client.ai_agent.update_client_chat("chat_id", {"visibility": "private"})
+client.ai_agent.delete_client_chat("chat_id")
+client.ai_agent.delete_all_client_chats("org_abc")
+
+# 自动产生聊天标题
+client.ai_agent.generate_client_chat_title("chat_id")
+
+# 流式聊天状态即时 SSE
+status_stream = client.ai_agent.stream_client_chat_status("chat_id")
+```
+
+##### 讯息
+
+```python
+# 储存讯息
+client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "你好"})
+
+# 列出聊天中的所有讯息
+messages = client.ai_agent.list_client_messages("chat_id")
+
+# 删除讯息及该讯息后的所有讯息
+client.ai_agent.delete_trailing_messages("message_id")
+```
+
+##### 评价
+
+```python
+votes = client.ai_agent.get_votes("chat_id")
+client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
+```
+
+##### 成品 (AI 生成的档案)
+
+```python
+# 建立 AI 生成的成品
+client.ai_agent.create_document({"kind": "text", "content": "草稿..."})
+
+# 取得成品
+doc        = client.ai_agent.get_document("doc_id")
+latest     = client.ai_agent.get_document_latest("doc_id")
+pub        = client.ai_agent.get_document_public("doc_id")
+by_kind    = client.ai_agent.get_document_latest_by_kind(kind="text")
+suggestion = client.ai_agent.get_document_suggestions("doc_id")
+
+# 删除成品
+client.ai_agent.delete_document("doc_id")
+```
+
+---
+
+#### 管理指南
+
+存取 AI Agent service 储存的管理指南。档案以原始二进制流返回（通常是 PDF）。
+
+```python
+# 列出可用的指南
+guides = client.ai_agent.list_admin_guides()
+
+# 下载特定指南 — 返回原始 httpx.Response
+response = client.ai_agent.get_admin_guide("onboarding.pdf")
+with open("onboarding.pdf", "wb") as f:
+    f.write(response.content)
+```

@@ -1,0 +1,165 @@
+---
+title: TypeScript SDK — 错误处理
+description: 错误类型、自动重试行为以及 Imbrace TypeScript SDK 的最佳实践。
+---
+
+SDK 抛出的所有错误都继承自一个公共基类，并具有完整类型，可通过 `instanceof` 精确处理。
+
+### 错误层级
+
+```
+Error
+└── ImbraceError          （基类 — 捕获所有 SDK 错误）
+    ├── AuthError          （401、403 — 无效或过期的凭证）
+    ├── ApiError           （4xx/5xx — 服务器拒绝请求）
+    └── NetworkError       （超时、连接被拒绝、DNS 失败）
+```
+
+---
+
+### AuthError
+
+服务器返回 **401** 或 **403** 时抛出。
+
+```typescript
+import { AuthError } from "@imbrace/sdk";
+
+try {
+  const me = await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) {
+    // API Key 过期、令牌被撤销或凭证错误
+    console.error("需要重新认证：", e.message);
+  }
+}
+```
+
+:::caution
+`AuthError` **永远不会被重试**。SDK 在收到 401/403 时立即抛出 — 需要先修复凭证再重试。
+:::
+
+---
+
+### ApiError
+
+针对所有其他 **4xx 和 5xx**（429/5xx 重试耗尽后）抛出。
+
+```typescript
+import { ApiError } from "@imbrace/sdk";
+
+try {
+  await client.marketplace.getProduct("not_exist_id");
+} catch (e) {
+  if (e instanceof ApiError) {
+    console.error(`HTTP ${e.statusCode}: ${e.message}`);
+    // 例如："HTTP 404: Product not found"
+  }
+}
+```
+
+| 属性         | 类型     | 说明                     |
+| ------------ | -------- | ------------------------ |
+| `statusCode` | `number` | HTTP 状态码              |
+| `message`    | `string` | 服务器响应中的错误消息   |
+
+---
+
+### NetworkError
+
+请求未能到达服务器时抛出 — 超时、DNS 失败或连接被拒绝。
+
+```typescript
+import { NetworkError } from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof NetworkError) {
+    console.error("无法连接 baseUrl：", e.message);
+    // 例如："Request timed out after 30000ms"
+  }
+}
+```
+
+---
+
+### 捕获所有 SDK 错误
+
+```typescript
+import { ImbraceError, AuthError, ApiError, NetworkError } from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) return handleAuthError(e);
+  if (e instanceof ApiError) return handleApiError(e);
+  if (e instanceof NetworkError) return handleNetworkError(e);
+  if (e instanceof ImbraceError) return handleUnknownError(e);
+  throw e; // 重新抛出非 SDK 错误
+}
+```
+
+---
+
+### 自动重试行为
+
+`HttpTransport` 自动对临时错误进行重试：
+
+| 条件                        | 行为                                     |
+| --------------------------- | ---------------------------------------- |
+| HTTP **429**（频率限制）    | 最多重试 2 次                            |
+| HTTP **5xx**（服务器错误）  | 最多重试 2 次                            |
+| 网络错误 / 超时             | 最多重试 2 次                            |
+| HTTP **401 / 403**          | 不重试 — 立即抛出 `AuthError`            |
+| HTTP **4xx**（其他）        | 不重试 — 立即抛出 `ApiError`             |
+
+**退避公式：** 重试间隔 `2^retryCount` 秒（2s → 4s）。
+
+最坏情况：3 次尝试（1 次初始 + 2 次重试）后抛出异常。
+
+---
+
+### 取消请求
+
+使用标准 `AbortController` 取消正在进行的请求：
+
+```typescript
+const controller = new AbortController();
+
+// 5 秒后取消
+setTimeout(() => controller.abort(), 5000);
+
+try {
+  const result = await client.marketplace.listProducts(
+    { page: 1 },
+    { signal: controller.signal },
+  );
+} catch (e) {
+  if (e instanceof NetworkError && e.message.includes("aborted")) {
+    console.log("请求已被取消");
+  }
+}
+```
+
+---
+
+### 最佳实践
+
+```typescript
+// 1. 单独处理 AuthError — 凭证需要刷新
+// 2. 记录 ApiError.statusCode 以便调试 — 400=参数错误，404=未找到
+// 3. 在入口点用 try/catch 包装 — 不要让 NetworkError 导致应用崩溃
+// 4. AuthError 时不要重试 — 在修复凭证之前重试无效
+
+async function safeGetMe(client: ImbraceClient) {
+  try {
+    return await client.platform.getMe();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      await refreshCredentials();
+      return await client.platform.getMe(); // 刷新后重试一次
+    }
+    throw e;
+  }
+}
+```
