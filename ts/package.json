@@ -1,6 +1,6 @@
 {
   "name": "@imbrace/sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official TypeScript/JavaScript SDK for Imbrace — dual auth (API Key + Access Token)",
   "type": "module",
   "license": "MIT",
@@ -72,10 +72,7 @@
     "test:watch": "vitest tests/unit",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "dotenv": "^16.4.5",
-    "imbrace-sdk-workspace": "file:.."
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
