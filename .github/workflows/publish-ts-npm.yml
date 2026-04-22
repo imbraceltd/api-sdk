@@ -86,5 +86,6 @@ jobs:
 
       - name: Publish to npm
         if: steps.check.outputs.published == 'false'
-        # Uses OIDC (Trusted Publisher) and generates a Provenance attestation
-        run: npm publish --access public --provenance
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
