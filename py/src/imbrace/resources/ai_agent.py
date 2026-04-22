@@ -69,9 +69,6 @@ class AiAgentResource:
     def preview_embedding_file(self, **params) -> Any:
         return self._http.request("GET", f"{self._base}/embedding/files/preview{_qs(params)}").json()
 
-    def get_embedding_statistics(self) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/embedding/files/statistics").json()
-
     def update_embedding_file_status(self, file_id: str, status: str) -> Dict[str, Any]:
         return self._http.request("PUT", f"{self._base}/embedding/files/{file_id}/status", json={"status": status}).json()
 
@@ -268,9 +265,6 @@ class AsyncAiAgentResource:
 
     async def preview_embedding_file(self, **params) -> Any:
         return await (await self._http.request("GET", f"{self._base}/embedding/files/preview{_qs(params)}")).json()
-
-    async def get_embedding_statistics(self) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/embedding/files/statistics")).json()
 
     async def update_embedding_file_status(self, file_id: str, status: str) -> Dict[str, Any]:
         return await (await self._http.request("PUT", f"{self._base}/embedding/files/{file_id}/status", json={"status": status})).json()

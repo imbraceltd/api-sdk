@@ -106,12 +106,6 @@ try:
 except Exception as e:
     fail("list_embedding_files()", e)
 
-try:
-    res = ai_agent.get_embedding_statistics()
-    ok("get_embedding_statistics()", str(res)[:100])
-except Exception as e:
-    fail("get_embedding_statistics()", e)
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Parquet
 # ─────────────────────────────────────────────────────────────────────────────

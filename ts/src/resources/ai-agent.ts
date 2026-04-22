@@ -106,10 +106,6 @@ export class AiAgentResource {
     return this.http.getFetch()(`${this.base}/embedding/files/preview${buildQuery(params ?? {})}`).then(r => r.json())
   }
 
-  async getEmbeddingStatistics(): Promise<any> {
-    return this.http.getFetch()(`${this.base}/embedding/files/statistics`).then(r => r.json())
-  }
-
   async updateEmbeddingFileStatus(id: string, status: string): Promise<any> {
     return this.http.getFetch()(`${this.base}/embedding/files/${id}/status`, {
       method: "PUT",

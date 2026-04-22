@@ -97,11 +97,6 @@ try {
   ok('listEmbeddingFiles()', `${Array.isArray(files) ? files.length : '?'} files`)
 } catch (e) { fail('listEmbeddingFiles()', e) }
 
-try {
-  const res = await aiAgent.getEmbeddingStatistics()
-  ok('getEmbeddingStatistics()', JSON.stringify(res).slice(0, 100))
-} catch (e) { fail('getEmbeddingStatistics()', e) }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Parquet
 // ─────────────────────────────────────────────────────────────────────────────
