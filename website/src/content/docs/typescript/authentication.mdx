@@ -20,7 +20,8 @@ The SDK supports two authentication strategies. Pass either `apiKey` or `accessT
 import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
+  apiKey: "sk-xxx...",
+  gateway: "https://app-gatewayv2.imbrace.co",
 });
 ```
 
@@ -82,5 +83,4 @@ client.clearAccessToken();
 The client merges configuration in this order (highest to lowest priority):
 
 1. **Explicit constructor options** — `new ImbraceClient({ apiKey: "..." })`
-2. **Environment variables** — `IMBRACE_API_KEY`, `IMBRACE_GATEWAY_URL`
-3. **Defaults** — `env: "stable"`, gateway `https://app-gatewayv2.imbrace.co`
+2. **Defaults** — gateway `https://app-gatewayv2.imbrace.co`
