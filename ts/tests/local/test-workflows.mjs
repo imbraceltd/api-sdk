@@ -10,7 +10,7 @@ import { ImbraceClient } from '@imbrace/sdk'
 const ACCESS_TOKEN = process.env.IMBRACE_ACCESS_TOKEN || 'acc_c8c27f3b-e147-4735-b641-61e8d3706692'
 const GATEWAY      = process.env.IMBRACE_GATEWAY_URL  || 'https://app-gatewayv2.imbrace.co'
 
-const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, gateway: GATEWAY })
+const client = new ImbraceClient({ accessToken: ACCESS_TOKEN, baseUrl: GATEWAY })
 const workflows = client.workflows
 
 let passed = 0, failed = 0, skipped = 0

@@ -45,8 +45,8 @@ export interface ImbraceClientConfig {
    * - 'stable'   - app-gatewayv2.imbrace.co (default)
    */
   env?: Environment
-  /** Override the gateway URL for the selected environment. */
-  gateway?: string
+  /** Base URL of the Imbrace gateway (e.g. "https://app-gatewayv2.imbrace.co"). */
+  baseUrl?: string
   /** Override the base URL for individual services. */
   services?: Partial<ServiceUrls>
   /** API key (server-side) - from POST /private/backend/v1/third_party_token */
@@ -109,7 +109,7 @@ export class ImbraceClient {
 
     // -- Resolve environment & service URLs ----------------------------------
     const envName = opts?.env ?? 'stable'
-    const gatewayOverride = opts?.gateway
+    const gatewayOverride = opts?.baseUrl
 
     const basePreset: Environment | EnvironmentPreset = gatewayOverride
       ? { ...ENVIRONMENTS[envName], gateway: gatewayOverride }

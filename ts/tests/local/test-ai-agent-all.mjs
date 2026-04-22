@@ -2,7 +2,7 @@ import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({
   accessToken: 'acc_c10f483f-0e45-4966-a275-2fb0356365e7',
-  gateway: 'https://app-gatewayv2.imbrace.co',
+  baseUrl: 'https://app-gatewayv2.imbrace.co',
 })
 const ASSISTANT_ID = 'a5ffe364-c136-40a0-aa49-84866e4d8485'
 const ORG_ID = 'org_6d4ae4f2-f75c-4324-9269-c3fec12078cc'

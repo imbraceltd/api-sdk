@@ -30,13 +30,13 @@ import { ImbraceClient } from "@imbrace/sdk"
 // Option 1 — access token (user-facing apps)
 const client = new ImbraceClient({
   accessToken: "your-access-token",
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 })
 
 // Option 2 — API key (server-to-server)
 const client = new ImbraceClient({
   apiKey: "sk-xxx...",
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 })
 ```
 

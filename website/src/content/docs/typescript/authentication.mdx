@@ -21,7 +21,7 @@ import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
   apiKey: "sk-xxx...",
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 });
 ```
 
@@ -34,7 +34,7 @@ If you already have an `acc_...` token, pass it directly:
 ```typescript
 const client = new ImbraceClient({
   accessToken: "acc_xxxxxxxxxxxxx",
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 });
 ```
 
@@ -48,7 +48,7 @@ Use this flow to authenticate a user via email OTP and obtain a session token.
 import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 });
 
 // Step 1: Send OTP to user's email
@@ -74,7 +74,7 @@ const { data: boards } = await client.boards.list();
 
 ```typescript
 const client = new ImbraceClient({
-  gateway: "https://app-gatewayv2.imbrace.co",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
 });
 
 await client.login("user@example.com", "password");
