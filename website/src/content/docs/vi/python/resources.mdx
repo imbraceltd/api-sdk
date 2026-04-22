@@ -1,272 +1,228 @@
 ---
-title: Python SDK — Tài Nguyên API
-description: Tham chiếu đầy đủ cho tất cả resource namespaces có trên ImbraceClient.
+title: Python SDK — Tính Năng
+description: Hướng dẫn xây dựng CRM và AI với Imbrace Python SDK.
 ---
-
-Mỗi resource được truy cập như attribute trên client. Method sync trả về dict/Pydantic model; method async là coroutine.
 
 ```python
 from imbrace import ImbraceClient
-client = ImbraceClient()
+client = ImbraceClient(access_token="acc_xxx")
 ```
 
 ---
 
-### Marketplace
+## CRM
 
-Quản lý sản phẩm và đơn hàng.
+### Quản Lý Contacts
 
 ```python
-# Sản phẩm
-client.marketplace.list_products(category="electronics", page=1, limit=20)
-client.marketplace.get_product("prod_id")
-client.marketplace.create_product({"name": "Sản phẩm A", "price": 99.0})
-client.marketplace.update_product("prod_id", {"price": 89.0})
-client.marketplace.delete_product("prod_id")
+# Danh sách contacts
+contacts = client.contacts.list(limit=50).get("data", [])
 
-# Đơn hàng
-client.marketplace.list_orders(status="pending")
-client.marketplace.create_order({
-    "items": [{"product_id": "prod_id", "quantity": 2}],
-    "shipping_address": {"city": "Ho Chi Minh", "country": "VN"},
+# Lấy một contact
+contact = client.contacts.get("contact_id")
+
+# Cập nhật thông tin
+client.contacts.update("contact_id", {
+    "name":  "Alice B.",
+    "email": "alice@example.com",
+    "phone": "+84901234567",
 })
-client.marketplace.update_order_status("order_id", "confirmed")
+
+# Lịch sử hoạt động, bình luận, file
+activity = client.contacts.get_activities("conversation_id")
+comments = client.contacts.get_comments("contact_id")
+files    = client.contacts.get_files("contact_id")
 ```
 
 ---
 
-### Platform
+### CRM Boards (Pipeline)
 
-Quản lý người dùng, tổ chức, và phân quyền.
+Boards là nơi lưu trữ dữ liệu CRM — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào.
 
 ```python
-# Người dùng
-client.platform.get_me()
-client.platform.list_users(search="nguyen", page=1, limit=20)
-client.platform.update_user("user_id", {"display_name": "Nguyễn Văn A"})
-client.platform.delete_user("user_id")
+# Danh sách boards
+boards = client.boards.list().get("data", [])
 
-# Tổ chức
-client.platform.list_orgs()
-client.platform.create_org({"name": "My Org"})
-client.platform.update_org("org_id", {"name": "Tên Mới"})
+# Lấy items của một board
+leads = client.boards.list_items("board_id", limit=100).get("data", [])
 
-# Phân quyền
-client.platform.list_permissions("user_id")
-client.platform.grant_permission("user_id", "flows", "write")
-client.platform.revoke_permission("user_id", "perm_id")
+# Tạo item mới
+lead = client.boards.create_item("board_id", {
+    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+})
+
+# Cập nhật item
+client.boards.update_item("board_id", lead["id"], {
+    "fields": {"status": "qualified"}
+})
+
+# Tìm kiếm items
+results = client.boards.search("board_id", {"query": "enterprise"})
+
+# Xuất CSV
+csv = client.boards.export_csv("board_id")
 ```
 
 ---
 
-### Channel
+### Conversations
 
-Vòng đời kênh và nhắn tin realtime.
+Quản lý cuộc hội thoại với khách hàng.
 
 ```python
-# Kênh
-client.channel.list_channels(type="group")
-client.channel.create_channel({"name": "general", "type": "group"})
-client.channel.add_participants("channel_id", ["user_1", "user_2"])
+# Tìm kiếm conversations
+convs = client.conversations.search(
+    business_unit_id="bu_xxx", q="support", limit=20
+).get("data", [])
 
-# Tin nhắn
-client.channel.list_messages("conversation_id")
-client.channel.send_message("conversation_id", "Xin chào!", type="text")
-client.channel.mark_read("conversation_id")
+# Conversations chưa xử lý
+open_convs = client.conversations.get_outstanding(
+    business_unit_id="bu_xxx", limit=50
+).get("data", [])
+
+# Cập nhật trạng thái
+client.conversations.update_status({
+    "conversation_id": "conv_xxx",
+    "status": "resolved",
+})
 ```
 
 ---
 
-### IPS — Identity & Profile Service
+### Nhắn Tin
+
+Gửi và nhận tin nhắn qua các kênh (web, WhatsApp, Facebook, email, ...).
 
 ```python
-client.ips.get_my_profile()
-client.ips.update_profile("user_id", {"bio": "Developer"})
-client.ips.search_profiles("nguyen van a", page=1, limit=10)
+# Danh sách kênh
+channels = client.channel.list()
 
-# Mạng xã hội
-client.ips.follow("target_user_id")
-client.ips.unfollow("target_user_id")
-client.ips.get_followers("user_id")
-client.ips.get_following("user_id")
+# Gửi tin nhắn
+client.messages.send(type="text", text="Xin chào, tôi có thể giúp gì cho bạn?")
 
-# Định danh
-client.ips.list_identities("user_id")
+# Danh sách tin nhắn
+msgs = client.messages.list(limit=20)
 ```
 
 ---
 
-### Agent
+### Workflows & Automation
+
+Kích hoạt channel automations để xử lý tin nhắn đến, phân luồng hội thoại và kích hoạt các hành động follow-up.
 
 ```python
-client.agent.list_agents()
-client.agent.create_agent({"name": "Data Analyzer", "model": "gpt-4o"})
-client.agent.update_agent("agent_id", {"system_prompt": "Bạn là chuyên gia phân tích."})
-client.agent.delete_agent("agent_id")
+# Danh sách tất cả channel automations
+automations = client.workflows.list_channel_automation().get("data", [])
 
-# Chạy agent
-client.agent.run_agent("agent_id", {"task": "Phân tích dữ liệu Q1"})
-client.agent.get_run("run_id")
-client.agent.cancel_run("run_id")
+# Lọc theo loại kênh
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
 ```
 
 ---
 
-### AI
+## AI
+
+### AI Service (aiv2)
+
+`client.ai` và `client.chat_ai` đều gọi đến dịch vụ **aiv2**. Dùng `client.ai` cho các lệnh gọi OpenAI-compatible; dùng `client.chat_ai` cho phiên chat và xử lý tài liệu.
 
 ```python
-# Completion không streaming
+# ── client.ai — OpenAI-compatible completions ──────────────────────────────
+
 response = client.ai.complete(
     model="gpt-4o",
     messages=[
-        {"role": "system", "content": "Bạn là trợ lý hữu ích."},
-        {"role": "user", "content": "Tóm tắt báo cáo này."},
+        {"role": "system", "content": "Bạn là trợ lý CRM."},
+        {"role": "user",   "content": "Tóm tắt ghi chú khách hàng này: ..."},
     ],
-    temperature=0.7,
-    max_tokens=1000,
 )
 print(response["choices"][0]["message"]["content"])
 
-# Streaming completion — yield từng chunk
 for chunk in client.ai.stream(
     model="gpt-4o",
-    messages=[{"role": "user", "content": "Đếm từ 1 đến 5."}],
+    messages=[{"role": "user", "content": "Soạn email follow-up cho lead này."}],
 ):
-    content = chunk["choices"][0]["delta"].get("content", "")
-    print(content, end="", flush=True)
+    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
-# Text embeddings
 result = client.ai.embed(
     model="text-embedding-ada-002",
-    input=["Xin chào thế giới", "Imbrace SDK"],
+    input=["khách hàng khiếu nại về billing", "vấn đề billing leo thang"],
 )
-```
 
----
+# ── client.chat_ai — managed chat sessions ────────────────────────────────
 
-### Sessions & Messages
-
-```python
-# Sessions
-client.sessions.list()
-session = client.sessions.create(directory="/my/project")
-client.sessions.get(session["id"])
-client.sessions.delete(session["id"])
-
-# Tin nhắn trong session
-client.messages.list(session["id"])
-client.messages.send(session["id"], parts=[{"type": "text", "text": "Xin chào"}])
-client.messages.delete(session["id"], "message_id")
-```
-
----
-
-### Auth / Contacts / Conversations / Teams / Boards
-
-```python
-# Auth
-client.auth.request_otp({"email": "user@example.com"})
-client.auth.verify_otp({"email": "user@example.com", "otp": "123456"})
-client.auth.sign_out()
-
-# Contacts
-client.contacts.list(search="alice")
-client.contacts.update("contact_id", {"name": "Alice B."})
-
-# Conversations
-client.conversations.get_views_count()
-client.conversations.search({"query": "hỗ trợ"})
-
-# Teams
-client.teams.list()
-client.teams.get_my_teams()
-client.teams.add_user("team_id", "user_id")
-
-# Boards
-client.boards.list()
-client.boards.get_items("board_id")
-client.boards.search("board_id", {"query": "task"})
-```
-
----
-
-### Chat AI
-
-LLM completions và lịch sử chat qua dịch vụ aiv2.
-
-```python
-models   = client.chat_ai.list_models()
-response = client.chat_ai.chat({
+models    = client.chat_ai.list_models()
+response2 = client.chat_ai.chat({
     "model": "gpt-4o",
-    "messages": [{"role": "user", "content": "Tóm tắt dữ liệu quý này."}],
+    "messages": [{"role": "user", "content": "Chính sách hoàn tiền là gì?"}],
 })
-chats = client.chat_ai.list_chats()
-client.chat_ai.delete_chat("chat_id")
+chat    = client.chat_ai.create_chat({"title": "Support Chat"})
+history = client.chat_ai.list_chats()
+client.chat_ai.delete_chat(chat["id"])
+
+# ── Hiểu Tài Liệu ─────────────────────────────────────────────────────────
+
+result = client.chat_ai.process_document(
+    model_name="gpt-4o",
+    url="https://example.com/invoice.pdf",
+    organization_id="org_xxx",  # bắt buộc cho endpoint này
+)
+print(result["data"])
+# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
 
 ---
 
 ### AI Agent
 
-Chat, embedding files, parquet và distributed trace qua dịch vụ ai-agent.
+Chat streaming với knowledge base và quản lý phiên chat end-user.
 
 ```python
-config = client.ai_agent.get_config()
+import uuid
 
-# Lịch sử chat v1
-res   = client.ai_agent.list_chats(organization_id="org_xxx", limit=10)
-chats = res.get("chats", [])
+# Stream chat với AI assistant (SSE)
+# id là session/conversation ID — truyền cùng id qua các lượt để giữ lịch sử hội thoại.
+#   Chỉ bỏ qua khi bắt đầu cuộc trò chuyện mới; SDK sẽ tự tạo nếu không truyền.
+# user_id là tuỳ chọn — được lấy tự động qua chat-client/auth/user khi không cung cấp.
+session_id = str(uuid.uuid4())  # lưu lại id này cho toàn bộ cuộc trò chuyện
 
-# Chat v2 streaming (SSE)
 resp = client.ai_agent.stream_chat({
-    "id": "chat_id",
+    "id": session_id,
     "assistant_id": "assistant_id",
     "organization_id": "org_xxx",
-    "messages": [{"role": "user", "content": "Xin chào"}],
+    "messages": [{"role": "user", "content": "Deals nào đã chốt quý này?"}],
 })
 for line in resp.iter_lines():
     print(line)
 
-# Parquet
-result = client.ai_agent.generate_parquet(
-    data=[{"id": 1, "value": 42}],
-    file_name="export_2026",
-)
-client.ai_agent.delete_parquet_file(result["fileName"])
+# Gợi ý câu hỏi
+suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
 
-# Chat client
-import uuid
-new_chat = client.ai_agent.create_client_chat({
+# Knowledge base
+files      = client.ai_agent.list_embedding_files()
+classified = client.ai_agent.classify_file(
+    url="https://example.com/product-catalog.pdf",
+    mime_type="application/pdf",
+)
+
+# Quản lý phiên chat end-user
+from datetime import datetime, timezone
+chat = client.ai_agent.create_client_chat({
     "id": str(uuid.uuid4()),
-    "message": {"id": str(uuid.uuid4()), "role": "user",
-                "parts": [{"type": "text", "text": "Xin chào"}]},
     "assistantId": "assistant_id",
     "organizationId": "org_xxx",
+    "userId": "user_id",               # lấy từ chat-client/auth/user
+    "selectedVisibilityType": "private",
+    "message": {
+        "id":        str(uuid.uuid4()),
+        "role":      "user",
+        "content":   "Xin chào",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "parts":     [{"type": "text", "text": "Xin chào"}],
+    },
 })
-client.ai_agent.delete_client_chat(new_chat["id"])
-```
 
----
-
-### Pagination
-
-```python
-result = client.marketplace.list_products(page=1, limit=20)
-products = result["data"]                        # list items
-has_next = result["pagination"]["has_next"]      # bool
-total    = result["pagination"]["total"]          # int
-```
-
-#### Duyệt Tất Cả Trang Tự Động
-
-`iterate_paged()` tự động chuyển trang và yield từng item:
-
-```python
-for product in client._http.iterate_paged(
-    "GET",
-    "/marketplace/products",
-    model=dict,
-    params={"limit": 50},
-):
-    process(product)
+messages = client.ai_agent.list_client_messages(chat["id"])
+client.ai_agent.delete_client_chat(chat["id"])
 ```

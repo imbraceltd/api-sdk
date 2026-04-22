@@ -1,296 +1,240 @@
 ---
-title: TypeScript SDK — Tài Nguyên API
-description: Tham chiếu đầy đủ cho tất cả resource namespaces có trên ImbraceClient.
+title: TypeScript SDK — Tính Năng
+description: Hướng dẫn xây dựng CRM và AI với Imbrace TypeScript SDK.
 ---
 
-Mỗi resource được truy cập như một property trên `ImbraceClient`. Tất cả methods đều trả về Promise và được type đầy đủ.
-
 ```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-const client = new ImbraceClient();
+import { ImbraceClient } from "@imbrace/sdk"
+const client = new ImbraceClient({ accessToken: "acc_xxx" })
 ```
 
 ---
 
-### Marketplace
+## CRM
 
-Quản lý sản phẩm và đơn hàng trong Imbrace Marketplace.
+### Quản Lý Contacts
 
 ```typescript
-// Sản phẩm
-const { data: products } = await client.marketplace.listProducts({
-  category: "electronics",
-  page: 1,
+// Danh sách contacts
+const { data: contacts } = await client.contacts.list({ limit: 50 })
+
+// Lấy một contact
+const contact = await client.contacts.get("contact_id")
+
+// Cập nhật thông tin
+await client.contacts.update("contact_id", {
+  name: "Alice B.",
+  email: "alice@example.com",
+  phone: "+84901234567",
+})
+
+// Lịch sử hoạt động, bình luận, file
+const activity = await client.contacts.getActivity("contact_id")
+const comments  = await client.contacts.getComments("contact_id")
+const files     = await client.contacts.getFiles("contact_id")
+```
+
+---
+
+### CRM Boards (Pipeline)
+
+Boards là nơi lưu trữ dữ liệu CRM — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào.
+
+```typescript
+// Danh sách boards
+const { data: boards } = await client.boards.list()
+
+// Lấy items của một board (ví dụ: pipeline leads)
+const { data: leads } = await client.boards.listItems("board_id", { limit: 100 })
+
+// Tạo item mới (ví dụ: lead mới)
+const lead = await client.boards.createItem("board_id", {
+  fields: { name: "Acme Corp", status: "new", value: 50000 },
+})
+
+// Cập nhật item (ví dụ: chuyển sang giai đoạn tiếp theo)
+await client.boards.updateItem("board_id", lead.id, {
+  fields: { status: "qualified" },
+})
+
+// Tìm kiếm items
+const results = await client.boards.search("board_id", { query: "enterprise" })
+
+// Xuất CSV
+const csv = await client.boards.exportCsv("board_id")
+```
+
+---
+
+### Conversations
+
+Quản lý cuộc hội thoại với khách hàng — xem, phân công, cập nhật trạng thái.
+
+```typescript
+// Tìm kiếm conversations
+const { data: convs } = await client.conversations.search({
+  businessUnitId: "bu_xxx",
+  q: "support",
   limit: 20,
-});
-const product = await client.marketplace.getProduct("prod_id");
-await client.marketplace.createProduct({ name: "Product A", price: 99 });
-await client.marketplace.updateProduct("prod_id", { price: 89 });
-await client.marketplace.deleteProduct("prod_id");
+})
 
-// Đơn hàng
-const { data: orders } = await client.marketplace.listOrders({
-  status: "pending",
-});
-await client.marketplace.createOrder({
-  items: [{ productId: "prod_id", quantity: 2 }],
-  shippingAddress: { city: "Ho Chi Minh", country: "VN" },
-});
-await client.marketplace.updateOrderStatus("order_id", "confirmed");
+// Conversations chưa xử lý
+const { data: open } = await client.conversations.getOutstanding({
+  businessUnitId: "bu_xxx",
+  limit: 50,
+})
+
+// Phân công cho thành viên
+await client.conversations.assignTeamMember({
+  conversation_id: "conv_xxx",
+  user_id: "user_xxx",
+})
+
+// Cập nhật trạng thái
+await client.conversations.updateStatus({
+  conversation_id: "conv_xxx",
+  status: "resolved",
+})
 ```
 
 ---
 
-### Platform
+### Nhắn Tin
 
-Quản lý người dùng, tổ chức, và phân quyền.
+Gửi và nhận tin nhắn qua các kênh (web, WhatsApp, Facebook, email, ...).
 
 ```typescript
-// Người dùng
-const me = await client.platform.getMe();
-const users = await client.platform.listUsers({ search: "john", page: 1 });
-await client.platform.updateUser("user_id", { displayName: "John" });
-await client.platform.deleteUser("user_id");
+// Danh sách kênh
+const channels = await client.channel.list()
 
-// Tổ chức
-const orgs = await client.platform.listOrgs();
-const org = await client.platform.createOrg({ name: "My Org" });
-await client.platform.updateOrg("org_id", { name: "Tên Mới" });
+// Gửi tin nhắn
+await client.messages.send("conversation_id", {
+  parts: [{ type: "text", text: "Xin chào, tôi có thể giúp gì cho bạn?" }],
+})
 
-// Phân quyền
-const perms = await client.platform.listPermissions("user_id");
-await client.platform.grantPermission("user_id", "flows", "write");
-await client.platform.revokePermission("user_id", "perm_id");
+// Danh sách tin nhắn
+const msgs = await client.messages.list("conversation_id")
+
+// Đánh dấu đã đọc
+await client.channel.markRead("conversation_id")
 ```
 
 ---
 
-### Channel
+### Workflows & Automation
 
-Vòng đời kênh và nhắn tin realtime.
+Kích hoạt channel automations để xử lý tin nhắn đến, phân luồng hội thoại và kích hoạt các hành động follow-up.
 
 ```typescript
-// Kênh
-const channels = await client.channel.listChannels({ type: "group" });
-const channel = await client.channel.createChannel({
-  name: "general",
-  type: "group",
-});
-await client.channel.addParticipants("channel_id", ["user_1", "user_2"]);
+// Danh sách tất cả channel automations
+const { data: automations } = await client.workflows.listChannelAutomation()
 
-// Tin nhắn trong conversation
-const msgs = await client.channel.listMessages("conversation_id");
-await client.channel.sendMessage("conversation_id", {
-  content: "Xin chào!",
-  type: "text",
-});
-await client.channel.markRead("conversation_id");
+// Lọc theo loại kênh
+const whatsappFlows = await client.workflows.listChannelAutomation({
+  channelType: "whatsapp",
+})
 ```
 
 ---
 
-### IPS — Identity & Profile Service
+## AI
 
-Hồ sơ người dùng, mạng xã hội (follow/unfollow), và quản lý định danh.
+### AI Service (aiv2)
 
-```typescript
-const profile = await client.ips.getMyProfile();
-await client.ips.updateProfile("user_id", { bio: "Developer" });
-const results = await client.ips.searchProfiles("nguyen van a", { limit: 10 });
-
-// Mạng xã hội
-await client.ips.follow("target_user_id");
-await client.ips.unfollow("target_user_id");
-const followers = await client.ips.getFollowers("user_id");
-const following = await client.ips.getFollowing("user_id");
-
-// Định danh
-const identities = await client.ips.listIdentities("user_id");
-```
-
----
-
-### Agent
-
-Tạo và chạy AI agent templates.
+`client.ai` và `client.chatAi` đều gọi đến dịch vụ **aiv2**. Dùng `client.ai` cho các lệnh gọi OpenAI-compatible; dùng `client.chatAi` cho phiên chat và xử lý tài liệu.
 
 ```typescript
-// Quản lý agents
-const agents = await client.agent.listAgents();
-const agent = await client.agent.createAgent({
-  name: "Data Analyzer",
-  model: "gpt-4o",
-  systemPrompt: "Bạn là chuyên gia phân tích dữ liệu.",
-});
-await client.agent.deleteAgent("agent_id");
+// ── client.ai — OpenAI-compatible completions ──────────────────────────────
 
-// Chạy agent
-const run = await client.agent.runAgent("agent_id", {
-  task: "Phân tích dữ liệu Q1",
-});
-const status = await client.agent.getRun(run.id);
-await client.agent.cancelRun(run.id);
-```
-
----
-
-### AI
-
-LLM completions, streaming output, và text embeddings.
-
-```typescript
-// Completion không streaming
-const completion = await client.ai.complete({
+const response = await client.ai.complete({
   model: "gpt-4o",
   messages: [
-    { role: "system", content: "Bạn là trợ lý hữu ích." },
-    { role: "user", content: "Tóm tắt báo cáo này." },
+    { role: "system", content: "Bạn là trợ lý CRM." },
+    { role: "user",   content: "Tóm tắt ghi chú khách hàng này: ..." },
   ],
-  temperature: 0.7,
-  maxTokens: 1000,
-});
-console.log(completion.choices[0].message.content);
+})
+console.log(response.choices[0].message.content)
 
-// Streaming — sinh ra từng chunk qua AsyncGenerator
 for await (const chunk of client.ai.stream({
   model: "gpt-4o",
-  messages: [{ role: "user", content: "Đếm từ 1 đến 5." }],
+  messages: [{ role: "user", content: "Soạn email follow-up cho lead này." }],
 })) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "")
 }
 
-// Text embeddings
 const embeddings = await client.ai.embed({
   model: "text-embedding-ada-002",
-  input: ["Xin chào thế giới", "Imbrace SDK"],
-});
-```
-
----
-
-### Sessions & Messages
-
-Vòng đời session và trao đổi tin nhắn trong session.
-
-```typescript
-const sessions = await client.sessions.list();
-const session = await client.sessions.create({ directory: "/my/project" });
-await client.sessions.delete(session.id);
-
-const messages = await client.messages.list(session.id);
-await client.messages.send(session.id, {
-  parts: [{ type: "text", text: "Xin chào từ SDK!" }],
-});
-```
-
----
-
-### Auth
-
-Đăng nhập OTP và password-based. Token được lưu tự động sau khi đăng nhập thành công.
-
-```typescript
-// Yêu cầu OTP
-await client.auth.requestOtp({ email: "user@example.com" });
-
-// Verify OTP và đăng nhập
-const result = await client.auth.verifyOtp({
-  email: "user@example.com",
-  otp: "123456",
-});
-
-// Đăng xuất
-await client.auth.signOut();
-```
-
----
-
-### Contacts / Conversations / Teams / Boards
-
-```typescript
-// Contacts
-const contacts = await client.contacts.list({ search: "alice" });
-await client.contacts.update("contact_id", { name: "Alice B." });
-
-// Conversations
-const viewsCount = await client.conversations.getViewsCount();
-const results = await client.conversations.search({ query: "hỗ trợ" });
-
-// Teams
-const teams = await client.teams.list();
-await client.teams.addUser("team_id", "user_id");
-
-// Boards
-const boards = await client.boards.list();
-const items = await client.boards.getItems("board_id");
-```
-
----
-
-### Chat AI
-
-LLM completions và lịch sử chat qua dịch vụ aiv2.
-
-```typescript
-const models   = await client.chatAi.listModels()
-const response = await client.chatAi.chat({
-  model: "gpt-4o",
-  messages: [{ role: "user", content: "Tóm tắt dữ liệu quý này." }],
+  input: ["khách hàng khiếu nại về billing", "vấn đề billing leo thang"],
 })
-const chats = await client.chatAi.listChats()
-await client.chatAi.deleteChat("chat_id")
+
+// ── client.chatAi — managed chat sessions ─────────────────────────────────
+
+const models   = await client.chatAi.listModels()
+const response2 = await client.chatAi.chat({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Chính sách hoàn tiền là gì?" }],
+})
+const chat    = await client.chatAi.createChat({ title: "Support Chat" })
+const history = await client.chatAi.listChats()
+await client.chatAi.deleteChat(chat.id)
+
+// ── Hiểu Tài Liệu ─────────────────────────────────────────────────────────
+
+const result = await client.chatAi.processDocument({
+  modelName: "gpt-4o",
+  url: "https://example.com/invoice.pdf",
+  organizationId: "org_xxx",  // bắt buộc cho endpoint này
+})
+console.log(result.data)
+// { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
 ```
 
 ---
 
 ### AI Agent
 
-Chat, embedding files, parquet và distributed trace qua dịch vụ ai-agent.
+Chat streaming với knowledge base (embeddings) và quản lý phiên chat end-user.
 
 ```typescript
-const config = await client.aiAgent.getConfig()
+// Stream chat với AI assistant (SSE)
+// id là session/conversation ID — truyền cùng id qua các lượt để giữ lịch sử hội thoại.
+//   Chỉ bỏ qua khi bắt đầu cuộc trò chuyện mới; SDK sẽ tự tạo nếu không truyền.
+// user_id là tuỳ chọn — được lấy tự động qua chat-client/auth/user khi không cung cấp.
+const sessionId = crypto.randomUUID() // lưu lại id này cho toàn bộ cuộc trò chuyện
 
-// Lịch sử chat v1
-const { chats } = await client.aiAgent.listChats({ organization_id: "org_xxx" })
-
-// Chat v2 streaming (SSE)
-const resp = await client.aiAgent.streamChat({
-  id: "chat_id",
+const response = await client.aiAgent.streamChat({
+  id: sessionId,
   assistant_id: "assistant_id",
   organization_id: "org_xxx",
-  messages: [{ role: "user", content: "Xin chào" }],
+  messages: [{ role: "user", content: "Deals nào đã chốt quý này?" }],
 })
 
-// Parquet
-const result = await client.aiAgent.generateParquet({
-  fileName: "export_2026",
-  data: [{ id: 1, value: 42 }],
-})
-await client.aiAgent.deleteParquetFile(result.fileName)
+// Gợi ý câu hỏi
+const suggestions = await client.aiAgent.getAgentPromptSuggestion("assistant_id")
 
-// Chat client
-const newChat = await client.aiAgent.createClientChat({
+// Knowledge base
+const files      = await client.aiAgent.listEmbeddingFiles()
+const classified = await client.aiAgent.classifyFile({
+  url: "https://example.com/product-catalog.pdf",
+  mime_type: "application/pdf",
+})
+
+// Quản lý phiên chat end-user
+const chat = await client.aiAgent.createClientChat({
   id: crypto.randomUUID(),
-  message: { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text: "Xin chào" }] },
   assistantId: "assistant_id",
   organizationId: "org_xxx",
+  userId: "user_id",               // lấy từ chat-client/auth/user
+  selectedVisibilityType: "private",
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    content: "Xin chào",
+    createdAt: new Date().toISOString(),
+    parts: [{ type: "text", text: "Xin chào" }],
+  },
 })
-await client.aiAgent.deleteClientChat(newChat.id)
-```
 
----
-
-### Pagination
-
-List endpoints trả về shape nhất quán:
-
-```typescript
-const { data, pagination } = await client.marketplace.listProducts({
-  page: 1,
-  limit: 20,
-});
-
-console.log(data); // Product[]
-console.log(pagination.hasNext); // boolean
-console.log(pagination.total); // number
+const messages = await client.aiAgent.listClientMessages(chat.id)
+await client.aiAgent.deleteClientChat(chat.id)
 ```

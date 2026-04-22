@@ -1,131 +1,44 @@
 ---
 title: TypeScript SDK — Quick Start
-description: From zero to your first successful Imbrace API call in under 5 minutes.
----
-
-### Prerequisites
-
-- Node.js 18+
-- `@imbrace/sdk` installed ([Installation →](installation/))
-- `IMBRACE_API_KEY` set in `.env`
-
+description: Make your first Imbrace API call in under a minute.
 ---
 
 ### 1. Initialize the Client
 
 ```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-import "dotenv/config"; // loads .env automatically
+import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
-  env: "stable", // "develop" | "sandbox" | "stable"
-  timeout: 30000, // ms, default 30000
-});
-```
-
-The client is stateful — create it once and reuse across your application.
-
----
-
-### 2. Make Your First Call
-
-```typescript
-// Get current account info
-const me = await client.platform.getMe();
-console.log("Authenticated as:", me.displayName);
-
-// List marketplace products
-const { data: products } = await client.marketplace.listProducts({
-  page: 1,
-  limit: 10,
-});
-console.log(`Found ${products.length} products`);
+  accessToken: "your-access-token",
+  gateway: "https://app-gatewayv2.imbrace.co",
+})
 ```
 
 ---
 
-### 3. Health Check (Optional)
+### 2. Fetch Your Boards
 
-Ping the gateway on startup to verify connectivity:
-
-```typescript
-await client.init();
-console.log("Gateway connection OK");
-```
-
----
-
-### 4. Full Script Example
+Boards are CRM pipelines — leads, deals, tasks, or any structured data. This call requires only your access token.
 
 ```typescript
-// main.ts
-import { ImbraceClient, AuthError, ApiError } from "@imbrace/sdk";
-import "dotenv/config";
+const { data: boards } = await client.boards.list()
 
-const client = new ImbraceClient();
-
-async function main() {
-  try {
-    await client.init();
-
-    const me = await client.platform.getMe();
-    console.log("User:", me.displayName, me.email);
-
-    const { data: channels } = await client.channel.listChannels({
-      type: "group",
-    });
-    console.log(`Channels: ${channels.length}`);
-  } catch (e) {
-    if (e instanceof AuthError) {
-      console.error("Authentication failed — check IMBRACE_API_KEY");
-    } else if (e instanceof ApiError) {
-      console.error(`API error [${e.statusCode}]:`, e.message);
-    } else {
-      throw e;
-    }
-  }
+for (const board of boards) {
+  console.log(board._id, board.doc_name)
 }
-
-main();
 ```
 
-```bash
-# Run with ts-node
-npx ts-node main.ts
-
-# Or build first
-npm run build && node dist/main.js
-```
+That's it. If you see your boards listed, the SDK is connected and authenticated.
 
 ---
 
-### 5. Environment Switching
+### 3. Next Steps
 
-```typescript
-// Development gateway
-const client = new ImbraceClient({ env: "develop" });
+Once connected, you can explore the full feature set:
 
-// Sandbox gateway
-const client = new ImbraceClient({ env: "sandbox" });
+- **AI Agent** — stream live responses from an AI assistant trained on your knowledge base → requires an `assistant_id` from your Imbrace dashboard
+- **Workflows** — trigger and manage Activepieces automations
+- **Boards & Items** — full CRM pipeline management
+- **Knowledge Hub** — manage files and knowledge bases for AI
 
-// Stable (production) gateway — default
-const client = new ImbraceClient({ env: "stable" });
-
-// Completely custom gateway URL
-const client = new ImbraceClient({
-  gateway: "https://my-custom-gateway.example.com",
-});
-```
-
-| Environment | Gateway URL                              |
-| ----------- | ---------------------------------------- |
-| `develop`   | `https://app-gateway.dev.imbrace.co`     |
-| `sandbox`   | `https://app-gateway.sandbox.imbrace.co` |
-| `stable`    | `https://app-gatewayv2.imbrace.co`       |
-
-:::tip
-Set `IMBRACE_GATEWAY_URL` in `.env` for environment switching without code changes. It takes precedence over the `env` preset.
-:::
-
----
+Full reference: [Resource Reference →](resources/)
