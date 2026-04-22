@@ -67,6 +67,11 @@ export default defineConfig({
               link: '/typescript/resources/',
             },
             {
+              label: 'Full Flow Guide',
+              translations: { vi: 'Hướng Dẫn Luồng Đầy Đủ' },
+              link: '/typescript/full-flow-guide/',
+            },
+            {
               label: 'Error Handling',
               translations: { vi: 'Xử Lý Lỗi' },
               link: '/typescript/error-handling/',

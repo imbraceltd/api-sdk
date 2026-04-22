@@ -149,6 +149,37 @@ await client.aiAgent.deleteClientChat(chat.id)
 
 ## Assistant — AI Service v2 (`client.chatAi`)
 
+### Assistant CRUD
+
+```typescript
+// List all assistants in your account
+const assistants = await client.chatAi.listAssistants()
+// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId)
+// Use the `id` field for all subsequent calls
+
+// Get a single assistant
+const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6")
+
+// Create an assistant — workflow_name must be unique within your org
+const created = await client.chatAi.createAssistant({
+  name: "Support Bot",
+  workflow_name: "support_bot_v1",
+  description: "Handles tier-1 support queries",
+})
+
+// Update an assistant — workflow_name is required on update too
+const updated = await client.chatAi.updateAssistant(created.id, {
+  name: "Support Bot v2",
+  workflow_name: "support_bot_v1",
+})
+
+// Update only the system instructions
+await client.chatAi.updateAssistantInstructions(created.id, "You are a helpful support agent.")
+
+// Delete an assistant
+await client.chatAi.deleteAssistant(created.id)
+```
+
 ### Completions
 
 ```typescript
@@ -160,17 +191,6 @@ const response = await client.chatAi.chat({
   ],
 })
 console.log(response.choices[0].message.content)
-```
-
-### Streaming
-
-```typescript
-for await (const chunk of client.ai.stream({
-  model: "gpt-4o",
-  messages: [{ role: "user", content: "Draft a follow-up email for this lead." }],
-})) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? "")
-}
 ```
 
 ### Models
@@ -188,8 +208,6 @@ const result = await client.chatAi.extractFile({
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
 })
-console.log(result.data)
-// { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp" }
 
 // Upload a file for processing
 const uploaded = await client.chatAi.uploadFile({ file: fileBuffer, name: "report.pdf" })
