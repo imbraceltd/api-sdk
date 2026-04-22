@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode, quote
+from uuid import uuid4
 from ..http import HttpTransport, AsyncHttpTransport
 
 
@@ -40,7 +41,12 @@ class AiAgentResource:
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .iter_lines()) ---
 
     def stream_chat(self, body: Dict[str, Any]) -> Any:
-        return self._http.request("POST", f"{self._base}/v2/chat", json=body)
+        user_id = body.get("user_id")
+        if not user_id:
+            auth = self._http.request("POST", f"{self._base}/chat-client/auth/user").json()
+            user_id = auth["id"]
+        payload = {"id": str(uuid4()), **body, "user_id": user_id}
+        return self._http.request("POST", f"{self._base}/v2/chat", json=payload)
 
     # --- Sub-agent chat v2 ---
 
@@ -237,7 +243,12 @@ class AsyncAiAgentResource:
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .aiter_lines()) ---
 
     async def stream_chat(self, body: Dict[str, Any]) -> Any:
-        return await self._http.request("POST", f"{self._base}/v2/chat", json=body)
+        user_id = body.get("user_id")
+        if not user_id:
+            auth = await self._http.request("POST", f"{self._base}/chat-client/auth/user")
+            user_id = auth.json()["id"]
+        payload = {"id": str(uuid4()), **body, "user_id": user_id}
+        return await self._http.request("POST", f"{self._base}/v2/chat", json=payload)
 
     # --- Sub-agent chat v2 ---
 

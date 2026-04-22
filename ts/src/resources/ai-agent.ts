@@ -1,4 +1,5 @@
 import { HttpTransport } from "../http.js"
+import { randomUUID } from "crypto"
 
 function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
   const qs = new URLSearchParams()
@@ -43,17 +44,28 @@ export class AiAgentResource {
   // --- Chat v2 (streaming — returns raw Response for SSE consumption) ---
 
   async streamChat(body: {
-    id: string
     assistant_id: string
-    organization_id: string
     messages: any[]
+    id?: string
+    organization_id?: string
     user_id?: string
     [key: string]: unknown
   }): Promise<Response> {
+    let userId = body.user_id
+    if (!userId) {
+      const res = await this.http.getFetch()(`${this.base}/chat-client/auth/user`, { method: "POST" })
+      const data = await res.json()
+      userId = data.id
+    }
+    const payload = {
+      id: body.id ?? randomUUID(),
+      ...body,
+      user_id: userId,
+    }
     return this.http.getFetch()(`${this.base}/v2/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     })
   }
 

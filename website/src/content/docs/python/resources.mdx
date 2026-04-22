@@ -205,8 +205,13 @@ Streaming chat assistant with a knowledge base (embeddings), parquet data, and e
 import uuid
 
 # Stream a chat with an AI assistant (returns raw httpx.Response for SSE)
+# id is the session/conversation ID — pass the same id across turns to maintain history.
+#   Omit it only for a brand-new conversation; the SDK will generate one automatically.
+# user_id is optional — resolved automatically via chat-client/auth/user when not provided.
+session_id = str(uuid.uuid4())  # persist this for the lifetime of the conversation
+
 resp = client.ai_agent.stream_chat({
-    "id": str(uuid.uuid4()),
+    "id": session_id,
     "assistant_id": "assistant_id",
     "organization_id": "org_xxx",
     "messages": [{"role": "user", "content": "What deals closed this quarter?"}],

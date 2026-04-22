@@ -213,8 +213,13 @@ Streaming chat assistant with a knowledge base (embeddings), parquet data, and e
 
 ```typescript
 // Stream a chat with an AI assistant (SSE)
+// id is the session/conversation ID — pass the same id across turns to maintain history.
+//   Omit it only for a brand-new conversation; the SDK will generate one automatically.
+// user_id is optional — resolved automatically via chat-client/auth/user when not provided.
+const sessionId = crypto.randomUUID() // persist this for the lifetime of the conversation
+
 const response = await client.aiAgent.streamChat({
-  id: crypto.randomUUID(),
+  id: sessionId,
   assistant_id: "assistant_id",
   organization_id: "org_xxx",
   messages: [{ role: "user", content: "What deals closed this quarter?" }],

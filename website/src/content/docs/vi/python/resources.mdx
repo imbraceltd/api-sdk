@@ -182,8 +182,13 @@ Chat streaming với knowledge base và quản lý phiên chat end-user.
 import uuid
 
 # Stream chat với AI assistant (SSE)
+# id là session/conversation ID — truyền cùng id qua các lượt để giữ lịch sử hội thoại.
+#   Chỉ bỏ qua khi bắt đầu cuộc trò chuyện mới; SDK sẽ tự tạo nếu không truyền.
+# user_id là tuỳ chọn — được lấy tự động qua chat-client/auth/user khi không cung cấp.
+session_id = str(uuid.uuid4())  # lưu lại id này cho toàn bộ cuộc trò chuyện
+
 resp = client.ai_agent.stream_chat({
-    "id": str(uuid.uuid4()),
+    "id": session_id,
     "assistant_id": "assistant_id",
     "organization_id": "org_xxx",
     "messages": [{"role": "user", "content": "Deals nào đã chốt quý này?"}],
