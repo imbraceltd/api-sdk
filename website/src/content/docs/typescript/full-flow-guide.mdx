@@ -45,9 +45,10 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    ```typescript
    const response = await client.aiAgent.streamChat({
      assistant_id: assistantId,
-     message: "How do I reset my password?",
-     // id is the session ID — reuse it to maintain conversation history
-     // If omitted, a new session UUID is auto-generated each call
+     organization_id: "org_your_org_id",
+     messages: [{ role: "user", content: "How do I reset my password?" }],
+     // id is the session UUID — reuse it to maintain conversation history
+     // If omitted, a new UUID is auto-generated each call
    })
 
    const reader = response.body!.getReader()
@@ -73,23 +74,27 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 4. **Maintain conversation history (session ID)**
 
-   Pass the same `id` across calls to keep context:
+   Pass the same `id` (must be a UUID) across calls to keep context:
 
    ```typescript
-   const sessionId = "session_" + Date.now()
+   import { randomUUID } from "crypto"
+
+   const sessionId = randomUUID()
 
    // First message
    await client.aiAgent.streamChat({
      assistant_id: assistantId,
+     organization_id: "org_your_org_id",
      id: sessionId,
-     message: "What's your refund policy?",
+     messages: [{ role: "user", content: "What's your refund policy?" }],
    })
 
    // Follow-up — same session, assistant remembers context
    await client.aiAgent.streamChat({
      assistant_id: assistantId,
+     organization_id: "org_your_org_id",
      id: sessionId,
-     message: "How long does it take?",
+     messages: [{ role: "user", content: "How long does it take?" }],
    })
    ```
 
@@ -169,27 +174,23 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ## 3. Manage Knowledge Hubs and Attach to an Assistant
 
+Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an assistant as its knowledge source.
+
 <Steps>
 
-1. **Create a folder to organize knowledge**
+1. **Create a folder**
 
    ```typescript
-   const folder = await client.chatAi.createFolder("Product Documentation")
-   console.log("Folder ID:", folder.id)
-   ```
-
-2. **Create a knowledge base inside the folder**
-
-   ```typescript
-   const kb = await client.chatAi.createKnowledge({
-     name: "FAQ",
-     description: "Frequently asked questions about the product",
-     folder_id: folder.id,
+   const folder = await client.boards.createFolder({
+     name: "Product Documentation",
+     organization_id: "org_your_org_id",
+     parent_folder_id: "root",
+     source_type: "upload",
    })
-   console.log("Knowledge base ID:", kb.id)
+   console.log("Folder ID:", folder._id)
    ```
 
-3. **Upload a file to the knowledge base**
+2. **Upload a file to the folder**
 
    ```typescript
    import { readFileSync } from "fs"
@@ -197,40 +198,43 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    const fileBuffer = readFileSync("./docs/faq.pdf")
    const formData = new FormData()
    formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
+   formData.append("folder_id", folder._id)
+   formData.append("organization_id", "org_your_org_id")
 
-   const uploaded = await client.chatAi.uploadAgentFile(formData)
-   console.log("File uploaded:", uploaded.id)
+   const uploaded = await client.boards.uploadFile(formData)
+   console.log("File uploaded:", uploaded.file_id)
    ```
 
-4. **Attach the knowledge base to the assistant**
+3. **Attach the folder to the assistant**
+
+   Pass the folder `_id` in `knowledge_hubs` — the assistant will use all files in that folder.
 
    ```typescript
    await client.chatAi.updateAssistant(assistantId, {
      name: "Support Bot",
      workflow_name: "support_bot_v1",
-     knowledge_hubs: [kb.id],
+     knowledge_hubs: [folder._id],
    })
    ```
 
-   The assistant will now use the knowledge base to answer questions.
-
-5. **Inspect and manage existing knowledge**
+4. **Inspect and manage folders and files**
 
    ```typescript
-   // List all knowledge bases
-   const allKbs = await client.chatAi.listKnowledge()
+   // Search folders
+   const folders = await client.boards.searchFolders({ q: "Product" })
 
-   // Get a single one
-   const single = await client.chatAi.getKnowledge(kb.id)
-
-   // List all folders
-   const folders = await client.chatAi.listFolders()
+   // Get folder with contents
+   const contents = await client.boards.getFolderContents(folder._id)
+   console.log("Files:", contents.files?.length)
 
    // Rename a folder
-   await client.chatAi.updateFolder(folder.id, "Product Docs v2")
+   await client.boards.updateFolder(folder._id, { name: "Product Docs v2" })
 
-   // Delete a knowledge base
-   await client.chatAi.deleteKnowledge(kb.id)
+   // Search files in a folder
+   const files = await client.boards.searchFiles({ folderId: folder._id })
+
+   // Delete folders
+   await client.boards.deleteFolders({ ids: [folder._id] })
    ```
 
 </Steps>
@@ -255,22 +259,27 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 2. **Add a custom field**
 
+   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc.
+   `createField` returns the updated board — find your new field inside `board.fields`.
+
    ```typescript
-   await client.boards.createField(board._id, {
-     name: "Deal Value",
-     type: "number",
+   const updated = await client.boards.createField(board._id, {
+     name: "Company",
+     type: "ShortText",
    })
+   // Find the identifier field (auto-created with every board)
+   const identifierField = updated.fields.find(f => f.is_identifier)
    ```
 
 3. **Create board items (records)**
 
+   Items use `{ fields: [{ board_field_id, value }] }` format:
+
    ```typescript
    const item = await client.boards.createItem(board._id, {
-     data: {
-       name: "Acme Corp",
-       "Deal Value": 50000,
-       status: "In Progress",
-     },
+     fields: [
+       { board_field_id: identifierField._id, value: "Acme Corp" },
+     ],
    })
    console.log("Item ID:", item._id)
    ```
@@ -290,9 +299,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 5. **Update and delete items**
 
+   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
+
    ```typescript
    await client.boards.updateItem(board._id, item._id, {
-     data: { status: "Closed Won" },
+     data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
    })
 
    await client.boards.deleteItem(board._id, item._id)
