@@ -4,7 +4,8 @@ Usage: python examples/07_ai_agent.py
 """
 
 import os
-import json
+import uuid
+import time
 from imbrace import ImbraceClient
 
 ACCESS_TOKEN = os.environ.get("IMBRACE_ACCESS_TOKEN", "acc_c8c27f3b-e147-4735-b641-61e8d3706692")
@@ -33,7 +34,7 @@ def skip(label, reason):
     skipped += 1
 
 # ─────────────────────────────────────────────────────────────────────────────
-# System
+# [1] System
 # ─────────────────────────────────────────────────────────────────────────────
 
 print("\n[1] System")
@@ -57,7 +58,7 @@ except Exception as e:
     fail("get_version()", e)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Chat v1
+# [2] Chat v1
 # ─────────────────────────────────────────────────────────────────────────────
 
 print("\n[2] Chat v1")
@@ -81,7 +82,7 @@ else:
     skip("get_chat()", "no chats found")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Prompt suggestions
+# [3] Prompt suggestions
 # ─────────────────────────────────────────────────────────────────────────────
 
 print("\n[3] Prompt suggestions")
@@ -94,7 +95,7 @@ except Exception as e:
     fail("get_agent_prompt_suggestion()", e)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Embeddings / files
+# [4] Embeddings
 # ─────────────────────────────────────────────────────────────────────────────
 
 print("\n[4] Embeddings")
@@ -106,11 +107,25 @@ try:
 except Exception as e:
     fail("list_embedding_files()", e)
 
+try:
+    res = ai_agent.classify_file(url="https://example.com/test.pdf", mime_type="application/pdf")
+    ok("classify_file()", str(res)[:100])
+except Exception as e:
+    fail("classify_file()", e)
+
 # ─────────────────────────────────────────────────────────────────────────────
-# Parquet
+# [5] Data Board
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("\n[5] Parquet")
+print("\n[5] Data Board")
+
+skip("suggest_field_types()", "route not wired in this app-gateway build (POST / path stripped)")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# [6] Parquet
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n[6] Parquet")
 
 try:
     res = ai_agent.list_parquet_files()
@@ -118,11 +133,41 @@ try:
 except Exception as e:
     fail("list_parquet_files()", e)
 
+generated_file_name = None
+try:
+    res = ai_agent.generate_parquet(
+        data=[{"id": 1, "name": "test", "value": 42}],
+        file_name=f"sdk_test_{int(time.time())}",
+    )
+    generated_file_name = res.get("fileName") if isinstance(res, dict) else None
+    ok("generate_parquet()", str(res)[:100])
+except Exception as e:
+    fail("generate_parquet()", e)
+
+if generated_file_name:
+    try:
+        ai_agent.delete_parquet_file(generated_file_name)
+        ok("delete_parquet_file()")
+    except Exception as e:
+        fail("delete_parquet_file()", e)
+else:
+    skip("delete_parquet_file()", "generate_parquet failed or returned no fileName")
+
 # ─────────────────────────────────────────────────────────────────────────────
-# Admin Guides
+# [7] Trace
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("\n[6] Admin guides")
+print("\n[7] Trace")
+
+skip("get_trace_services()", "Grafana Tempo URL not configured on this deployment")
+skip("get_trace_tags()",    "Grafana Tempo URL not configured on this deployment")
+skip("get_traces()",        "Grafana Tempo URL not configured on this deployment")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# [8] Admin guides
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n[8] Admin guides")
 
 first_guide = None
 try:
@@ -136,17 +181,17 @@ except Exception as e:
 if first_guide:
     try:
         r = ai_agent.get_admin_guide(first_guide)
-        ok("get_admin_guide()", f"status={r.status_code}, type={r.headers.get('content-type', '?')}")
+        ok("get_admin_guide()", f"status={r.status_code}")
     except Exception as e:
         fail("get_admin_guide()", e)
 else:
     skip("get_admin_guide()", "no guides listed")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Chat Client
+# [9] Chat Client — CRUD cycle
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("\n[7] Chat Client")
+print("\n[9] Chat Client")
 
 try:
     res = ai_agent.list_client_chats(organization_id=ORG_ID, limit=5)
@@ -154,6 +199,44 @@ try:
     ok("list_client_chats()", f"count={len(chats) if isinstance(chats, list) else '?'}")
 except Exception as e:
     fail("list_client_chats()", e)
+
+new_chat_id = str(uuid.uuid4())
+created_chat = None
+try:
+    created_chat = ai_agent.create_client_chat({
+        "id": new_chat_id,
+        "message": {"id": str(uuid.uuid4()), "role": "user", "parts": [{"type": "text", "text": "SDK test message"}]},
+        "selectedVisibilityType": "private",
+        "assistantId": ASSISTANT_ID,
+        "organizationId": ORG_ID,
+    })
+    ok("create_client_chat()", f"id={created_chat.get('id', new_chat_id)}")
+except Exception as e:
+    fail("create_client_chat()", e)
+
+if created_chat:
+    try:
+        chat = ai_agent.get_client_chat(new_chat_id)
+        ok("get_client_chat()", f"id={chat.get('id')}")
+    except Exception as e:
+        fail("get_client_chat()", e)
+
+    try:
+        msgs = ai_agent.list_client_messages(new_chat_id)
+        msg_list = msgs.get("messages", msgs.get("data", msgs)) if isinstance(msgs, dict) else msgs
+        ok("list_client_messages()", f"{len(msg_list) if isinstance(msg_list, list) else '?'} messages")
+    except Exception as e:
+        fail("list_client_messages()", e)
+
+    try:
+        ai_agent.delete_client_chat(new_chat_id)
+        ok("delete_client_chat()")
+    except Exception as e:
+        fail("delete_client_chat()", e)
+else:
+    skip("get_client_chat()", "create_client_chat failed")
+    skip("list_client_messages()", "create_client_chat failed")
+    skip("delete_client_chat()", "create_client_chat failed")
 
 # ─────────────────────────────────────────────────────────────────────────────
 
