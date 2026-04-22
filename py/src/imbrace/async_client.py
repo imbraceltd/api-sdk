@@ -34,6 +34,7 @@ from .resources.touchpoints import AsyncTouchpointsResource
 from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
 from .resources.activepieces import AsyncActivePiecesResource
+from .resources.ai_agent import AsyncAiAgentResource
 
 
 class AsyncImbraceClient:
@@ -131,8 +132,9 @@ class AsyncImbraceClient:
 
         # New services
         self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3")
-        self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)    
+        self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
+        self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)
         # —— Convenience auth
 
     async def login(self, email: str, password: str) -> dict:

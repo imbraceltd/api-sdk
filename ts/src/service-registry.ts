@@ -25,6 +25,8 @@ export interface ServiceUrls {
   predict: string
   /** activepieces — /activepieces */
   activepieces: string
+  /** ai-agent — /api/ai-agent */
+  aiAgent: string
 }
 
 
@@ -50,6 +52,7 @@ export function resolveServiceUrls(
     messageSuggestion: `${gw}/v1/message-suggestion`,
     predict:           `${gw}/predict`,
     activepieces:      `${gw}/activepieces`,
+    aiAgent:           `${gw}/api/ai-agent`,
   }
 
   return { ...resolved, ...overrides }

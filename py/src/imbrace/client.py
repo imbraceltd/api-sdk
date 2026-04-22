@@ -34,6 +34,7 @@ from .resources.touchpoints import TouchpointsResource
 from .resources.chat_ai import ChatAiResource
 from .resources.file_service import FileServiceResource
 from .resources.activepieces import ActivePiecesResource
+from .resources.ai_agent import AiAgentResource
 
 
 class ImbraceClient:
@@ -141,6 +142,7 @@ class ImbraceClient:
         self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3")
         self.file_service  = FileServiceResource(self.http, urls.file_service)
         self.activepieces  = ActivePiecesResource(self.http, urls.activepieces)
+        self.ai_agent      = AiAgentResource(self.http, urls.ai_agent)
 
         if check_health:
             self.init()

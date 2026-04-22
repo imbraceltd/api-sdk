@@ -19,6 +19,7 @@ class ServiceUrls:
     message_suggestion: str
     predict: str
     activepieces: str
+    ai_agent: str
 
 
 def resolve_service_urls(
@@ -45,6 +46,7 @@ def resolve_service_urls(
         message_suggestion=f"{gw}/v1/message-suggestion",
         predict=f"{gw}/predict",
         activepieces=f"{gw}/activepieces",
+        ai_agent=f"{gw}/api/ai-agent",
     )
 
     if overrides:
