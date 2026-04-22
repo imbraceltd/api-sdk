@@ -206,13 +206,23 @@ classified = client.ai_agent.classify_file(
     mime_type="application/pdf",
 )
 
-# Phiên chat end-user
+# Quản lý phiên chat end-user
+from datetime import datetime, timezone
 chat = client.ai_agent.create_client_chat({
     "id": str(uuid.uuid4()),
-    "message": {"id": str(uuid.uuid4()), "role": "user",
-                "parts": [{"type": "text", "text": "Xin chào"}]},
     "assistantId": "assistant_id",
+    "organizationId": "org_xxx",
+    "userId": "user_id",               # lấy từ chat-client/auth/user
+    "selectedVisibilityType": "private",
+    "message": {
+        "id":        str(uuid.uuid4()),
+        "role":      "user",
+        "content":   "Xin chào",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "parts":     [{"type": "text", "text": "Xin chào"}],
+    },
 })
+
 messages = client.ai_agent.list_client_messages(chat["id"])
 client.ai_agent.delete_client_chat(chat["id"])
 ```

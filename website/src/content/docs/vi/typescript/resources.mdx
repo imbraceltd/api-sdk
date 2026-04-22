@@ -222,9 +222,19 @@ const classified = await client.aiAgent.classifyFile({
 // Quản lý phiên chat end-user
 const chat = await client.aiAgent.createClientChat({
   id: crypto.randomUUID(),
-  message: { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text: "Xin chào" }] },
   assistantId: "assistant_id",
+  organizationId: "org_xxx",
+  userId: "user_id",               // lấy từ chat-client/auth/user
+  selectedVisibilityType: "private",
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    content: "Xin chào",
+    createdAt: new Date().toISOString(),
+    parts: [{ type: "text", text: "Xin chào" }],
+  },
 })
+
 const messages = await client.aiAgent.listClientMessages(chat.id)
 await client.aiAgent.deleteClientChat(chat.id)
 ```

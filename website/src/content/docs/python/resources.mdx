@@ -230,14 +230,20 @@ classified = client.ai_agent.classify_file(
 )
 
 # Manage end-user chat sessions
+from datetime import datetime, timezone
 chat = client.ai_agent.create_client_chat({
     "id": str(uuid.uuid4()),
-    "message": {
-        "id":    str(uuid.uuid4()),
-        "role":  "user",
-        "parts": [{"type": "text", "text": "Hello"}],
-    },
     "assistantId": "assistant_id",
+    "organizationId": "org_xxx",
+    "userId": "user_id",               # from chat-client/auth/user
+    "selectedVisibilityType": "private",
+    "message": {
+        "id":        str(uuid.uuid4()),
+        "role":      "user",
+        "content":   "Hello",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "parts":     [{"type": "text", "text": "Hello"}],
+    },
 })
 
 messages = client.ai_agent.list_client_messages(chat["id"])

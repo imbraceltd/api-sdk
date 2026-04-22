@@ -1,131 +1,68 @@
 ---
 title: TypeScript SDK — Quick Start
-description: From zero to your first successful Imbrace API call in under 5 minutes.
+description: Stream your first AI chat response with the Imbrace SDK.
 ---
 
-### Prerequisites
-
-- Node.js 18+
-- `@imbrace/sdk` installed ([Installation →](installation/))
-- `IMBRACE_API_KEY` set in `.env`
+This example streams a live response from an AI assistant — the core feature of the SDK.
 
 ---
 
 ### 1. Initialize the Client
 
 ```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-import "dotenv/config"; // loads .env automatically
+import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
-  env: "stable", // "develop" | "sandbox" | "stable"
-  timeout: 30000, // ms, default 30000
-});
-```
-
-The client is stateful — create it once and reuse across your application.
-
----
-
-### 2. Make Your First Call
-
-```typescript
-// Get current account info
-const me = await client.platform.getMe();
-console.log("Authenticated as:", me.displayName);
-
-// List marketplace products
-const { data: products } = await client.marketplace.listProducts({
-  page: 1,
-  limit: 10,
-});
-console.log(`Found ${products.length} products`);
+  accessToken: "your-access-token",
+  gateway: "https://app-gatewayv2.imbrace.co",
+})
 ```
 
 ---
 
-### 3. Health Check (Optional)
-
-Ping the gateway on startup to verify connectivity:
+### 2. Stream a Chat Response
 
 ```typescript
-await client.init();
-console.log("Gateway connection OK");
+const response = await client.aiAgent.streamChat({
+  assistant_id: "asst_xxx",
+  organization_id: "org_xxx",
+  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+  // id and user_id are optional — the SDK manages them automatically
+})
 ```
+
+`id` is the session ID. Omit it on the first message and the SDK will generate one. Pass the same `id` on subsequent turns to continue the conversation. `user_id` is resolved automatically from your auth context.
 
 ---
 
-### 4. Full Script Example
+### 3. Consume the SSE Stream
 
 ```typescript
-// main.ts
-import { ImbraceClient, AuthError, ApiError } from "@imbrace/sdk";
-import "dotenv/config";
+const reader = response.body!.getReader()
+const decoder = new TextDecoder()
 
-const client = new ImbraceClient();
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
 
-async function main() {
-  try {
-    await client.init();
+  const text = decoder.decode(value)
+  for (const line of text.split("\n")) {
+    if (!line.startsWith("data: ")) continue
+    const raw = line.slice(6).trim()
+    if (raw === "[DONE]") break
 
-    const me = await client.platform.getMe();
-    console.log("User:", me.displayName, me.email);
-
-    const { data: channels } = await client.channel.listChannels({
-      type: "group",
-    });
-    console.log(`Channels: ${channels.length}`);
-  } catch (e) {
-    if (e instanceof AuthError) {
-      console.error("Authentication failed — check IMBRACE_API_KEY");
-    } else if (e instanceof ApiError) {
-      console.error(`API error [${e.statusCode}]:`, e.message);
-    } else {
-      throw e;
+    try {
+      const event = JSON.parse(raw)
+      if (event.type === "text-delta") {
+        process.stdout.write(event.textDelta)
+      }
+    } catch {
+      // skip malformed lines
     }
   }
 }
-
-main();
-```
-
-```bash
-# Run with ts-node
-npx ts-node main.ts
-
-# Or build first
-npm run build && node dist/main.js
 ```
 
 ---
 
-### 5. Environment Switching
-
-```typescript
-// Development gateway
-const client = new ImbraceClient({ env: "develop" });
-
-// Sandbox gateway
-const client = new ImbraceClient({ env: "sandbox" });
-
-// Stable (production) gateway — default
-const client = new ImbraceClient({ env: "stable" });
-
-// Completely custom gateway URL
-const client = new ImbraceClient({
-  gateway: "https://my-custom-gateway.example.com",
-});
-```
-
-| Environment | Gateway URL                              |
-| ----------- | ---------------------------------------- |
-| `develop`   | `https://app-gateway.dev.imbrace.co`     |
-| `sandbox`   | `https://app-gateway.sandbox.imbrace.co` |
-| `stable`    | `https://app-gatewayv2.imbrace.co`       |
-
-:::tip
-Set `IMBRACE_GATEWAY_URL` in `.env` for environment switching without code changes. It takes precedence over the `env` preset.
-:::
-
----
+Next: see the full [Resource Reference →](resources/)

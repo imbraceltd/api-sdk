@@ -1,65 +1,58 @@
 ---
-title: Architecture Overview
-description: SDK scope, structure, and gateway differences for the Imbrace SDK.
+title: Overview
+description: What Imbrace is and what you can build with the SDK.
 ---
 
-### Scope
+Imbrace is a customer engagement platform — it handles chat channels, CRM pipelines, AI assistants, automated workflows, and document processing in one place. The SDK lets you embed those features directly into your own applications without building the infrastructure yourself.
 
-- The SDK covers **App Gateway + Server Gateway** only.
-- **Journey API** and **n8n-specific HTTP paths** are out of scope for this repo.
+### What You Can Build
 
-### SDK Structure
+- **AI chat assistants** — stream live responses from an AI assistant trained on your knowledge base
+- **Automated workflows** — trigger and manage multi-step automations via Activepieces
+- **CRM pipelines** — create boards, manage leads, search and export deal data
+- **Document processing** — extract structured data from PDFs and invoices, generate embeddings
 
-```
-sdk/
-├── py/src/imbrace/
-│   ├── client.py              ← ImbraceClient (unified sync entry point)
-│   ├── async_client.py        ← AsyncImbraceClient
-│   ├── http.py                ← transport, auth headers, retry
-│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
-│   ├── environments.py        ← URL presets (develop/sandbox/stable)
-│   ├── service_registry.py    ← per-service base URL resolution
-│   ├── auth/token_manager.py  ← thread-safe token storage
-│   ├── resources/             ← one file per resource namespace
-│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
-│   │   ├── platform.py
-│   │   ├── channel.py
-│   │   └── ...                (29 resources total)
-│   └── types/                 ← shared Pydantic models
-│
-└── ts/src/
-    ├── client.ts              ← ImbraceClient (unified entry point)
-    ├── http.ts                ← transport, auth headers, retry
-    ├── errors.ts              ← AuthError, ApiError, NetworkError
-    ├── environments.ts        ← URL presets
-    ├── service-registry.ts    ← per-service base URL resolution
-    ├── auth/token-manager.ts  ← token storage
-    ├── resources/             ← one file per resource namespace
-    │   ├── ai-agent.ts        (AiAgentResource)
-    │   ├── platform.ts
-    │   ├── channel.ts
-    │   └── ...                (29 resources total)
-    └── types/                 ← shared TypeScript interfaces
-```
+### Available SDKs
 
-### Gateway Differences
+| SDK | Package | Runtime |
+|---|---|---|
+| TypeScript / JavaScript | `@imbrace/sdk` | Node.js 18+, browser |
+| Python | `imbrace-sdk` | Python 3.9+ |
 
-| Gateway        | Auth Header                     | Path Pattern              |
-| -------------- | ------------------------------- | ------------------------- |
-| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
-| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+### Authentication
 
-### Test Layers
+There are two ways to authenticate:
+
+- **Access token** — for user-facing apps. Obtained after a user logs in via OTP or OAuth. Pass it as `accessToken` when initializing the client.
+- **API key** — for server-to-server integrations. Generate one from the Imbrace admin dashboard. Pass it as `apiKey`.
+
+### Gateway
+
+All SDK requests route through:
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  UNIT TESTS  (No server required, no API key needed)     │
-│  → Mocks all HTTP: pytest-httpx (Python) / vitest (TS)   │
-│  → Runs offline, suitable for CI/CD                      │
-│  → Verifies: SDK logic, headers, URL, params, errors     │
-├──────────────────────────────────────────────────────────┤
-│  INTEGRATION TESTS (Requires real server + valid API key)│
-│  → Real calls to app-gatewayv2.imbrace.co                │
-│  → Automatically skips if IMBRACE_API_KEY is missing     │
-└──────────────────────────────────────────────────────────┘
+https://app-gatewayv2.imbrace.co
 ```
+
+The gateway is set by default — you do not need to configure it unless you are targeting a different environment.
+
+### Quick Example
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  gateway: "https://app-gatewayv2.imbrace.co",
+})
+
+const stream = await client.aiAgent.streamChat({
+  assistant_id: "asst_xxx",
+  organization_id: "org_xxx",
+  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+})
+```
+
+---
+
+Next: [TypeScript Installation →](../typescript/installation/)

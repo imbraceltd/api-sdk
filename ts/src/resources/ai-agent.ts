@@ -218,10 +218,11 @@ export class AiAgentResource {
 
   async createClientChat(body: {
     id: string
-    message: { id: string; role: string; parts: { type: string; text: string }[] }
-    selectedVisibilityType?: string
     assistantId: string
     organizationId: string
+    userId: string
+    selectedVisibilityType: string
+    message: { id: string; role: string; content: string; createdAt: string; parts: { type: string; text: string }[] }
     [key: string]: unknown
   }): Promise<any> {
     return this.http.getFetch()(`${this.base}/chat-client/chats`, {

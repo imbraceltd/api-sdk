@@ -1,6 +1,6 @@
 ---
 title: TypeScript SDK — Overview
-description: What the Imbrace TypeScript SDK is, how it works internally, and when to use it.
+description: What the Imbrace TypeScript SDK is, how it works, and when to use it.
 ---
 
 The `@imbrace/sdk` package is the official TypeScript/JavaScript client for the Imbrace Gateway. It provides fully-typed access to all Imbrace services for both server-side (Node.js) and client-side (browser) contexts.
@@ -13,72 +13,22 @@ The `@imbrace/sdk` package is the official TypeScript/JavaScript client for the 
 | **Dual Authentication**  | API Key (server-to-server) or Access Token (client-side JWT / legacy token)          |
 | **Auto Retry**           | 429 and 5xx errors retry up to 2 times with exponential backoff                      |
 | **Request Cancellation** | AbortSignal propagation for in-flight request cancellation                           |
-| **Multi-Environment**    | `develop` / `sandbox` / `stable` presets with per-service URL overrides              |
-| **Streaming AI**         | AsyncGenerator-based streaming for AI completions                                    |
-
-### How It Works
-
-```
-Your Code
-   │
-   ▼
-ImbraceClient          ← single entry point, wires all resources
-   ├── TokenManager    ← thread-safe token storage (OTP / JWT / API Key)
-   └── HttpTransport   ← auth headers, retry, timeout, error mapping
-         │
-         ▼
-   Imbrace Gateway     ← app-gatewayv2.imbrace.co (+ per-service URLs)
-```
-
-`ImbraceClient` creates one `HttpTransport` instance and shares it across all resource classes. Resources (`client.marketplace`, `client.platform`, etc.) are thin wrappers that construct the correct URL and call `transport.request()`.
-
-### Internal Architecture
-
-| Layer            | File                    | Responsibility                                          |
-| ---------------- | ----------------------- | ------------------------------------------------------- |
-| Entry Point      | `client.ts`             | Instantiates all resources, handles login helpers       |
-| HTTP Transport   | `http.ts`               | Auth headers, retry logic, timeout, error mapping       |
-| Token Manager    | `auth/token-manager.ts` | Stores and retrieves the current access token           |
-| Service Registry | `service-registry.ts`   | Resolves per-service base URLs from environment presets |
-| Resources        | `resources/*.ts`        | Domain-specific API method wrappers (29 resources)      |
-| Types            | `types/*.ts`            | Shared TypeScript interfaces for all API shapes         |
-| Errors           | `errors.ts`             | `AuthError`, `ApiError`, `NetworkError` definitions     |
+| **Streaming AI**         | AsyncGenerator-based streaming for AI completions and SSE chat                       |
 
 ### Available Resources
 
-The SDK exposes 29 resource namespaces on the client:
-
-| Namespace                  | Purpose                                                |
-| -------------------------- | ------------------------------------------------------ |
-| `client.auth`              | OTP signin, verify, signout                            |
-| `client.account`           | Current account info                                   |
-| `client.marketplace`       | Products, orders                                       |
-| `client.platform`          | Users, organizations, permissions                      |
-| `client.channel`           | Channels, messages, conversations                      |
-| `client.ips`               | Identity & Profile Service — profiles, follow/unfollow |
-| `client.agent`             | AI agent templates, runs                               |
-| `client.ai`                | LLM completions, streaming, embeddings                 |
-| `client.sessions`          | Session management                                     |
-| `client.messages`          | Session-level messages                                 |
-| `client.contacts`          | Contact management                                     |
-| `client.conversations`     | Conversation views                                     |
-| `client.teams`             | Team management                                        |
-| `client.workflows`         | Workflow automation                                    |
-| `client.boards`            | Board CRUD and items                                   |
-| `client.settings`          | Org settings, message templates                        |
-| `client.organizations`     | Organization list                                      |
-| `client.health`            | Gateway health check                                   |
-| `client.campaign`          | Campaign management                                    |
-| `client.schedule`          | Scheduled tasks                                        |
-| `client.categories`        | Category management                                    |
-| `client.outbound`          | Outbound messaging                                     |
-| `client.chatAi`            | Chat AI sessions                                       |
-| `client.fileService`       | File uploads                                           |
-| `client.messageSuggestion` | AI message suggestions                                 |
-| `client.predict`           | Prediction services                                    |
-| `client.activepieces`      | Activepieces integration                               |
-| `client.license`           | License management and activation                      |
-| `client.aiAgent`           | AI agent chat, embeddings, parquet, trace              |
+| Namespace | Purpose |
+|---|---|
+| `client.aiAgent` | Streaming AI chat, embeddings, parquet data, chat session management |
+| `client.chatAi` | LLM completions, streaming, models, knowledge, files, folders |
+| `client.activepieces` | Workflow automation — flows, triggers, runs, connections |
+| `client.boards` | CRM boards — CRUD, items, fields, search, segments, CSV export |
+| `client.contacts` | Contact management |
+| `client.conversations` | Conversation views, assignment, status |
+| `client.messages` | Send and list messages |
+| `client.channel` | Channel listing and messaging |
+| `client.platform` | Users, organizations, permissions |
+| `client.ai` | Raw OpenAI-compatible completions and embeddings |
 
 ### When to Use
 
