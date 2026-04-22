@@ -120,6 +120,20 @@ msgs = client.messages.list(limit=20)
 
 ---
 
+### Workflows & Automation
+
+Trigger channel automations to handle inbound messages, route conversations, and fire follow-up actions.
+
+```python
+# List all channel automations
+automations = client.workflows.list_channel_automation().get("data", [])
+
+# Filter by channel type
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+---
+
 ## AI
 
 ### LLM Completions

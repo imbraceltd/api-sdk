@@ -107,6 +107,20 @@ msgs = client.messages.list(limit=20)
 
 ---
 
+### Workflows & Automation
+
+Kích hoạt channel automations để xử lý tin nhắn đến, phân luồng hội thoại và kích hoạt các hành động follow-up.
+
+```python
+# Danh sách tất cả channel automations
+automations = client.workflows.list_channel_automation().get("data", [])
+
+# Lọc theo loại kênh
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+---
+
 ## AI
 
 ### LLM Completions

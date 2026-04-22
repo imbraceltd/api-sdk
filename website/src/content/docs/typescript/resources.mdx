@@ -127,6 +127,22 @@ await client.channel.markRead("conversation_id")
 
 ---
 
+### Workflows & Automation
+
+Trigger channel automations to handle inbound messages, route conversations, and fire follow-up actions.
+
+```typescript
+// List all channel automations
+const { data: automations } = await client.workflows.listChannelAutomation()
+
+// Filter by channel type
+const whatsappFlows = await client.workflows.listChannelAutomation({
+  channelType: "whatsapp",
+})
+```
+
+---
+
 ## AI
 
 ### LLM Completions

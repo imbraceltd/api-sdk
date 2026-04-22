@@ -121,6 +121,22 @@ await client.channel.markRead("conversation_id")
 
 ---
 
+### Workflows & Automation
+
+Kích hoạt channel automations để xử lý tin nhắn đến, phân luồng hội thoại và kích hoạt các hành động follow-up.
+
+```typescript
+// Danh sách tất cả channel automations
+const { data: automations } = await client.workflows.listChannelAutomation()
+
+// Lọc theo loại kênh
+const whatsappFlows = await client.workflows.listChannelAutomation({
+  channelType: "whatsapp",
+})
+```
+
+---
+
 ## AI
 
 ### LLM Completions
