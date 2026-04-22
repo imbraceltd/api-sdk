@@ -11,7 +11,7 @@ const GATEWAY       = process.env.IMBRACE_GATEWAY_URL   || 'https://app-gatewayv
 const ORG_ID        = process.env.IMBRACE_ORG_ID        || 'org_8d2a2d53-20ef-4c54-8aa9-aadec5963b5c'
 const ASSISTANT_ID  = process.env.IMBRACE_ASSISTANT_ID  || 'b64b4dfd-7f02-4f8d-962e-c3f48569af20'
 
-const client  = new ImbraceClient({ accessToken: ACCESS_TOKEN, gateway: GATEWAY, organizationId: ORG_ID })
+const client  = new ImbraceClient({ accessToken: ACCESS_TOKEN, gateway: GATEWAY })
 const aiAgent = client.aiAgent
 
 let passed = 0, failed = 0, skipped = 0
@@ -180,7 +180,7 @@ if (firstGuide) {
 console.log('\n[9] Chat Client')
 
 try {
-  const res = await aiAgent.listClientChats({ organization_id: ORG_ID, limit: 5 })
+  const res = await aiAgent.listClientChats({ limit: 5 })
   const chats = res?.chats ?? res?.data ?? res
   ok('listClientChats()', `count=${Array.isArray(chats) ? chats.length : '?'}`)
 } catch (e) { fail('listClientChats()', e) }
@@ -193,7 +193,6 @@ try {
     message: { id: randomUUID(), role: 'user', parts: [{ type: 'text', text: 'SDK test message' }] },
     selectedVisibilityType: 'private',
     assistantId: ASSISTANT_ID,
-    organizationId: ORG_ID,
   })
   ok('createClientChat()', `id=${createdChat?.id ?? newChatId}`)
 } catch (e) { fail('createClientChat()', e) }

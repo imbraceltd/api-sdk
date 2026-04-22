@@ -40,13 +40,13 @@ ImbraceClient          ← single entry point, wires all resources
 | HTTP Transport   | `http.ts`               | Auth headers, retry logic, timeout, error mapping       |
 | Token Manager    | `auth/token-manager.ts` | Stores and retrieves the current access token           |
 | Service Registry | `service-registry.ts`   | Resolves per-service base URLs from environment presets |
-| Resources        | `resources/*.ts`        | Domain-specific API method wrappers (27 resources)      |
+| Resources        | `resources/*.ts`        | Domain-specific API method wrappers (29 resources)      |
 | Types            | `types/*.ts`            | Shared TypeScript interfaces for all API shapes         |
 | Errors           | `errors.ts`             | `AuthError`, `ApiError`, `NetworkError` definitions     |
 
 ### Available Resources
 
-The SDK exposes 27 resource namespaces on the client:
+The SDK exposes 29 resource namespaces on the client:
 
 | Namespace                  | Purpose                                                |
 | -------------------------- | ------------------------------------------------------ |
@@ -77,6 +77,8 @@ The SDK exposes 27 resource namespaces on the client:
 | `client.messageSuggestion` | AI message suggestions                                 |
 | `client.predict`           | Prediction services                                    |
 | `client.activepieces`      | Activepieces integration                               |
+| `client.license`           | License management and activation                      |
+| `client.aiAgent`           | AI agent chat, embeddings, parquet, trace              |
 
 ### When to Use
 

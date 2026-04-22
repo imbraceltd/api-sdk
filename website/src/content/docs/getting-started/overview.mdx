@@ -13,41 +13,33 @@ description: SDK scope, structure, and gateway differences for the Imbrace SDK.
 ```
 sdk/
 ├── py/src/imbrace/
-│   ├── core/                  ← transport, auth, errors, api_key
-│   │   ├── http.py
-│   │   ├── exceptions.py
-│   │   ├── api_key.py
-│   │   └── auth/token_manager.py
-│   ├── app/                   ← App Gateway (OTP auth)
-│   │   ├── client.py
-│   │   └── resources/         (auth, account, agent, ai, boards, channel,
-│   │                            contacts, conversations, health, ips,
-│   │                            messages, organizations, sessions,
-│   │                            settings, teams, workflows)
-│   ├── server/                ← Server Gateway (API Key auth)
-│   │   ├── client.py
-│   │   └── resources/         (ai_agent, boards, categories, marketplace,
-│   │                            platform, schedule)
-│   ├── types/                 ← shared type definitions
-│   └── client.py              ← ImbraceClient (unified entry point)
+│   ├── client.py              ← ImbraceClient (unified sync entry point)
+│   ├── async_client.py        ← AsyncImbraceClient
+│   ├── http.py                ← transport, auth headers, retry
+│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
+│   ├── environments.py        ← URL presets (develop/sandbox/stable)
+│   ├── service_registry.py    ← per-service base URL resolution
+│   ├── auth/token_manager.py  ← thread-safe token storage
+│   ├── resources/             ← one file per resource namespace
+│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
+│   │   ├── platform.py
+│   │   ├── channel.py
+│   │   └── ...                (29 resources total)
+│   └── types/                 ← shared Pydantic models
 │
 └── ts/src/
-    ├── core/                  ← transport, auth, errors
-    │   ├── http.ts
-    │   ├── errors.ts
-    │   └── auth/token-manager.ts
-    ├── app/                   ← App Gateway
-    │   ├── client.ts
-    │   └── resources/         (auth, account, agent, ai, boards, channel,
-    │                            contacts, conversations, health, ips,
-    │                            messages, organizations, sessions,
-    │                            settings, teams, workflows)
-    ├── server/                ← Server Gateway
-    │   ├── client.ts
-    │   └── resources/         (ai-agent, boards, categories, marketplace,
-    │                            platform, schedule)
-    ├── types/                 ← shared type definitions
-    └── client.ts              ← ImbraceClient (unified entry point)
+    ├── client.ts              ← ImbraceClient (unified entry point)
+    ├── http.ts                ← transport, auth headers, retry
+    ├── errors.ts              ← AuthError, ApiError, NetworkError
+    ├── environments.ts        ← URL presets
+    ├── service-registry.ts    ← per-service base URL resolution
+    ├── auth/token-manager.ts  ← token storage
+    ├── resources/             ← one file per resource namespace
+    │   ├── ai-agent.ts        (AiAgentResource)
+    │   ├── platform.ts
+    │   ├── channel.ts
+    │   └── ...                (29 resources total)
+    └── types/                 ← shared TypeScript interfaces
 ```
 
 ### Gateway Differences

@@ -1,55 +1,38 @@
 ---
 title: TypeScript SDK — Xác Thực
-description: API Key, Access Token, luồng OTP login, và multi-tenant trong Imbrace TypeScript SDK.
+description: API Key và Access Token trong Imbrace TypeScript SDK.
 ---
 
-SDK hỗ trợ ba chiến lược xác thực. `HttpTransport` tự động chọn chiến lược phù hợp dựa trên những gì bạn truyền vào `ImbraceClient`.
+SDK hỗ trợ hai chiến lược xác thực. Truyền `apiKey` hoặc `accessToken` khi khởi tạo `ImbraceClient` — transport tự xử lý headers.
 
 ### Các Chiến Lược Xác Thực
 
-| Chiến lược       | Điều kiện kích hoạt                                          | Header gửi đi                                        |
-| ---------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| **API Key**      | Option `apiKey` được truyền vào                              | `x-api-key: sk-xxx...`                               |
-| **JWT Bearer**   | Token bắt đầu bằng `eyJ` và có 3 phần cách nhau bởi dấu chấm | `Authorization: Bearer eyJ...` + `x-organization-id` |
-| **Legacy Token** | Access token bất kỳ khác                                     | `x-access-token: login_acc_...`                      |
-
-:::note
-Việc phát hiện JWT là tự động — transport kiểm tra định dạng token khi request. Bạn không cần cấu hình chiến lược thủ công.
-:::
+| Chiến lược       | Khi nào dùng                              | Header gửi đi             |
+| ---------------- | ----------------------------------------- | ------------------------- |
+| **API Key**      | Backend scripts, cron jobs, server calls  | `x-api-key: sk-xxx...`    |
+| **Access Token** | Sau khi user đăng nhập (OTP hoặc password)| `x-access-token: acc_...` |
 
 ---
 
 ### API Key (Server-Side)
-
-Dùng cho backend scripts, cron jobs, và server-to-server calls — credentials không bao giờ ra browser.
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
   apiKey: process.env.IMBRACE_API_KEY,
-  organizationId: process.env.IMBRACE_ORG_ID, // tùy chọn
 });
 ```
-
-Header `x-api-key` được gửi trên mọi request. Gateway resolve organization từ API key.
 
 ---
 
 ### Access Token (Client-Side)
 
-Dùng sau khi user xác thực. Truyền token khi khởi tạo:
+Dùng sau khi user xác thực:
 
 ```typescript
-// JWT (tự phát hiện bởi prefix eyJ...)
 const client = new ImbraceClient({
-  accessToken: "eyJhbGciOiJSUzI1NiJ9...",
-  organizationId: "org_xxxxxxxx", // bắt buộc với JWT
-});
-
-// Legacy opaque token (tự phát hiện là non-JWT)
-const client = new ImbraceClient({
-  accessToken: "login_acc_xxxxxxxxxxxxx",
+  accessToken: "acc_xxxxxxxxxxxxx",
 });
 ```
 
@@ -57,7 +40,7 @@ const client = new ImbraceClient({
 
 ### Luồng OTP Login
 
-SDK tích hợp sẵn luồng xác thực OTP. Đây là cách được khuyến nghị cho user-facing apps.
+Cách được khuyến nghị cho user-facing apps — SDK tự lưu token sau khi đăng nhập thành công.
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
@@ -67,7 +50,7 @@ const client = new ImbraceClient();
 // Bước 1: Gửi OTP đến email người dùng
 await client.requestOtp("user@example.com");
 
-// Bước 2: Người dùng nhập OTP — verify và lưu token tự động
+// Bước 2: Người dùng nhập OTP — token được lưu tự động
 await client.loginWithOtp("user@example.com", "123456");
 
 // Bước 3: Tất cả các call tiếp theo đã được xác thực
@@ -78,18 +61,15 @@ const me = await client.platform.getMe();
 
 ```typescript
 await client.login("user@example.com", "password123");
-// Token được lưu vào TokenManager tự động
 ```
 
 ---
 
 ### Quản Lý Token
 
-Sau khi xác thực, token sống trong `TokenManager`. Bạn có thể thao tác trực tiếp:
-
 ```typescript
 // Thay token (ví dụ: sau khi OAuth refresh)
-client.setAccessToken("new-eyJhbGci...");
+client.setAccessToken("new_token...");
 
 // Xóa token (ví dụ: khi logout)
 client.clearAccessToken();
@@ -97,27 +77,8 @@ client.clearAccessToken();
 
 ---
 
-### Multi-Tenant (Organization ID)
-
-Khi dùng JWT Bearer, SDK tự động gửi `x-organization-id` trên mọi request:
-
-```typescript
-const client = new ImbraceClient({
-  accessToken: jwtToken,
-  organizationId: "org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-});
-```
-
-:::caution
-`organizationId` chỉ được gửi khi dùng JWT Bearer. Với API Key, gateway tự resolve org từ key.
-:::
-
----
-
 ### Thứ Tự Ưu Tiên Cấu Hình
-
-Client merge config theo thứ tự (cao xuống thấp):
 
 1. **Constructor options tường minh** — `new ImbraceClient({ apiKey: "..." })`
 2. **Environment variables** — `IMBRACE_API_KEY`, `IMBRACE_GATEWAY_URL`
-3. **Defaults** — `env: "stable"`, gateway `https://app-gateway.imbrace.co`
+3. **Defaults** — `env: "stable"`, gateway `https://app-gatewayv2.imbrace.co`

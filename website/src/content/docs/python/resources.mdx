@@ -244,6 +244,81 @@ client.boards.search("board_id", {"query": "task"})
 
 ---
 
+### Chat AI
+
+LLM completions and chat history via the aiv2 service.
+
+```python
+# List available models
+models = client.chat_ai.list_models()
+
+# Create a chat completion
+response = client.chat_ai.chat({
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Summarize this quarter's data."}],
+})
+
+# Chat history
+chats = client.chat_ai.list_chats()
+chat  = client.chat_ai.get_chat("chat_id")
+client.chat_ai.delete_chat("chat_id")
+```
+
+---
+
+### AI Agent
+
+Chat, embedding files, parquet data, and distributed traces via the ai-agent service.
+
+```python
+# System info
+config = client.ai_agent.get_config()
+health = client.ai_agent.get_health()
+
+# Chat v1 — query history
+res    = client.ai_agent.list_chats(organization_id="org_xxx", limit=10)
+chats  = res.get("chats", [])
+chat   = client.ai_agent.get_chat(chats[0]["id"])
+
+# Chat v2 — streaming (returns raw httpx.Response for SSE)
+resp = client.ai_agent.stream_chat({
+    "id": "chat_id",
+    "assistant_id": "assistant_id",
+    "organization_id": "org_xxx",
+    "messages": [{"role": "user", "content": "Hello"}],
+})
+for line in resp.iter_lines():
+    print(line)
+
+# Prompt suggestions
+suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
+
+# Embedding files
+files      = client.ai_agent.list_embedding_files()
+classified = client.ai_agent.classify_file(url="https://…/doc.pdf", mime_type="application/pdf")
+
+# Parquet
+result = client.ai_agent.generate_parquet(
+    data=[{"id": 1, "value": 42}],
+    file_name="export_2026",
+)
+client.ai_agent.delete_parquet_file(result["fileName"])
+
+# Chat client (end-user chats)
+import uuid
+new_chat = client.ai_agent.create_client_chat({
+    "id": str(uuid.uuid4()),
+    "message": {"id": str(uuid.uuid4()), "role": "user",
+                "parts": [{"type": "text", "text": "Hi"}]},
+    "assistantId": "assistant_id",
+    "organizationId": "org_xxx",
+})
+messages = client.ai_agent.list_client_messages(new_chat["id"])
+client.ai_agent.delete_client_chat(new_chat["id"])
+```
+
+---
+
 ### Pagination
 
 List endpoints return a consistent shape:

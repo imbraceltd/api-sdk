@@ -278,6 +278,77 @@ await client.settings.bulkInviteUsers(["user1@x.com", "user2@x.com"]);
 
 ---
 
+### Chat AI
+
+LLM completions and chat history via the aiv2 service.
+
+```typescript
+// List available models
+const models = await client.chatAi.listModels()
+
+// Create a chat completion
+const response = await client.chatAi.chat({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Summarize this quarter's data." }],
+})
+
+// Chat history
+const chats = await client.chatAi.listChats()
+const chat = await client.chatAi.getChat("chat_id")
+await client.chatAi.deleteChat("chat_id")
+```
+
+---
+
+### AI Agent
+
+Chat, embedding files, parquet data, and distributed traces via the ai-agent service.
+
+```typescript
+// System info
+const config = await client.aiAgent.getConfig()
+const health = await client.aiAgent.getHealth()
+
+// Chat v1 — query history
+const { chats } = await client.aiAgent.listChats({ organization_id: "org_xxx" })
+const chat = await client.aiAgent.getChat(chats[0].id)
+
+// Chat v2 — streaming (SSE)
+const response = await client.aiAgent.streamChat({
+  id: "chat_id",
+  assistant_id: "assistant_id",
+  organization_id: "org_xxx",
+  messages: [{ role: "user", content: "Hello" }],
+})
+// consume as a stream: response.body (ReadableStream)
+
+// Prompt suggestions
+const suggestions = await client.aiAgent.getAgentPromptSuggestion("assistant_id")
+
+// Embedding files
+const files = await client.aiAgent.listEmbeddingFiles()
+const classified = await client.aiAgent.classifyFile({ url: "https://…/doc.pdf", mime_type: "application/pdf" })
+
+// Parquet
+const result = await client.aiAgent.generateParquet({
+  fileName: "export_2026",
+  data: [{ id: 1, value: 42 }],
+})
+await client.aiAgent.deleteParquetFile(result.fileName)
+
+// Chat client (end-user chats)
+const newChat = await client.aiAgent.createClientChat({
+  id: crypto.randomUUID(),
+  message: { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text: "Hi" }] },
+  assistantId: "assistant_id",
+  organizationId: "org_xxx",
+})
+const messages = await client.aiAgent.listClientMessages(newChat.id)
+await client.aiAgent.deleteClientChat(newChat.id)
+```
+
+---
+
 ### Pagination
 
 List endpoints return a consistent shape:

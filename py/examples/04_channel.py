@@ -3,7 +3,6 @@ from imbrace import ImbraceClient
 
 client = ImbraceClient(
     access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
-    organization_id=os.environ.get("IMBRACE_ORG_ID"),
     env="stable",
 )
 

@@ -1,27 +1,20 @@
 ---
 title: Python SDK — Xác Thực
-description: API Key, Access Token, luồng OTP login, và multi-tenant trong Imbrace Python SDK.
+description: API Key và Access Token trong Imbrace Python SDK.
 ---
 
-SDK hỗ trợ ba chiến lược xác thực. `HttpTransport` tự động chọn chiến lược phù hợp dựa trên những gì bạn truyền vào client.
+SDK hỗ trợ hai chiến lược xác thực. Truyền `api_key` hoặc `access_token` vào constructor — transport tự xử lý headers.
 
 ### Các Chiến Lược Xác Thực
 
-| Chiến lược       | Điều kiện kích hoạt                                          | Header gửi đi                                        |
-| ---------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| **API Key**      | Param `api_key` được truyền vào                              | `x-api-key: sk-xxx...`                               |
-| **JWT Bearer**   | Token bắt đầu bằng `eyJ` và có 3 phần cách nhau bởi dấu chấm | `Authorization: Bearer eyJ...` + `x-organization-id` |
-| **Legacy Token** | Access token bất kỳ khác                                     | `x-access-token: login_acc_...`                      |
-
-:::note
-Việc phát hiện JWT là tự động — transport kiểm tra định dạng token khi request. Bạn không cần cấu hình chiến lược thủ công.
-:::
+| Chiến lược       | Khi nào dùng                                | Header gửi đi             |
+| ---------------- | ------------------------------------------- | ------------------------- |
+| **API Key**      | Backend scripts, Celery tasks, server calls | `x-api-key: sk-xxx...`    |
+| **Access Token** | Sau khi user đăng nhập (OTP hoặc password)  | `x-access-token: acc_...` |
 
 ---
 
 ### API Key (Server-Side)
-
-Dùng cho backend scripts, Celery tasks, và server-to-server calls.
 
 ```python
 import os
@@ -29,11 +22,8 @@ from imbrace import ImbraceClient
 
 client = ImbraceClient(
     api_key=os.environ["IMBRACE_API_KEY"],
-    organization_id=os.environ.get("IMBRACE_ORG_ID"),  # tùy chọn
 )
 ```
-
-Header `x-api-key` được gửi trên mọi request. Gateway resolve organization từ API key.
 
 ---
 
@@ -42,21 +32,16 @@ Header `x-api-key` được gửi trên mọi request. Gateway resolve organizat
 Dùng sau khi user xác thực:
 
 ```python
-# JWT (tự phát hiện bởi prefix eyJ...)
 client = ImbraceClient(
-    access_token="eyJhbGciOiJSUzI1NiJ9...",
-    organization_id="org_xxxxxxxx",  # bắt buộc với JWT
-)
-
-# Legacy opaque token (tự phát hiện là non-JWT)
-client = ImbraceClient(
-    access_token="login_acc_xxxxxxxxxxxxx",
+    access_token="acc_xxxxxxxxxxxxx",
 )
 ```
 
 ---
 
 ### Luồng OTP Login
+
+Cách được khuyến nghị cho user-facing apps — SDK tự lưu token sau khi đăng nhập thành công.
 
 ```python
 from imbrace import ImbraceClient
@@ -66,18 +51,17 @@ client = ImbraceClient()
 # Bước 1: Gửi OTP đến email người dùng
 client.request_otp("user@example.com")
 
-# Bước 2: Người dùng nhập OTP — verify và lưu token tự động
+# Bước 2: Người dùng nhập OTP — token được lưu tự động
 client.login_with_otp("user@example.com", "123456")
 
 # Bước 3: Tất cả các call tiếp theo đã được xác thực
 me = client.platform.get_me()
 ```
 
-Đăng nhập bằng email + password:
+Đăng nhập bằng email + password cũng được hỗ trợ:
 
 ```python
 client.login("user@example.com", "password123")
-# Token được lưu vào TokenManager tự động
 ```
 
 #### Async OTP Flow
@@ -97,7 +81,7 @@ async with AsyncImbraceClient() as client:
 
 ```python
 # Thay token (ví dụ: sau khi OAuth refresh)
-client.set_access_token("new-eyJhbGci...")
+client.set_access_token("new_token...")
 
 # Xóa token (ví dụ: khi logout)
 client.clear_access_token()
@@ -107,13 +91,10 @@ client.clear_access_token()
 
 ### Context Manager (Khuyến Nghị)
 
-Luôn dùng context manager để đảm bảo kết nối được đóng đúng cách:
-
 ```python
 # Synchronous
 with ImbraceClient(api_key="sk-xxx") as client:
     me = client.platform.get_me()
-# httpx.Client tự đóng ở đây
 
 # Asynchronous
 async with AsyncImbraceClient(api_key="sk-xxx") as client:
@@ -122,21 +103,8 @@ async with AsyncImbraceClient(api_key="sk-xxx") as client:
 
 ---
 
-### Multi-Tenant (Organization ID)
-
-Khi dùng JWT Bearer, SDK tự động gửi `x-organization-id`:
-
-```python
-client = ImbraceClient(
-    access_token="eyJ...",
-    organization_id="org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-)
-```
-
----
-
 ### Thứ Tự Ưu Tiên Cấu Hình
 
 1. **Constructor params tường minh** — `ImbraceClient(api_key="...")`
 2. **Environment variables** — `IMBRACE_API_KEY`, `IMBRACE_GATEWAY_URL`
-3. **Defaults** — `env="stable"`, gateway `https://app-gateway.imbrace.co`
+3. **Defaults** — `env="stable"`, gateway `https://app-gatewayv2.imbrace.co`

@@ -227,6 +227,59 @@ const items = await client.boards.getItems("board_id");
 
 ---
 
+### Chat AI
+
+LLM completions và lịch sử chat qua dịch vụ aiv2.
+
+```typescript
+const models   = await client.chatAi.listModels()
+const response = await client.chatAi.chat({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Tóm tắt dữ liệu quý này." }],
+})
+const chats = await client.chatAi.listChats()
+await client.chatAi.deleteChat("chat_id")
+```
+
+---
+
+### AI Agent
+
+Chat, embedding files, parquet và distributed trace qua dịch vụ ai-agent.
+
+```typescript
+const config = await client.aiAgent.getConfig()
+
+// Lịch sử chat v1
+const { chats } = await client.aiAgent.listChats({ organization_id: "org_xxx" })
+
+// Chat v2 streaming (SSE)
+const resp = await client.aiAgent.streamChat({
+  id: "chat_id",
+  assistant_id: "assistant_id",
+  organization_id: "org_xxx",
+  messages: [{ role: "user", content: "Xin chào" }],
+})
+
+// Parquet
+const result = await client.aiAgent.generateParquet({
+  fileName: "export_2026",
+  data: [{ id: 1, value: 42 }],
+})
+await client.aiAgent.deleteParquetFile(result.fileName)
+
+// Chat client
+const newChat = await client.aiAgent.createClientChat({
+  id: crypto.randomUUID(),
+  message: { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text: "Xin chào" }] },
+  assistantId: "assistant_id",
+  organizationId: "org_xxx",
+})
+await client.aiAgent.deleteClientChat(newChat.id)
+```
+
+---
+
 ### Pagination
 
 List endpoints trả về shape nhất quán:

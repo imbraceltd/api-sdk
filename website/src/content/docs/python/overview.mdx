@@ -42,7 +42,7 @@ ImbraceClient / AsyncImbraceClient     ← single entry point
 | HTTP Transport   | `http.py`                      | Auth headers, retry, timeout, error mapping        |
 | Token Manager    | `auth/token_manager.py`        | Thread-safe token read/write                       |
 | Service Registry | `service_registry.py`          | Resolves per-service URLs from env presets         |
-| Resources        | `resources/*.py`               | Domain-specific API method wrappers (29 resources) |
+| Resources        | `resources/*.py`               | Domain-specific API method wrappers (29 resources)  |
 | Types            | `types/*.py`                   | Pydantic models and dataclasses                    |
 | Exceptions       | `exceptions.py`                | `AuthError`, `ApiError`, `NetworkError`            |
 | Environments     | `environments.py`              | URL presets for each environment                   |
@@ -81,6 +81,7 @@ The Python SDK exposes 29 resource namespaces:
 | `client.chat_ai`       | Chat AI sessions                               |
 | `client.file_service`  | File uploads                                   |
 | `client.activepieces`  | Activepieces integration                       |
+| `client.ai_agent`      | AI agent chat, embeddings, parquet, trace      |
 
 ### Sync vs Async — When to Use Which
 

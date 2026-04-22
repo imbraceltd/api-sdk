@@ -57,7 +57,6 @@ try {
     apiKey: API_KEY || undefined,
     accessToken: ACCESS_TOKEN || undefined,
     gateway: BASE_URL,
-    organizationId: ORG_ID,
   });
   ok("ImbraceClient created");
 } catch (e) {

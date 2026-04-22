@@ -190,6 +190,64 @@ client.boards.search("board_id", {"query": "task"})
 
 ---
 
+### Chat AI
+
+LLM completions và lịch sử chat qua dịch vụ aiv2.
+
+```python
+models   = client.chat_ai.list_models()
+response = client.chat_ai.chat({
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Tóm tắt dữ liệu quý này."}],
+})
+chats = client.chat_ai.list_chats()
+client.chat_ai.delete_chat("chat_id")
+```
+
+---
+
+### AI Agent
+
+Chat, embedding files, parquet và distributed trace qua dịch vụ ai-agent.
+
+```python
+config = client.ai_agent.get_config()
+
+# Lịch sử chat v1
+res   = client.ai_agent.list_chats(organization_id="org_xxx", limit=10)
+chats = res.get("chats", [])
+
+# Chat v2 streaming (SSE)
+resp = client.ai_agent.stream_chat({
+    "id": "chat_id",
+    "assistant_id": "assistant_id",
+    "organization_id": "org_xxx",
+    "messages": [{"role": "user", "content": "Xin chào"}],
+})
+for line in resp.iter_lines():
+    print(line)
+
+# Parquet
+result = client.ai_agent.generate_parquet(
+    data=[{"id": 1, "value": 42}],
+    file_name="export_2026",
+)
+client.ai_agent.delete_parquet_file(result["fileName"])
+
+# Chat client
+import uuid
+new_chat = client.ai_agent.create_client_chat({
+    "id": str(uuid.uuid4()),
+    "message": {"id": str(uuid.uuid4()), "role": "user",
+                "parts": [{"type": "text", "text": "Xin chào"}]},
+    "assistantId": "assistant_id",
+    "organizationId": "org_xxx",
+})
+client.ai_agent.delete_client_chat(new_chat["id"])
+```
+
+---
+
 ### Pagination
 
 ```python

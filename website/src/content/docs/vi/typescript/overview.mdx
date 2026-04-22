@@ -40,13 +40,13 @@ ImbraceClient          ← entry point duy nhất, wire tất cả resources
 | HTTP Transport   | `http.ts`               | Auth headers, retry logic, timeout, error mapping  |
 | Token Manager    | `auth/token-manager.ts` | Lưu và lấy access token                            |
 | Service Registry | `service-registry.ts`   | Resolve per-service URL từ environment preset      |
-| Resources        | `resources/*.ts`        | API method wrapper cho từng domain (27 resources)  |
+| Resources        | `resources/*.ts`        | API method wrapper cho từng domain (29 resources)  |
 | Types            | `types/*.ts`            | TypeScript interfaces cho mọi API shape            |
 | Errors           | `errors.ts`             | Định nghĩa `AuthError`, `ApiError`, `NetworkError` |
 
 ### Danh Sách Resources
 
-SDK expose 27 resource namespaces trên client:
+SDK expose 29 resource namespaces trên client:
 
 | Namespace                  | Mục đích                                    |
 | -------------------------- | ------------------------------------------- |
@@ -77,6 +77,8 @@ SDK expose 27 resource namespaces trên client:
 | `client.messageSuggestion` | AI gợi ý tin nhắn                           |
 | `client.predict`           | Dịch vụ dự đoán                             |
 | `client.activepieces`      | Tích hợp Activepieces                       |
+| `client.license`           | Quản lý và kích hoạt license                |
+| `client.aiAgent`           | Chat AI agent, embeddings, parquet, trace   |
 
 ### Khi Nào Nên Dùng
 

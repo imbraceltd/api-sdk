@@ -1,55 +1,38 @@
 ---
 title: TypeScript SDK — Authentication
-description: API Key, Access Token, OTP login flow, and multi-tenant setup for the Imbrace TypeScript SDK.
+description: API Key and Access Token authentication for the Imbrace TypeScript SDK.
 ---
 
-The SDK supports three authentication strategies. The `HttpTransport` selects the correct strategy automatically based on what you provide when constructing `ImbraceClient`.
+The SDK supports two authentication strategies. Pass either `apiKey` or `accessToken` when constructing `ImbraceClient` — the transport handles headers automatically.
 
 ### Authentication Strategies
 
-| Strategy         | Trigger                                               | Header Sent                                          |
-| ---------------- | ----------------------------------------------------- | ---------------------------------------------------- |
-| **API Key**      | `apiKey` option passed                                | `x-api-key: sk-xxx...`                               |
-| **JWT Bearer**   | Token starts with `eyJ` and has 3 dot-separated parts | `Authorization: Bearer eyJ...` + `x-organization-id` |
-| **Legacy Token** | Any other access token string                         | `x-access-token: login_acc_...`                      |
-
-:::note
-JWT detection is automatic — the transport inspects the token format at request time. You do not configure the strategy explicitly.
-:::
+| Strategy         | When to use                              | Header sent              |
+| ---------------- | ---------------------------------------- | ------------------------ |
+| **API Key**      | Backend scripts, cron jobs, server calls | `x-api-key: sk-xxx...`   |
+| **Access Token** | After user login (OTP or password)       | `x-access-token: acc_...`|
 
 ---
 
 ### API Key (Server-Side)
-
-Best for backend scripts, cron jobs, and server-to-server calls where the credentials never reach a browser.
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
   apiKey: process.env.IMBRACE_API_KEY,
-  organizationId: process.env.IMBRACE_ORG_ID, // optional
 });
 ```
-
-The API Key is sent as `x-api-key` on every request. The gateway resolves organization context from the key itself.
 
 ---
 
 ### Access Token (Client-Side)
 
-Use after a user authenticates. Pass the token directly:
+Use after a user authenticates:
 
 ```typescript
-// JWT (auto-detected by eyJ... prefix)
 const client = new ImbraceClient({
-  accessToken: "eyJhbGciOiJSUzI1NiJ9...",
-  organizationId: "org_xxxxxxxx", // required for JWT
-});
-
-// Legacy opaque token (auto-detected as non-JWT)
-const client = new ImbraceClient({
-  accessToken: "login_acc_xxxxxxxxxxxxx",
+  accessToken: "acc_xxxxxxxxxxxxx",
 });
 ```
 
@@ -57,7 +40,7 @@ const client = new ImbraceClient({
 
 ### OTP Login Flow
 
-The SDK ships with a built-in OTP authentication flow. This is the recommended approach for user-facing apps.
+The recommended approach for user-facing apps — the SDK stores the token automatically after login.
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
@@ -67,50 +50,30 @@ const client = new ImbraceClient();
 // Step 1: Trigger OTP delivery
 await client.requestOtp("user@example.com");
 
-// Step 2: User enters OTP — verify and store token automatically
+// Step 2: User enters OTP — token stored automatically
 await client.loginWithOtp("user@example.com", "123456");
 
 // Step 3: All subsequent calls are authenticated
 const me = await client.platform.getMe();
 ```
 
-Alternatively, sign in with email + password:
+Email + password login is also supported:
 
 ```typescript
 await client.login("user@example.com", "password123");
-// Token stored in TokenManager automatically
 ```
 
 ---
 
 ### Token Management
 
-After authentication, the token lives in `TokenManager`. You can manipulate it directly:
-
 ```typescript
 // Replace token (e.g., after OAuth token refresh)
-client.setAccessToken("new-eyJhbGci...");
+client.setAccessToken("new_token...");
 
 // Clear token (e.g., on logout)
 client.clearAccessToken();
 ```
-
----
-
-### Multi-Tenant (Organization ID)
-
-When authenticating with a JWT Bearer token, the SDK automatically sends `x-organization-id` on every request. Set it at construction time:
-
-```typescript
-const client = new ImbraceClient({
-  accessToken: jwtToken,
-  organizationId: "org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-});
-```
-
-:::caution
-`organizationId` is only sent when using JWT Bearer auth. For API Key auth, the gateway resolves the organization from the key.
-:::
 
 ---
 
@@ -120,4 +83,4 @@ The client merges configuration in this order (highest to lowest priority):
 
 1. **Explicit constructor options** — `new ImbraceClient({ apiKey: "..." })`
 2. **Environment variables** — `IMBRACE_API_KEY`, `IMBRACE_GATEWAY_URL`
-3. **Defaults** — `env: "stable"`, gateway `https://app-gateway.imbrace.co`
+3. **Defaults** — `env: "stable"`, gateway `https://app-gatewayv2.imbrace.co`

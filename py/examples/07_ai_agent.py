@@ -13,7 +13,7 @@ GATEWAY      = os.environ.get("IMBRACE_GATEWAY_URL",  "https://app-gatewayv2.imb
 ORG_ID       = os.environ.get("IMBRACE_ORG_ID",       "org_8d2a2d53-20ef-4c54-8aa9-aadec5963b5c")
 ASSISTANT_ID = os.environ.get("IMBRACE_ASSISTANT_ID", "b64b4dfd-7f02-4f8d-962e-c3f48569af20")
 
-client   = ImbraceClient(access_token=ACCESS_TOKEN, gateway=GATEWAY, organization_id=ORG_ID)
+client   = ImbraceClient(access_token=ACCESS_TOKEN, gateway=GATEWAY)
 ai_agent = client.ai_agent
 
 passed, failed, skipped = 0, 0, 0
@@ -194,7 +194,7 @@ else:
 print("\n[9] Chat Client")
 
 try:
-    res = ai_agent.list_client_chats(organization_id=ORG_ID, limit=5)
+    res = ai_agent.list_client_chats(limit=5)
     chats = res.get("chats", res.get("data", res)) if isinstance(res, dict) else res
     ok("list_client_chats()", f"count={len(chats) if isinstance(chats, list) else '?'}")
 except Exception as e:
@@ -208,7 +208,6 @@ try:
         "message": {"id": str(uuid.uuid4()), "role": "user", "parts": [{"type": "text", "text": "SDK test message"}]},
         "selectedVisibilityType": "private",
         "assistantId": ASSISTANT_ID,
-        "organizationId": ORG_ID,
     })
     ok("create_client_chat()", f"id={created_chat.get('id', new_chat_id)}")
 except Exception as e:

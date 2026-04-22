@@ -1,285 +1,77 @@
 # Imbrace TypeScript SDK
 
-Official TypeScript/JavaScript SDK for Imbrace. Fully typed. Supports dual authentication: API Key (server-side) and Access Token (client-side).
+Official TypeScript/JavaScript client for the Imbrace Gateway.
 
 ## Installation
 
 ```bash
 npm install @imbrace/sdk
-# or
-yarn add @imbrace/sdk
-# or
-bun add @imbrace/sdk
 ```
-
-## Configuration
-
-Copy the example environment file and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and set:
-
-```env
-IMBRACE_API_KEY=your-api-key-here
-IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
-```
-
-**Where to get the API Key**
-
-Call the Imbrace auth endpoint. The response looks like:
-
-```json
-{
-  "apiKey": {
-    "apiKey": "sk-xxx..."
-  }
-}
-```
-
-The value you need is `response.apiKey.apiKey`.
-
----
 
 ## Quick Start
 
-### Initialize the client
+### API Key — server-side scripts, cron jobs
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk"
 
-// Explicit configuration (server-to-server)
 const client = new ImbraceClient({
-  apiKey: "sk-xxx...",
-  env: "stable", // defaults to 'stable'
-  timeout: 30000,
+  apiKey: process.env.IMBRACE_API_KEY,
 })
 
-// Or manually override the gateway URL
-const clientWithCustomGateway = new ImbraceClient({
-  gateway: "https://app-gateway.imbrace.co",
-})
-```
-// Update token after OAuth refresh
-client.setAccessToken("new-token")
-client.clearAccessToken()
-
-// Run health check manually
-await client.init()
+const me = await client.platform.getMe()
 ```
 
----
-
-## Domain Resources
-
-### Marketplace
+### Access Token — after user login
 
 ```typescript
-// Products
-const products = await client.marketplace.listProducts({
-  category: "electronics",
-  page: 1,
-  limit: 20,
+const client = new ImbraceClient({
+  accessToken: "acc_xxxxxxxxxxxxx",
 })
-const product = await client.marketplace.getProduct("prod_id")
-await client.marketplace.createProduct({ name: "Product A", price: 99 })
-await client.marketplace.updateProduct("prod_id", { price: 89 })
-await client.marketplace.deleteProduct("prod_id")
-
-// Orders
-const orders = await client.marketplace.listOrders({ status: "pending" })
-const order = await client.marketplace.getOrder("order_id")
-await client.marketplace.createOrder({
-  items: [{ productId: "prod_id", quantity: 2 }],
-  shippingAddress: { city: "Ho Chi Minh", country: "VN" },
-})
-await client.marketplace.updateOrderStatus("order_id", "confirmed")
 ```
 
-### Platform
+### OTP Login Flow
 
 ```typescript
-// Users
-const me    = await client.platform.getMe()
-const users = await client.platform.listUsers({ search: "john" })
-const user  = await client.platform.getUser("user_id")
-await client.platform.updateUser("user_id", { displayName: "John" })
-await client.platform.deleteUser("user_id")
+const client = new ImbraceClient()
 
-// Organizations
-const orgs = await client.platform.listOrgs()
-const org  = await client.platform.createOrg({ name: "My Org" })
-await client.platform.updateOrg("org_id", { name: "New Name" })
+await client.requestOtp("user@example.com")
+await client.loginWithOtp("user@example.com", "123456")
 
-// Permissions
-const perms = await client.platform.listPermissions("user_id")
-await client.platform.grantPermission("user_id", "flows", "write")
-await client.platform.revokePermission("user_id", "perm_id")
+// all subsequent calls are authenticated
+const me = await client.platform.getMe()
 ```
-
-### Channel
-
-```typescript
-// Channels
-const channels = await client.channel.listChannels({ type: "group" })
-const channel  = await client.channel.createChannel({ name: "general", type: "group" })
-await client.channel.addParticipants("channel_id", ["user_1", "user_2"])
-
-// Messages
-const msgs = await client.channel.listMessages("conversation_id")
-const msg  = await client.channel.sendMessage("conversation_id", {
-  content: "Hello!",
-  type: "text",
-})
-await client.channel.markRead("conversation_id")
-```
-
-### IPS (Identity and Profile Service)
-
-```typescript
-const profile = await client.ips.getMyProfile()
-await client.ips.updateProfile("user_id", { bio: "Developer" })
-const results = await client.ips.searchProfiles("john doe", { limit: 10 })
-await client.ips.follow("target_user_id")
-await client.ips.unfollow("target_user_id")
-const followers = await client.ips.getFollowers("user_id")
-const following = await client.ips.getFollowing("user_id")
-const identities = await client.ips.listIdentities("user_id")
-```
-
-### Agent
-
-```typescript
-const agents = await client.agent.listAgents()
-const agent  = await client.agent.createAgent({
-  name: "My Agent",
-  model: "gpt-4o",
-  systemPrompt: "You are helpful.",
-})
-const run    = await client.agent.runAgent("agent_id", { task: "Analyze data" })
-const status = await client.agent.getRun(run.id)
-await client.agent.cancelRun(run.id)
-```
-
-### AI
-
-```typescript
-// Non-streaming completion
-const completion = await client.ai.complete({
-  model: "gpt-4o",
-  messages: [
-    { role: "system", content: "You are a helpful assistant." },
-    { role: "user", content: "Hello!" },
-  ],
-  temperature: 0.7,
-  maxTokens: 1000,
-})
-console.log(completion.choices[0].message.content)
-
-// Streaming completion (AsyncGenerator)
-for await (const chunk of client.ai.stream({
-  model: "gpt-4o",
-  messages: [{ role: "user", content: "Count to 5." }],
-})) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? "")
-}
-
-// Embeddings
-const embeddings = await client.ai.embed({
-  model: "text-embedding-ada-002",
-  input: ["Hello world", "Imbrace SDK"],
-})
-```
-
-### Sessions and Messages
-
-```typescript
-const sessions = await client.sessions.list()
-const session  = await client.sessions.create({ directory: "/my/project" })
-await client.sessions.delete(session.id)
-
-const messages = await client.messages.list(session.id)
-await client.messages.send(session.id, {
-  parts: [{ type: "text", text: "Hi!" }],
-})
-```
-
----
 
 ## Error Handling
 
 ```typescript
-import { ImbraceClient, AuthError, ApiError, NetworkError } from "@imbrace/sdk"
-
-const client = new ImbraceClient()
+import { AuthError, ApiError, NetworkError } from "@imbrace/sdk"
 
 try {
-  const me = await client.platform.getMe()
+  await client.platform.getMe()
 } catch (e) {
-  if (e instanceof AuthError)    console.error("Invalid API Key or Token")
+  if (e instanceof AuthError)    console.error("Invalid credentials")
   if (e instanceof ApiError)     console.error(`[${e.statusCode}] ${e.message}`)
-  if (e instanceof NetworkError) console.error("Cannot reach Imbrace Gateway")
+  if (e instanceof NetworkError) console.error("Gateway unreachable")
 }
 ```
 
----
+## Environment Variables
 
-## React Integration
-
-```tsx
-import { useState, useEffect } from "react"
-import { ImbraceClient } from "@imbrace/sdk"
-import type { Product } from "@imbrace/sdk"
-
-const client = new ImbraceClient({
-  accessToken: localStorage.getItem("imbrace_token") ?? undefined,
-})
-
-function ProductList() {
-  const [products, setProducts] = useState<Product[]>([])
-
-  useEffect(() => {
-    client.marketplace
-      .listProducts()
-      .then(res => setProducts(res.data))
-  }, [])
-
-  return (
-    <ul>
-      {products.map(p => (
-        <li key={p.id}>{p.name} — {p.price} {p.currency}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
----
+| Variable | Description |
+| --- | --- |
+| `IMBRACE_API_KEY` | API key (server-side auth) |
+| `IMBRACE_GATEWAY_URL` | Override gateway URL (default: `https://app-gatewayv2.imbrace.co`) |
+| `IMBRACE_ENV` | Environment preset: `develop`, `sandbox`, `stable` (default: `stable`) |
 
 ## Build
 
 ```bash
 npm run build      # compile to dist/
 npm run typecheck  # type-check only
-npm run test       # run tests
+npm run test       # run unit tests
 ```
 
----
+## Resources
 
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `IMBRACE_ENV` | No | `stable` | Select environment (`develop`, `sandbox`, `stable`) |
-| `IMBRACE_GATEWAY_URL` | No | — | Override Gateway URL (e.g., point to local or custom gateway) |
-| `IMBRACE_API_KEY` | Yes* | — | API Key from Imbrace Gateway (server-side) |
-
-### Configuration Priority
-The SDK will read configuration in the following priority order:
-1.  **Explicit Options**: Passed directly into `new ImbraceClient({ env: 'sandbox', gateway: '...' })`.
-2.  **Environment Variables**: Read from `.env` or system (`IMBRACE_ENV`, `IMBRACE_GATEWAY_URL`).
-3.  **Defaults**: Defaults to `stable` environment with gateway `https://app-gateway.imbrace.co`.
-
-*Or pass `accessToken` for client-side usage.
+Full resource reference: **[sdk.imbrace.co/typescript/resources](https://sdk.imbrace.co/typescript/resources)**
