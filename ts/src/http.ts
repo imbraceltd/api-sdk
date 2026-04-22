@@ -67,6 +67,9 @@ export class HttpTransport {
         } else if (token) {
           // Legacy access token mode (opaque tokens like login_acc_...)
           headers.set("x-access-token", token);
+          if (this.opts.organizationId) {
+            headers.set("x-organization-id", this.opts.organizationId);
+          }
         }
 
         try {

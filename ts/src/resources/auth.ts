@@ -139,9 +139,8 @@ export class AuthResource {
   // ─── Third-party token  
 
   async getThirdPartyToken(expirationDays: number = 10): Promise<ThirdPartyTokenResponse> {
-    // Path typo is in the backend and intentionally preserved.
     return this.http
-      .getFetch()(`${this.gateway}/private/backend/v1/thrid_party_token`, {
+      .getFetch()(`${this.gateway}/private/backend/v1/third_party_token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ expirationDays }),

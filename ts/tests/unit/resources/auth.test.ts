@@ -21,12 +21,11 @@ describe("AuthResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  it("getThirdPartyToken() calls POST /private/backend/v1/thrid_party_token", async () => {
+  it("getThirdPartyToken() calls POST /private/backend/v1/third_party_token", async () => {
     mockFetch({ apiKey: { _id: "key_1", apiKey: "abc123", is_active: true }, expires_in: 864000 })
     await makeResource().getThirdPartyToken()
     const url = new URL((vi.mocked(globalThis.fetch).mock.calls[0][0] as string))
-    // note: "thrid" is a backend typo — preserved intentionally
-    expect(url.pathname).toBe("/private/backend/v1/thrid_party_token")
+    expect(url.pathname).toBe("/private/backend/v1/third_party_token")
     expect(vi.mocked(globalThis.fetch).mock.calls[0][1]?.method).toBe("POST")
   })
 

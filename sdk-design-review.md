@@ -181,7 +181,7 @@ def get_third_party_token(self, expiration_days: int = 10) -> Dict[str, Any]:
     # Requires active access token. "thrid" is a backend typo — preserved intentionally.
     return self._http.request(
         "POST",
-        f"{self._gateway}/private/backend/v1/thrid_party_token",   # ← typo in URL
+        f"{self._gateway}/private/backend/v1/third_party_token",   # ← typo in URL
         json={"expirationDays": expiration_days},
     ).json()
 ```
@@ -192,7 +192,7 @@ async getThirdPartyToken(expirationDays: number = 10): Promise<ThirdPartyTokenRe
   // Requires active access token. "thrid" is a backend typo — preserved intentionally.
   const gatewayBase = this.base.replace(/\/platform$/, "")   // ← derives gateway from platform URL (separate issue)
   return this.http
-    .getFetch()(`${gatewayBase}/private/backend/v1/thrid_party_token`, { ... })
+    .getFetch()(`${gatewayBase}/private/backend/v1/third_party_token`, { ... })
 ```
 
 **Fix:** The URL must stay as-is (backend owns it). Clean up the comment to be a one-liner that doesn't draw attention to internal paths.
@@ -202,7 +202,7 @@ def get_third_party_token(self, expiration_days: int = 10) -> Dict[str, Any]:
     # Path typo is in the backend and intentionally preserved.
     return self._http.request(
         "POST",
-        f"{self._gateway}/private/backend/v1/thrid_party_token",
+        f"{self._gateway}/private/backend/v1/third_party_token",
         json={"expirationDays": expiration_days},
     ).json()
 ```

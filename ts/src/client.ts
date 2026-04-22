@@ -48,7 +48,7 @@ export interface ImbraceClientConfig {
   gateway?: string
   /** Override the base URL for individual services. */
   services?: Partial<ServiceUrls>
-  /** API key (server-side) - from POST /private/backend/v1/thrid_party_token */
+  /** API key (server-side) - from POST /private/backend/v1/third_party_token */
   apiKey?: string
   /** User access token (client-side OAuth/JWT). */
   accessToken?: string

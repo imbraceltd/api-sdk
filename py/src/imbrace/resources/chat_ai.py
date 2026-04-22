@@ -153,6 +153,47 @@ class ChatAiResource:
         """Delete tool by ID."""
         return self._http.request("DELETE", f"{self._base}/tools/id/{tool_id}/delete").json()
 
+    # --- Document AI ---
+
+    def process_document(
+        self,
+        model_name: str,
+        url: str,
+        organization_id: str,
+        *,
+        board_id: Optional[str] = None,
+        language: Optional[str] = None,
+        additional_instructions: Optional[str] = None,
+        additional_document_instructions: Optional[str] = None,
+        process_model_name: Optional[str] = None,
+        file_url_to_fill: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        utc: Optional[int] = None,
+        chunk_size: Optional[int] = None,
+        max_concurrent: Optional[int] = None,
+        max_retries: Optional[int] = None,
+        use_enhanced_processing: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """Process a document with a vision model and extract structured data."""
+        body: Dict[str, Any] = {"modelName": model_name, "url": url, "organizationId": organization_id}
+        if board_id is not None: body["boardId"] = board_id
+        if language is not None: body["language"] = language
+        if additional_instructions is not None: body["additionalInstructions"] = additional_instructions
+        if additional_document_instructions is not None: body["additionalDocumentInstructions"] = additional_document_instructions
+        if process_model_name is not None: body["processModelName"] = process_model_name
+        if file_url_to_fill is not None: body["fileUrlToFill"] = file_url_to_fill
+        if tools is not None: body["tools"] = tools
+        if utc is not None: body["utc"] = utc
+        if chunk_size is not None: body["chunkSize"] = chunk_size
+        if max_concurrent is not None: body["maxConcurrent"] = max_concurrent
+        if max_retries is not None: body["maxRetries"] = max_retries
+        if use_enhanced_processing is not None: body["useEnhancedProcessing"] = use_enhanced_processing
+        return self._http.request("POST", f"{self._base}/ai/document", json=body).json()
+
+    def list_document_models(self) -> List[Dict[str, Any]]:
+        """List LLM providers configured by the user — these are the models available for document AI."""
+        return self._http.request("GET", f"{self._base}/ai/providers").json()
+
 
 class AsyncChatAiResource:
     def __init__(self, http: AsyncHttpTransport, base: str):
@@ -335,4 +376,47 @@ class AsyncChatAiResource:
     async def delete_tool(self, tool_id: str) -> bool:
         """Delete tool (async)."""
         res = await self._http.request("DELETE", f"{self._base}/tools/id/{tool_id}/delete")
+        return res.json()
+
+    # --- Document AI ---
+
+    async def process_document(
+        self,
+        model_name: str,
+        url: str,
+        organization_id: str,
+        *,
+        board_id: Optional[str] = None,
+        language: Optional[str] = None,
+        additional_instructions: Optional[str] = None,
+        additional_document_instructions: Optional[str] = None,
+        process_model_name: Optional[str] = None,
+        file_url_to_fill: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        utc: Optional[int] = None,
+        chunk_size: Optional[int] = None,
+        max_concurrent: Optional[int] = None,
+        max_retries: Optional[int] = None,
+        use_enhanced_processing: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """Process a document with a vision model and extract structured data (async)."""
+        body: Dict[str, Any] = {"modelName": model_name, "url": url, "organizationId": organization_id}
+        if board_id is not None: body["boardId"] = board_id
+        if language is not None: body["language"] = language
+        if additional_instructions is not None: body["additionalInstructions"] = additional_instructions
+        if additional_document_instructions is not None: body["additionalDocumentInstructions"] = additional_document_instructions
+        if process_model_name is not None: body["processModelName"] = process_model_name
+        if file_url_to_fill is not None: body["fileUrlToFill"] = file_url_to_fill
+        if tools is not None: body["tools"] = tools
+        if utc is not None: body["utc"] = utc
+        if chunk_size is not None: body["chunkSize"] = chunk_size
+        if max_concurrent is not None: body["maxConcurrent"] = max_concurrent
+        if max_retries is not None: body["maxRetries"] = max_retries
+        if use_enhanced_processing is not None: body["useEnhancedProcessing"] = use_enhanced_processing
+        res = await self._http.request("POST", f"{self._base}/document", json=body)
+        return res.json()
+
+    async def list_document_models(self) -> List[Dict[str, Any]]:
+        """List LLM providers configured by the user — these are the models available for document AI (async)."""
+        res = await self._http.request("GET", f"{self._base}/providers")
         return res.json()

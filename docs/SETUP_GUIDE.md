@@ -156,7 +156,7 @@ Cách 1 — qua Portal: đăng nhập Imbrace Portal, vào **Settings → API Ke
 Cách 2 — qua API (cần có access token hiện tại):
 
 ```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token \
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
   -H "x-access-token: <your_existing_token>" \
   -H "Content-Type: application/json" \
   -d '{"expirationDays": 30}'
@@ -413,7 +413,7 @@ cd sdk/py && pip install -e ".[dev]"
 ### `401 Unauthorized`
 API Key hết hạn hoặc sai. Tạo API Key mới:
 ```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/thrid_party_token \
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
   -H "x-access-token: <your_existing_token>" \
   -H "Content-Type: application/json" \
   -d '{"expirationDays": 30}'

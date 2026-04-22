@@ -8,7 +8,7 @@
  *   IMBRACE_API_KEY=api_xxx npm run test:integration
  *
  * Get a new API key:
- *   POST https://app-gateway.dev.imbrace.co/private/backend/v1/thrid_party_token
+ *   POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token
  *   Body: {"expirationDays": 10}
  *   Header: x-access-token: <existing_key>
  *

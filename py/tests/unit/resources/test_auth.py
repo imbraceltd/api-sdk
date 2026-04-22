@@ -7,8 +7,7 @@ from imbrace import ImbraceClient
 
 GW = "https://app-gatewayv2.imbrace.co"
 # third-party token (API key generation) — requires access token, routes via private backend
-# note: "thrid" is a backend typo, preserved intentionally
-TOKEN_URL = f"{GW}/private/backend/v1/thrid_party_token"
+TOKEN_URL = f"{GW}/private/backend/v1/third_party_token"
 # auth login uses platform service
 LOGIN_V1 = f"{GW}/platform/v1/login"
 

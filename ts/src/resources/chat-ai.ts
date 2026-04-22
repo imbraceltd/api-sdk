@@ -35,6 +35,29 @@ export interface ChatAiKnowledge {
   [key: string]: unknown
 }
 
+export interface DocumentAIInput {
+  modelName: string
+  url: string
+  organizationId: string
+  boardId?: string
+  language?: string
+  additionalInstructions?: string
+  additionalDocumentInstructions?: string
+  processModelName?: string
+  fileUrlToFill?: string
+  tools?: Record<string, unknown>[]
+  utc?: number
+  chunkSize?: number
+  maxConcurrent?: number
+  maxRetries?: number
+  useEnhancedProcessing?: boolean
+}
+
+export interface DocumentAIResponse {
+  success: boolean
+  data: Record<string, unknown> & { filledPdfUrl?: string }
+}
+
 export class ChatAiResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
@@ -370,5 +393,27 @@ export class ChatAiResource {
    */
   async deleteTool(id: string): Promise<boolean> {
     return this.http.getFetch()(`${this.base}/tools/id/${id}/delete`, { method: "DELETE" }).then(r => r.json())
+  }
+
+  // --- Document AI ---
+
+  /**
+   * Process a document with a vision model and extract structured data.
+   * Endpoint: /ai/v3/document/
+   */
+  async processDocument(body: DocumentAIInput): Promise<DocumentAIResponse> {
+    return this.http.getFetch()(`${this.base}/document/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  /**
+   * List LLM providers configured by the user — these are the models available for document AI.
+   * Endpoint: /ai/v3/providers
+   */
+  async listDocumentModels(): Promise<any[]> {
+    return this.http.getFetch()(`${this.base}/providers`, { method: "GET" }).then(r => r.json())
   }
 }

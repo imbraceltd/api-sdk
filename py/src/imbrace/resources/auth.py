@@ -59,10 +59,9 @@ class AuthResource:
 
     # --- Third-party token (API Key generation) ---
     def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
-        # Path typo is in the backend and intentionally preserved.
         return self._http.request(
             "POST",
-            f"{self._gateway}/private/backend/v1/thrid_party_token",
+            f"{self._gateway}/private/backend/v1/third_party_token",
             json={"expirationDays": expiration_days},
         ).json()
 
@@ -171,10 +170,9 @@ class AsyncAuthResource:
         return f"{self._base}/v1"
 
     async def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
-        # Path typo is in the backend and intentionally preserved.
         res = await self._http.request(
             "POST",
-            f"{self._gateway}/private/backend/v1/thrid_party_token",
+            f"{self._gateway}/private/backend/v1/third_party_token",
             json={"expirationDays": expiration_days},
         )
         return res.json()

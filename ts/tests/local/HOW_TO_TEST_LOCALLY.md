@@ -54,7 +54,7 @@ Minimum required for live calls:
 
 | Variable | Where to get it |
 |---|---|
-| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/thrid_party_token` with an existing access token |
+| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
 | `IMBRACE_ORGANIZATION_ID` | Your org UUID from the portal |
 | `IMBRACE_GATEWAY_URL` | Leave blank to use `app-gateway.dev.imbrace.co` |
 
@@ -124,7 +124,7 @@ The build hasn't run yet, or a source file was added without rebuilding. Run `np
 **401 / 403 on live calls**
 Your `IMBRACE_API_KEY` is expired or wrong. Generate a new one:
 ```bash
-curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/thrid_party_token \
+curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
   -H "x-access-token: <your_existing_token>" \
   -H "Content-Type: application/json" \
   -d '{"expirationDays": 30}'
