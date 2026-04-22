@@ -35,6 +35,7 @@ from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
 from .resources.activepieces import AsyncActivePiecesResource
 from .resources.ai_agent import AsyncAiAgentResource
+from .resources.license import AsyncLicenseResource
 
 
 class AsyncImbraceClient:
@@ -124,10 +125,10 @@ class AsyncImbraceClient:
         self.health        = AsyncHealthResource(self.http, urls.gateway)
         self.sessions      = AsyncSessionsResource(self.http, urls.gateway)
         self.schedule      = AsyncScheduleResource(self.http, urls.ips)
-        self.campaigns     = AsyncCampaignsResource(self.http, urls.channel_service)
+        self.campaign      = AsyncCampaignsResource(self.http, urls.channel_service)
         self.data_files    = AsyncDataFilesResource(self.http, urls.data_board)
         self.folders       = AsyncFoldersResource(self.http, urls.data_board)
-        self.outbounds     = AsyncOutboundsResource(self.http, urls.channel_service)
+        self.outbound      = AsyncOutboundsResource(self.http, urls.channel_service)
         self.touchpoints   = AsyncTouchpointsResource(self.http, urls.channel_service)
 
         # New services
@@ -135,6 +136,8 @@ class AsyncImbraceClient:
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)
+        self.license       = AsyncLicenseResource(self.http, urls.gateway)
+
         # —— Convenience auth
 
     async def login(self, email: str, password: str) -> dict:

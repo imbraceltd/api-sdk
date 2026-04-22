@@ -138,8 +138,12 @@ class AiAgentResource:
 
     # --- Chat Client — Chats ---
 
-    def create_client_chat(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/chat-client/chats", json=body).json()
+    def create_client_chat(self, body_or_id: Any, **kwargs) -> Dict[str, Any]:
+        if isinstance(body_or_id, dict):
+            payload = body_or_id
+        else:
+            payload = {"id": body_or_id, **kwargs}
+        return self._http.request("POST", f"{self._base}/chat-client/chats", json=payload).json()
 
     def list_client_chats(self, organization_id: Optional[str] = None, limit: Optional[int] = None, starting_after: Optional[str] = None, ending_before: Optional[str] = None) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id, 'limit': limit, 'starting_after': starting_after, 'ending_before': ending_before})}").json()
@@ -221,32 +225,38 @@ class AsyncAiAgentResource:
     # --- System ---
 
     async def get_config(self) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/config")).json()
+        res = await self._http.request("GET", f"{self._base}/config")
+        return res.json()
 
     async def get_health(self, detailed: bool = False) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/health{_qs({'detailed': detailed or None})}")).json()
+        res = await self._http.request("GET", f"{self._base}/health{_qs({'detailed': detailed or None})}")
+        return res.json()
 
     async def get_version(self) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/version")).json()
+        res = await self._http.request("GET", f"{self._base}/version")
+        return res.json()
 
     # --- Chat v1 ---
 
     async def list_chats(self, organization_id: str, user_id: Optional[str] = None, limit: Optional[int] = None) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id, 'user_id': user_id, 'limit': limit})}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id, 'user_id': user_id, 'limit': limit})}")
+        return res.json()
 
     async def get_chat(self, chat_id: str, include_messages: bool = False) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat/{chat_id}{_qs({'include_messages': True if include_messages else None})}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat/{chat_id}{_qs({'include_messages': True if include_messages else None})}")
+        return res.json()
 
     async def delete_chat(self, chat_id: str, organization_id: str, user_id: Optional[str] = None) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id, 'user_id': user_id})}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id, 'user_id': user_id})}")
+        return res.json()
 
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .aiter_lines()) ---
 
     async def stream_chat(self, body: Dict[str, Any]) -> Any:
         user_id = body.get("user_id")
         if not user_id:
-            auth = await self._http.request("POST", f"{self._base}/chat-client/auth/user")
-            user_id = auth.json()["id"]
+            res = await self._http.request("POST", f"{self._base}/chat-client/auth/user")
+            user_id = res.json()["id"]
         payload = {"id": str(uuid4()), **body, "user_id": user_id}
         return await self._http.request("POST", f"{self._base}/v2/chat", json=payload)
 
@@ -256,40 +266,50 @@ class AsyncAiAgentResource:
         return await self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=body)
 
     async def get_sub_agent_history(self, session_id: str, chat_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/v2/sub-agent-chat/history{_qs({'session_id': session_id, 'chat_id': chat_id})}")).json()
+        res = await self._http.request("GET", f"{self._base}/v2/sub-agent-chat/history{_qs({'session_id': session_id, 'chat_id': chat_id})}")
+        return res.json()
 
     # --- Prompt suggestions ---
 
     async def get_agent_prompt_suggestion(self, assistant_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat/get-agent-prompt-suggestion{_qs({'assistant_id': assistant_id})}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat/get-agent-prompt-suggestion{_qs({'assistant_id': assistant_id})}")
+        return res.json()
 
     # --- Embeddings / files ---
 
     async def process_embedding(self, file_id: str, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/embedding/process", json={"fileId": file_id, "options": options or {}})).json()
+        res = await self._http.request("POST", f"{self._base}/embedding/process", json={"fileId": file_id, "options": options or {}})
+        return res.json()
 
     async def list_embedding_files(self, **params) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/embedding/files{_qs(params)}")).json()
+        res = await self._http.request("GET", f"{self._base}/embedding/files{_qs(params)}")
+        return res.json()
 
     async def get_embedding_file(self, file_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/embedding/files/{file_id}")).json()
+        res = await self._http.request("GET", f"{self._base}/embedding/files/{file_id}")
+        return res.json()
 
     async def preview_embedding_file(self, **params) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/embedding/files/preview{_qs(params)}")).json()
+        res = await self._http.request("GET", f"{self._base}/embedding/files/preview{_qs(params)}")
+        return res.json()
 
     async def update_embedding_file_status(self, file_id: str, status: str) -> Dict[str, Any]:
-        return await (await self._http.request("PUT", f"{self._base}/embedding/files/{file_id}/status", json={"status": status})).json()
+        res = await self._http.request("PUT", f"{self._base}/embedding/files/{file_id}/status", json={"status": status})
+        return res.json()
 
     async def delete_embedding_file(self, file_id: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/embedding/files/{file_id}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/embedding/files/{file_id}")
+        return res.json()
 
     async def classify_file(self, **params) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/embedding/classify{_qs(params)}")).json()
+        res = await self._http.request("GET", f"{self._base}/embedding/classify{_qs(params)}")
+        return res.json()
 
     # --- Data Board ---
 
     async def suggest_field_types(self, fields: List[Dict[str, Any]]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/data-board/suggest-field-types", json={"fields": fields})).json()
+        res = await self._http.request("POST", f"{self._base}/data-board/suggest-field-types", json={"fields": fields})
+        return res.json()
 
     # --- Parquet ---
 
@@ -299,117 +319,153 @@ class AsyncAiAgentResource:
             body["fileName"] = file_name
         if folder_name:
             body["folderName"] = folder_name
-        return await (await self._http.request("POST", f"{self._base}/parquet/generate", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/parquet/generate", json=body)
+        return res.json()
 
     async def list_parquet_files(self) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/parquet/files")).json()
+        res = await self._http.request("GET", f"{self._base}/parquet/files")
+        return res.json()
 
     async def delete_parquet_file(self, file_name: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/parquet/{quote(file_name)}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/parquet/{quote(file_name)}")
+        return res.json()
 
     # --- Trace (Tempo) ---
 
     async def get_traces(self, service: Optional[str] = None, limit: Optional[int] = None, time_range: Optional[int] = None, org_id: Optional[str] = None, details: Optional[bool] = None) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/trace/traces{_qs({'service': service, 'limit': limit, 'timeRange': time_range, 'orgId': org_id, 'details': details})}")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/traces{_qs({'service': service, 'limit': limit, 'timeRange': time_range, 'orgId': org_id, 'details': details})}")
+        return res.json()
 
     async def get_trace(self, trace_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/trace/traces/{trace_id}")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/traces/{trace_id}")
+        return res.json()
 
     async def get_trace_services(self) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/trace/services")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/services")
+        return res.json()
 
     async def get_trace_tags(self) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/trace/tags")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/tags")
+        return res.json()
 
     async def get_trace_tag_values(self, tag_name: str) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/trace/tags/{tag_name}/values")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/tags/{tag_name}/values")
+        return res.json()
 
     async def search_traceql(self, q: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/trace/search/traceql{_qs({'q': q})}")).json()
+        res = await self._http.request("GET", f"{self._base}/trace/search/traceql{_qs({'q': q})}")
+        return res.json()
 
     # --- Chat Client — Auth ---
 
     async def verify_chat_client_credentials(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/auth/verify-credentials", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/auth/verify-credentials", json=body)
+        return res.json()
 
     async def register_chat_client(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/auth/register", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/auth/register", json=body)
+        return res.json()
 
     async def get_chat_client_user(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/auth/user", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/auth/user", json=body)
+        return res.json()
 
     # --- Chat Client — Chats ---
 
-    async def create_client_chat(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/chats", json=body)).json()
+    async def create_client_chat(self, body_or_id: Any, **kwargs) -> Dict[str, Any]:
+        if isinstance(body_or_id, dict):
+            payload = body_or_id
+        else:
+            payload = {"id": body_or_id, **kwargs}
+        res = await self._http.request("POST", f"{self._base}/chat-client/chats", json=payload)
+        return res.json()
 
     async def list_client_chats(self, organization_id: Optional[str] = None, limit: Optional[int] = None, starting_after: Optional[str] = None, ending_before: Optional[str] = None) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id, 'limit': limit, 'starting_after': starting_after, 'ending_before': ending_before})}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id, 'limit': limit, 'starting_after': starting_after, 'ending_before': ending_before})}")
+        return res.json()
 
     async def delete_all_client_chats(self, organization_id: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id})}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id})}")
+        return res.json()
 
     async def get_client_chat(self, chat_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}")
+        return res.json()
 
     async def update_client_chat(self, chat_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("PATCH", f"{self._base}/chat-client/chats/{chat_id}", json=body)).json()
+        res = await self._http.request("PATCH", f"{self._base}/chat-client/chats/{chat_id}", json=body)
+        return res.json()
 
     async def delete_client_chat(self, chat_id: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/chat-client/chats/{chat_id}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/chat-client/chats/{chat_id}")
+        return res.json()
 
     async def stream_client_chat_status(self, chat_id: str) -> Any:
         return await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}/status/stream")
 
     async def generate_client_chat_title(self, chat_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/chats/{chat_id}/title")).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/chats/{chat_id}/title")
+        return res.json()
 
     # --- Chat Client — Messages ---
 
     async def persist_client_message(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/messages", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/messages", json=body)
+        return res.json()
 
     async def list_client_messages(self, chat_id: str) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}/messages")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}/messages")
+        return res.json()
 
     async def delete_trailing_messages(self, message_id: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/chat-client/messages/{message_id}/trailing")).json()
+        res = await self._http.request("DELETE", f"{self._base}/chat-client/messages/{message_id}/trailing")
+        return res.json()
 
     # --- Chat Client — Votes ---
 
     async def get_votes(self, chat_id: str) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}/votes")).json()
+        res = await (await self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}/votes"))
+        return res.json()
 
     async def update_vote(self, body: Dict[str, Any]) -> Any:
-        return await (await self._http.request("PATCH", f"{self._base}/chat-client/votes", json=body)).json()
+        res = await self._http.request("PATCH", f"{self._base}/chat-client/votes", json=body)
+        return res.json()
 
     # --- Chat Client — Documents ---
 
     async def create_document(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        return await (await self._http.request("POST", f"{self._base}/chat-client/documents", json=body)).json()
+        res = await self._http.request("POST", f"{self._base}/chat-client/documents", json=body)
+        return res.json()
 
     async def get_document_latest_by_kind(self, **params) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/documents/latest-by-kind{_qs(params)}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/documents/latest-by-kind{_qs(params)}")
+        return res.json()
 
     async def get_document(self, doc_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}")
+        return res.json()
 
     async def get_document_latest(self, doc_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}/latest")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}/latest")
+        return res.json()
 
     async def get_document_public(self, doc_id: str) -> Dict[str, Any]:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}/public")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/documents/{doc_id}/public")
+        return res.json()
 
     async def delete_document(self, doc_id: str) -> Any:
-        return await (await self._http.request("DELETE", f"{self._base}/chat-client/documents/{doc_id}")).json()
+        res = await self._http.request("DELETE", f"{self._base}/chat-client/documents/{doc_id}")
+        return res.json()
 
     async def get_document_suggestions(self, document_id: str) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/chat-client/documents/{document_id}/suggestions")).json()
+        res = await self._http.request("GET", f"{self._base}/chat-client/documents/{document_id}/suggestions")
+        return res.json()
 
     # --- Admin Guides ---
 
     async def list_admin_guides(self) -> Any:
-        return await (await self._http.request("GET", f"{self._base}/admin/guides")).json()
+        res = await self._http.request("GET", f"{self._base}/admin/guides")
+        return res.json()
 
     async def get_admin_guide(self, filename: str) -> Any:
         return await self._http.request("GET", f"{self._base}/admin/guides/{quote(filename)}")
