@@ -123,10 +123,13 @@ whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp
 
 ## AI
 
-### LLM Completions
+### AI Service (aiv2)
+
+`client.ai` và `client.chat_ai` đều gọi đến dịch vụ **aiv2**. Dùng `client.ai` cho các lệnh gọi OpenAI-compatible; dùng `client.chat_ai` cho phiên chat và xử lý tài liệu.
 
 ```python
-# Completion đơn
+# ── client.ai — OpenAI-compatible completions ──────────────────────────────
+
 response = client.ai.complete(
     model="gpt-4o",
     messages=[
@@ -136,45 +139,29 @@ response = client.ai.complete(
 )
 print(response["choices"][0]["message"]["content"])
 
-# Streaming
 for chunk in client.ai.stream(
     model="gpt-4o",
     messages=[{"role": "user", "content": "Soạn email follow-up cho lead này."}],
 ):
     print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
-# Embeddings
 result = client.ai.embed(
     model="text-embedding-ada-002",
     input=["khách hàng khiếu nại về billing", "vấn đề billing leo thang"],
 )
-```
 
----
+# ── client.chat_ai — managed chat sessions ────────────────────────────────
 
-### Chat AI
-
-Phiên chat có lịch sử, được hỗ trợ bởi dịch vụ aiv2.
-
-```python
-models   = client.chat_ai.list_models()
-chat     = client.chat_ai.create_chat({"title": "Support Chat"})
-response = client.chat_ai.chat({
+models    = client.chat_ai.list_models()
+response2 = client.chat_ai.chat({
     "model": "gpt-4o",
     "messages": [{"role": "user", "content": "Chính sách hoàn tiền là gì?"}],
 })
-history  = client.chat_ai.list_chats()
+chat    = client.chat_ai.create_chat({"title": "Support Chat"})
+history = client.chat_ai.list_chats()
 client.chat_ai.delete_chat(chat["id"])
-```
 
----
-
-### Hiểu Tài Liệu
-
-Trích xuất dữ liệu có cấu trúc từ PDF, hóa đơn, hình ảnh và các tài liệu khác.
-
-```python
-providers = client.chat_ai.list_document_models()
+# ── Hiểu Tài Liệu ─────────────────────────────────────────────────────────
 
 result = client.chat_ai.process_document(
     model_name="gpt-4o",
@@ -184,10 +171,6 @@ result = client.chat_ai.process_document(
 print(result["data"])
 # {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
-
-:::note
-`organization_id` chỉ bắt buộc cho `process_document` — các endpoint khác không cần.
-:::
 
 ---
 

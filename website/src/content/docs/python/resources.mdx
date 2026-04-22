@@ -136,11 +136,13 @@ whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp
 
 ## AI
 
-### LLM Completions
+### AI Service (aiv2)
 
-Direct LLM access for completions, streaming, and embeddings.
+`client.ai` and `client.chat_ai` both route to the **aiv2** service. Use `client.ai` for raw OpenAI-compatible calls; use `client.chat_ai` for managed chat sessions and document processing.
 
 ```python
+# ── client.ai — OpenAI-compatible completions ──────────────────────────────
+
 # Single completion
 response = client.ai.complete(
     model="gpt-4o",
@@ -152,69 +154,46 @@ response = client.ai.complete(
 )
 print(response["choices"][0]["message"]["content"])
 
-# Streaming response
+# Streaming
 for chunk in client.ai.stream(
     model="gpt-4o",
     messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
 ):
-    content = chunk["choices"][0]["delta"].get("content", "")
-    print(content, end="", flush=True)
+    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
-# Text embeddings (for semantic search, similarity)
+# Embeddings (semantic search, similarity)
 result = client.ai.embed(
     model="text-embedding-ada-002",
     input=["customer complained about billing", "billing issue escalated"],
 )
-```
 
----
+# ── client.chat_ai — managed chat sessions ────────────────────────────────
 
-### Chat AI
-
-Persistent chat sessions with conversation history, backed by the aiv2 service.
-
-```python
 # List available models
 models = client.chat_ai.list_models()
 
-# Start a new chat
-chat = client.chat_ai.create_chat({"title": "Support Chat"})
-
-# Send a message
-response = client.chat_ai.chat({
+# Chat with history
+response2 = client.chat_ai.chat({
     "model": "gpt-4o",
     "messages": [{"role": "user", "content": "What is our refund policy?"}],
 })
 
-# Browse chat history
+# Persistent sessions
+chat    = client.chat_ai.create_chat({"title": "Support Chat"})
 history = client.chat_ai.list_chats()
 client.chat_ai.delete_chat(chat["id"])
-```
 
----
+# ── Document Understanding ─────────────────────────────────────────────────
 
-### Document Understanding
-
-Extract structured data from PDFs, invoices, images, and other documents.
-
-```python
-# Get available vision models
-providers = client.chat_ai.list_document_models()
-
-# Extract data from a document
+# Extract structured data from PDFs, invoices, images
 result = client.chat_ai.process_document(
     model_name="gpt-4o",
     url="https://example.com/invoice.pdf",
-    organization_id="org_xxx",  # required for this endpoint
+    organization_id="org_xxx",  # required for this endpoint only
 )
-
 print(result["data"])
 # {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
-
-:::note
-`organization_id` is required specifically for `process_document` — it is not needed for other SDK calls.
-:::
 
 ---
 

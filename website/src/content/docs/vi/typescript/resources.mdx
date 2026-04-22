@@ -139,12 +139,13 @@ const whatsappFlows = await client.workflows.listChannelAutomation({
 
 ## AI
 
-### LLM Completions
+### AI Service (aiv2)
 
-Gọi LLM trực tiếp cho completions, streaming, và embeddings.
+`client.ai` và `client.chatAi` đều gọi đến dịch vụ **aiv2**. Dùng `client.ai` cho các lệnh gọi OpenAI-compatible; dùng `client.chatAi` cho phiên chat và xử lý tài liệu.
 
 ```typescript
-// Completion đơn
+// ── client.ai — OpenAI-compatible completions ──────────────────────────────
+
 const response = await client.ai.complete({
   model: "gpt-4o",
   messages: [
@@ -154,7 +155,6 @@ const response = await client.ai.complete({
 })
 console.log(response.choices[0].message.content)
 
-// Streaming
 for await (const chunk of client.ai.stream({
   model: "gpt-4o",
   messages: [{ role: "user", content: "Soạn email follow-up cho lead này." }],
@@ -162,52 +162,32 @@ for await (const chunk of client.ai.stream({
   process.stdout.write(chunk.choices[0]?.delta?.content ?? "")
 }
 
-// Embeddings (tìm kiếm ngữ nghĩa)
 const embeddings = await client.ai.embed({
   model: "text-embedding-ada-002",
   input: ["khách hàng khiếu nại về billing", "vấn đề billing leo thang"],
 })
-```
 
----
+// ── client.chatAi — managed chat sessions ─────────────────────────────────
 
-### Chat AI
-
-Phiên chat có lịch sử, được hỗ trợ bởi dịch vụ aiv2.
-
-```typescript
 const models   = await client.chatAi.listModels()
-const chat     = await client.chatAi.createChat({ title: "Support Chat" })
-const response = await client.chatAi.chat({
+const response2 = await client.chatAi.chat({
   model: "gpt-4o",
-  messages: [{ role: "user", content: "Chính sách hoàn tiền của chúng tôi là gì?" }],
+  messages: [{ role: "user", content: "Chính sách hoàn tiền là gì?" }],
 })
-const history  = await client.chatAi.listChats()
+const chat    = await client.chatAi.createChat({ title: "Support Chat" })
+const history = await client.chatAi.listChats()
 await client.chatAi.deleteChat(chat.id)
-```
 
----
-
-### Hiểu Tài Liệu
-
-Trích xuất dữ liệu có cấu trúc từ PDF, hóa đơn, hình ảnh và các tài liệu khác.
-
-```typescript
-const providers = await client.chatAi.listDocumentModels()
+// ── Hiểu Tài Liệu ─────────────────────────────────────────────────────────
 
 const result = await client.chatAi.processDocument({
   modelName: "gpt-4o",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",  // bắt buộc cho endpoint này
 })
-
 console.log(result.data)
 // { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
 ```
-
-:::note
-`organizationId` chỉ bắt buộc cho `processDocument` — các endpoint khác không cần.
-:::
 
 ---
 

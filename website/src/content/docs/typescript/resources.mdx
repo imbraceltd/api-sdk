@@ -145,11 +145,13 @@ const whatsappFlows = await client.workflows.listChannelAutomation({
 
 ## AI
 
-### LLM Completions
+### AI Service (aiv2)
 
-Direct LLM access for completions, streaming, and embeddings.
+`client.ai` and `client.chatAi` both route to the **aiv2** service. Use `client.ai` for raw OpenAI-compatible calls; use `client.chatAi` for managed chat sessions and document processing.
 
 ```typescript
+// ── client.ai — OpenAI-compatible completions ──────────────────────────────
+
 // Single completion
 const response = await client.ai.complete({
   model: "gpt-4o",
@@ -161,7 +163,7 @@ const response = await client.ai.complete({
 })
 console.log(response.choices[0].message.content)
 
-// Streaming response
+// Streaming
 for await (const chunk of client.ai.stream({
   model: "gpt-4o",
   messages: [{ role: "user", content: "Draft a follow-up email for this lead." }],
@@ -169,61 +171,39 @@ for await (const chunk of client.ai.stream({
   process.stdout.write(chunk.choices[0]?.delta?.content ?? "")
 }
 
-// Text embeddings (for semantic search, similarity)
+// Embeddings (semantic search, similarity)
 const embeddings = await client.ai.embed({
   model: "text-embedding-ada-002",
   input: ["customer complained about billing", "billing issue escalated"],
 })
-```
 
----
+// ── client.chatAi — managed chat sessions ─────────────────────────────────
 
-### Chat AI
-
-Persistent chat sessions with conversation history, backed by the aiv2 service.
-
-```typescript
 // List available models
 const models = await client.chatAi.listModels()
 
-// Start a new chat
-const chat = await client.chatAi.createChat({ title: "Support Chat" })
-
-// Send a message
-const response = await client.chatAi.chat({
+// Chat with history
+const response2 = await client.chatAi.chat({
   model: "gpt-4o",
   messages: [{ role: "user", content: "What is our refund policy?" }],
 })
 
-// Browse chat history
+// Persistent sessions
+const chat    = await client.chatAi.createChat({ title: "Support Chat" })
 const history = await client.chatAi.listChats()
 await client.chatAi.deleteChat(chat.id)
-```
 
----
+// ── Document Understanding ─────────────────────────────────────────────────
 
-### Document Understanding
-
-Extract structured data from PDFs, invoices, images, and other documents.
-
-```typescript
-// Get available vision models
-const providers = await client.chatAi.listDocumentModels()
-
-// Extract data from a document
+// Extract structured data from PDFs, invoices, images
 const result = await client.chatAi.processDocument({
   modelName: "gpt-4o",
   url: "https://example.com/invoice.pdf",
-  organizationId: "org_xxx",  // required for this endpoint
+  organizationId: "org_xxx",  // required for this endpoint only
 })
-
 console.log(result.data)
 // { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
 ```
-
-:::note
-`organizationId` is required specifically for `processDocument` — it is not needed for other SDK calls.
-:::
 
 ---
 
