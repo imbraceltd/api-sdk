@@ -5,9 +5,9 @@ description: Comprehensive guide for running unit tests, integration tests, lint
 
 **Updated:** 2026-04-10
 
-### Environment Setup
+## Environment Setup
 
-#### Python SDK
+### Python SDK
 
 ```bash
 cd py
@@ -24,7 +24,7 @@ IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 IMBRACE_ORG_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
-#### TypeScript SDK
+### TypeScript SDK
 
 ```bash
 cd ts
@@ -33,9 +33,9 @@ npm install
 
 ---
 
-### Python — Running & Testing
+## Python — Running & Testing
 
-#### Unit Tests (No API key needed)
+### Unit Tests (No API key needed)
 
 ```bash
 cd py
@@ -55,7 +55,7 @@ pytest tests/unit -k "channel" -v
 pytest tests/unit -k "boards" -v
 ```
 
-#### Integration Tests (Requires real API key)
+### Integration Tests (Requires real API key)
 
 Integration tests perform real calls to the API Gateway.
 
@@ -69,13 +69,13 @@ IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 pytest tests/integration -v -m integration
 ```
 
-#### Run All (Unit + Integration)
+### Run All (Unit + Integration)
 
 ```bash
 pytest tests/ -v
 ```
 
-#### Coverage Report
+### Coverage Report
 
 ```bash
 pytest tests/unit --cov=src/imbrace --cov-report=term-missing
@@ -83,9 +83,9 @@ pytest tests/unit --cov=src/imbrace --cov-report=term-missing
 
 ---
 
-### TypeScript — Running & Testing
+## TypeScript — Running & Testing
 
-#### Build
+### Build
 
 ```bash
 cd ts
@@ -100,7 +100,7 @@ npm run dev
 npm run clean
 ```
 
-#### Unit Tests (No API key needed)
+### Unit Tests (No API key needed)
 
 ```bash
 cd ts
@@ -116,7 +116,7 @@ npx vitest run tests/unit/resources/contacts.test.ts
 npm run test:watch
 ```
 
-#### Integration Tests (Requires real API key)
+### Integration Tests (Requires real API key)
 
 ```bash
 cd ts
@@ -124,7 +124,7 @@ cd ts
 IMBRACE_API_KEY=api_xxx npm run test:integration
 ```
 
-#### Run All (Unit + Integration)
+### Run All (Unit + Integration)
 
 ```bash
 npm run test:all
@@ -132,11 +132,11 @@ npm run test:all
 
 ---
 
-### Detailed Test Case Breakdown
+## Detailed Test Case Breakdown
 
-#### Python — Unit Tests
+### Python — Unit Tests
 
-##### `tests/unit/test_auth.py` — TokenManager
+#### `tests/unit/test_auth.py` — TokenManager
 
 Verifies thread-safe token storage and deletion.
 
@@ -148,7 +148,7 @@ Verifies thread-safe token storage and deletion.
 | `test_clear_token`        | Token is deleted, `get_token()` returns `None`        |
 | `test_thread_safety`      | 2 concurrent threads — no crashes, no race conditions |
 
-##### `tests/unit/test_exceptions.py` — Error classes
+#### `tests/unit/test_exceptions.py` — Error classes
 
 | Error Type     | Occurrence Scenario           |
 | -------------- | ----------------------------- |
@@ -162,7 +162,7 @@ Verifies thread-safe token storage and deletion.
 | `test_api_error_message`                        | `status_code` and message follow format `[404] Not Found` |
 | `test_auth_error_is_catchable_as_imbrace_error` | Catchable using `except ImbraceError`                     |
 
-##### `tests/unit/test_http.py` — HttpTransport
+#### `tests/unit/test_http.py` — HttpTransport
 
 Uses `pytest-httpx` to simulate server — no real requests made.
 
@@ -177,7 +177,7 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_500_retries_then_raises`           | Server returns 500 consecutively | Retries twice → total 3 requests → raises `ApiError` |
 | `test_network_error_retries_then_raises` | Network interrupted              | Retries twice → raises `NetworkError`                |
 
-##### `tests/unit/test_client.py` — ImbraceClient
+#### `tests/unit/test_client.py` — ImbraceClient
 
 | Test case                             | Verification                               |
 | ------------------------------------- | ------------------------------------------ |
@@ -189,7 +189,7 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_set_access_token`               | Token is updated correctly                 |
 | `test_context_manager`                | `with` block automatically calls `close()` |
 
-##### `tests/unit/resources/` — Resource tests
+#### `tests/unit/resources/` — Resource tests
 
 | File                    | Endpoint Verified                                   |
 | ----------------------- | --------------------------------------------------- |
@@ -210,9 +210,9 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 
 ---
 
-### Lint & Type Check
+## Lint & Type Check
 
-#### Python
+### Python
 
 ```bash
 cd py
@@ -227,7 +227,7 @@ ruff check src/ tests/ --fix
 mypy src/imbrace
 ```
 
-#### TypeScript
+### TypeScript
 
 ```bash
 cd ts

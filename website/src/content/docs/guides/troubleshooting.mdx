@@ -3,7 +3,7 @@ title: Troubleshooting
 description: Common errors and solutions when using the Imbrace SDK.
 ---
 
-### `AuthError: Invalid or expired access token.` (HTTP 401)
+## `AuthError: Invalid or expired access token.` (HTTP 401)
 
 API key in `.env` has expired.
 
@@ -14,7 +14,7 @@ IMBRACE_API_KEY=new_api_key
 
 ---
 
-### `ApiError: [400] {"message":"must have required property 'type'"}`
+## `ApiError: [400] {"message":"must have required property 'type'"}`
 
 `channel.list()` called without mandatory parameter.
 
@@ -28,7 +28,7 @@ client.app.channel.list(type="web")
 
 ---
 
-### `ApiError: [404]` with double path in URL
+## `ApiError: [404]` with double path in URL
 
 URL is doubled because `IMBRACE_BASE_URL` was incorrectly set to a full endpoint.
 
@@ -42,7 +42,7 @@ IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 
 ---
 
-### Integration tests all skipped
+## Integration tests all skipped
 
 `IMBRACE_API_KEY` is not set.
 
@@ -56,7 +56,7 @@ echo "IMBRACE_API_KEY=api_xxx" >> py/.env
 
 ---
 
-### `Cannot find module` (TypeScript tests)
+## `Cannot find module` (TypeScript tests)
 
 Import paths in test files must be relative to the directory depth:
 
@@ -68,7 +68,7 @@ Import paths in test files must be relative to the directory depth:
 
 ---
 
-### `mypy` error: `Pattern matching is only supported in Python 3.10`
+## `mypy` error: `Pattern matching is only supported in Python 3.10`
 
 mypy scanning `site-packages` by mistake. Configured in `pyproject.toml`. If it persists:
 

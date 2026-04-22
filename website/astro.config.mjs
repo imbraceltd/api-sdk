@@ -36,6 +36,11 @@ export default defineConfig({
               translations: { vi: 'Tổng Quan' },
               link: '/getting-started/overview/',
             },
+            {
+              label: 'Setup Guide',
+              translations: { vi: 'Hướng Dẫn Cài Đặt' },
+              link: '/getting-started/setup/',
+            },
           ],
         },
         {
@@ -70,6 +75,11 @@ export default defineConfig({
               label: 'Full Flow Guide',
               translations: { vi: 'Hướng Dẫn Luồng Đầy Đủ' },
               link: '/typescript/full-flow-guide/',
+            },
+            {
+              label: 'AI Agent',
+              translations: { vi: 'AI Agent' },
+              link: '/typescript/ai-agent/',
             },
             {
               label: 'Error Handling',
@@ -115,6 +125,11 @@ export default defineConfig({
               label: 'Resources',
               translations: { vi: 'Tài Nguyên API' },
               link: '/python/resources/',
+            },
+            {
+              label: 'AI Agent',
+              translations: { vi: 'AI Agent' },
+              link: '/python/ai-agent/',
             },
             {
               label: 'Error Handling',

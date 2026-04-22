@@ -679,7 +679,7 @@ html[data-has-hero] .hero .actions {
   margin-bottom: 2rem;
 }
 
-.install-grid {
+.install-flex {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
