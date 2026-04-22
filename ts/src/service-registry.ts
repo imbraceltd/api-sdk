@@ -52,7 +52,7 @@ export function resolveServiceUrls(
     messageSuggestion: `${gw}/v1/message-suggestion`,
     predict:           `${gw}/predict`,
     activepieces:      `${gw}/activepieces`,
-    aiAgent:           `${gw}/api/ai-agent`,
+    aiAgent:           `${gw}/ai-agent`,
   }
 
   return { ...resolved, ...overrides }
