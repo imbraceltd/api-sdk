@@ -31,16 +31,16 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
-          translations: { vi: 'Bắt Đầu', 'zh-cn': '快速开始', 'zh-tw': '快速開始' },
+          translations: { vi: 'Bắt Đầu', 'zh-CN': '快速开始', 'zh-TW': '快速開始' },
           items: [
             {
               label: 'Overview',
-              translations: { vi: 'Tổng Quan', 'zh-cn': '概览', 'zh-tw': '概覽' },
+              translations: { vi: 'Tổng Quan', 'zh-CN': '概览', 'zh-TW': '概覽' },
               link: '/getting-started/overview/',
             },
             {
               label: 'Setup Guide',
-              translations: { vi: 'Hướng Dẫn Cài Đặt', 'zh-cn': '安装指南', 'zh-tw': '安裝指南' },
+              translations: { vi: 'Hướng Dẫn Cài Đặt', 'zh-CN': '安装指南', 'zh-TW': '安裝指南' },
               link: '/getting-started/setup/',
             },
           ],
@@ -50,52 +50,52 @@ export default defineConfig({
           items: [
             {
               label: 'Overview',
-              translations: { vi: 'Giới Thiệu', 'zh-cn': '概览', 'zh-tw': '概覽' },
+              translations: { vi: 'Giới Thiệu', 'zh-CN': '概览', 'zh-TW': '概覽' },
               link: '/typescript/overview/',
             },
             {
               label: 'Installation',
-              translations: { vi: 'Cài Đặt', 'zh-cn': '安装', 'zh-tw': '安裝' },
+              translations: { vi: 'Cài Đặt', 'zh-CN': '安装', 'zh-TW': '安裝' },
               link: '/typescript/installation/',
             },
             {
               label: 'Authentication',
-              translations: { vi: 'Xác Thực', 'zh-cn': '身份验证', 'zh-tw': '身份驗證' },
+              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
               link: '/typescript/authentication/',
             },
             {
               label: 'Quick Start',
-              translations: { vi: 'Bắt Đầu Nhanh', 'zh-cn': '快速入门', 'zh-tw': '快速入門' },
+              translations: { vi: 'Bắt Đầu Nhanh', 'zh-CN': '快速入门', 'zh-TW': '快速入門' },
               link: '/typescript/quick-start/',
             },
             {
               label: 'Resources',
-              translations: { vi: 'Tài Nguyên API', 'zh-cn': 'API 资源', 'zh-tw': 'API 資源' },
+              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
               link: '/typescript/resources/',
             },
             {
               label: 'Full Flow Guide',
-              translations: { vi: 'Hướng Dẫn Flow Chi Tiết', 'zh-cn': '完整流程指南', 'zh-tw': '完整流程指南' },
+              translations: { vi: 'Hướng Dẫn Flow Chi Tiết', 'zh-CN': '完整流程指南', 'zh-TW': '完整流程指南' },
               link: '/typescript/full-flow-guide/',
             },
             {
               label: 'AI Agent',
-              translations: { vi: 'AI Agent', 'zh-cn': 'AI Agent', 'zh-tw': 'AI Agent' },
+              translations: { vi: 'AI Agent', 'zh-CN': 'AI Agent', 'zh-TW': 'AI Agent' },
               link: '/typescript/ai-agent/',
             },
             {
               label: 'Error Handling',
-              translations: { vi: 'Xử Lý Lỗi', 'zh-cn': '错误处理', 'zh-tw': '錯誤處理' },
+              translations: { vi: 'Xử Lý Lỗi', 'zh-CN': '错误处理', 'zh-TW': '錯誤處理' },
               link: '/typescript/error-handling/',
             },
             {
               label: 'Integrations',
-              translations: { vi: 'Tích Hợp', 'zh-cn': '集成', 'zh-tw': '整合' },
+              translations: { vi: 'Tích Hợp', 'zh-CN': '集成', 'zh-TW': '整合' },
               link: '/typescript/integrations/',
             },
             {
               label: 'Local Testing',
-              translations: { vi: 'Test Local', 'zh-cn': '本地测试', 'zh-tw': '本地測試' },
+              translations: { vi: 'Test Local', 'zh-CN': '本地测试', 'zh-TW': '本地測試' },
               link: '/typescript/local-testing/',
             },
           ],
@@ -105,58 +105,58 @@ export default defineConfig({
           items: [
             {
               label: 'Overview',
-              translations: { vi: 'Giới Thiệu', 'zh-cn': '概览', 'zh-tw': '概覽' },
+              translations: { vi: 'Giới Thiệu', 'zh-CN': '概览', 'zh-TW': '概覽' },
               link: '/python/overview/',
             },
             {
               label: 'Installation',
-              translations: { vi: 'Cài Đặt', 'zh-cn': '安装', 'zh-tw': '安裝' },
+              translations: { vi: 'Cài Đặt', 'zh-CN': '安装', 'zh-TW': '安裝' },
               link: '/python/installation/',
             },
             {
               label: 'Authentication',
-              translations: { vi: 'Xác Thực', 'zh-cn': '身份验证', 'zh-tw': '身份驗證' },
+              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
               link: '/python/authentication/',
             },
             {
               label: 'Quick Start',
-              translations: { vi: 'Bắt Đầu Nhanh', 'zh-cn': '快速入门', 'zh-tw': '快速入門' },
+              translations: { vi: 'Bắt Đầu Nhanh', 'zh-CN': '快速入门', 'zh-TW': '快速入門' },
               link: '/python/quick-start/',
             },
             {
               label: 'Resources',
-              translations: { vi: 'Tài Nguyên API', 'zh-cn': 'API 资源', 'zh-tw': 'API 資源' },
+              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
               link: '/python/resources/',
             },
             {
               label: 'AI Agent',
-              translations: { vi: 'AI Agent', 'zh-cn': 'AI Agent', 'zh-tw': 'AI Agent' },
+              translations: { vi: 'AI Agent', 'zh-CN': 'AI Agent', 'zh-TW': 'AI Agent' },
               link: '/python/ai-agent/',
             },
             {
               label: 'Error Handling',
-              translations: { vi: 'Xử Lý Lỗi', 'zh-cn': '错误处理', 'zh-tw': '錯誤處理' },
+              translations: { vi: 'Xử Lý Lỗi', 'zh-CN': '错误处理', 'zh-TW': '錯誤處理' },
               link: '/python/error-handling/',
             },
             {
               label: 'Integrations',
-              translations: { vi: 'Tích Hợp', 'zh-cn': '集成', 'zh-tw': '整合' },
+              translations: { vi: 'Tích Hợp', 'zh-CN': '集成', 'zh-TW': '整合' },
               link: '/python/integrations/',
             },
           ],
         },
         {
           label: 'Guides',
-          translations: { vi: 'Hướng Dẫn', 'zh-cn': '指南', 'zh-tw': '指南' },
+          translations: { vi: 'Hướng Dẫn', 'zh-CN': '指南', 'zh-TW': '指南' },
           items: [
             {
               label: 'Testing Guide',
-              translations: { vi: 'Hướng Dẫn Test', 'zh-cn': '测试指南', 'zh-tw': '測試指南' },
+              translations: { vi: 'Hướng Dẫn Test', 'zh-CN': '测试指南', 'zh-TW': '測試指南' },
               link: '/guides/testing/',
             },
             {
               label: 'Troubleshooting',
-              translations: { vi: 'Lỗi Thường Gặp', 'zh-cn': '常见问题', 'zh-tw': '常見問題' },
+              translations: { vi: 'Lỗi Thường Gặp', 'zh-CN': '常见问题', 'zh-TW': '常見問題' },
               link: '/guides/troubleshooting/',
             },
           ],
