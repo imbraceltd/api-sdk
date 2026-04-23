@@ -30,7 +30,8 @@ from .resources.campaigns import AsyncCampaignsResource
 from .resources.data_files import AsyncDataFilesResource
 from .resources.folders import AsyncFoldersResource
 from .resources.outbounds import AsyncOutboundsResource
-from .resources.touchpoints import AsyncTouchpointsResource
+from .resources.message_suggestion import AsyncMessageSuggestionResource
+from .resources.predict import AsyncPredictResource
 from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
 from .resources.activepieces import AsyncActivePiecesResource
@@ -102,7 +103,7 @@ class AsyncImbraceClient:
             organization_id=organization_id,
         )
 
-        self.auth          = AsyncAuthResource(self.http, urls.platform, urls.gateway)
+        self.auth          = AsyncAuthResource(self.http, urls.backend, urls.gateway)
         self.account       = AsyncAccountResource(self.http, urls.platform)
         self.platform      = AsyncPlatformResource(self.http, urls.platform, urls.backend)
         self.organizations = AsyncOrganizationsResource(self.http, urls.platform)
@@ -128,8 +129,9 @@ class AsyncImbraceClient:
         self.campaign      = AsyncCampaignsResource(self.http, urls.channel_service)
         self.data_files    = AsyncDataFilesResource(self.http, urls.data_board)
         self.folders       = AsyncFoldersResource(self.http, urls.data_board)
-        self.outbound      = AsyncOutboundsResource(self.http, urls.channel_service)
-        self.touchpoints   = AsyncTouchpointsResource(self.http, urls.channel_service)
+        self.outbound          = AsyncOutboundsResource(self.http, urls.channel_service)
+        self.message_suggestion = AsyncMessageSuggestionResource(self.http, urls.message_suggestion)
+        self.predict           = AsyncPredictResource(self.http, urls.predict)
 
         # New services
         self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3")
