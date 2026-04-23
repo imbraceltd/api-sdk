@@ -1,8 +1,9 @@
 name: Publish PyPI (Python SDK)
 
 on:
-  release:
-    types: [published] # Triggers simultaneously with your NPM workflow
+  push:
+    tags:
+      - 'py-v*'  # e.g. py-v1.0.2 — only triggers this workflow
 
 concurrency:
   group: publish-pypi
@@ -30,12 +31,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build
-          # If you have a test suite, install it here:
-          # pip install -e .[test] 
+          pip install -e ".[dev]"
 
-      # - name: Run tests
-      #   run: pytest # Uncomment this when you have tests ready
+      - name: Run tests
+        run: pytest tests/unit/
 
   # ---------------------------------------------------------
   # JOB 2: Sync version, Build, and Publish to PyPI
