@@ -51,8 +51,9 @@ opencode
 !website/src/content/docs/
 file-service
 chat-ai
-
-
+# test-local-pkg
+# test-npm-pkg
+docs2 
 
 #Claude
 .claude/

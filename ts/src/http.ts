@@ -57,10 +57,13 @@ export class HttpTransport {
         const headers = reqInit.headers as Headers;
         const token = this.opts.tokenManager.getToken();
 
+        // 1. Always set API Key if provided (Organization context)
         if (this.opts.apiKey) {
-          // API Key mode: server-to-server, org resolved by gateway from key
           headers.set("x-api-key", this.opts.apiKey);
-        } else if (token && this.opts.organizationId && isJwt(token)) {
+        }
+
+        // 2. Set Access Token or Bearer Token (User context)
+        if (token && this.opts.organizationId && isJwt(token)) {
           // JWT Bearer mode: auth-service JWT + org scope (only for real JWTs)
           headers.set("authorization", `Bearer ${token}`);
           headers.set("x-organization-id", this.opts.organizationId);
