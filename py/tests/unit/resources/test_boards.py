@@ -3,7 +3,7 @@ from pytest_httpx import HTTPXMock
 from imbrace import ImbraceClient
 
 GW = "https://app-gatewayv2.imbrace.co"
-BACKEND = f"{GW}/v2/backend"
+BACKEND = f"{GW}/v1/backend"
 
 
 @pytest.fixture
