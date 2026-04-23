@@ -1,8 +1,9 @@
 name: Publish PyPI (Python SDK)
 
 on:
-  release:
-    types: [published] # Triggers simultaneously with your NPM workflow
+  push:
+    tags:
+      - 'py-v*'  # e.g. py-v1.0.2 — only triggers this workflow
 
 concurrency:
   group: publish-pypi

@@ -1,8 +1,9 @@
 name: Publish NPM (TypeScript SDK)
 
 on:
-  release:
-    types: [published] # Triggered only when you click "Publish Release" in GitHub UI
+  push:
+    tags:
+      - 'ts-v*'  # e.g. ts-v1.0.2 — only triggers this workflow
 
 concurrency:
   group: publish-npm
