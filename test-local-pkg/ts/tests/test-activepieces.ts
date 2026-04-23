@@ -46,7 +46,8 @@ async function testActivepieces() {
 
   // 7. MCP Servers
   await runTestSection("activepieces.listMcpServers", async () => {
-    const servers = await client.activepieces.listMcpServers();
+    if (!testProjectId) { console.log("  ⚠️  Skipped — no projectId from listFlows"); return; }
+    const servers = await client.activepieces.listMcpServers(testProjectId);
     logResult("MCP Servers", servers);
   });
 

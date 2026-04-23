@@ -13,6 +13,10 @@ function buildQuery(params: Record<string, string | number | boolean | undefined
 export class AiAgentResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
 
+  private get orgId(): string | undefined {
+    return this.http.organizationId
+  }
+
   // --- System ---
 
   async getConfig(): Promise<any> {
@@ -29,16 +33,18 @@ export class AiAgentResource {
 
   // --- Chat v1 ---
 
-  async listChats(params: { organization_id: string; user_id?: string; limit?: number }): Promise<any> {
-    return this.http.getFetch()(`${this.base}/chat${buildQuery(params)}`).then(r => r.json())
+  async listChats(params?: { organization_id?: string; user_id?: string; limit?: number }): Promise<any> {
+    const p = { organization_id: this.orgId, ...params }
+    return this.http.getFetch()(`${this.base}/chat${buildQuery(p)}`).then(r => r.json())
   }
 
   async getChat(id: string, includeMessages?: boolean): Promise<any> {
     return this.http.getFetch()(`${this.base}/chat/${id}${buildQuery({ include_messages: includeMessages })}`).then(r => r.json())
   }
 
-  async deleteChat(id: string, params: { organization_id: string; user_id?: string }): Promise<any> {
-    return this.http.getFetch()(`${this.base}/chat/${id}${buildQuery(params)}`, { method: "DELETE" }).then(r => r.json())
+  async deleteChat(id: string, params?: { organization_id?: string; user_id?: string }): Promise<any> {
+    const p = { organization_id: this.orgId, ...params }
+    return this.http.getFetch()(`${this.base}/chat/${id}${buildQuery(p)}`, { method: "DELETE" }).then(r => r.json())
   }
 
   // --- Chat v2 (streaming — returns raw Response for SSE consumption) ---
@@ -58,6 +64,7 @@ export class AiAgentResource {
       userId = data.id
     }
     const payload = {
+      organization_id: this.orgId,
       id: body.id ?? randomUUID(),
       ...body,
       user_id: userId,
@@ -73,16 +80,17 @@ export class AiAgentResource {
 
   async streamSubAgentChat(body: {
     assistant_id: string
-    organization_id: string
+    organization_id?: string
     session_id: string
     chat_id: string
     messages: any[]
     [key: string]: unknown
   }): Promise<Response> {
+    const payload = { organization_id: this.orgId, ...body }
     return this.http.getFetch()(`${this.base}/v2/sub-agent-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     })
   }
 
@@ -236,8 +244,9 @@ export class AiAgentResource {
     return this.http.getFetch()(`${this.base}/chat-client/chats${buildQuery(params ?? {})}`).then(r => r.json())
   }
 
-  async deleteAllClientChats(params: { organization_id: string }): Promise<any> {
-    return this.http.getFetch()(`${this.base}/chat-client/chats${buildQuery(params)}`, { method: "DELETE" }).then(r => r.json())
+  async deleteAllClientChats(params?: { organization_id?: string }): Promise<any> {
+    const p = { organization_id: this.orgId, ...params }
+    return this.http.getFetch()(`${this.base}/chat-client/chats${buildQuery(p)}`, { method: "DELETE" }).then(r => r.json())
   }
 
   async getClientChat(id: string): Promise<any> {

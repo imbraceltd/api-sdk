@@ -16,6 +16,10 @@ class AiAgentResource:
         self._http = http
         self._base = base.rstrip("/")
 
+    @property
+    def _org_id(self) -> Optional[str]:
+        return self._http.organization_id
+
     # --- System ---
 
     def get_config(self) -> Dict[str, Any]:
@@ -29,14 +33,14 @@ class AiAgentResource:
 
     # --- Chat v1 ---
 
-    def list_chats(self, organization_id: str, user_id: Optional[str] = None, limit: Optional[int] = None) -> Dict[str, Any]:
-        return self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id, 'user_id': user_id, 'limit': limit})}").json()
+    def list_chats(self, organization_id: Optional[str] = None, user_id: Optional[str] = None, limit: Optional[int] = None) -> Dict[str, Any]:
+        return self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id or self._org_id, 'user_id': user_id, 'limit': limit})}").json()
 
     def get_chat(self, chat_id: str, include_messages: bool = False) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._base}/chat/{chat_id}{_qs({'include_messages': True if include_messages else None})}").json()
 
-    def delete_chat(self, chat_id: str, organization_id: str, user_id: Optional[str] = None) -> Any:
-        return self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id, 'user_id': user_id})}").json()
+    def delete_chat(self, chat_id: str, organization_id: Optional[str] = None, user_id: Optional[str] = None) -> Any:
+        return self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id or self._org_id, 'user_id': user_id})}").json()
 
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .iter_lines()) ---
 
@@ -45,13 +49,14 @@ class AiAgentResource:
         if not user_id:
             auth = self._http.request("POST", f"{self._base}/chat-client/auth/user").json()
             user_id = auth["id"]
-        payload = {"id": str(uuid4()), **body, "user_id": user_id}
+        payload = {"organization_id": self._org_id, "id": str(uuid4()), **body, "user_id": user_id}
         return self._http.request("POST", f"{self._base}/v2/chat", json=payload)
 
     # --- Sub-agent chat v2 ---
 
     def stream_sub_agent_chat(self, body: Dict[str, Any]) -> Any:
-        return self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=body)
+        payload = {"organization_id": self._org_id, **body}
+        return self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=payload)
 
     def get_sub_agent_history(self, session_id: str, chat_id: str) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._base}/v2/sub-agent-chat/history{_qs({'session_id': session_id, 'chat_id': chat_id})}").json()
@@ -148,8 +153,8 @@ class AiAgentResource:
     def list_client_chats(self, organization_id: Optional[str] = None, limit: Optional[int] = None, starting_after: Optional[str] = None, ending_before: Optional[str] = None) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id, 'limit': limit, 'starting_after': starting_after, 'ending_before': ending_before})}").json()
 
-    def delete_all_client_chats(self, organization_id: str) -> Any:
-        return self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id})}").json()
+    def delete_all_client_chats(self, organization_id: Optional[str] = None) -> Any:
+        return self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id or self._org_id})}").json()
 
     def get_client_chat(self, chat_id: str) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._base}/chat-client/chats/{chat_id}").json()
@@ -222,6 +227,10 @@ class AsyncAiAgentResource:
         self._http = http
         self._base = base.rstrip("/")
 
+    @property
+    def _org_id(self) -> Optional[str]:
+        return self._http.organization_id
+
     # --- System ---
 
     async def get_config(self) -> Dict[str, Any]:
@@ -238,16 +247,16 @@ class AsyncAiAgentResource:
 
     # --- Chat v1 ---
 
-    async def list_chats(self, organization_id: str, user_id: Optional[str] = None, limit: Optional[int] = None) -> Dict[str, Any]:
-        res = await self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id, 'user_id': user_id, 'limit': limit})}")
+    async def list_chats(self, organization_id: Optional[str] = None, user_id: Optional[str] = None, limit: Optional[int] = None) -> Dict[str, Any]:
+        res = await self._http.request("GET", f"{self._base}/chat{_qs({'organization_id': organization_id or self._org_id, 'user_id': user_id, 'limit': limit})}")
         return res.json()
 
     async def get_chat(self, chat_id: str, include_messages: bool = False) -> Dict[str, Any]:
         res = await self._http.request("GET", f"{self._base}/chat/{chat_id}{_qs({'include_messages': True if include_messages else None})}")
         return res.json()
 
-    async def delete_chat(self, chat_id: str, organization_id: str, user_id: Optional[str] = None) -> Any:
-        res = await self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id, 'user_id': user_id})}")
+    async def delete_chat(self, chat_id: str, organization_id: Optional[str] = None, user_id: Optional[str] = None) -> Any:
+        res = await self._http.request("DELETE", f"{self._base}/chat/{chat_id}{_qs({'organization_id': organization_id or self._org_id, 'user_id': user_id})}")
         return res.json()
 
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .aiter_lines()) ---
@@ -257,13 +266,14 @@ class AsyncAiAgentResource:
         if not user_id:
             res = await self._http.request("POST", f"{self._base}/chat-client/auth/user")
             user_id = res.json()["id"]
-        payload = {"id": str(uuid4()), **body, "user_id": user_id}
+        payload = {"organization_id": self._org_id, "id": str(uuid4()), **body, "user_id": user_id}
         return await self._http.request("POST", f"{self._base}/v2/chat", json=payload)
 
     # --- Sub-agent chat v2 ---
 
     async def stream_sub_agent_chat(self, body: Dict[str, Any]) -> Any:
-        return await self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=body)
+        payload = {"organization_id": self._org_id, **body}
+        return await self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=payload)
 
     async def get_sub_agent_history(self, session_id: str, chat_id: str) -> Dict[str, Any]:
         res = await self._http.request("GET", f"{self._base}/v2/sub-agent-chat/history{_qs({'session_id': session_id, 'chat_id': chat_id})}")
@@ -384,8 +394,8 @@ class AsyncAiAgentResource:
         res = await self._http.request("GET", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id, 'limit': limit, 'starting_after': starting_after, 'ending_before': ending_before})}")
         return res.json()
 
-    async def delete_all_client_chats(self, organization_id: str) -> Any:
-        res = await self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id})}")
+    async def delete_all_client_chats(self, organization_id: Optional[str] = None) -> Any:
+        res = await self._http.request("DELETE", f"{self._base}/chat-client/chats{_qs({'organization_id': organization_id or self._org_id})}")
         return res.json()
 
     async def get_client_chat(self, chat_id: str) -> Dict[str, Any]:

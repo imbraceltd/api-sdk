@@ -19,6 +19,10 @@ interface TransportOptions {
 export class HttpTransport {
   constructor(private readonly opts: TransportOptions) {}
 
+  public get organizationId(): string | undefined {
+    return this.opts.organizationId
+  }
+
   public clearApiKey(): void {
     this.opts.apiKey = undefined
   }
