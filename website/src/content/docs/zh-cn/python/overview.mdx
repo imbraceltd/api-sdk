@@ -42,43 +42,45 @@ ImbraceClient / AsyncImbraceClient     ← 唯一入口点
 | HTTP 传输        | `http.py`                      | 认证头、重试、超时、错误映射                      |
 | Token 管理器     | `auth/token_manager.py`        | 线程安全的 token 读写                             |
 | 服务注册表       | `service_registry.py`          | 从环境预设解析每个服务的 URL                      |
-| Resources        | `resources/*.py`               | 每个领域的 API 方法封装（29 个 resources）        |
+| Resources        | `resources/*.py`               | 每个领域的 API 方法封装（31 个 resources）        |
 | 类型             | `types/*.py`                   | Pydantic models 和 dataclasses                    |
 | 异常             | `exceptions.py`                | `AuthError`、`ApiError`、`NetworkError`            |
 
-### Resource 列表（29 个）
+### Resource 列表（31 个）
 
-| 命名空间               | 用途                                        |
-| ---------------------- | ------------------------------------------- |
-| `client.auth`          | OTP 登录、验证、登出                        |
-| `client.account`       | 账户信息                                    |
-| `client.marketplace`   | 产品、订单                                  |
-| `client.platform`      | 用户、组织、权限                            |
-| `client.channel`       | 渠道、消息                                  |
-| `client.ips`           | 身份与档案 — 档案、关注/取消关注            |
-| `client.agent`         | AI agent 模板和运行                         |
-| `client.ai`            | LLM 补全、流式传输、嵌入                    |
-| `client.sessions`      | 会话管理                                    |
-| `client.messages`      | 会话内消息                                  |
-| `client.contacts`      | 联系人管理                                  |
-| `client.conversations` | 对话                                        |
-| `client.teams`         | 团队管理                                    |
-| `client.workflows`     | 工作流自动化                                |
-| `client.boards`        | 看板 CRUD 和条目                            |
-| `client.settings`      | 组织设置                                    |
-| `client.organizations` | 组织列表                                    |
-| `client.health`        | Gateway 健康检查                            |
-| `client.campaigns`     | 营销活动管理                                |
-| `client.schedule`      | 定时任务                                    |
-| `client.categories`    | 分类管理                                    |
-| `client.data_files`    | 数据文件管理                                |
-| `client.folders`       | 文件夹管理                                  |
-| `client.outbounds`     | 外呼消息                                    |
-| `client.touchpoints`   | Touchpoint 管理                             |
-| `client.chat_ai`       | Chat AI 会话                                |
-| `client.file_service`  | 文件上传                                    |
-| `client.activepieces`  | Activepieces 集成                           |
-| `client.ai_agent`      | Chat AI agent、embeddings、parquet、trace   |
+| 命名空间                     | 用途                                                              |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `client.auth`                | OTP 登录、验证、登出                                              |
+| `client.account`             | 账户信息                                                          |
+| `client.marketplace`         | 产品、订单                                                        |
+| `client.platform`            | 用户、组织、权限                                                  |
+| `client.channel`             | 渠道、消息                                                        |
+| `client.ips`                 | 身份与档案 — 档案、关注/取消关注                                  |
+| `client.agent`               | AI agent 模板和运行                                               |
+| `client.ai`                  | LLM 补全、流式传输、嵌入                                          |
+| `client.sessions`            | 会话管理                                                          |
+| `client.messages`            | 会话内消息                                                        |
+| `client.contacts`            | 联系人管理                                                        |
+| `client.conversations`       | 对话                                                              |
+| `client.teams`               | 团队管理                                                          |
+| `client.workflows`           | 工作流自动化                                                      |
+| `client.boards`              | 看板 CRUD 和条目                                                  |
+| `client.settings`            | 组织设置                                                          |
+| `client.organizations`       | 组织列表                                                          |
+| `client.health`              | Gateway 健康检查                                                  |
+| `client.campaign`            | 营销活动管理 + touchpoints（list/create/update/delete/validate）  |
+| `client.schedule`            | 定时任务                                                          |
+| `client.categories`          | 分类管理                                                          |
+| `client.outbound`            | 外呼消息                                                          |
+| `client.data_files`          | 数据文件管理                                                      |
+| `client.folders`             | 文件夹管理                                                        |
+| `client.message_suggestion`  | AI 消息建议                                                       |
+| `client.predict`             | 预测服务                                                          |
+| `client.chat_ai`             | Chat AI 会话、文件、音频、知识库、助手                            |
+| `client.file_service`        | 文件上传                                                          |
+| `client.activepieces`        | Activepieces 集成                                                 |
+| `client.ai_agent`            | Chat AI agent、embeddings、parquet、trace                         |
+| `client.license`             | License 管理                                                      |
 
 ### 同步 vs 异步 — 何时使用哪个
 

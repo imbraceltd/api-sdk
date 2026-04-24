@@ -11,7 +11,7 @@ description: Phạm vi, cấu trúc SDK và sự khác biệt giữa các gatewa
 ### Cấu Trúc SDK
 
 ```
-sdk/
+api-sdk/
 ├── py/src/imbrace/
 │   ├── client.py              ← ImbraceClient (sync entry point)
 │   ├── async_client.py        ← AsyncImbraceClient
@@ -47,7 +47,7 @@ sdk/
 | Gateway        | Auth Header                     | Pattern Path              |
 | -------------- | ------------------------------- | ------------------------- |
 | App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
-| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
 
 ### Các Tầng Test
 

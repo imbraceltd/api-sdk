@@ -76,10 +76,8 @@ convs = client.conversations.search(
     business_unit_id="bu_xxx", q="support", limit=20
 ).get("data", [])
 
-# 待处理的对
-open_convs = client.conversations.get_outstanding(
-    business_unit_id="bu_xxx", limit=50
-).get("data", [])
+# 列出所有对话（可选过滤）
+all_convs = client.conversations.list(limit=50).get("data", [])
 
 # 更新状态
 client.conversations.update_status({
@@ -107,7 +105,7 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## 工作流程与自动化
+### 工作流程与自动化
 
 触发管道自动化来处理的讯息、对话分流和触发后续动作。
 
@@ -117,6 +115,62 @@ automations = client.workflows.list_channel_automation().get("data", [])
 
 # 按管道类型筛选
 whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+---
+
+### 营销活动与触点
+
+管理营销活动及其关联触点（沟通步骤）。
+
+```python
+# 营销活动 CRUD
+campaigns = client.campaign.list().get("data", [])
+campaign  = client.campaign.get("campaign_id")
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+client.campaign.delete("campaign_id")
+
+# 活动中的触点
+touchpoints = client.campaign.list_touchpoints().get("data", [])
+tp = client.campaign.get_touchpoint("touchpoint_id")
+
+client.campaign.create_touchpoint({
+    "campaign_id": "campaign_id",
+    "type":        "email",
+    "delay_days":  3,
+})
+client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
+client.campaign.delete_touchpoint("touchpoint_id")
+
+# 保存前验证触点配置
+result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
+```
+
+---
+
+### 消息建议
+
+基于对话上下文的 AI 自动回复建议。
+
+```python
+suggestions = client.message_suggestion.get_suggestions({
+    "conversation_id": "conv_xxx",
+    "limit": 3,
+})
+```
+
+---
+
+### 预测（Predict）
+
+将输入数据发送到预测服务进行 ML 评分或分类。
+
+```python
+result = client.predict.predict({
+    "model": "lead_score_v1",
+    "input": {"company_size": 200, "industry": "saas", "mrr": 5000},
+})
+print(result["score"])   # 0.87
 ```
 
 ---
