@@ -53,7 +53,11 @@ file-service
 chat-ai
 # test-local-pkg
 # test-npm-pkg
-docs2 
+docsv2 
+docsv3
+docsv4
+docsv5
+Q&A
 
 #Claude
 .claude/
