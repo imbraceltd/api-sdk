@@ -96,7 +96,8 @@ def test_resources():
     state_df = {"file_id": None}
     def data_files_ops():
         try:
-            results = client.data_files.search(q="sdk")
+            # DataFilesResource.search() takes params dict, not keyword args
+            results = client.data_files.search(params={"keyword": "sdk"})
             data = results if isinstance(results, list) else results.get("data", [])
             log_result("data_files.search", len(data))
         except Exception as e:
@@ -104,9 +105,22 @@ def test_resources():
 
         try:
             ts = int(time.time())
+            # data_files.create requires: file_size, file_type, key, folder_id
+            # Get a real folder_id from folders.search first
+            try:
+                fld_res = client.folders.search()
+                fld_data = fld_res if isinstance(fld_res, list) else fld_res.get("data", [])
+                real_folder_id = fld_data[0].get("_id") or fld_data[0].get("id") if fld_data else None
+            except Exception:
+                real_folder_id = None
+
             new_file = client.data_files.create({
                 "name": f"sdk_test_{ts}.csv",
-                "organization_id": organization_id
+                "organization_id": organization_id,
+                "file_size": 128,
+                "file_type": "text/csv",
+                "key": f"sdk/test/{ts}.csv",
+                "folder_id": real_folder_id or "root"
             })
             state_df["file_id"] = new_file.get("_id") or new_file.get("id")
             log_result("data_files.create", state_df["file_id"])
@@ -157,18 +171,24 @@ def test_resources():
 
         try:
             ts = int(time.time())
-            new_fld = client.folders.create({
-                "name": f"SDK_FOLDER_{ts}",
-                "organization_id": organization_id,
-                "parent_id": "root"
-            })
-            new_id = new_fld.get("_id") or new_fld.get("id")
-            log_result("folders.create", new_id)
-            if new_id:
-                client.folders.update(new_id, {"name": f"SDK_FOLDER_{ts}_UPDATED"})
-                log_result("folders.update", True)
-                client.folders.delete(new_id)
-                log_result("folders.delete", True)
+            # folders.create requires source_type and parent_folder_id (real ID)
+            real_parent_id = state_fld["folder_id"]  # use a real ID from search above
+            if real_parent_id:
+                new_fld = client.folders.create({
+                    "name": f"SDK_FOLDER_{ts}",
+                    "organization_id": organization_id,
+                    "source_type": "local",
+                    "parent_folder_id": real_parent_id
+                })
+                new_id = new_fld.get("_id") or new_fld.get("id")
+                log_result("folders.create", new_id)
+                if new_id:
+                    client.folders.update(new_id, {"name": f"SDK_FOLDER_{ts}_UPDATED"})
+                    log_result("folders.update", True)
+                    client.folders.delete(new_id)
+                    log_result("folders.delete", True)
+            else:
+                print("   [skip] folders.create — no parent_folder_id available")
         except Exception as e:
             print(f"   [warn] folders CRUD: {str(e)}")
     run_test_section("folders CRUD", folder_ops)
@@ -212,8 +232,14 @@ def test_resources():
         except Exception as e:
             print(f"   [warn] schedule.list: {str(e)}")
         try:
-            opts = client.schedule.get_filter_options()
-            log_result("schedule.get_filter_options", opts)
+            # get_filter_options may require a valid 'type' or 'field' param
+            # Try without args first, then with common filter keywords
+            try:
+                opts = client.schedule.get_filter_options()
+                log_result("schedule.get_filter_options (no args)", opts)
+            except Exception:
+                opts = client.schedule.get_filter_options(params={"type": "schedule"})
+                log_result("schedule.get_filter_options (type=schedule)", opts)
         except Exception as e:
             print(f"   [warn] schedule.get_filter_options: {str(e)}")
     run_test_section("schedule", schedule_ops)

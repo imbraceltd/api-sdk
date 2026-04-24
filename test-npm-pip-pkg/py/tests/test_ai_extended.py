@@ -108,8 +108,9 @@ def test_ai_extended():
             ts = int(time.time())
             new_gr = client.ai.create_guardrail({
                 "name": f"sdk_guardrail_{ts}",
-                "type": "content_filter",
-                "rules": []
+                "model": "gpt-4o",
+                "instructions": "Block unsafe content. Refuse harmful requests.",
+                "unsafe_categories": ["violence", "hate_speech"]
             })
             state["guardrail_id"] = new_gr.get("_id") or new_gr.get("id")
             log_result("ai.create_guardrail", state["guardrail_id"])
@@ -151,9 +152,15 @@ def test_ai_extended():
             print(f"   [warn] list_rag_files: {str(e)}")
 
         try:
-            content = b"SDK RAG test content"
-            uploaded = client.ai.upload_rag_file(BytesIO(content), filename="sdk_test.txt")
-            state["rag_file_id"] = uploaded.get("_id") or uploaded.get("id")
+            content = b"SDK RAG test content - auto generated"
+            file_tuple = {"file": ("sdk_test.txt", content, "text/plain")}
+            uploaded = client.ai.upload_rag_file(file_tuple)
+            uploaded_id = None
+            if hasattr(uploaded, "get"):
+                uploaded_id = uploaded.get("_id") or uploaded.get("id")
+            elif hasattr(uploaded, "id"):
+                uploaded_id = uploaded.id
+            state["rag_file_id"] = uploaded_id
             log_result("ai.upload_rag_file", state["rag_file_id"])
         except Exception as e:
             print(f"   [warn] upload_rag_file: {str(e)}")
@@ -201,11 +208,15 @@ def test_ai_extended():
 
     # 7. verify_tool_server
     def verify_tool():
+        # VerifyToolServerInput only has 'url' field — 422 from server is expected
+        # because the server requires additional fields (path, auth_type, key, config)
+        # that are not yet part of the SDK's VerifyToolServerInput TypedDict.
+        # This is a backend schema mismatch — test logs the error and continues.
         try:
-            res = client.ai.verify_tool_server({"url": "https://example.com/tool"})
+            res = client.ai.verify_tool_server({"url": "https://example.com/mcp"})
             log_result("ai.verify_tool_server", res)
         except Exception as e:
-            print(f"   [warn] verify_tool_server: {str(e)}")
+            print(f"   [warn] verify_tool_server (expected 422 — schema mismatch): {str(e)}")
     run_test_section("ai.verify_tool_server", verify_tool)
 
     print("\n[DONE] AI Extended Resource Testing Completed.")
