@@ -39,7 +39,7 @@ pnpm add @imbrace/sdk
 
 ```bash
 # Bước 1 — cài dependencies và build
-cd sdk/ts
+cd ts
 npm install
 npm run build
 
@@ -74,7 +74,7 @@ uv add imbrace
 **Monorepo / phát triển nội bộ (editable mode):**
 
 ```bash
-cd sdk/py
+cd py
 pip install -e ".[dev]"
 ```
 
@@ -362,7 +362,7 @@ Tất cả service keys hợp lệ:
 
 #### `Cannot find package '@imbrace/sdk'`
 
-Package chưa được link. Chạy lại từ `sdk/ts`:
+Package chưa được link. Chạy lại từ `ts`:
 
 ```bash
 npm link
@@ -374,13 +374,13 @@ cd /path/to/your-project && npm link @imbrace/sdk
 Package chưa được build:
 
 ```bash
-cd sdk/ts && npm run build
+cd ts && npm run build
 ```
 
 #### `ModuleNotFoundError: No module named 'imbrace'`
 
 ```bash
-cd sdk/py && pip install -e ".[dev]"
+cd py && pip install -e ".[dev]"
 ```
 
 #### `401 Unauthorized`

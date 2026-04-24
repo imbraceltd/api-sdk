@@ -11,7 +11,7 @@ description: Imbrace SDK 的范围、结构以及各网关之间的区别。
 ### SDK 结构
 
 ```
-sdk/
+api-sdk/
 ├── py/src/imbrace/
 │   ├── client.py              ← ImbraceClient（同步入口）
 │   ├── async_client.py        ← AsyncImbraceClient
@@ -47,7 +47,7 @@ sdk/
 | 网关           | 认证头                          | 路径模式                  |
 | -------------- | ------------------------------- | ------------------------- |
 | App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
-| Server Gateway | `x-access-token` = API key      | `/3rd/...`                |
+| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
 
 ### 测试层级
 

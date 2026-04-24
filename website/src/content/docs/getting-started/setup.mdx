@@ -39,7 +39,7 @@ pnpm add @imbrace/sdk
 
 ```bash
 # Step 1 — install dependencies and build
-cd sdk/ts
+cd ts
 npm install
 npm run build
 
@@ -74,7 +74,7 @@ uv add imbrace
 **Monorepo / local development (editable mode):**
 
 ```bash
-cd sdk/py
+cd py
 pip install -e ".[dev]"
 ```
 
@@ -362,7 +362,7 @@ All valid service keys:
 
 ##### `Cannot find package '@imbrace/sdk'`
 
-Package is not linked. Re-run from `sdk/ts`:
+Package is not linked. Re-run from `ts`:
 
 ```bash
 npm link
@@ -374,13 +374,13 @@ cd /path/to/your-project && npm link @imbrace/sdk
 Package has not been built yet:
 
 ```bash
-cd sdk/ts && npm run build
+cd ts && npm run build
 ```
 
 ##### `ModuleNotFoundError: No module named 'imbrace'`
 
 ```bash
-cd sdk/py && pip install -e ".[dev]"
+cd py && pip install -e ".[dev]"
 ```
 
 ##### `401 Unauthorized`

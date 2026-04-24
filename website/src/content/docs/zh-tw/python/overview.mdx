@@ -42,43 +42,45 @@ ImbraceClient / AsyncImbraceClient     ← 唯一入口點
 | HTTP 傳輸        | `http.py`                      | 認證標頭、重試、逾時、錯誤映射                    |
 | Token 管理器     | `auth/token_manager.py`        | 執行緒安全的 token 讀寫                           |
 | 服務登錄表       | `service_registry.py`          | 從環境預設解析每個服務的 URL                      |
-| Resources        | `resources/*.py`               | 每個領域的 API 方法封裝（29 個 resources）        |
+| Resources        | `resources/*.py`               | 每個領域的 API 方法封裝（31 個 resources）        |
 | 型別             | `types/*.py`                   | Pydantic models 和 dataclasses                    |
 | 例外             | `exceptions.py`                | `AuthError`、`ApiError`、`NetworkError`            |
 
-### Resource 列表（29 個）
+### Resource 列表（31 個）
 
-| 命名空間               | 用途                                        |
-| ---------------------- | ------------------------------------------- |
-| `client.auth`          | OTP 登入、驗證、登出                        |
-| `client.account`       | 帳戶資訊                                    |
-| `client.marketplace`   | 產品、訂單                                  |
-| `client.platform`      | 使用者、組織、權限                          |
-| `client.channel`       | 頻道、訊息                                  |
-| `client.ips`           | 身份與檔案 — 檔案、追蹤/取消追蹤            |
-| `client.agent`         | AI agent 模板和執行                         |
-| `client.ai`            | LLM 補全、串流傳輸、嵌入                    |
-| `client.sessions`      | 工作階段管理                                |
-| `client.messages`      | 工作階段內訊息                              |
-| `client.contacts`      | 聯絡人管理                                  |
-| `client.conversations` | 對話                                        |
-| `client.teams`         | 團隊管理                                    |
-| `client.workflows`     | 工作流自動化                                |
-| `client.boards`        | 看板 CRUD 和項目                            |
-| `client.settings`      | 組織設定                                    |
-| `client.organizations` | 組織列表                                    |
-| `client.health`        | Gateway 健康檢查                            |
-| `client.campaigns`     | 行銷活動管理                                |
-| `client.schedule`      | 排程任務                                    |
-| `client.categories`    | 分類管理                                    |
-| `client.data_files`    | 資料檔案管理                                |
-| `client.folders`       | 資料夾管理                                  |
-| `client.outbounds`     | 外呼訊息                                    |
-| `client.touchpoints`   | Touchpoint 管理                             |
-| `client.chat_ai`       | Chat AI 工作階段                            |
-| `client.file_service`  | 檔案上傳                                    |
-| `client.activepieces`  | Activepieces 整合                           |
-| `client.ai_agent`      | Chat AI agent、embeddings、parquet、trace   |
+| 命名空間                     | 用途                                                              |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `client.auth`                | OTP 登入、驗證、登出                                              |
+| `client.account`             | 帳戶資訊                                                          |
+| `client.marketplace`         | 產品、訂單                                                        |
+| `client.platform`            | 使用者、組織、權限                                                |
+| `client.channel`             | 頻道、訊息                                                        |
+| `client.ips`                 | 身份與檔案 — 檔案、追蹤/取消追蹤                                  |
+| `client.agent`               | AI agent 模板和執行                                               |
+| `client.ai`                  | LLM 補全、串流傳輸、嵌入                                          |
+| `client.sessions`            | 工作階段管理                                                      |
+| `client.messages`            | 工作階段內訊息                                                    |
+| `client.contacts`            | 聯絡人管理                                                        |
+| `client.conversations`       | 對話                                                              |
+| `client.teams`               | 團隊管理                                                          |
+| `client.workflows`           | 工作流自動化                                                      |
+| `client.boards`              | 看板 CRUD 和項目                                                  |
+| `client.settings`            | 組織設定                                                          |
+| `client.organizations`       | 組織列表                                                          |
+| `client.health`              | Gateway 健康檢查                                                  |
+| `client.campaign`            | 行銷活動管理 + touchpoints（list/create/update/delete/validate）  |
+| `client.schedule`            | 排程任務                                                          |
+| `client.categories`          | 分類管理                                                          |
+| `client.outbound`            | 外呼訊息                                                          |
+| `client.data_files`          | 資料檔案管理                                                      |
+| `client.folders`             | 資料夾管理                                                        |
+| `client.message_suggestion`  | AI 訊息建議                                                       |
+| `client.predict`             | 預測服務                                                          |
+| `client.chat_ai`             | Chat AI 工作階段、檔案、音訊、知識庫、助手                        |
+| `client.file_service`        | 檔案上傳                                                          |
+| `client.activepieces`        | Activepieces 整合                                                 |
+| `client.ai_agent`            | Chat AI agent、embeddings、parquet、trace                         |
+| `client.license`             | License 管理                                                      |
 
 ### 同步 vs 非同步 — 何時使用哪個
 

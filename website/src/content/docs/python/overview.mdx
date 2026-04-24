@@ -42,46 +42,48 @@ ImbraceClient / AsyncImbraceClient     ← single entry point
 | HTTP Transport   | `http.py`                      | Auth headers, retry, timeout, error mapping        |
 | Token Manager    | `auth/token_manager.py`        | Thread-safe token read/write                       |
 | Service Registry | `service_registry.py`          | Resolves per-service URLs from env presets         |
-| Resources        | `resources/*.py`               | Domain-specific API method wrappers (29 resources)  |
+| Resources        | `resources/*.py`               | Domain-specific API method wrappers (31 resources) |
 | Types            | `types/*.py`                   | Pydantic models and dataclasses                    |
 | Exceptions       | `exceptions.py`                | `AuthError`, `ApiError`, `NetworkError`            |
 | Environments     | `environments.py`              | URL presets for each environment                   |
 
 ### Available Resources
 
-The Python SDK exposes 29 resource namespaces:
+The Python SDK exposes 31 resource namespaces:
 
-| Namespace              | Purpose                                        |
-| ---------------------- | ---------------------------------------------- |
-| `client.auth`          | OTP signin, verify, signout                    |
-| `client.account`       | Current account info                           |
-| `client.marketplace`   | Products, orders                               |
-| `client.platform`      | Users, organizations, permissions              |
-| `client.channel`       | Channels, messages, conversations              |
-| `client.ips`           | Identity & Profile — profiles, follow/unfollow |
-| `client.agent`         | AI agent templates and runs                    |
-| `client.ai`            | LLM completions, streaming, embeddings         |
-| `client.sessions`      | Session management                             |
-| `client.messages`      | Session-level messages                         |
-| `client.contacts`      | Contact management                             |
-| `client.conversations` | Conversation views                             |
-| `client.teams`         | Team management                                |
-| `client.workflows`     | Workflow automation                            |
-| `client.boards`        | Board CRUD and items                           |
-| `client.settings`      | Org settings, message templates                |
-| `client.organizations` | Organization list                              |
-| `client.health`        | Gateway health check                           |
-| `client.campaigns`     | Campaign management                            |
-| `client.schedule`      | Scheduled tasks                                |
-| `client.categories`    | Category management                            |
-| `client.outbounds`     | Outbound messaging                             |
-| `client.data_files`    | Data file management                           |
-| `client.folders`       | Folder management                              |
-| `client.touchpoints`   | Touchpoint management                          |
-| `client.chat_ai`       | Chat AI sessions                               |
-| `client.file_service`  | File uploads                                   |
-| `client.activepieces`  | Activepieces integration                       |
-| `client.ai_agent`      | AI agent chat, embeddings, parquet, trace      |
+| Namespace                    | Purpose                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| `client.auth`                | OTP signin, verify, signout                                 |
+| `client.account`             | Current account info                                        |
+| `client.marketplace`         | Products, orders                                            |
+| `client.platform`            | Users, organizations, permissions                           |
+| `client.channel`             | Channels, messages, conversations                           |
+| `client.ips`                 | Identity & Profile — profiles, follow/unfollow              |
+| `client.agent`               | AI agent templates and runs                                 |
+| `client.ai`                  | LLM completions, streaming, embeddings                      |
+| `client.sessions`            | Session management                                          |
+| `client.messages`            | Session-level messages                                      |
+| `client.contacts`            | Contact management                                          |
+| `client.conversations`       | Conversation views                                          |
+| `client.teams`               | Team management                                             |
+| `client.workflows`           | Workflow automation                                         |
+| `client.boards`              | Board CRUD and items                                        |
+| `client.settings`            | Org settings, message templates                             |
+| `client.organizations`       | Organization list                                           |
+| `client.health`              | Gateway health check                                        |
+| `client.campaign`            | Campaign management + touchpoints (list/create/update/delete/validate) |
+| `client.schedule`            | Scheduled tasks                                             |
+| `client.categories`          | Category management                                         |
+| `client.outbound`            | Outbound messaging                                          |
+| `client.data_files`          | Data file management                                        |
+| `client.folders`             | Folder management                                           |
+| `client.message_suggestion`  | AI-powered message suggestions                              |
+| `client.predict`             | Prediction service                                          |
+| `client.chat_ai`             | Chat AI sessions, files, audio, knowledge, assistants       |
+| `client.file_service`        | File uploads                                                |
+| `client.activepieces`        | Activepieces integration                                    |
+| `client.ai_agent`            | AI agent chat, embeddings, parquet, trace                   |
+| `client.license`             | License management                                          |
 
 ### Sync vs Async — When to Use Which
 
