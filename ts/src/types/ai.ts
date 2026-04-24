@@ -355,3 +355,32 @@ export interface FinancialReport extends BaseEntity {
 export interface UpdateFinancialReportInput {
   [key: string]: unknown
 }
+// ─── RAG interfaces ──────────────────────────────────────────────────────────
+
+export interface AnswerQuestionInput {
+  text: string
+  assistant_id: string
+  thread_id?: string
+  streaming?: boolean
+  knowledge_hubs?: string[]
+  file_ids?: string[]
+  board_ids?: string[]
+  conversation_id?: string
+  [key: string]: unknown
+}
+
+/** Shape returned by both non-streaming response and each SSE chunk */
+export interface RagMessage {
+  thread_id: string
+  message: string
+  reasoning: string | null
+  is_partial: boolean
+  message_id: string
+  sources: Array<{ [key: string]: unknown }>
+  echart: unknown | null
+  echart_id: string
+  [key: string]: unknown
+}
+
+export type AnswerQuestionResponse = RagMessage
+export type RagStreamChunk = RagMessage
