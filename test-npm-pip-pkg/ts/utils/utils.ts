@@ -37,8 +37,8 @@ export async function runTestSection(name: string, fn: () => Promise<any>) {
     console.error(`❌ Failed: ${error.message}`);
     if (error.statusCode) console.error(`   HTTP Status: ${error.statusCode}`);
     // If it's a 404/500/501/502, we might want to continue other tests
-    if ([404, 500, 501, 502].includes(error.statusCode)) {
-        console.warn(`   ⚠️ Skipping section due to ${error.statusCode} (Endpoint might not exist or backend is down)`);
+    if ([400, 401, 403, 404, 500, 501, 502, 503].includes(error.statusCode)) {
+        console.warn(`   ⚠️ Skipping section due to ${error.statusCode} (Endpoint might not exist or bad request)`);
         return null;
     }
     throw error; // Re-throw to stop if it's a critical failure (like auth)

@@ -249,6 +249,10 @@ class AiResource:
         return f"{self._base.rstrip('/')}/v3/ai"
 
     @property
+    def _backend_v2(self) -> str:
+        return f"{self._base.rstrip('/')}/v2/backend"
+
+    @property
     def _assistant_base(self) -> str:
         return self._v3
 
@@ -309,6 +313,23 @@ class AiResource:
     def patch_instructions(self, assistant_id: str, body: PatchInstructionsInput) -> Assistant:
         return self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body).json()
 
+    def create_assistant_v3(self, body: Dict[str, Any]) -> Assistant:
+        """Create a custom agent (v3)."""
+        return self._http.request("POST", f"{self._assistant_base}/assistants", json=body).json()
+
+    # --- Assistant Templates (v2/backend/templates) ---
+    def list_assistant_templates(self) -> List[Dict[str, Any]]:
+        """List all assistant templates."""
+        return self._http.request("GET", f"{self._backend_v2}/templates").json()
+
+    def get_assistant_template(self, template_id: str) -> Dict[str, Any]:
+        """Get a specific assistant template."""
+        return self._http.request("GET", f"{self._backend_v2}/templates/{template_id}").json()
+
+    def create_assistant_from_template(self, template_id: str, body: Dict[str, Any]) -> Assistant:
+        """Create an assistant from a template."""
+        return self._http.request("POST", f"{self._backend_v2}/templates/{template_id}/create_assistant", json=body).json()
+
     # --- Assistant Apps ---
     def list_assistant_apps(self) -> AssistantAppListResponse:
         return self._http.request("GET", f"{self._assistant_base}/assistant_apps").json()
@@ -340,6 +361,23 @@ class AiResource:
 
     def delete_rag_file(self, file_id: str) -> None:
         self._http.request("DELETE", f"{self._v3}/rag/files/{file_id}")
+
+    def answer_question(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Ask a question using RAG (v1/rag/answer_question)."""
+        # Note: In gateway config, /chat/ai is used for this service.
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        return self._http.request("POST", f"{chat_base}/rag/answer_question", json=body).json()
+
+    # --- Embeddings (RAG/Vector) ---
+    def create_embedding(self, body: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create embeddings for board items."""
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        return self._http.request("POST", f"{chat_base}/embedding", json=body).json()
+
+    def delete_embedding_by_board(self, board_id: str) -> Dict[str, Any]:
+        """Delete embeddings for a specific board."""
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        return self._http.request("DELETE", f"{chat_base}/embedding/board/{board_id}").json()
 
     # --- Guardrails ---
     def list_guardrails(self) -> GuardrailListResponse:
@@ -438,6 +476,10 @@ class AsyncAiResource:
     @property
     def _v3(self) -> str:
         return f"{self._base.rstrip('/')}/v3/ai"
+    
+    @property
+    def _backend_v2(self) -> str:
+        return f"{self._base.rstrip('/')}/v2/backend"
 
     @property
     def _assistant_base(self) -> str:
@@ -509,6 +551,24 @@ class AsyncAiResource:
         res = await self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body)
         return res.json()
 
+    async def create_assistant_v3(self, body: Dict[str, Any]) -> Assistant:
+        """Create a custom agent (v3) (async)."""
+        res = await self._http.request("POST", f"{self._assistant_base}/assistants", json=body)
+        return res.json()
+
+    # --- Assistant Templates ---
+    async def list_assistant_templates(self) -> List[Dict[str, Any]]:
+        res = await self._http.request("GET", f"{self._backend_v2}/templates")
+        return res.json()
+
+    async def get_assistant_template(self, template_id: str) -> Dict[str, Any]:
+        res = await self._http.request("GET", f"{self._backend_v2}/templates/{template_id}")
+        return res.json()
+
+    async def create_assistant_from_template(self, template_id: str, body: Dict[str, Any]) -> Assistant:
+        res = await self._http.request("POST", f"{self._backend_v2}/templates/{template_id}/create_assistant", json=body)
+        return res.json()
+
     # --- Assistant Apps ---
 
     async def list_assistant_apps(self) -> AssistantAppListResponse:
@@ -550,6 +610,25 @@ class AsyncAiResource:
 
     async def delete_rag_file(self, file_id: str) -> None:
         await self._http.request("DELETE", f"{self._v3}/rag/files/{file_id}")
+
+    async def answer_question(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Ask a question using RAG (async)."""
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        res = await self._http.request("POST", f"{chat_base}/rag/answer_question", json=body)
+        return res.json()
+
+    # --- Embeddings (RAG/Vector) ---
+    async def create_embedding(self, body: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create embeddings for board items (async)."""
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        res = await self._http.request("POST", f"{chat_base}/embedding", json=body)
+        return res.json()
+
+    async def delete_embedding_by_board(self, board_id: str) -> Dict[str, Any]:
+        """Delete embeddings for a specific board (async)."""
+        chat_base = f"{self._base.rstrip('/')}/chat/ai/api/v1"
+        res = await self._http.request("DELETE", f"{chat_base}/embedding/board/{board_id}")
+        return res.json()
 
     # --- Guardrails ---
 

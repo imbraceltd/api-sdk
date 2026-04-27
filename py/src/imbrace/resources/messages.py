@@ -42,6 +42,43 @@ class MessagesResource:
         base = self._backend_base or f"{self._v1.replace('/channel-service/v1', '')}/v1/backend"
         return self._http.request("POST", f"{base}/conversation_messages/_fileupload", files=files).json()
 
+    def add_comment(self, conv_id: str, message_id: str, text: str) -> Dict[str, Any]:
+        return self._http.request(
+            "POST",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}/comments",
+            json={"text": text},
+        ).json()
+
+    def update_comment(self, conv_id: str, comment_id: str, text: str) -> Dict[str, Any]:
+        return self._http.request(
+            "PUT",
+            f"{self._v1}/conversations/{conv_id}/comments/{comment_id}",
+            json={"text": text},
+        ).json()
+
+    def delete_comment(self, conv_id: str, comment_id: str) -> None:
+        self._http.request("DELETE", f"{self._v1}/conversations/{conv_id}/comments/{comment_id}")
+
+    def pin(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        return self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}",
+            params={"action": "pin"},
+        ).json()
+
+    def unpin(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        return self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}",
+            params={"action": "unpin"},
+        ).json()
+
+    def get_index(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        return self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}/_index",
+        ).json()
+
 
 class AsyncMessagesResource:
     """Messages domain — Async."""
@@ -80,4 +117,46 @@ class AsyncMessagesResource:
         """Upload message file (async). Endpoint: /v1/backend/conversation_messages/_fileupload"""
         base = self._backend_base or f"{self._v1.replace('/channel-service/v1', '')}/v1/backend"
         res = await self._http.request("POST", f"{base}/conversation_messages/_fileupload", files=files)
+        return res.json()
+
+    async def add_comment(self, conv_id: str, message_id: str, text: str) -> Dict[str, Any]:
+        res = await self._http.request(
+            "POST",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}/comments",
+            json={"text": text},
+        )
+        return res.json()
+
+    async def update_comment(self, conv_id: str, comment_id: str, text: str) -> Dict[str, Any]:
+        res = await self._http.request(
+            "PUT",
+            f"{self._v1}/conversations/{conv_id}/comments/{comment_id}",
+            json={"text": text},
+        )
+        return res.json()
+
+    async def delete_comment(self, conv_id: str, comment_id: str) -> None:
+        await self._http.request("DELETE", f"{self._v1}/conversations/{conv_id}/comments/{comment_id}")
+
+    async def pin(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        res = await self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}",
+            params={"action": "pin"},
+        )
+        return res.json()
+
+    async def unpin(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        res = await self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}",
+            params={"action": "unpin"},
+        )
+        return res.json()
+
+    async def get_index(self, conv_id: str, message_id: str) -> Dict[str, Any]:
+        res = await self._http.request(
+            "GET",
+            f"{self._v1}/conversations/{conv_id}/conversation_messages/{message_id}/_index",
+        )
         return res.json()

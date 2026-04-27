@@ -3,7 +3,7 @@ Test: client.channel — CRUD channels, credentials, workflow bindings
 Per docsv2/py-sdk/resources.md
 """
 import time
-from utils.utils import client, run_test_section, log_result
+from utils.utils import client, run_test_section, run_stable_section, log_result
 
 def test_channel():
     print("\n[START] Testing Channel Resource...")
@@ -24,7 +24,7 @@ def test_channel():
                 state["channel_id"] = data2[0].get("_id") or data2[0].get("id")
         except Exception as e:
             print(f"   [warn] list_all: {str(e)}")
-    run_test_section("channel.list / list_all", list_ops)
+    run_stable_section("channel.list / list_all", list_ops, unstable=True)
 
     # 2. Get + counts
     def get_ops():
@@ -44,7 +44,7 @@ def test_channel():
             log_result("channel.get_conv_count", conv_cnt)
         except Exception as e:
             print(f"   [warn] channel.get_conv_count: {str(e)}")
-    run_test_section("channel.get / counts", get_ops)
+    run_stable_section("channel.get / counts", get_ops, unstable=True)
 
     # 3. Assignable teams
     def teams_ops():
@@ -56,7 +56,7 @@ def test_channel():
                 print(f"   [warn] list_assignable_teams: {str(e)}")
         else:
             print("   [skip] No channel_id found")
-    run_test_section("channel.list_assignable_teams", teams_ops)
+    run_stable_section("channel.list_assignable_teams", teams_ops, unstable=True)
 
     # 4. Credential ops
     def credential_ops():
@@ -68,7 +68,7 @@ def test_channel():
                 print(f"   [warn] get_credential: {str(e)}")
         else:
             print("   [skip] No channel_id found")
-    run_test_section("channel.get_credential", credential_ops)
+    run_stable_section("channel.get_credential", credential_ops, unstable=True)
 
     print("\n[DONE] Channel Resource Testing Completed.")
 

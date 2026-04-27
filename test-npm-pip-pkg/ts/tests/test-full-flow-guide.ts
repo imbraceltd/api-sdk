@@ -94,23 +94,42 @@ async function testFullFlowGuide() {
       try {
         const flows = await client.activepieces.listFlows({ limit: 5 });
         if (flows?.data?.length > 0) {
-          state.flowId = flows.data[0].id;
-          logResult("Using Existing Flow", state.flowId);
+          const projectId = flows.data[0].projectId;
+          const newFlow = await client.activepieces.createFlow({
+            displayName: `SDK Test Flow ${ts}`,
+            projectId: projectId,
+          });
+          state.flowId = newFlow.id;
+          logResult("Flow Created", state.flowId);
 
-          await client.activepieces.getFlow(state.flowId);
+          await client.activepieces.getFlow(state.flowId!);
 
-          // Trigger Async
-          await client.activepieces.triggerFlow(state.flowId, { source: "sdk-test-async" });
-          logResult("Trigger Flow Async", "Sent");
+          try {
+            // Trigger Async
+            await client.activepieces.triggerFlow(state.flowId!, { source: "sdk-test-async" });
+            logResult("Trigger Flow Async", "Sent");
 
-          // List Runs
-          const runs = await client.activepieces.listRuns({ flowId: state.flowId, limit: 3 });
-          logResult("Recent Runs Count", runs.data?.length);
+            // List Runs
+            const runs = await client.activepieces.listRuns({ flowId: state.flowId!, limit: 3 });
+            logResult("Recent Runs Count", runs.data?.length);
+          } catch (triggerError: any) {
+            console.warn(`   ⚠️ triggerFlow or listRuns failed (404 expected on prodv2): ${triggerError.message}`);
+          }
+
+          // Bind flow to assistant
+          if (state.assistantId) {
+            await client.chatAi.updateAssistant(state.assistantId, {
+              name: `SDK Assistant ${ts} Updated`,
+              workflow_name: `sdk_guide_test_${ts}`,
+              workflow_function_call: [{ flow_id: state.flowId!, description: "Test flow binding" }]
+            });
+            logResult("Workflow Bound to Assistant", true);
+          }
         } else {
-          console.log("   ⚠️ No flows found, skipping workflow triggers.");
+          console.log("   ⚠️ No flows found to get projectId, skipping workflow triggers.");
         }
       } catch (e: any) {
-        console.warn(`   ⚠️ Workflow steps failed (Possible 404 or config issue): ${e.message}`);
+        console.warn(`   ⚠️ Workflow steps failed: ${e.message}`);
       }
     });
 
@@ -153,6 +172,10 @@ async function testFullFlowGuide() {
 
       await client.boards.uploadFile(formData);
       logResult("Knowledge File Uploaded", secretCode);
+
+      // 4.5. Search Files
+      const files = await client.boards.searchFiles({ folderId: state.kbFolderId! });
+      logResult("Search Files in Folder", files?.length || 0);
 
       // 5. Attach to Assistant
       await client.chatAi.updateAssistant(state.assistantId!, {
@@ -210,7 +233,7 @@ async function testFullFlowGuide() {
           name: `SDK Test Board ${ts}`,
           description: "Full Flow Test Board"
       });
-      state.boardId = board._id || (board as any).id;
+      state.boardId = board.id || (board as any)._id;
       logResult("Board Created", state.boardId);
 
       // 2. Add Custom Field
@@ -231,7 +254,7 @@ async function testFullFlowGuide() {
       // 4. Get Item & Verify
       const fetchedItem = await client.boards.getItem(state.boardId!, state.itemId!);
       if (!fetchedItem) throw new Error("Could not fetch item");
-      logResult("Item Retrieved", fetchedItem._id || (fetchedItem as any).id);
+      logResult("Item Retrieved", fetchedItem.id || (fetchedItem as any)._id);
 
       // 5. List Items & Verify
       const itemsList = await client.boards.listItems(state.boardId!, { limit: 10 });
@@ -250,6 +273,10 @@ async function testFullFlowGuide() {
       // 7. Export CSV
       const csv = await client.boards.exportCsv(state.boardId!);
       logResult("CSV Exported (Bytes)", csv.length);
+
+      // 8. Delete Item
+      await client.boards.deleteItem(state.boardId!, state.itemId!);
+      logResult("Item Deleted", true);
     });
 
     console.log("\n" + "repeat".repeat(70).slice(0, 0)); // Placeholder to avoid console log noise
@@ -263,6 +290,7 @@ async function testFullFlowGuide() {
     try {
         if (state.kbFolderId) await client.boards.deleteFolders({ ids: [state.kbFolderId] });
         if (state.boardId) await client.boards.delete(state.boardId);
+        if (state.flowId) await client.activepieces.deleteFlow(state.flowId);
         if (state.assistantId) await client.chatAi.deleteAssistant(state.assistantId);
         console.log("   Cleanup finished.");
     } catch (e: any) {

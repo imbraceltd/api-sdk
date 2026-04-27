@@ -1,6 +1,6 @@
 import time
 from io import BytesIO
-from utils.utils import client, run_test_section, log_result, organization_id
+from utils.utils import client, run_test_section, run_stable_section, log_result, organization_id
 
 def test_campaign():
     print("\n🚀 Testing Campaigns and Touchpoints Resource...")
@@ -25,7 +25,7 @@ def test_campaign():
 
             client.campaign.delete(state["campaign_id"])
             log_result("Campaign Deleted", True)
-    run_test_section("Campaign Ops", campaign_ops)
+    run_stable_section("Campaign Ops", campaign_ops, unstable=True)
 
     # 2. Touchpoints
     def touchpoint_ops():
@@ -71,7 +71,7 @@ def test_campaign():
             log_result("Touchpoint Validated", val.get("success", True))
         except Exception as e:
             print(f"   [Skip] validate_touchpoint: {str(e)}")
-    run_test_section("Touchpoint Ops", touchpoint_ops)
+    run_stable_section("Touchpoint Ops", touchpoint_ops, unstable=True)
 
     print("\n✅ Campaign Resource Testing Completed.")
 

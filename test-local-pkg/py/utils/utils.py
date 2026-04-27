@@ -13,6 +13,7 @@ access_token = os.getenv("IMBRACE_ACCESS_TOKEN")
 organization_id = os.getenv("IMBRACE_ORGANIZATION_ID")
 base_url = os.getenv("IMBRACE_GATEWAY_URL", "https://app-gatewayv2.imbrace.co")
 timeout = int(os.getenv("IMBRACE_TIMEOUT", "60"))
+skip_unstable = os.getenv("IMBRACE_SKIP_UNSTABLE", "0") == "1"
 
 if (not api_key and not access_token) or not organization_id:
     print("❌ ERROR: Missing configuration in .env!")
@@ -47,6 +48,18 @@ def run_test_section(name: str, fn: Callable[[], Any]):
             print(f"   ⚠️ Skipping section due to {status_code} (Auth/Endpoint issue)")
             return None
         raise e
+
+def run_stable_section(name: str, fn: Callable[[], Any], unstable: bool = False):
+    """Like run_test_section but can be skipped when IMBRACE_SKIP_UNSTABLE=1.
+    
+    Use unstable=True for sections known to hit 502/backend-pending endpoints.
+    When IMBRACE_SKIP_UNSTABLE=1, these sections are skipped instantly instead
+    of waiting for retry timeouts (~4-5 min per section).
+    """
+    if unstable and skip_unstable:
+        print(f"\n--- [SKIP] {name} (IMBRACE_SKIP_UNSTABLE=1 — backend-pending) ---")
+        return None
+    return run_test_section(name, fn)
 
 def log_result(label: str, data: Any):
     display = "N/A"

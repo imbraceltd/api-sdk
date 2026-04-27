@@ -1,7 +1,7 @@
 """
 Test: client.account — get(), update()
 """
-from utils.utils import client, run_test_section, log_result
+from utils.utils import client, run_test_section, run_stable_section, log_result
 
 def test_account():
     print("\n[START] Testing Account Resource...")
@@ -16,7 +16,7 @@ def test_account():
         except Exception as e:
             print(f"   [warn] account.update: {str(e)}")
 
-    run_test_section("Account get + update", account_ops)
+    run_stable_section("Account get + update", account_ops, unstable=True)
 
     print("\n[DONE] Account Resource Testing Completed.")
 

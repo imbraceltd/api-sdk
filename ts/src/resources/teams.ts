@@ -77,7 +77,7 @@ export class TeamsResource {
   }
 
   async list(params?: { type?: string; limit?: number; skip?: number; q?: string }): Promise<PagedResponse<Team>> {
-    const url = new URL(`${this.v2}/teams`)
+    const url = new URL(`${this.v1}/teams`)
     if (params?.type)   url.searchParams.set("type",  params.type)
     if (params?.limit)  url.searchParams.set("limit", String(params.limit))
     if (params?.skip !== undefined) url.searchParams.set("skip", String(params.skip))
@@ -169,5 +169,12 @@ export class TeamsResource {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
+  }
+
+  async getInviteList(teamId: string): Promise<PagedResponse<any>> {
+    const url = new URL(`${this.v2}/team_users/_invite_list`)
+    url.searchParams.set("type", "team_id")
+    url.searchParams.set("team_id", teamId)
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 }

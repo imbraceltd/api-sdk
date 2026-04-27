@@ -12,6 +12,7 @@ import { testMultiAgent } from "./test-multi-agent.js";
 import { testCrmAdvanced } from "./test-crm-advanced.js";
 import { testMultimediaAi } from "./test-multimedia-ai.js";
 import { testSettings } from "./test-settings.js";
+import { testErrorPaths } from "./test-error-paths.js";
 import { apiKey, accessToken, baseUrl } from "../utils/utils.js";
 
 async function runAllTests() {
@@ -37,6 +38,7 @@ async function runAllTests() {
     { name: "CRM Advanced", fn: testCrmAdvanced },
     { name: "Multimedia AI", fn: testMultimediaAi },
     { name: "Settings", fn: testSettings },
+    { name: "Error Paths", fn: testErrorPaths },
   ];
 
   let passed = 0;

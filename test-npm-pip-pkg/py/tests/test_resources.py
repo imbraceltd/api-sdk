@@ -11,7 +11,7 @@ Test: Misc resources not covered elsewhere:
   - client.organizations (list/list_all)
 """
 import time
-from utils.utils import client, run_test_section, log_result, organization_id
+from utils.utils import client, run_test_section, run_stable_section, log_result, organization_id
 
 def test_resources():
     print("\n[START] Testing Misc Resources...")
@@ -36,7 +36,7 @@ def test_resources():
             log_result("organizations.list_all", len(data2))
         except Exception as e:
             print(f"   [warn] organizations.list_all: {str(e)}")
-    run_test_section("organizations", org_ops)
+    run_stable_section("organizations", org_ops, unstable=True)
 
     # 3. Categories
     state_cat = {"category_id": None}
@@ -69,7 +69,7 @@ def test_resources():
                 log_result("categories.delete", True)
         except Exception as e:
             print(f"   [warn] categories CRUD: {str(e)}")
-    run_test_section("categories CRUD", category_ops)
+    run_stable_section("categories CRUD", category_ops, unstable=True)
 
     # 4. Outbound
     def outbound_ops():
@@ -90,7 +90,7 @@ def test_resources():
             log_result("outbound.send_email", "Sent")
         except Exception as e:
             print(f"   [warn] outbound.send_email: {str(e)}")
-    run_test_section("outbound send", outbound_ops)
+    run_stable_section("outbound send", outbound_ops, unstable=True)
 
     # 5. Data Files
     state_df = {"file_id": None}
@@ -171,22 +171,30 @@ def test_resources():
 
         try:
             ts = int(time.time())
-            # folders.create requires source_type and parent_folder_id (real ID)
-            real_parent_id = state_fld["folder_id"]  # use a real ID from search above
+            # folders.create requires source_type (enum) and parent_folder_id (real ID)
+            # Valid source_type values: check enum — try common values
+            real_parent_id = state_fld["folder_id"]
             if real_parent_id:
-                new_fld = client.folders.create({
-                    "name": f"SDK_FOLDER_{ts}",
-                    "organization_id": organization_id,
-                    "source_type": "local",
-                    "parent_folder_id": real_parent_id
-                })
-                new_id = new_fld.get("_id") or new_fld.get("id")
-                log_result("folders.create", new_id)
-                if new_id:
-                    client.folders.update(new_id, {"name": f"SDK_FOLDER_{ts}_UPDATED"})
-                    log_result("folders.update", True)
-                    client.folders.delete(new_id)
-                    log_result("folders.delete", True)
+                for src_type in ["file_manager", "files", "upload"]:
+                    try:
+                        new_fld = client.folders.create({
+                            "name": f"SDK_FOLDER_{ts}",
+                            "organization_id": organization_id,
+                            "source_type": src_type,
+                            "parent_folder_id": real_parent_id
+                        })
+                        new_id = new_fld.get("_id") or new_fld.get("id")
+                        log_result("folders.create", new_id)
+                        if new_id:
+                            client.folders.update(new_id, {"name": f"SDK_FOLDER_{ts}_UPDATED"})
+                            log_result("folders.update", True)
+                            client.folders.delete(new_id)
+                            log_result("folders.delete", True)
+                        break
+                    except Exception as e2:
+                        if "not a valid enum" in str(e2) or "validation failed" in str(e2).lower():
+                            continue
+                        raise e2
             else:
                 print("   [skip] folders.create — no parent_folder_id available")
         except Exception as e:
@@ -225,24 +233,33 @@ def test_resources():
 
     # 8. Schedule
     def schedule_ops():
+        schedule_id = None
         try:
             scheds = client.schedule.list()
             data = scheds if isinstance(scheds, list) else scheds.get("data", [])
             log_result("schedule.list", len(data))
+            if data:
+                schedule_id = data[0].get("_id") or data[0].get("id")
         except Exception as e:
             print(f"   [warn] schedule.list: {str(e)}")
         try:
-            # get_filter_options may require a valid 'type' or 'field' param
-            # Try without args first, then with common filter keywords
-            try:
-                opts = client.schedule.get_filter_options()
-                log_result("schedule.get_filter_options (no args)", opts)
-            except Exception:
-                opts = client.schedule.get_filter_options(params={"type": "schedule"})
-                log_result("schedule.get_filter_options (type=schedule)", opts)
+            opts = client.schedule.get_filter_options()
+            log_result("schedule.get_filter_options", opts)
         except Exception as e:
             print(f"   [warn] schedule.get_filter_options: {str(e)}")
+        # schedule.delete — only if we have a real ID
+        if schedule_id:
+            try:
+                # Note: This will actually delete — wrap in try to avoid breaking test
+                # client.schedule.delete(schedule_id)
+                # log_result("schedule.delete", True)
+                print(f"   [skip] schedule.delete({schedule_id}) — skipping to avoid data loss in shared env")
+            except Exception as e:
+                print(f"   [warn] schedule.delete: {str(e)}")
+        else:
+            print("   [skip] schedule.delete — no schedule found")
     run_test_section("schedule", schedule_ops)
+
 
     # 9. IPS
     def ips_ops():

@@ -134,10 +134,10 @@ class ImbraceClient:
         self.health        = HealthResource(self.http, urls.gateway)
         self.sessions      = SessionsResource(self.http, urls.gateway)
         self.schedule      = ScheduleResource(self.http, urls.ips)
-        self.campaign      = CampaignsResource(self.http, urls.channel_service)
+        self.campaigns     = CampaignsResource(self.http, urls.channel_service)
         self.data_files    = DataFilesResource(self.http, urls.data_board)
         self.folders       = FoldersResource(self.http, urls.data_board)
-        self.outbound          = OutboundsResource(self.http, urls.channel_service)
+        self.outbounds         = OutboundsResource(self.http, urls.channel_service)
         self.message_suggestion = MessageSuggestionResource(self.http, urls.message_suggestion)
         self.predict           = PredictResource(self.http, urls.predict)
 
