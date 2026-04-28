@@ -46,6 +46,17 @@ export default defineConfig({
           ],
         },
         {
+          label: 'SDK',
+          translations: { vi: 'SDK', 'zh-CN': 'SDK', 'zh-TW': 'SDK' },
+          items: [
+            { label: 'Overview',         link: '/sdk/overview/' },
+            { label: 'Installation',     link: '/sdk/installation/' },
+            { label: 'Quick Start',      link: '/sdk/quick-start/' },
+            { label: 'Authentication',   link: '/sdk/authentication/' },
+            { label: 'Full Flow Guide',  link: '/sdk/full-flow-guide/' },
+          ],
+        },
+        {
           label: 'TypeScript SDK',
           items: [
             {
