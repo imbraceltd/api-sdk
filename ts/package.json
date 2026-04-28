@@ -1,6 +1,6 @@
 {
   "name": "@imbrace/sdk",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Official TypeScript/JavaScript SDK for Imbrace — dual auth (API Key + Access Token)",
   "type": "module",
   "license": "MIT",
@@ -38,6 +38,30 @@
       "import": "./dist/resources/platform.js",
       "types": "./dist/resources/platform.d.ts"
     },
+    "./resources/organizations": {
+      "import": "./dist/resources/organizations.js",
+      "types": "./dist/resources/organizations.d.ts"
+    },
+    "./resources/teams": {
+      "import": "./dist/resources/teams.js",
+      "types": "./dist/resources/teams.d.ts"
+    },
+    "./resources/contacts": {
+      "import": "./dist/resources/contacts.js",
+      "types": "./dist/resources/contacts.d.ts"
+    },
+    "./resources/conversations": {
+      "import": "./dist/resources/conversations.js",
+      "types": "./dist/resources/conversations.d.ts"
+    },
+    "./resources/messages": {
+      "import": "./dist/resources/messages.js",
+      "types": "./dist/resources/messages.d.ts"
+    },
+    "./resources/settings": {
+      "import": "./dist/resources/settings.js",
+      "types": "./dist/resources/settings.d.ts"
+    },
     "./resources/channel": {
       "import": "./dist/resources/channel.js",
       "types": "./dist/resources/channel.d.ts"
@@ -53,6 +77,22 @@
     "./resources/ai": {
       "import": "./dist/resources/ai.js",
       "types": "./dist/resources/ai.d.ts"
+    },
+    "./resources/boards": {
+      "import": "./dist/resources/boards.js",
+      "types": "./dist/resources/boards.d.ts"
+    },
+    "./resources/chat-ai": {
+      "import": "./dist/resources/chat-ai.js",
+      "types": "./dist/resources/chat-ai.d.ts"
+    },
+    "./resources/ai-agent": {
+      "import": "./dist/resources/ai-agent.js",
+      "types": "./dist/resources/ai-agent.d.ts"
+    },
+    "./resources/activepieces": {
+      "import": "./dist/resources/activepieces.js",
+      "types": "./dist/resources/activepieces.d.ts"
     }
   },
   "files": [

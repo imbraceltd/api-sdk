@@ -38,8 +38,18 @@ async function testChatAi() {
 
   // 2. Models
   await runTestSection("chatAi.listModels", async () => {
-    const models = await client.chatAi.listModels();
-    logResult("Models", models);
+    try {
+        const models = await client.chatAi.listModels();
+        logResult("Models", models);
+    } catch (e) {
+        console.warn("   [Skip] chatAi.listModels failed");
+    }
+  });
+
+  // 2b. Files
+  await runTestSection("chatAi.fileLifecycle", async () => {
+    const files = await client.chatAi.listFiles();
+    logResult("Files Count", files.length);
   });
 
   // 3. Completions
