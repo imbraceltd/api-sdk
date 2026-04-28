@@ -76,10 +76,8 @@ convs = client.conversations.search(
     business_unit_id="bu_xxx", q="support", limit=20
 ).get("data", [])
 
-# Conversations chưa xử lý
-open_convs = client.conversations.get_outstanding(
-    business_unit_id="bu_xxx", limit=50
-).get("data", [])
+# Liệt kê tất cả conversations (có thể lọc)
+all_convs = client.conversations.list(limit=50).get("data", [])
 
 # Cập nhật trạng thái
 client.conversations.update_status({
@@ -117,6 +115,62 @@ automations = client.workflows.list_channel_automation().get("data", [])
 
 # Lọc theo loại kênh
 whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+---
+
+### Campaigns & Touchpoints
+
+Quản lý chiến dịch marketing và các bước touchpoint của chiến dịch.
+
+```python
+# Campaign CRUD
+campaigns = client.campaign.list().get("data", [])
+campaign  = client.campaign.get("campaign_id")
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+client.campaign.delete("campaign_id")
+
+# Touchpoints trong chiến dịch
+touchpoints = client.campaign.list_touchpoints().get("data", [])
+tp = client.campaign.get_touchpoint("touchpoint_id")
+
+client.campaign.create_touchpoint({
+    "campaign_id": "campaign_id",
+    "type":        "email",
+    "delay_days":  3,
+})
+client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
+client.campaign.delete_touchpoint("touchpoint_id")
+
+# Kiểm tra cấu hình touchpoint trước khi lưu
+result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
+```
+
+---
+
+### Gợi Ý Tin Nhắn
+
+Gợi ý câu trả lời tự động dựa trên ngữ cảnh hội thoại.
+
+```python
+suggestions = client.message_suggestion.get_suggestions({
+    "conversation_id": "conv_xxx",
+    "limit": 3,
+})
+```
+
+---
+
+### Dự Đoán (Predict)
+
+Gửi dữ liệu đầu vào đến dịch vụ dự đoán để chấm điểm hoặc phân loại bằng ML.
+
+```python
+result = client.predict.predict({
+    "model": "lead_score_v1",
+    "input": {"company_size": 200, "industry": "saas", "mrr": 5000},
+})
+print(result["score"])   # 0.87
 ```
 
 ---

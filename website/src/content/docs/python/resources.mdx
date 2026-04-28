@@ -75,7 +75,7 @@ csv = client.boards.export_csv("board_id")
 
 ### Conversations
 
-Manage customer conversations — view, assign, and update status.
+Manage customer conversations — view, search, and update status.
 
 ```python
 # Search conversations
@@ -86,10 +86,8 @@ result = client.conversations.search(
 )
 convs = result.get("data", [])
 
-# Get outstanding (unresolved) conversations
-open_convs = client.conversations.get_outstanding(
-    business_unit_id="bu_xxx", limit=50
-).get("data", [])
+# List all conversations (with optional filters)
+all_convs = client.conversations.list(limit=50).get("data", [])
 
 # Update conversation status
 client.conversations.update_status({
@@ -130,6 +128,62 @@ automations = client.workflows.list_channel_automation().get("data", [])
 
 # Filter by channel type
 whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+---
+
+### Campaigns & Touchpoints
+
+Manage marketing campaigns and their associated touchpoints (communication steps).
+
+```python
+# Campaign CRUD
+campaigns = client.campaign.list().get("data", [])
+campaign  = client.campaign.get("campaign_id")
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+client.campaign.delete("campaign_id")
+
+# Touchpoints within a campaign
+touchpoints = client.campaign.list_touchpoints().get("data", [])
+tp = client.campaign.get_touchpoint("touchpoint_id")
+
+client.campaign.create_touchpoint({
+    "campaign_id": "campaign_id",
+    "type":        "email",
+    "delay_days":  3,
+})
+client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
+client.campaign.delete_touchpoint("touchpoint_id")
+
+# Validate touchpoint config before saving
+result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
+```
+
+---
+
+### Message Suggestion
+
+AI-powered reply suggestions based on conversation context.
+
+```python
+suggestions = client.message_suggestion.get_suggestions({
+    "conversation_id": "conv_xxx",
+    "limit": 3,
+})
+```
+
+---
+
+### Predict
+
+Send input data to the prediction service for ML-based scoring or classification.
+
+```python
+result = client.predict.predict({
+    "model": "lead_score_v1",
+    "input": {"company_size": 200, "industry": "saas", "mrr": 5000},
+})
+print(result["score"])   # 0.87
 ```
 
 ---

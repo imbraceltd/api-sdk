@@ -169,7 +169,7 @@ npm run test:all
 | 测试用例                                 | 场景                 | 检查内容                                        |
 | ---------------------------------------- | -------------------- | ----------------------------------------------- |
 | `test_get_success`                       | 服务器返回 200       | 响应正确解析                                    |
-| `test_sets_api_key_header`               | 使用 `api_key` 请求  | 请求中包含 `x-access-token` 头                  |
+| `test_sets_api_key_header`               | 使用 `api_key` 请求  | 请求中包含 `x-api-key` 头                       |
 | `test_sets_bearer_token_header`          | 使用 access token    | 令牌覆盖 api_key                                |
 | `test_401_raises_auth_error`             | 服务器返回 401       | 抛出 `AuthError`，不重试                        |
 | `test_403_raises_auth_error`             | 服务器返回 403       | 抛出 `AuthError`，不重试                        |
@@ -191,22 +191,25 @@ npm run test:all
 
 #### `tests/unit/resources/` — 资源测试
 
-| 文件                    | 测试的 Endpoint                                     |
-| ----------------------- | --------------------------------------------------- |
-| `test_account.py`       | `GET /v1/backend/account`                           |
-| `test_agent.py`         | `GET/POST/PATCH/DELETE /v2/backend/templates`       |
-| `test_ai.py`            | AI 补全、嵌入、流式传输                             |
-| `test_auth.py`          | OTP 登录、验证、登出                                |
-| `test_boards.py`        | 看板 CRUD、条目、搜索、导出 CSV                     |
-| `test_channel.py`       | 频道列表、获取、删除、会话计数                      |
-| `test_contacts.py`      | 联系人列表、搜索、更新、通知                        |
-| `test_conversations.py` | 视图计数、创建、搜索                                |
-| `test_messages.py`      | 列表、发送（文本/图片）                             |
-| `test_organizations.py` | 列表、分页、认证头                                  |
-| `test_sessions.py`      | 会话列表、目录过滤                                  |
-| `test_settings.py`      | 消息模板、用户、批量邀请                            |
-| `test_teams.py`         | 列表、我的团队、添加/移除用户                       |
-| `test_workflows.py`     | 列表、标签过滤、频道自动化、创建/更新               |
+| 文件                         | 测试的 Endpoint                                          |
+| ---------------------------- | -------------------------------------------------------- |
+| `test_account.py`            | `GET /v1/backend/account`                                |
+| `test_agent.py`              | `GET/POST/PATCH/DELETE /v2/backend/templates`            |
+| `test_ai.py`                 | AI 补全、嵌入、流式传输                                  |
+| `test_auth.py`               | OTP 登录、验证、登出                                     |
+| `test_boards.py`             | 看板 CRUD、条目、搜索、导出 CSV                          |
+| `test_campaigns.py`          | 营销活动 CRUD、触点 list/get/create/update/delete/validate |
+| `test_channel.py`            | 频道列表、获取、删除、会话计数                           |
+| `test_contacts.py`           | 联系人列表、搜索、更新、通知                             |
+| `test_conversations.py`      | 视图计数、创建、搜索                                     |
+| `test_messages.py`           | 列表、发送（文本/图片）                                  |
+| `test_message_suggestion.py` | `POST /v1/message-suggestion` — AI 消息建议              |
+| `test_organizations.py`      | 列表、分页、认证头                                       |
+| `test_predict.py`            | `POST /predict/` — ML 评分                               |
+| `test_sessions.py`           | 会话列表、目录过滤                                       |
+| `test_settings.py`           | 消息模板、用户、批量邀请                                 |
+| `test_teams.py`              | 列表、我的团队、添加/移除用户                            |
+| `test_workflows.py`          | 列表、标签过滤、频道自动化、创建/更新                    |
 
 ---
 

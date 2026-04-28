@@ -55,7 +55,7 @@ class AuthResource:
 
     @property
     def _v1(self) -> str:
-        return f"{self._base}/v1"
+        return self._base
 
     # --- Third-party token (API Key generation) ---
     def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
@@ -100,10 +100,10 @@ class AuthResource:
         return self._http.request("POST", f"{self._v1}/sso/login-success", json=body).json()
 
     # --- Access token ---
-    def exchange_access_token(self, token: str, organization_id: str) -> ExchangeTokenResponse:
+    def exchange_access_token(self, organization_id: str) -> ExchangeTokenResponse:
         return self._http.request(
             "POST", f"{self._v1}/access/_exchange_access_token",
-            json={"token": token, "organization_id": organization_id},
+            json={"organization_id": organization_id},
         ).json()
 
     def exchange_access_token_with_token(self, body: ExchangeAccessTokenWithTokenInput) -> ExchangeTokenResponse:
@@ -167,7 +167,7 @@ class AsyncAuthResource:
 
     @property
     def _v1(self) -> str:
-        return f"{self._base}/v1"
+        return self._base
 
     async def get_third_party_token(self, expiration_days: int = 10) -> ImbraceApiKeyResponse:
         res = await self._http.request(
@@ -211,10 +211,10 @@ class AsyncAuthResource:
         res = await self._http.request("POST", f"{self._v1}/sso/login-success", json=body)
         return res.json()
 
-    async def exchange_access_token(self, token: str, organization_id: str) -> ExchangeTokenResponse:
+    async def exchange_access_token(self, organization_id: str) -> ExchangeTokenResponse:
         res = await self._http.request(
             "POST", f"{self._v1}/access/_exchange_access_token",
-            json={"token": token, "organization_id": organization_id},
+            json={"organization_id": organization_id},
         )
         return res.json()
 

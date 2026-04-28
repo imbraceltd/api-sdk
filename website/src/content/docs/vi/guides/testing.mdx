@@ -169,7 +169,7 @@ Dùng `pytest-httpx` để giả lập server — không có request thật.
 | Test case                                | Kịch bản                 | Kiểm tra                                        |
 | ---------------------------------------- | ------------------------ | ----------------------------------------------- |
 | `test_get_success`                       | Server trả 200           | Response parse đúng                             |
-| `test_sets_api_key_header`               | Request với `api_key`    | Header `x-access-token` có trong request        |
+| `test_sets_api_key_header`               | Request với `api_key`    | Header `x-api-key` có trong request             |
 | `test_sets_bearer_token_header`          | Request với access token | Token đè lên api_key                            |
 | `test_401_raises_auth_error`             | Server trả 401           | Raise `AuthError`, không retry                  |
 | `test_403_raises_auth_error`             | Server trả 403           | Raise `AuthError`, không retry                  |
@@ -191,22 +191,25 @@ Dùng `pytest-httpx` để giả lập server — không có request thật.
 
 #### `tests/unit/resources/` — Resource tests
 
-| File                    | Endpoint kiểm tra                                   |
-| ----------------------- | --------------------------------------------------- |
-| `test_account.py`       | `GET /v1/backend/account`                           |
-| `test_agent.py`         | `GET/POST/PATCH/DELETE /v2/backend/templates`       |
-| `test_ai.py`            | AI completion, embedding, streaming                 |
-| `test_auth.py`          | OTP signin, verify, signout                         |
-| `test_boards.py`        | Board CRUD, items, search, export CSV               |
-| `test_channel.py`       | Channel list, get, delete, conv count               |
-| `test_contacts.py`      | Contacts list, search, update, notifications        |
-| `test_conversations.py` | Views count, create, search                         |
-| `test_messages.py`      | List, send (text/image)                             |
-| `test_organizations.py` | List, pagination, auth header                       |
-| `test_sessions.py`      | List sessions, directory filter                     |
-| `test_settings.py`      | Message templates, users, bulk invite               |
-| `test_teams.py`         | List, my teams, add/remove users                    |
-| `test_workflows.py`     | List, tag filter, channel automation, create/update |
+| File                         | Endpoint kiểm tra                                          |
+| ---------------------------- | ---------------------------------------------------------- |
+| `test_account.py`            | `GET /v1/backend/account`                                  |
+| `test_agent.py`              | `GET/POST/PATCH/DELETE /v2/backend/templates`              |
+| `test_ai.py`                 | AI completion, embedding, streaming                        |
+| `test_auth.py`               | OTP signin, verify, signout                                |
+| `test_boards.py`             | Board CRUD, items, search, export CSV                      |
+| `test_campaigns.py`          | Campaign CRUD, touchpoints list/get/create/update/delete/validate |
+| `test_channel.py`            | Channel list, get, delete, conv count                      |
+| `test_contacts.py`           | Contacts list, search, update, notifications               |
+| `test_conversations.py`      | Views count, create, search                                |
+| `test_messages.py`           | List, send (text/image)                                    |
+| `test_message_suggestion.py` | `POST /v1/message-suggestion` — gợi ý câu trả lời AI      |
+| `test_organizations.py`      | List, pagination, auth header                              |
+| `test_predict.py`            | `POST /predict/` — chấm điểm ML                           |
+| `test_sessions.py`           | List sessions, directory filter                            |
+| `test_settings.py`           | Message templates, users, bulk invite                      |
+| `test_teams.py`              | List, my teams, add/remove users                           |
+| `test_workflows.py`          | List, tag filter, channel automation, create/update        |
 
 ---
 

@@ -39,7 +39,7 @@ pnpm add @imbrace/sdk
 
 ```bash
 # 步骤 1 — 安装依赖并构建
-cd sdk/ts
+cd ts
 npm install
 npm run build
 
@@ -74,7 +74,7 @@ uv add imbrace
 **Monorepo / 本地开发（可编辑模式）：**
 
 ```bash
-cd sdk/py
+cd py
 pip install -e ".[dev]"
 ```
 
@@ -362,7 +362,7 @@ client = ImbraceClient(
 
 ##### `Cannot find package '@imbrace/sdk'`
 
-包未链接。从 `sdk/ts` 重新运行：
+包未链接。从 `ts` 重新运行：
 
 ```bash
 npm link
@@ -374,13 +374,13 @@ cd /path/to/your-project && npm link @imbrace/sdk
 包尚未构建：
 
 ```bash
-cd sdk/ts && npm run build
+cd ts && npm run build
 ```
 
 ##### `ModuleNotFoundError: No module named 'imbrace'`
 
 ```bash
-cd sdk/py && pip install -e ".[dev]"
+cd py && pip install -e ".[dev]"
 ```
 
 ##### `401 Unauthorized`

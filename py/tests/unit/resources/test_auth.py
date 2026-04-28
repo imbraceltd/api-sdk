@@ -8,8 +8,8 @@ from imbrace import ImbraceClient
 GW = "https://app-gatewayv2.imbrace.co"
 # third-party token (API key generation) — requires access token, routes via private backend
 TOKEN_URL = f"{GW}/private/backend/v1/third_party_token"
-# auth login uses platform service
-LOGIN_V1 = f"{GW}/platform/v1/login"
+# auth login uses backend service (${GW}/v1/backend)
+LOGIN_V1 = f"{GW}/v1/backend/login"
 
 
 @pytest.fixture
@@ -69,7 +69,25 @@ def test_signin_email_request(httpx_mock: HTTPXMock, client):
 
 def test_exchange_access_token(httpx_mock: HTTPXMock, client):
     payload = {"access_token": "tok_org"}
-    url = f"{GW}/platform/v1/access/_exchange_access_token"
+    url = f"{GW}/v1/backend/access/_exchange_access_token"
     httpx_mock.add_response(url=url, json=payload)
-    result = client.auth.exchange_access_token("tok_root", "org_123")
+    result = client.auth.exchange_access_token("org_123")
     assert result["access_token"] == "tok_org"
+
+
+def test_signin_with_email_otp(httpx_mock: HTTPXMock, client):
+    httpx_mock.add_response(url=f"{LOGIN_V1}/_signin_with_email", json={"accessToken": "tok_otp"})
+    result = client.auth.signin_with_email("user@test.co", "123456")
+    assert result["accessToken"] == "tok_otp"
+    req = httpx_mock.get_requests()[0]
+    body = json.loads(req.content)
+    assert body["email"] == "user@test.co"
+    assert body["otp"] == "123456"
+
+
+def test_login_stores_token(httpx_mock: HTTPXMock):
+    c = ImbraceClient(api_key="test_key")
+    httpx_mock.add_response(url=f"{LOGIN_V1}/sign_in", json={"accessToken": "tok_stored"})
+    c.login("user@test.co", "pass123")
+    assert c.token_manager.get_token() == "tok_stored"
+    c.close()

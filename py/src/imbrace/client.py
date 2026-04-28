@@ -30,7 +30,8 @@ from .resources.campaigns import CampaignsResource
 from .resources.data_files import DataFilesResource
 from .resources.folders import FoldersResource
 from .resources.outbounds import OutboundsResource
-from .resources.touchpoints import TouchpointsResource
+from .resources.message_suggestion import MessageSuggestionResource
+from .resources.predict import PredictResource
 from .resources.chat_ai import ChatAiResource
 from .resources.file_service import FileServiceResource
 from .resources.activepieces import ActivePiecesResource
@@ -98,8 +99,8 @@ class ImbraceClient:
             organization_id=organization_id,
         )
 
-        # Auth & Account - platform service
-        self.auth          = AuthResource(self.http, urls.platform, urls.gateway)
+        # Auth — backend service (${gw}/v1/backend)
+        self.auth          = AuthResource(self.http, urls.backend, urls.gateway)
         self.account       = AccountResource(self.http, urls.platform)
 
         # Platform group
@@ -136,8 +137,9 @@ class ImbraceClient:
         self.campaign      = CampaignsResource(self.http, urls.channel_service)
         self.data_files    = DataFilesResource(self.http, urls.data_board)
         self.folders       = FoldersResource(self.http, urls.data_board)
-        self.outbound      = OutboundsResource(self.http, urls.channel_service)
-        self.touchpoints   = TouchpointsResource(self.http, urls.channel_service)
+        self.outbound          = OutboundsResource(self.http, urls.channel_service)
+        self.message_suggestion = MessageSuggestionResource(self.http, urls.message_suggestion)
+        self.predict           = PredictResource(self.http, urls.predict)
 
         # New services
         self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3")

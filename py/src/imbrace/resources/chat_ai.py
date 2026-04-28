@@ -194,6 +194,37 @@ class ChatAiResource:
         """List LLM providers configured by the user — these are the models available for document AI."""
         return self._http.request("GET", f"{self._base}/ai/providers").json()
 
+    # --- Assistants ---
+
+    def list_assistants(self) -> List[Dict[str, Any]]:
+        """List all assistants for the account."""
+        return self._http.request("GET", f"{self._base}/accounts/assistants").json()
+
+    def get_assistant(self, assistant_id: str) -> Dict[str, Any]:
+        """Get assistant by UUID."""
+        return self._http.request("GET", f"{self._base}/assistants/{assistant_id}").json()
+
+    def create_assistant(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new assistant. Required: name, workflow_name."""
+        return self._http.request("POST", f"{self._base}/assistant_apps", json=body).json()
+
+    def update_assistant(self, assistant_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Update assistant by UUID."""
+        return self._http.request("PUT", f"{self._base}/assistant_apps/{assistant_id}", json=body).json()
+
+    def delete_assistant(self, assistant_id: str) -> bool:
+        """Delete assistant by UUID."""
+        r = self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
+        return r.ok
+
+    def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
+        """Update only the instructions field of an assistant."""
+        return self._http.request("PATCH", f"{self._base}/assistants/{assistant_id}/instructions", json={"instructions": instructions}).json()
+
+    def list_assistant_agents(self) -> List[Dict[str, Any]]:
+        """List all assistant agents."""
+        return self._http.request("GET", f"{self._base}/assistants/agents").json()
+
 
 class AsyncChatAiResource:
     def __init__(self, http: AsyncHttpTransport, base: str):
@@ -419,4 +450,41 @@ class AsyncChatAiResource:
     async def list_document_models(self) -> List[Dict[str, Any]]:
         """List LLM providers configured by the user — these are the models available for document AI (async)."""
         res = await self._http.request("GET", f"{self._base}/providers")
+        return res.json()
+
+    # --- Assistants ---
+
+    async def list_assistants(self) -> List[Dict[str, Any]]:
+        """List all assistants for the account (async)."""
+        res = await self._http.request("GET", f"{self._base}/accounts/assistants")
+        return res.json()
+
+    async def get_assistant(self, assistant_id: str) -> Dict[str, Any]:
+        """Get assistant by UUID (async)."""
+        res = await self._http.request("GET", f"{self._base}/assistants/{assistant_id}")
+        return res.json()
+
+    async def create_assistant(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new assistant. Required: name, workflow_name (async)."""
+        res = await self._http.request("POST", f"{self._base}/assistant_apps", json=body)
+        return res.json()
+
+    async def update_assistant(self, assistant_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Update assistant by UUID (async)."""
+        res = await self._http.request("PUT", f"{self._base}/assistant_apps/{assistant_id}", json=body)
+        return res.json()
+
+    async def delete_assistant(self, assistant_id: str) -> bool:
+        """Delete assistant by UUID (async)."""
+        r = await self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
+        return r.ok
+
+    async def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
+        """Update only the instructions field of an assistant (async)."""
+        res = await self._http.request("PATCH", f"{self._base}/assistants/{assistant_id}/instructions", json={"instructions": instructions})
+        return res.json()
+
+    async def list_assistant_agents(self) -> List[Dict[str, Any]]:
+        """List all assistant agents (async)."""
+        res = await self._http.request("GET", f"{self._base}/assistants/agents")
         return res.json()
