@@ -3,18 +3,48 @@ title: Python SDK — 身份驗證
 description: Imbrace Python SDK 中的 API Key 和 Access Token。
 ---
 
-SDK 支援兩種認證策略。向建構函式傳入 `api_key` 或 `access_token` — transport 自動處理請求標頭。
+SDK 支援兩種憑證類型。向建構函式傳入 `api_key` 或 `access_token` — transport 自動處理請求標頭。
 
-### 認證策略
+### 我該選哪種憑證？
 
-| 策略             | 使用場景                                    | 發送的請求標頭            |
-| ---------------- | ------------------------------------------- | ------------------------- |
-| **API Key**      | 後端腳本、Celery 任務、伺服器端呼叫         | `x-api-key: sk-xxx...`    |
-| **Access Token** | 使用者登入後（OTP 或密碼）                  | `x-access-token: acc_...` |
+選擇取決於**Imbrace 在你的產品中扮演什麼角色**：
+
+#### 在 Imbrace 之上開發 → 使用 Access Token
+
+Imbrace **就是**你的後端。你的終端使用者登入 Imbrace（透過 OTP 或密碼），他們的 `acc_...` access token 就是 SDK 在每個請求送出的憑證。Imbrace 的身份驗證、資料庫、業務邏輯（assistants、knowledge hubs、workflows、AI agents）全都以該登入使用者的身份執行。
+
+典型產品：chat widget、dashboard 或 mobile app，每位使用者就是 Imbrace 的使用者。Imbrace 自動以該 user 為單位記錄 history、permissions 與審計記錄。
+
+#### 包裝 Imbrace → 使用 API Key
+
+你有自己的後端、自己的使用者、自己的資料庫。Imbrace 只是你服務呼叫的**其中一項能力** —「用 Imbrace 的 AI 回答這個」 — 與你正在做的其他事並列。你的終端使用者完全不知道 Imbrace 存在；你的服務以一組由 Imbrace org 管理員核發的 org 級 `api_...` key 呼叫 Imbrace。Imbrace 只看到一個身份（API key 對應的 service account），per-user attribution 由你自己負責。
+
+典型產品：既有的 CRM、客服系統或內部工具，把 Imbrace 嵌入為一個功能。一組憑證放在 env file 裡服務所有請求。
+
+| | 在 Imbrace 之上開發（Access Token） | 包裝 Imbrace（API Key） |
+| --- | --- | --- |
+| **由誰執行 auth？** | Imbrace（OTP／密碼登入） | 你（你自己的 auth） |
+| **誰的使用者？** | Imbrace 的 user | 你的 user |
+| **以誰的 DB 為主？** | Imbrace 的 | 你的 |
+| **Imbrace 看到的身份** | 真正的終端使用者 | 一個 service account |
+| **上游 per-user 審計** | 內建 | 由你處理 |
+| **憑證存活時間** | session 內；按需刷新 | 長期；不會自行過期 |
+| **發送的請求標頭** | `x-access-token: acc_...` | `x-api-key: api_...` |
+
+> 兩種憑證皆為一級支援。大部分資源接受兩者。少數依賴使用者上下文的功能（document artifacts、各 user 自己的 chat history）只在 access token 模式下有意義。
+
+### 標頭對照
+
+| 憑證 | 發送的請求標頭 |
+| --- | --- |
+| `api_key` | `x-api-key: api_xxx...` |
+| `access_token` | `x-access-token: acc_xxx...` |
+
+Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 都綁定到唯一一個 org。Gateway 從你送出的憑證即可解析 org，**完全不需要**傳 `organization_id` 給 SDK。
 
 ---
 
-### API Key（伺服器端）
+### API Key
 
 ```python
 import os
@@ -27,7 +57,7 @@ client = ImbraceClient(
 
 ---
 
-### Access Token（客戶端）
+### Access Token
 
 使用者認證後使用：
 
