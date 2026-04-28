@@ -53,8 +53,14 @@ file-service
 chat-ai
 # test-local-pkg
 # test-npm-pkg
-docs2 
-
+docsv2 
+docsv1
+docsv3
+docsv4
+docsv5
+docsv6
+#
+API-document
 #Claude
 .claude/
 .claude/commands/
@@ -62,3 +68,4 @@ docs2
 .claude/skill/
 .claude/skill/skill.md
 .claude/skill/skill.yaml
+.obsidian
