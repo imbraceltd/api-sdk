@@ -34,11 +34,19 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      workflow_name: "support_bot_v1",
      description: "Handles tier-1 customer support queries",
      instructions: "You are a helpful support agent. Be concise and friendly.",
+     provider_id: "system",   // use the org's default LLM provider
+     model_id: "gpt-4o",      // any model name the system provider exposes
    })
 
    const assistantId = assistant.id  // UUID — use this for all subsequent calls
    console.log("Assistant created:", assistantId)
    ```
+
+   `provider_id` and `model_id` are required. Pass `provider_id: "system"`
+   to delegate to the org's default LLM provider, or pass a custom
+   provider's UUID. With `provider_id: "system"`, `model_id` accepts a
+   model name like `"gpt-4o"`, or the literal `"Default"` to fall back
+   to the system default model.
 
 3. **Stream a chat response using the assistant**
 
@@ -124,7 +132,39 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    console.log("Flow created:", flow.id)
    ```
 
-3. **Trigger the flow manually with a payload**
+3. **Add a Webhook trigger and publish the flow**
+
+   A freshly created flow is in **DRAFT** with no trigger — the webhook
+   URL doesn't exist yet, so `triggerFlow` would 404. Add the Webhook
+   piece as the trigger, then publish:
+
+   ```typescript
+   // Set the Webhook piece as the flow's trigger
+   await client.activepieces.applyFlowOperation(flow.id, {
+     type: "UPDATE_TRIGGER",
+     request: {
+       name: "trigger",
+       type: "PIECE_TRIGGER",
+       valid: true,
+       displayName: "Webhook",
+       settings: {
+         pieceName: "@activepieces/piece-webhook",
+         pieceVersion: "0.1.24",
+         triggerName: "catch_webhook",
+         input: { authType: "none" },
+         propertySettings: {},
+       },
+     },
+   })
+
+   // Publish — flow status flips DISABLED → ENABLED and webhook URL becomes live
+   await client.activepieces.applyFlowOperation(flow.id, {
+     type: "LOCK_AND_PUBLISH",
+     request: {},
+   })
+   ```
+
+4. **Trigger the flow manually with a payload**
 
    ```typescript
    // Fire and forget (async)
@@ -133,7 +173,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      email: "jane@example.com",
    })
 
-   // Or wait for the result (sync)
+   // Sync trigger — for this to actually return data instead of timing out,
+   // the flow needs a "Return Response" action added via applyFlowOperation
+   // ADD_ACTION (otherwise the gateway waits 30s for a response and gives up).
    const result = await client.activepieces.triggerFlowSync(flow.id, {
      contact_name: "Jane Smith",
      email: "jane@example.com",
@@ -141,7 +183,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    console.log("Flow result:", result)
    ```
 
-4. **Bind the flow to your assistant**
+5. **Bind the flow to your assistant**
 
    Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
 
@@ -156,7 +198,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    })
    ```
 
-5. **Check run history**
+6. **Check run history**
 
    ```typescript
    const { data: runs } = await client.activepieces.listRuns({
@@ -207,13 +249,16 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 3. **Attach the folder to the assistant**
 
-   Pass the folder `_id` in `knowledge_hubs` — the assistant will use all files in that folder.
+   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every
+   file in that folder. Use `board_ids` to attach a CRM data-board (its items
+   become a knowledge source). The legacy `knowledge_hubs` field is deprecated.
 
    ```typescript
    await client.chatAi.updateAssistant(assistantId, {
      name: "Support Bot",
      workflow_name: "support_bot_v1",
-     knowledge_hubs: [folder._id],
+     folder_ids: [folder._id],
+     // board_ids: [boardId],  // optional: attach a CRM data-board too
    })
    ```
 
