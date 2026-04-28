@@ -3,18 +3,48 @@ title: Python SDK — Xác Thực
 description: API Key và Access Token trong Imbrace Python SDK.
 ---
 
-SDK hỗ trợ hai chiến lược xác thực. Truyền `api_key` hoặc `access_token` vào constructor — transport tự xử lý headers.
+SDK hỗ trợ hai loại credential. Truyền `api_key` hoặc `access_token` vào constructor — transport tự xử lý headers.
 
-### Các Chiến Lược Xác Thực
+### Nên dùng credential nào?
 
-| Chiến lược       | Khi nào dùng                                | Header gửi đi             |
-| ---------------- | ------------------------------------------- | ------------------------- |
-| **API Key**      | Backend scripts, Celery tasks, server calls | `x-api-key: sk-xxx...`    |
-| **Access Token** | Sau khi user đăng nhập (OTP hoặc password)  | `x-access-token: acc_...` |
+Lựa chọn tuỳ thuộc vào **vai trò của Imbrace trong sản phẩm của bạn**:
+
+#### Build trên Imbrace → dùng Access Token
+
+Imbrace **là** backend của bạn. End-user của bạn đăng nhập vào Imbrace (qua OTP hoặc password); token `acc_...` của họ chính là credential mà SDK gửi đi trên mỗi request. Auth, database, và business logic của Imbrace (assistants, knowledge hubs, workflows, AI agents) đều chạy thay mặt cho user đăng nhập đó.
+
+Sản phẩm điển hình: chat widget, dashboard, hoặc mobile app — mỗi user là một user trong Imbrace. Imbrace tự ghi nhận history, permissions, và audit trail theo từng user.
+
+#### Wrap Imbrace → dùng API Key
+
+Bạn có backend riêng, user riêng, database riêng. Imbrace chỉ là **một capability** mà service của bạn gọi tới — "dùng AI của Imbrace để trả lời câu này" — bên cạnh nhiều thứ khác bạn đang làm. End-user của bạn không biết Imbrace tồn tại; service của bạn gọi Imbrace bằng một api-key cấp org (`api_...`) duy nhất (do admin org của Imbrace cấp). Imbrace chỉ thấy một danh tính (service account của API key) và bạn tự lo phần per-user attribution ở phía mình.
+
+Sản phẩm điển hình: CRM có sẵn, hệ thống ticketing, hoặc internal tool nhúng Imbrace như một feature. Một credential duy nhất nằm trong env file phục vụ tất cả request.
+
+| | Build trên Imbrace (Access Token) | Wrap Imbrace (API Key) |
+| --- | --- | --- |
+| **Ai chạy auth?** | Imbrace (OTP / password login) | Bạn (auth của bạn) |
+| **User của ai?** | User của Imbrace | User của bạn |
+| **DB nào là canonical?** | Của Imbrace | Của bạn |
+| **Imbrace thấy danh tính nào** | End-user thực sự | Một service account |
+| **Per-user attribution trên server** | Có sẵn | Bạn tự xử lý |
+| **Thời hạn credential** | Theo session; refresh khi cần | Lâu dài; không tự hết hạn |
+| **Header gửi đi** | `x-access-token: acc_...` | `x-api-key: api_...` |
+
+> Cả hai credential đều được hỗ trợ đầy đủ. Hầu hết resources nhận cả hai. Một số tính năng phụ thuộc user context (document artifacts, chat history per-user) chỉ có ý nghĩa khi dùng access token.
+
+### Tham chiếu header
+
+| Credential | Header gửi đi |
+| --- | --- |
+| `api_key` | `x-api-key: api_xxx...` |
+| `access_token` | `x-access-token: acc_xxx...` |
+
+Org context được **mã hoá ngay trong chính credential** — mỗi API key và mỗi access token đều cố định với một org duy nhất. Gateway resolve org trên mỗi request từ chính credential bạn gửi. Bạn **không bao giờ** cần truyền `organization_id` cho SDK.
 
 ---
 
-### API Key (Server-Side)
+### API Key
 
 ```python
 import os
@@ -27,7 +57,7 @@ client = ImbraceClient(
 
 ---
 
-### Access Token (Client-Side)
+### Access Token
 
 Dùng sau khi user xác thực:
 
