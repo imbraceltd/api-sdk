@@ -1,5 +1,6 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from ..http import HttpTransport, AsyncHttpTransport
+from ..types.team import TeamMembershipResponse, TeamUserItem, TeamWorkflowItem
 
 
 class TeamsResource:
@@ -57,36 +58,37 @@ class TeamsResource:
         return self._http.request("POST", f"{self._v2}/teams/_remove_users",
                                   json={"user_ids": user_ids}).json()
 
-    def get_users(self, team_id: str) -> Dict[str, Any]:
+    def get_users(self, team_id: str) -> List[TeamUserItem]:
+        """Get users in a team."""
         return self._http.request("GET", f"{self._v1}/team_users",
                                    params={"team_id": team_id}).json()
 
-    def get_users_v1(self, team_id: str) -> Dict[str, Any]:
+    def get_users_v1(self, team_id: str) -> List[TeamUserItem]:
         """Get team users via v1 backend path."""
         base = self._backend_base or f"{self._v1.replace('/platform/v1', '')}/v1/backend"
         return self._http.request("GET", f"{base}/team/{team_id}/users").json()
 
-    def join(self, team_id: str) -> Dict[str, Any]:
+    def join(self, team_id: str) -> TeamMembershipResponse:
         """Join a team directly (for administrators)."""
         return self._http.request("POST", f"{self._v2}/teams/_join_team", json={"team_id": team_id}).json()
 
-    def leave(self, body: Dict[str, Any]) -> Dict[str, Any]:
+    def leave(self, team_id: str) -> TeamMembershipResponse:
         """Leave a team."""
-        return self._http.request("POST", f"{self._v2}/teams/_leave", json=body).json()
+        return self._http.request("POST", f"{self._v2}/teams/_leave", json={"team_id": team_id}).json()
 
-    def approve_join_request(self, team_id: str, team_user_id: str) -> Dict[str, Any]:
+    def approve_join_request(self, team_id: str, team_user_id: str) -> TeamMembershipResponse:
         """Approve a user's request to join the team."""
         return self._http.request("POST", f"{self._v2}/teams/{team_id}/user/{team_user_id}/approve").json()
 
-    def get_workflows(self, team_id: str) -> Dict[str, Any]:
+    def get_workflows(self, team_id: str) -> List[TeamWorkflowItem]:
         """Get workflows associated with a team."""
         return self._http.request("GET", f"{self._v1}/teams/{team_id}/workflows").json()
 
-    def request_join(self, team_id: str) -> Dict[str, Any]:
+    def request_join(self, team_id: str) -> TeamMembershipResponse:
         """Request to join a team."""
         return self._http.request("POST", f"{self._v2}/teams/{team_id}/join_request").json()
 
-    def update_user_role(self, team_id: str, user_id: str, role: str) -> Dict[str, Any]:
+    def update_user_role(self, team_id: str, user_id: str, role: str) -> TeamMembershipResponse:
         """Update a user's role in a team."""
         return self._http.request("PUT", f"{self._v2}/teams/{team_id}/user/{user_id}/role", json={"role": role}).json()
 
@@ -154,43 +156,44 @@ class AsyncTeamsResource:
                                        json={"user_ids": user_ids})
         return res.json()
 
-    async def get_users(self, team_id: str) -> Dict[str, Any]:
+    async def get_users(self, team_id: str) -> List[TeamUserItem]:
+        """Get users in a team (async)."""
         res = await self._http.request("GET", f"{self._v1}/team_users",
                                        params={"team_id": team_id})
         return res.json()
 
-    async def get_users_v1(self, team_id: str) -> Dict[str, Any]:
+    async def get_users_v1(self, team_id: str) -> List[TeamUserItem]:
         """Get team users via v1 backend path (async)."""
         base = self._backend_base or f"{self._v1.replace('/platform/v1', '')}/v1/backend"
         res = await self._http.request("GET", f"{base}/team/{team_id}/users")
         return res.json()
 
-    async def join(self, team_id: str) -> Dict[str, Any]:
+    async def join(self, team_id: str) -> TeamMembershipResponse:
         """Join a team directly (async)."""
         res = await self._http.request("POST", f"{self._v2}/teams/_join_team", json={"team_id": team_id})
         return res.json()
 
-    async def leave(self, body: Dict[str, Any]) -> Dict[str, Any]:
+    async def leave(self, team_id: str) -> TeamMembershipResponse:
         """Leave a team (async)."""
-        res = await self._http.request("POST", f"{self._v2}/teams/_leave", json=body)
+        res = await self._http.request("POST", f"{self._v2}/teams/_leave", json={"team_id": team_id})
         return res.json()
 
-    async def approve_join_request(self, team_id: str, team_user_id: str) -> Dict[str, Any]:
+    async def approve_join_request(self, team_id: str, team_user_id: str) -> TeamMembershipResponse:
         """Approve a user's request to join the team (async)."""
         res = await self._http.request("POST", f"{self._v2}/teams/{team_id}/user/{team_user_id}/approve")
         return res.json()
 
-    async def get_workflows(self, team_id: str) -> Dict[str, Any]:
+    async def get_workflows(self, team_id: str) -> List[TeamWorkflowItem]:
         """Get workflows associated with a team (async)."""
         res = await self._http.request("GET", f"{self._v1}/teams/{team_id}/workflows")
         return res.json()
 
-    async def request_join(self, team_id: str) -> Dict[str, Any]:
+    async def request_join(self, team_id: str) -> TeamMembershipResponse:
         """Request to join a team (async)."""
         res = await self._http.request("POST", f"{self._v2}/teams/{team_id}/join_request")
         return res.json()
 
-    async def update_user_role(self, team_id: str, user_id: str, role: str) -> Dict[str, Any]:
+    async def update_user_role(self, team_id: str, user_id: str, role: str) -> TeamMembershipResponse:
         """Update a user's role in a team (async)."""
         res = await self._http.request("PUT", f"{self._v2}/teams/{team_id}/user/{user_id}/role", json={"role": role})
         return res.json()

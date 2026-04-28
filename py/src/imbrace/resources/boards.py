@@ -1,5 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from ..http import HttpTransport, AsyncHttpTransport
+from ..types.board import Board, BoardItem
 
 
 class BoardsResource:
@@ -16,19 +17,19 @@ class BoardsResource:
         self._backend = backend.rstrip("/")
 
     # --- Boards ---
-    def list(self, limit: int = 20, skip: int = 0) -> Dict[str, Any]:
+    def list(self, limit: int = 20, skip: int = 0) -> List[Board]:
         return self._http.request("GET", f"{self._backend}/board", params={"limit": limit, "skip": skip}).json()
 
-    def get(self, board_id: str) -> Dict[str, Any]:
+    def get(self, board_id: str) -> Board:
         return self._http.request("GET", f"{self._backend}/board/{board_id}").json()
 
-    def create(self, name: str, description: Optional[str] = None) -> Dict[str, Any]:
+    def create(self, name: str, description: Optional[str] = None) -> Board:
         body: Dict[str, Any] = {"name": name}
         if description:
             body["description"] = description
         return self._http.request("POST", f"{self._backend}/board", json=body).json()
 
-    def update(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    def update(self, board_id: str, body: Dict[str, Any]) -> Board:
         return self._http.request("PUT", f"{self._backend}/board/{board_id}", json=body).json()
 
     def delete(self, board_id: str) -> None:
@@ -77,17 +78,17 @@ class BoardsResource:
         return self._http.request("PUT", f"{self._backend}/board/{board_id}/multiple_board_fields", json=body).json()
 
     # --- Items ---
-    def list_items(self, board_id: str, limit: int = 20, skip: int = 0) -> Dict[str, Any]:
+    def list_items(self, board_id: str, limit: int = 20, skip: int = 0) -> List[BoardItem]:
         return self._http.request("GET", f"{self._backend}/board/{board_id}/board_items",
                                   params={"limit": limit, "skip": skip}).json()
 
-    def get_item(self, board_id: str, item_id: str) -> Dict[str, Any]:
+    def get_item(self, board_id: str, item_id: str) -> BoardItem:
         return self._http.request("GET", f"{self._backend}/board/{board_id}/board_items/{item_id}").json()
 
-    def create_item(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    def create_item(self, board_id: str, body: Dict[str, Any]) -> BoardItem:
         return self._http.request("POST", f"{self._backend}/board/{board_id}/board_items", json=body).json()
 
-    def update_item(self, board_id: str, item_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    def update_item(self, board_id: str, item_id: str, body: Dict[str, Any]) -> BoardItem:
         return self._http.request("PUT", f"{self._backend}/board/{board_id}/board_items/{item_id}", json=body).json()
 
     def delete_item(self, board_id: str, item_id: str) -> None:
@@ -243,14 +244,14 @@ class AsyncBoardsResource:
         res = await self._http.request("GET", f"{self._backend}/board/{board_id}")
         return res.json()
 
-    async def create(self, name: str, description: Optional[str] = None) -> Dict[str, Any]:
+    async def create(self, name: str, description: Optional[str] = None) -> Board:
         body: Dict[str, Any] = {"name": name}
         if description:
             body["description"] = description
         res = await self._http.request("POST", f"{self._backend}/board", json=body)
         return res.json()
 
-    async def update(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    async def update(self, board_id: str, body: Dict[str, Any]) -> Board:
         res = await self._http.request("PUT", f"{self._backend}/board/{board_id}", json=body)
         return res.json()
 
@@ -311,20 +312,20 @@ class AsyncBoardsResource:
         return res.json()
 
     # --- Items ---
-    async def list_items(self, board_id: str, limit: int = 20, skip: int = 0) -> Dict[str, Any]:
+    async def list_items(self, board_id: str, limit: int = 20, skip: int = 0) -> List[BoardItem]:
         res = await self._http.request("GET", f"{self._backend}/board/{board_id}/board_items",
                                        params={"limit": limit, "skip": skip})
         return res.json()
 
-    async def get_item(self, board_id: str, item_id: str) -> Dict[str, Any]:
+    async def get_item(self, board_id: str, item_id: str) -> BoardItem:
         res = await self._http.request("GET", f"{self._backend}/board/{board_id}/board_items/{item_id}")
         return res.json()
 
-    async def create_item(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_item(self, board_id: str, body: Dict[str, Any]) -> BoardItem:
         res = await self._http.request("POST", f"{self._backend}/board/{board_id}/board_items", json=body)
         return res.json()
 
-    async def update_item(self, board_id: str, item_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_item(self, board_id: str, item_id: str, body: Dict[str, Any]) -> BoardItem:
         res = await self._http.request("PUT", f"{self._backend}/board/{board_id}/board_items/{item_id}", json=body)
         return res.json()
 

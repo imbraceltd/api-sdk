@@ -1,57 +1,53 @@
-from __future__ import annotations
-from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+from typing_extensions import TypedDict
 
-
-class ProductVariant(BaseModel):
-    id: str
+class Product(TypedDict, total=False):
+    _id: str
     name: str
-    price: float
-    stock: int
-    attributes: Optional[Dict[str, Any]] = None
+    description: Optional[str]
+    price: Optional[float]
+    currency: Optional[str]
+    category: Optional[str]
+    image_url: Optional[str]
+    created_at: str
 
+class OrderStatus:
+    PENDING = "pending"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
 
-class Product(BaseModel):
-    id: str
-    name: str
-    description: Optional[str] = None
-    price: float
-    currency: str = "USD"
-    images: List[str] = []
-    variants: List[ProductVariant] = []
-    category: Optional[str] = None
-    tags: List[str] = []
-    is_active: bool = True
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-
-OrderStatus = Literal["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "refunded"]
-
-
-class OrderItem(BaseModel):
+class Order(TypedDict, total=False):
+    _id: str
     product_id: str
-    variant_id: Optional[str] = None
-    quantity: int
-    unit_price: float
-    total_price: float
+    user_id: str
+    status: str
+    created_at: str
 
+class CreateOrderInput(TypedDict, total=False):
+    product_id: str
+    config: Optional[Dict[str, Any]]
 
-class Order(BaseModel):
-    id: str
-    buyer_id: str
-    seller_id: Optional[str] = None
-    items: List[OrderItem]
-    status: OrderStatus
-    total_amount: float
-    currency: str = "USD"
-    shipping_address: Optional[Dict[str, Any]] = None
-    notes: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+class EmailTemplate(TypedDict, total=False):
+    _id: str
+    name: Optional[str]
+    subject: Optional[str]
+    body: Optional[str]
 
+class CreateEmailTemplateInput(TypedDict, total=False):
+    name: str
+    subject: Optional[str]
+    body: Optional[str]
 
-class CreateOrderInput(BaseModel):
-    items: List[Dict[str, Any]]  # [{ product_id, variant_id?, quantity }]
-    shipping_address: Optional[Dict[str, Any]] = None
-    notes: Optional[str] = None
+class MarketplaceFileDetails(TypedDict, total=False):
+    _id: str
+    name: Optional[str]
+    url: Optional[str]
+
+class MarketplaceFileUploadResponse(TypedDict, total=False):
+    url: str
+    file_id: Optional[str]
+
+class MarketplaceCategory(TypedDict, total=False):
+    _id: str
+    name: str

@@ -1,0 +1,219 @@
+# iMBRACE SDK
+
+> iMBRACE is a multi-channel customer engagement platform supporting WhatsApp, Facebook, Instagram, WeChat, LINE, and Email. This monorepo ships the official TypeScript (`@imbrace/sdk`, Node.js 18+ / browser) and Python (`imbrace`, Python 3.9+) SDKs. Both wrap the same three REST gateways: **App Gateway** (public client-facing API), **Server Gateway** (private server-to-server), and **Journey API** (developer portal / app lifecycle).
+
+## Things to remember when using iMBRACE SDK
+
+- Install: `npm install @imbrace/sdk` or `pip install imbrace`.
+- The main client is `ImbraceClient` in both languages. Python also exports `AsyncImbraceClient` for async/await usage.
+- Two credential modes: `apiKey` (server-to-server, from `/private/backend/v1/third_party_token`) or `accessToken` (user OAuth token). Pass one when constructing the client.
+- Default environment is `stable` → `https://app-gatewayv2.imbrace.co`. Switch with the `env` constructor param: `'develop'`, `'sandbox'`, `'stable'`, or `'prodv2'`.
+- Pass `organizationId` to the constructor (or set `IMBRACE_ORG_ID`) — it is sent as `x-organization-id` on every request.
+- Paginated list methods return `{ data: [...], pagination: { total, page, limit } }`.
+- The SDK has 30+ resource namespaces on the client. Access them as `client.<resource>.<method>()`.
+- TypeScript: all errors extend `ImbraceError`. Catch `ApiError` (HTTP 4xx/5xx with `.statusCode`), `AuthError` (401), or `NetworkError` (connectivity).
+- Python sync client is used as a context manager (`with ImbraceClient() as c:`). Async client: `async with AsyncImbraceClient() as c:`.
+
+## Clients
+
+- [TypeScript SDK — npm](https://www.npmjs.com/package/@imbrace/sdk)
+- [Python SDK — PyPI](https://pypi.org/project/imbrace/)
+- [SDK Documentation](https://imbraceltd.github.io/api-sdk/)
+- [GitHub — source](https://github.com/imbraceltd/api-sdk)
+
+## Authentication
+
+### API Key (server-side)
+```typescript
+const client = new ImbraceClient({
+  env: 'stable',
+  apiKey: process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORG_ID,
+})
+```
+
+### User Access Token (client-side)
+```typescript
+// 1. Request OTP
+await client.auth.requestOtp({ email: 'user@example.com' })
+
+// 2. Verify OTP → receive accessToken
+const { accessToken } = await client.auth.verifyOtp({ email: 'user@example.com', otp: '123456' })
+
+// 3. Construct authenticated client
+const authedClient = new ImbraceClient({ accessToken, organizationId })
+```
+
+### Python (sync)
+```python
+from imbrace import ImbraceClient
+import os
+
+with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"], organization_id=os.environ["IMBRACE_ORG_ID"]) as client:
+    contacts = client.contacts.list(limit=20)
+```
+
+### Python (async)
+```python
+from imbrace import AsyncImbraceClient
+
+async with AsyncImbraceClient(api_key="...") as client:
+    contacts = await client.contacts.list(limit=20)
+```
+
+## Environments
+
+| Name | Gateway URL | Notes |
+|------|-------------|-------|
+| `stable` (default) | `https://app-gatewayv2.imbrace.co` | Production |
+| `develop` | `https://app-gateway.dev.imbrace.co` | Development |
+| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | Sandbox |
+| `prodv2` | `https://app-gatewayv2.imbrace.co` | Alias for stable |
+
+Override any individual service URL via `services` param or `baseUrl`.
+
+## Gateway Overview
+
+### App Gateway
+Public REST API for client apps (web, mobile, integrations). Authentication: OTP-based (`x-access-token`). Path prefixes: `/v1/backend/`, `/v2/backend/`.
+
+### Server Gateway
+Private server-to-server API. Authentication: API key (`x-api-key` or `x-access-token`). Path prefix: `/3rd/`. Use for backend automation, n8n/Zapier, bulk operations.
+
+### Journey API
+Developer portal for building, testing, and publishing custom apps (Journeys) to the iMBRACE Marketplace. Path prefixes: `/journeys/api/v1/`, `/journeys/v2/`.
+
+## Resource Reference
+
+### `client.auth`
+OTP login flow: `requestOtp()`, `verifyOtp()`, `refreshToken()`, `logout()`.
+
+### `client.account`
+Logged-in user profile: `getProfile()`, `updateProfile()`.
+
+### `client.organizations`
+Organization management: `list()`, `get()`, `create()`, `update()`, `delete()`.
+
+### `client.contacts`
+Customer contact management: `list(params?)`, `get(id)`, `update(id, body)`, `search({ q })`, `exportCsv()`, `getConversations(id)`, `getComments(id)`, `getFiles(id)`, `getActivities(convId)`, `uploadAvatar(formData)`.
+Also notifications: `listNotifications()`, `markNotificationsRead(ids)`, `dismissNotification(id)`, `dismissAllNotifications()`.
+
+### `client.conversations`
+Team conversation management: `list(params?)`, `get(id)`, `getByConversationId(id)`, `search({ businessUnitId, q })`, `getViewsCount()`, `getOutstanding({ businessUnitId })`, `create(body?)`, `join(body)`, `leave(body)`, `updateStatus(body)`, `updateName(body)`, `assignTeamMember(body)`, `removeTeamMember(body)`, `getInvitableUsers(id)`, `initVideoCall(body)`, `joinRequest(body)`.
+
+### `client.messages`
+Conversation messages: `list(params?)`, `send({ type, text?, url?, caption? })`, `uploadFile(formData)`, `addComment(convId, msgId, body)`, `updateComment(convId, commentId, body)`, `deleteComment(convId, commentId)`, `pin(convId, msgId)`, `unpin(convId, msgId)`, `getIndex(convId, msgId)`.
+Message types: `"text" | "image" | "quick_reply" | "file" | "pdf"`.
+
+### `client.boards`
+Data boards (CRM-style records): `list()`, `get(id)`, `create({ name })`, `update(id, body)`, `delete(id)`, `reorder(body)`, `exportCsv(id)`, `importCsv(id, formData)`, `importExcel(id, formData)`, `getImportProgress(id)`.
+Fields: `createField(boardId, body)`, `updateField(boardId, fieldId, body)`, `deleteField(boardId, fieldId)`, `reorderFields(boardId, body)`, `bulkUpdateFields(boardId, body)`.
+Items: `listItems(boardId)`, `getItem(boardId, itemId)`, `createItem(boardId, body)`, `updateItem(boardId, itemId, body)`, `deleteItem(boardId, itemId)`, `bulkDeleteItems(boardId, body)`, `search(boardId, { q })`, `checkConflict(boardId, itemId, body)`.
+Relations: `getRelatedBoards(boardId, itemId)`, `getRelatedItems(boardId, itemId, relatedBoardId)`, `linkItems(...)`, `unlinkItems(...)`.
+Segments: `listSegments(boardId)`, `createSegment(boardId, body)`, `updateSegment(boardId, segId, body)`, `deleteSegment(boardId, segId)`.
+KnowledgeHub: `searchFolders()`, `createFolder(body)`, `getFolder(id)`, `updateFolder(id, body)`, `deleteFolders(body)`, `searchFiles({ folderId })`, `createFile(body)`, `uploadFile(formData)`, `downloadFile(id)`, `deleteFiles(body)`, `generateAiTags(body)`.
+Drive: `initiateDriveAuth(type)`, `listDriveFolders(type)`, `listDriveFiles(type)`, `downloadDriveFile(type)`.
+
+### `client.teams`
+Team & member management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`, `listMembers(id)`, `addMember(id, body)`, `removeMember(id, userId)`.
+
+### `client.workflows`
+Automation workflows: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`, `run(id, body)`.
+
+### `client.agent`
+AI Agent management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
+
+### `client.aiAgent`
+AI Agent operations (Server Gateway): RAG operations, ECharts data, AI inference.
+
+### `client.ai`
+AI utilities: completion, suggestions, prediction helpers.
+
+### `client.channel`
+Channel configuration (WhatsApp, Facebook, Instagram, WeChat, LINE, Email, Web): `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
+
+### `client.marketplace`
+iMBRACE Marketplace app listings: `list()`, `get(id)`, `install(id)`, `uninstall(id)`.
+
+### `client.campaigns`
+Outbound campaign management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`, `launch(id)`.
+
+### `client.outbounds`
+Outbound message operations.
+
+### `client.settings`
+Message templates, email templates, user management settings.
+
+### `client.schedule`
+Scheduled message / job management.
+
+### `client.sessions`
+User session management.
+
+### `client.categories`
+Category / tag management.
+
+### `client.ips`
+IPS (Intelligent Prospect Scoring) operations.
+
+### `client.platform`
+Platform-level admin operations.
+
+### `client.dataFiles`
+Data file management.
+
+### `client.folders`
+Folder management (standalone, separate from boards KnowledgeHub).
+
+### `client.chatAi`
+Chat AI / LLM-powered conversation features.
+
+### `client.messageSuggestion`
+AI-powered message suggestion for agents.
+
+### `client.predict`
+Predictive analytics and scoring.
+
+### `client.activepieces`
+ActivePieces automation integration.
+
+### `client.fileService`
+General file upload/download service.
+
+### `client.license`
+License and subscription management.
+
+### `client.health`
+Health check: `check()` — pings `/global/health`.
+
+## Error Handling
+
+```typescript
+import { ApiError, AuthError, NetworkError } from "@imbrace/sdk"
+
+try {
+  const contact = await client.contacts.get("invalid-id")
+} catch (err) {
+  if (err instanceof AuthError)    { /* 401 — token expired */ }
+  if (err instanceof ApiError)     { /* err.statusCode, err.message */ }
+  if (err instanceof NetworkError) { /* connectivity issue */ }
+}
+```
+
+## API Reference Docs
+
+- [App Gateway — Getting Started](https://devportal.dev.imbrace.co/docs/api-document/app-apis/_gettingStarted)
+- [App Gateway — Contacts](https://devportal.dev.imbrace.co/docs/api-document/app-apis/contactsApis)
+- [App Gateway — Conversations](https://devportal.dev.imbrace.co/docs/api-document/app-apis/conversations)
+- [App Gateway — Boards](https://devportal.dev.imbrace.co/docs/api-document/app-apis/boardApis)
+- [App Gateway — Teams](https://devportal.dev.imbrace.co/docs/api-document/app-apis/team)
+- [App Gateway — Workflows](https://devportal.dev.imbrace.co/docs/api-document/app-apis/workflow)
+- [App Gateway — AI Agent](https://devportal.dev.imbrace.co/docs/api-document/app-apis/aIAgentApis)
+- [App Gateway — Channels](https://devportal.dev.imbrace.co/docs/api-document/app-apis/channel)
+- [Server Gateway — Overview](https://devportal.dev.imbrace.co/docs/api-document/server-gateways)
+- [Journey API — Overview](https://devportal.dev.imbrace.co/docs/api-document/journeyAPIReference)
+
+## Optional
+
+- [Developer Portal](https://devportal.dev.imbrace.co/docs): Full interactive API reference
+- [iMBRACE GitBook](https://imbrace.gitbook.io/imbrace-no-code-workflow): No-code workflow and onboarding guide

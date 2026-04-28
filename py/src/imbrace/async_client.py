@@ -134,7 +134,7 @@ class AsyncImbraceClient:
         self.predict           = AsyncPredictResource(self.http, urls.predict)
 
         # New services
-        self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3")
+        self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)

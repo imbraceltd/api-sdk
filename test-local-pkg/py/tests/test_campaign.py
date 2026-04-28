@@ -9,10 +9,10 @@ def test_campaign():
 
     # 1. Campaigns
     def campaign_ops():
-        res = client.campaign.list(params={"limit": 5})
+        res = client.campaigns.list(params={"limit": 5})
         log_result("Campaigns", res.get("data", []))
 
-        created = client.campaign.create({
+        created = client.campaigns.create({
             "name": f"SDK Test Campaign {int(time.time())}",
             "description": "Created by automated test"
         })
@@ -20,23 +20,23 @@ def test_campaign():
         log_result("Campaign Created", state["campaign_id"])
 
         if state["campaign_id"]:
-            fetched = client.campaign.get(state["campaign_id"])
+            fetched = client.campaigns.get(state["campaign_id"])
             log_result("Fetched Campaign", fetched.get("name"))
 
-            client.campaign.delete(state["campaign_id"])
+            client.campaigns.delete(state["campaign_id"])
             log_result("Campaign Deleted", True)
     run_stable_section("Campaign Ops", campaign_ops, unstable=True)
 
     # 2. Touchpoints
     def touchpoint_ops():
-        res = client.campaign.list_touchpoints(params={"limit": 5})
+        res = client.campaigns.list_touchpoints(params={"limit": 5})
         tp_data = res if isinstance(res, list) else res.get("data", [])
         log_result("Touchpoints List", len(tp_data))
 
         if tp_data:
             tp_id = tp_data[0].get("id") or tp_data[0].get("_id")
             try:
-                tp = client.campaign.get_touchpoint(tp_id)
+                tp = client.campaigns.get_touchpoint(tp_id)
                 log_result("campaign.get_touchpoint", tp.get("id") or tp.get("_id"))
             except Exception as e:
                 print(f"   [warn] get_touchpoint: {str(e)}")
@@ -44,10 +44,10 @@ def test_campaign():
         # Create a fresh campaign first so we have a parent
         try:
             ts = int(time.time())
-            camp = client.campaign.create({"name": f"SDK_TP_CAMP_{ts}"})
+            camp = client.campaigns.create({"name": f"SDK_TP_CAMP_{ts}"})
             camp_id = camp.get("id") or camp.get("_id")
             if camp_id:
-                new_tp = client.campaign.create_touchpoint({
+                new_tp = client.campaigns.create_touchpoint({
                     "campaign_id": camp_id,
                     "type": "email",
                     "delay_days": 1
@@ -56,18 +56,18 @@ def test_campaign():
                 log_result("campaign.create_touchpoint", new_tp_id)
 
                 if new_tp_id:
-                    client.campaign.update_touchpoint(new_tp_id, {"delay_days": 3})
+                    client.campaigns.update_touchpoint(new_tp_id, {"delay_days": 3})
                     log_result("campaign.update_touchpoint", True)
-                    client.campaign.delete_touchpoint(new_tp_id)
+                    client.campaigns.delete_touchpoint(new_tp_id)
                     log_result("campaign.delete_touchpoint", True)
 
-                client.campaign.delete(camp_id)
+                client.campaigns.delete(camp_id)
         except Exception as e:
             print(f"   [warn] touchpoint CRUD: {str(e)}")
 
         # Validate
         try:
-            val = client.campaign.validate_touchpoint({"name": "Test", "type": "whatsapp"})
+            val = client.campaigns.validate_touchpoint({"name": "Test", "type": "whatsapp"})
             log_result("Touchpoint Validated", val.get("success", True))
         except Exception as e:
             print(f"   [Skip] validate_touchpoint: {str(e)}")

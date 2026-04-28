@@ -26,7 +26,8 @@ def test_full_flow_guide():
         for line in response.iter_lines():
             if not line:
                 continue
-            line = line.decode("utf-8")
+            if isinstance(line, bytes):
+                line = line.decode("utf-8")
             if line.startswith("data: ") and line != "data: [DONE]":
                 try:
                     chunk = json.loads(line[6:])
