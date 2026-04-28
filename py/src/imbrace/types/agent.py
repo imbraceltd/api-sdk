@@ -1,41 +1,47 @@
-from __future__ import annotations
-from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+from typing_extensions import TypedDict
 
+class AgentTemplate(TypedDict, total=False):
+    _id: str
+    name: Optional[str]
+    description: Optional[str]
+    # More fields based on usage
 
-AgentStatus = Literal["idle", "running", "paused", "completed", "failed", "cancelled"]
+class AgentAssistantInput(TypedDict, total=False):
+    name: Optional[str]
+    description: Optional[str]
+    model: Optional[str]
+    instructions: Optional[str]
 
+class AgentUseCaseInput(TypedDict, total=False):
+    name: Optional[str]
+    description: Optional[str]
+    category: Optional[str]
 
-class AgentCapability(BaseModel):
+class CreateAgentInput(TypedDict, total=False):
+    assistant: AgentAssistantInput
+    usecase: AgentUseCaseInput
+
+class UpdateAgentInput(TypedDict, total=False):
+    assistant: Optional[AgentAssistantInput]
+    usecase: Optional[AgentUseCaseInput]
+
+class DeleteAgentResponse(TypedDict, total=False):
+    success: bool
+
+class UseCase(TypedDict, total=False):
+    _id: str
+    name: Optional[str]
+    description: Optional[str]
+    category: Optional[str]
+
+class CreateUseCaseInput(TypedDict, total=False):
     name: str
-    description: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
+    description: Optional[str]
+    category: Optional[str]
+    assistant_id: Optional[str]
 
-
-class Agent(BaseModel):
-    id: str
-    name: str
-    description: Optional[str] = None
-    model: Optional[str] = None
-    system_prompt: Optional[str] = None
-    capabilities: List[AgentCapability] = []
-    tools: List[str] = []
-    is_active: bool = True
-    organization_id: Optional[str] = None
-    created_by: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-
-class AgentRun(BaseModel):
-    id: str
-    agent_id: str
-    session_id: Optional[str] = None
-    status: AgentStatus = "idle"
-    input: Optional[Dict[str, Any]] = None
-    output: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    duration_ms: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+class UpdateUseCaseInput(TypedDict, total=False):
+    name: Optional[str]
+    description: Optional[str]
+    category: Optional[str]

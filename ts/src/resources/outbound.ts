@@ -24,7 +24,7 @@ export interface OutboundResponse {
   [key: string]: unknown
 }
 
-export class OutboundResource {
+export class OutboundsResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
    */

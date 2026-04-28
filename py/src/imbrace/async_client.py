@@ -126,15 +126,15 @@ class AsyncImbraceClient:
         self.health        = AsyncHealthResource(self.http, urls.gateway)
         self.sessions      = AsyncSessionsResource(self.http, urls.gateway)
         self.schedule      = AsyncScheduleResource(self.http, urls.ips)
-        self.campaign      = AsyncCampaignsResource(self.http, urls.channel_service)
+        self.campaigns     = AsyncCampaignsResource(self.http, urls.channel_service)
         self.data_files    = AsyncDataFilesResource(self.http, urls.data_board)
         self.folders       = AsyncFoldersResource(self.http, urls.data_board)
-        self.outbound          = AsyncOutboundsResource(self.http, urls.channel_service)
+        self.outbounds         = AsyncOutboundsResource(self.http, urls.channel_service)
         self.message_suggestion = AsyncMessageSuggestionResource(self.http, urls.message_suggestion)
         self.predict           = AsyncPredictResource(self.http, urls.predict)
 
         # New services
-        self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3")
+        self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)

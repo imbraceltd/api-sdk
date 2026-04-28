@@ -28,6 +28,7 @@ dist/
 *.js.map
 *.d.ts.map
 *.tsbuildinfo
+*.tgz
 
 # Logs
 *.log
@@ -53,7 +54,16 @@ file-service
 chat-ai
 # test-local-pkg
 # test-npm-pkg
-docs2 
+API-document
+
+
+docsv1
+docsv2 
+docsv3
+docsv4
+docsv5
+docsv6
+Q&A
 
 #Claude
 .claude/
@@ -62,3 +72,7 @@ docs2
 .claude/skill/
 .claude/skill/skill.md
 .claude/skill/skill.yaml
+
+
+#
+.obsidian

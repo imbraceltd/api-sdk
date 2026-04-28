@@ -395,6 +395,13 @@ export class BoardsResource {
     }).then(r => r.json())
   }
 
+  async getRelatedBoards(boardId: string, itemId: string): Promise<BoardItem[]> {
+    return this.http.getFetch()(
+      `${this.backend}/board/${boardId}/board_items/${itemId}/related_boards`,
+      { method: "GET" },
+    ).then(r => r.json())
+  }
+
   async getRelatedItems(boardId: string, itemId: string, relatedBoardId: string): Promise<BoardItem[]> {
     return this.http.getFetch()(
       `${this.backend}/board/${boardId}/board_items/${itemId}/related_boards/${relatedBoardId}/board_items`,

@@ -27,8 +27,10 @@ import { PlatformResource } from "./resources/platform.js"
 import { SessionsResource } from "./resources/sessions.js"
 import { CategoriesResource } from "./resources/categories.js"
 import { ScheduleResource } from "./resources/schedule.js"
-import { CampaignResource } from "./resources/campaign.js"
-import { OutboundResource } from "./resources/outbound.js"
+import { CampaignsResource } from "./resources/campaign.js"
+import { OutboundsResource } from "./resources/outbound.js"
+import { DataFilesResource } from "./resources/data-files.js"
+import { FoldersResource } from "./resources/folders.js"
 import { LicenseResource } from "./resources/license.js"
 import { ChatAiResource } from "./resources/chat-ai.js"
 import { FileServiceResource } from "./resources/file-service.js"
@@ -92,8 +94,10 @@ export class ImbraceClient {
   public readonly sessions: SessionsResource
   public readonly categories: CategoriesResource
   public readonly schedule: ScheduleResource
-  public readonly campaign: CampaignResource
-  public readonly outbound: OutboundResource
+  public readonly campaigns: CampaignsResource
+  public readonly outbounds: OutboundsResource
+  public readonly dataFiles: DataFilesResource
+  public readonly folders: FoldersResource
   public readonly license: LicenseResource
   public readonly chatAi: ChatAiResource
   public readonly fileService: FileServiceResource
@@ -169,8 +173,10 @@ export class ImbraceClient {
     this.agent         = new AgentResource(this.http, urls.marketplaces)
 
     // Campaign & Outbound - channel-service
-    this.campaign      = new CampaignResource(this.http, urls.channelService)
-    this.outbound      = new OutboundResource(this.http, urls.channelService)
+    this.campaigns     = new CampaignsResource(this.http, urls.channelService)
+    this.outbounds     = new OutboundsResource(this.http, urls.channelService)
+    this.dataFiles     = new DataFilesResource(this.http, urls.dataBoard)
+    this.folders       = new FoldersResource(this.http, urls.dataBoard)
 
     // License - gateway root
     this.license       = new LicenseResource(this.http, urls.gateway)

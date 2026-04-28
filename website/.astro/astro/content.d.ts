@@ -159,6 +159,13 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
+"getting-started/setup.mdx": {
+	id: "getting-started/setup.mdx";
+  slug: "getting-started/setup";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
 "guides/testing.mdx": {
 	id: "guides/testing.mdx";
   slug: "guides/testing";
@@ -176,6 +183,13 @@ declare module 'astro:content' {
 "index.mdx": {
 	id: "index.mdx";
   slug: "index";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"python/ai-agent.mdx": {
+	id: "python/ai-agent.mdx";
+  slug: "python/ai-agent";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -229,6 +243,13 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
+"typescript/ai-agent.mdx": {
+	id: "typescript/ai-agent.mdx";
+  slug: "typescript/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
 "typescript/authentication.mdx": {
 	id: "typescript/authentication.mdx";
   slug: "typescript/authentication";
@@ -239,6 +260,13 @@ declare module 'astro:content' {
 "typescript/error-handling.mdx": {
 	id: "typescript/error-handling.mdx";
   slug: "typescript/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"typescript/full-flow-guide.mdx": {
+	id: "typescript/full-flow-guide.mdx";
+  slug: "typescript/full-flow-guide";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -292,6 +320,13 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
+"vi/getting-started/setup.mdx": {
+	id: "vi/getting-started/setup.mdx";
+  slug: "vi/getting-started/setup";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
 "vi/guides/testing.mdx": {
 	id: "vi/guides/testing.mdx";
   slug: "vi/guides/testing";
@@ -309,6 +344,13 @@ declare module 'astro:content' {
 "vi/index.mdx": {
 	id: "vi/index.mdx";
   slug: "vi";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"vi/python/ai-agent.mdx": {
+	id: "vi/python/ai-agent.mdx";
+  slug: "vi/python/ai-agent";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -362,6 +404,13 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
+"vi/typescript/ai-agent.mdx": {
+	id: "vi/typescript/ai-agent.mdx";
+  slug: "vi/typescript/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
 "vi/typescript/authentication.mdx": {
 	id: "vi/typescript/authentication.mdx";
   slug: "vi/typescript/authentication";
@@ -372,6 +421,13 @@ declare module 'astro:content' {
 "vi/typescript/error-handling.mdx": {
 	id: "vi/typescript/error-handling.mdx";
   slug: "vi/typescript/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"vi/typescript/full-flow-guide.mdx": {
+	id: "vi/typescript/full-flow-guide.mdx";
+  slug: "vi/typescript/full-flow-guide";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -418,6 +474,328 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
+"zh-cn/getting-started/overview.mdx": {
+	id: "zh-cn/getting-started/overview.mdx";
+  slug: "zh-cn/getting-started/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/getting-started/setup.mdx": {
+	id: "zh-cn/getting-started/setup.mdx";
+  slug: "zh-cn/getting-started/setup";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/guides/testing.mdx": {
+	id: "zh-cn/guides/testing.mdx";
+  slug: "zh-cn/guides/testing";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/guides/troubleshooting.mdx": {
+	id: "zh-cn/guides/troubleshooting.mdx";
+  slug: "zh-cn/guides/troubleshooting";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/index.mdx": {
+	id: "zh-cn/index.mdx";
+  slug: "zh-cn";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/ai-agent.mdx": {
+	id: "zh-cn/python/ai-agent.mdx";
+  slug: "zh-cn/python/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/authentication.mdx": {
+	id: "zh-cn/python/authentication.mdx";
+  slug: "zh-cn/python/authentication";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/error-handling.mdx": {
+	id: "zh-cn/python/error-handling.mdx";
+  slug: "zh-cn/python/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/installation.mdx": {
+	id: "zh-cn/python/installation.mdx";
+  slug: "zh-cn/python/installation";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/integrations.mdx": {
+	id: "zh-cn/python/integrations.mdx";
+  slug: "zh-cn/python/integrations";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/overview.mdx": {
+	id: "zh-cn/python/overview.mdx";
+  slug: "zh-cn/python/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/quick-start.mdx": {
+	id: "zh-cn/python/quick-start.mdx";
+  slug: "zh-cn/python/quick-start";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/python/resources.mdx": {
+	id: "zh-cn/python/resources.mdx";
+  slug: "zh-cn/python/resources";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/ai-agent.mdx": {
+	id: "zh-cn/typescript/ai-agent.mdx";
+  slug: "zh-cn/typescript/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/authentication.mdx": {
+	id: "zh-cn/typescript/authentication.mdx";
+  slug: "zh-cn/typescript/authentication";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/error-handling.mdx": {
+	id: "zh-cn/typescript/error-handling.mdx";
+  slug: "zh-cn/typescript/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/full-flow-guide.mdx": {
+	id: "zh-cn/typescript/full-flow-guide.mdx";
+  slug: "zh-cn/typescript/full-flow-guide";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/installation.mdx": {
+	id: "zh-cn/typescript/installation.mdx";
+  slug: "zh-cn/typescript/installation";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/integrations.mdx": {
+	id: "zh-cn/typescript/integrations.mdx";
+  slug: "zh-cn/typescript/integrations";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/local-testing.mdx": {
+	id: "zh-cn/typescript/local-testing.mdx";
+  slug: "zh-cn/typescript/local-testing";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/overview.mdx": {
+	id: "zh-cn/typescript/overview.mdx";
+  slug: "zh-cn/typescript/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/quick-start.mdx": {
+	id: "zh-cn/typescript/quick-start.mdx";
+  slug: "zh-cn/typescript/quick-start";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-cn/typescript/resources.mdx": {
+	id: "zh-cn/typescript/resources.mdx";
+  slug: "zh-cn/typescript/resources";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/getting-started/overview.mdx": {
+	id: "zh-tw/getting-started/overview.mdx";
+  slug: "zh-tw/getting-started/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/getting-started/setup.mdx": {
+	id: "zh-tw/getting-started/setup.mdx";
+  slug: "zh-tw/getting-started/setup";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/guides/testing.mdx": {
+	id: "zh-tw/guides/testing.mdx";
+  slug: "zh-tw/guides/testing";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/guides/troubleshooting.mdx": {
+	id: "zh-tw/guides/troubleshooting.mdx";
+  slug: "zh-tw/guides/troubleshooting";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/index.mdx": {
+	id: "zh-tw/index.mdx";
+  slug: "zh-tw";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/ai-agent.mdx": {
+	id: "zh-tw/python/ai-agent.mdx";
+  slug: "zh-tw/python/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/authentication.mdx": {
+	id: "zh-tw/python/authentication.mdx";
+  slug: "zh-tw/python/authentication";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/error-handling.mdx": {
+	id: "zh-tw/python/error-handling.mdx";
+  slug: "zh-tw/python/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/installation.mdx": {
+	id: "zh-tw/python/installation.mdx";
+  slug: "zh-tw/python/installation";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/integrations.mdx": {
+	id: "zh-tw/python/integrations.mdx";
+  slug: "zh-tw/python/integrations";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/overview.mdx": {
+	id: "zh-tw/python/overview.mdx";
+  slug: "zh-tw/python/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/quick-start.mdx": {
+	id: "zh-tw/python/quick-start.mdx";
+  slug: "zh-tw/python/quick-start";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/python/resources.mdx": {
+	id: "zh-tw/python/resources.mdx";
+  slug: "zh-tw/python/resources";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/ai-agent.mdx": {
+	id: "zh-tw/typescript/ai-agent.mdx";
+  slug: "zh-tw/typescript/ai-agent";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/authentication.mdx": {
+	id: "zh-tw/typescript/authentication.mdx";
+  slug: "zh-tw/typescript/authentication";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/error-handling.mdx": {
+	id: "zh-tw/typescript/error-handling.mdx";
+  slug: "zh-tw/typescript/error-handling";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/full-flow-guide.mdx": {
+	id: "zh-tw/typescript/full-flow-guide.mdx";
+  slug: "zh-tw/typescript/full-flow-guide";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/installation.mdx": {
+	id: "zh-tw/typescript/installation.mdx";
+  slug: "zh-tw/typescript/installation";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/integrations.mdx": {
+	id: "zh-tw/typescript/integrations.mdx";
+  slug: "zh-tw/typescript/integrations";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/local-testing.mdx": {
+	id: "zh-tw/typescript/local-testing.mdx";
+  slug: "zh-tw/typescript/local-testing";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/overview.mdx": {
+	id: "zh-tw/typescript/overview.mdx";
+  slug: "zh-tw/typescript/overview";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/quick-start.mdx": {
+	id: "zh-tw/typescript/quick-start.mdx";
+  slug: "zh-tw/typescript/quick-start";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
+"zh-tw/typescript/resources.mdx": {
+	id: "zh-tw/typescript/resources.mdx";
+  slug: "zh-tw/typescript/resources";
+  body: string;
+  collection: "docs";
+  data: InferEntrySchema<"docs">
+} & { render(): Render[".mdx"] };
 };
 
 	};
@@ -431,6 +809,16 @@ declare module 'astro:content' {
 };
 "vi": {
 	id: "vi";
+  collection: "i18n";
+  data: InferEntrySchema<"i18n">
+};
+"zh-cn": {
+	id: "zh-cn";
+  collection: "i18n";
+  data: InferEntrySchema<"i18n">
+};
+"zh-tw": {
+	id: "zh-tw";
   collection: "i18n";
   data: InferEntrySchema<"i18n">
 };

@@ -62,7 +62,7 @@ export interface ValidateTouchpointResponse {
   [key: string]: unknown
 }
 
-export class CampaignResource {
+export class CampaignsResource {
   /**
    * @param base - channel-service base URL (gateway/channel-service)
    */

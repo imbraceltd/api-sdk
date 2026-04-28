@@ -267,6 +267,7 @@ export class AiResource {
 
   private get v2() { return `${this.base.replace(/\/$/, "")}/v2/ai` }
   private get v3() { return `${this.base.replace(/\/$/, "")}/v3/ai` }
+  private get backendV2() { return `${this.base.replace(/\/$/, "")}/v2/backend` }
 
   private get assistantBase() {
     return this.v3
@@ -359,6 +360,36 @@ export class AiResource {
     }).then(r => r.json())
   }
 
+  /** Create a custom agent (v3). */
+  async createAssistantV3(body: any): Promise<Assistant> {
+    return this.http.getFetch()(`${this.assistantBase}/assistants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  // ─── Assistant Templates (v2/backend/templates) ───
+
+  /** List all assistant templates. */
+  async listAssistantTemplates(): Promise<any[]> {
+    return this.http.getFetch()(`${this.backendV2}/templates`, { method: "GET" }).then(r => r.json())
+  }
+
+  /** Get a specific assistant template. */
+  async getAssistantTemplate(templateId: string): Promise<any> {
+    return this.http.getFetch()(`${this.backendV2}/templates/${templateId}`, { method: "GET" }).then(r => r.json())
+  }
+
+  /** Create an assistant from a template. */
+  async createAssistantFromTemplate(templateId: string, body: any): Promise<Assistant> {
+    return this.http.getFetch()(`${this.backendV2}/templates/${templateId}/create_assistant`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
   // ─── Assistant Apps   
 
   async createAssistantApp(body: CreateAssistantAppInput): Promise<AssistantApp> {
@@ -408,6 +439,36 @@ export class AiResource {
 
   async deleteRagFile(fileId: string): Promise<void> {
     await this.http.getFetch()(`${this.v3}/rag/files/${fileId}`, { method: "DELETE" })
+  }
+
+  /** Ask a question using RAG (v1/rag/answer_question). */
+  async answerQuestion(body: any): Promise<any> {
+    const chatBase = `${this.base.replace(/\/$/, "")}/chat/ai/api/v1`
+    return this.http.getFetch()(`${chatBase}/rag/answer_question`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  // ─── Embeddings (RAG/Vector) ───
+
+  /** Create embeddings for board items. */
+  async createEmbedding(body: any[]): Promise<any> {
+    const chatBase = `${this.base.replace(/\/$/, "")}/chat/ai/api/v1`
+    return this.http.getFetch()(`${chatBase}/embedding`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json())
+  }
+
+  /** Delete embeddings for a specific board. */
+  async deleteEmbeddingByBoard(boardId: string): Promise<any> {
+    const chatBase = `${this.base.replace(/\/$/, "")}/chat/ai/api/v1`
+    return this.http.getFetch()(`${chatBase}/embedding/board/${boardId}`, {
+      method: "DELETE",
+    }).then(r => r.json())
   }
 
   // ─── Guardrails   
@@ -531,33 +592,5 @@ export class AiResource {
 
   async listAssistantsV2(): Promise<AssistantListResponse> {
     return this.http.getFetch()(`${this.v2}/ai/assistants`, { method: "GET" }).then(r => r.json())
-  }
-
-  async createAssistantV2(body: any): Promise<Assistant> {
-    return this.http.getFetch()(`${this.v2}/ai/assistants`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async updateAssistantV2(assistantId: string, body: any): Promise<Assistant> {
-    return this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
-  }
-
-  async deleteAssistantV2(assistantId: string): Promise<void> {
-    await this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, { method: "DELETE" })
-  }
-
-  async createAssistantAppV2(body: any): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.v2}/ai/assistant_apps`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(r => r.json())
   }
 }
