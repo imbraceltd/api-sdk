@@ -4,6 +4,7 @@ description: End-to-end walkthroughs — from client setup to AI agents, workflo
 ---
 
 import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import AuthOnly from "../../../components/AuthOnly.astro";
 
 This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
 
@@ -15,6 +16,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 1. **Initialize the client**
 
+   <AuthOnly mode="access-token">
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
@@ -37,8 +39,34 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        ```
      </TabItem>
    </Tabs>
+   </AuthOnly>
 
-   You can pass either an **access token** (for user-facing apps where Imbrace is your backend) or an **api key** (for service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
+   <AuthOnly mode="api-key">
+   <Tabs syncKey="lang">
+     <TabItem label="TypeScript">
+       ```typescript
+       import { ImbraceClient } from "@imbrace/sdk"
+
+       const client = new ImbraceClient({
+         baseUrl: "https://app-gatewayv2.imbrace.co",
+         apiKey: "api_your_key",
+       })
+       ```
+     </TabItem>
+     <TabItem label="Python">
+       ```python
+       from imbrace import ImbraceClient
+
+       client = ImbraceClient(
+           base_url="https://app-gatewayv2.imbrace.co",
+           api_key="api_your_key",
+       )
+       ```
+     </TabItem>
+   </Tabs>
+   </AuthOnly>
+
+   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
 
 2. **Create an assistant**
 
@@ -470,7 +498,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 3. **Attach the folder to the assistant**
 
-   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → boards](/typescript/resources/#boards)). The legacy `knowledge_hubs` field is deprecated.
+   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">

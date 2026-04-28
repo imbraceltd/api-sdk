@@ -1,0 +1,139 @@
+---
+// Two header dropdowns (auth mode + SDK version) modelled on the Next.js docs
+// header. Selection persists in localStorage and is mirrored onto
+// <html data-auth="..." data-version="..."> so CSS can show/hide content
+// blocks marked with <AuthOnly mode="..."> and <VersionOnly version="...">.
+
+const authOptions = [
+  { value: 'access-token', label: 'Access Token' },
+  { value: 'api-key',      label: 'API Key' },
+] as const
+
+const versionOptions = [
+  { value: '1.0.2', label: 'v1.0.2 (latest)' },
+] as const
+
+const defaultAuth = 'access-token'
+const defaultVersion = '1.0.2'
+---
+
+<div class="docs-controls" role="group" aria-label="Documentation preferences">
+  <label class="docs-controls__field">
+    <span class="docs-controls__label">Auth</span>
+    <select class="docs-auth-select" data-default={defaultAuth}>
+      {authOptions.map((opt) => (
+        <option value={opt.value} selected={opt.value === defaultAuth}>{opt.label}</option>
+      ))}
+    </select>
+  </label>
+  <label class="docs-controls__field">
+    <span class="docs-controls__label">Version</span>
+    <select class="docs-version-select" data-default={defaultVersion}>
+      {versionOptions.map((opt) => (
+        <option value={opt.value} selected={opt.value === defaultVersion}>{opt.label}</option>
+      ))}
+    </select>
+  </label>
+</div>
+
+<script is:inline define:vars={{ defaultAuth, defaultVersion }}>
+  ;(function () {
+    if (window.__imbraceDocsControlsInit) return
+    window.__imbraceDocsControlsInit = true
+
+    const root = document.documentElement
+    const AUTH_KEY = 'imbrace-docs-auth'
+    const VER_KEY = 'imbrace-docs-version'
+
+    const auth = localStorage.getItem(AUTH_KEY) || defaultAuth
+    const ver = localStorage.getItem(VER_KEY) || defaultVersion
+    root.setAttribute('data-auth', auth)
+    root.setAttribute('data-version', ver)
+
+    function wire(selector, key, attr) {
+      const els = document.querySelectorAll(selector)
+      const stored = localStorage.getItem(key)
+      els.forEach((el) => {
+        if (stored) el.value = stored
+        el.addEventListener('change', () => {
+          localStorage.setItem(key, el.value)
+          root.setAttribute(attr, el.value)
+          // Mirror selection into every other instance (mobile + desktop).
+          els.forEach((other) => { if (other !== el) other.value = el.value })
+        })
+      })
+    }
+
+    function init() {
+      wire('.docs-auth-select', AUTH_KEY, 'data-auth')
+      wire('.docs-version-select', VER_KEY, 'data-version')
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init)
+    } else {
+      init()
+    }
+  })()
+</script>
+
+<style>
+  .docs-controls {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-inline-start: 0.5rem;
+  }
+  .docs-controls__field {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    line-height: 1;
+  }
+  .docs-controls__label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sl-color-gray-3);
+    font-weight: 600;
+  }
+  .docs-controls select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-text);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.4rem;
+    padding: 0.3rem 1.6rem 0.3rem 0.55rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 0.85rem) 0.6rem, calc(100% - 0.55rem) 0.6rem;
+    background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+    background-repeat: no-repeat;
+  }
+  .docs-controls select:hover {
+    border-color: var(--sl-color-text-accent);
+  }
+  .docs-controls select:focus-visible {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  /* Hide the labels and stack tighter on narrow viewports */
+  @media (max-width: 1024px) {
+    .docs-controls__label {
+      display: none;
+    }
+    .docs-controls select {
+      padding: 0.25rem 1.4rem 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+  }
+  @media (max-width: 50rem) {
+    .docs-controls {
+      display: none;
+    }
+  }
+</style>

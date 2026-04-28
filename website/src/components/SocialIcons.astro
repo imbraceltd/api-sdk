@@ -1,0 +1,41 @@
+---
+// Override of Starlight's built-in SocialIcons. Renders the same social links
+// as upstream and then appends our DocsControls (auth + version dropdowns)
+// so they sit in the header alongside search and theme select.
+import config from 'virtual:starlight/user-config'
+import { Icon } from '@astrojs/starlight/components'
+import DocsControls from './DocsControls.astro'
+
+type Platform = keyof NonNullable<typeof config.social>
+type SocialConfig = NonNullable<NonNullable<typeof config.social>[Platform]>
+const links = Object.entries(config.social || {}) as [Platform, SocialConfig][]
+---
+
+<div class="header-social-wrapper sl-flex">
+  {links.length > 0 && (
+    <>
+      {links.map(([platform, { label, url }]) => (
+        <a href={url} rel="me" class="sl-flex">
+          <span class="sr-only">{label}</span>
+          <Icon name={platform} />
+        </a>
+      ))}
+    </>
+  )}
+  <DocsControls />
+</div>
+
+<style>
+  .header-social-wrapper {
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .header-social-wrapper a {
+    color: var(--sl-color-text-accent);
+    padding: 0.5em;
+    margin: -0.5em;
+  }
+  .header-social-wrapper a:hover {
+    opacity: 0.66;
+  }
+</style>

@@ -863,3 +863,27 @@ html[data-has-hero] .hero .actions {
     opacity: 0.6;
   }
 }
+
+/* ============================================================
+   AUTH + VERSION TOGGLES (header dropdowns)
+   ============================================================ */
+
+/* Hide blocks that don't match the currently-selected auth mode. */
+:root[data-auth='access-token'] [data-auth-only='api-key'],
+:root[data-auth='api-key']      [data-auth-only='access-token'] {
+  display: none !important;
+}
+
+/* Hide blocks that don't match the currently-selected version. */
+:root[data-version='1.0.2'] [data-version-only]:not([data-version-only='1.0.2']) {
+  display: none !important;
+}
+
+/* Default state before the inline boot script sets data-auth/data-version
+   (FOUC guard) — show only the access-token / 1.0.2 defaults. */
+:root:not([data-auth]) [data-auth-only='api-key'] {
+  display: none !important;
+}
+:root:not([data-version]) [data-version-only]:not([data-version-only='1.0.2']) {
+  display: none !important;
+}
