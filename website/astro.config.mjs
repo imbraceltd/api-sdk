@@ -55,7 +55,7 @@ export default defineConfig({
         './src/styles/custom.css',
       ],
       components: {
-        SocialIcons: './src/components/SocialIcons.astro',
+        Sidebar: './src/components/Sidebar.astro',
       },
       sidebar: [
         {
