@@ -1,11 +1,37 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import { visit } from 'unist-util-visit'
 
 const isProd = process.env.NODE_ENV === 'production'
+const base = isProd ? '/api-sdk' : '/'
+
+// Astro does not auto-prefix the configured `base` onto root-relative links
+// in markdown content (e.g. `[Auth](/sdk/authentication/)`). Sidebar entries
+// and Starlight components handle base prefixing themselves, but markdown
+// links would render as `/sdk/authentication/` and 404 in production where
+// the site is served from `/api-sdk/`. This plugin prefixes the base onto
+// internal anchor hrefs.
+function rehypePrefixBase() {
+  const trimmedBase = base.replace(/\/$/, '')
+  if (!trimmedBase) return () => () => {}
+  return () => (tree) => {
+    visit(tree, 'element', (node) => {
+      if (node.tagName !== 'a' || !node.properties) return
+      const href = node.properties.href
+      if (typeof href !== 'string') return
+      if (!href.startsWith('/') || href.startsWith('//')) return
+      if (href.startsWith(trimmedBase + '/') || href === trimmedBase) return
+      node.properties.href = trimmedBase + href
+    })
+  }
+}
 
 export default defineConfig({
   site: 'https://imbraceltd.github.io',
-  base: isProd ? '/api-sdk' : '/',
+  base,
+  markdown: {
+    rehypePlugins: [rehypePrefixBase()],
+  },
   integrations: [
     starlight({
       favicon: '/favicon.svg',
