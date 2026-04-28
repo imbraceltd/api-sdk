@@ -4,9 +4,11 @@ description: Make your first Imbrace API call in under a minute.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
+import AuthOnly from "../../../components/AuthOnly.astro";
 
 ### 1. Initialize the client
 
+<AuthOnly mode="access-token">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
@@ -33,8 +35,38 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
     ```
   </TabItem>
 </Tabs>
+</AuthOnly>
 
-> Pass `apiKey` / `api_key` instead if Imbrace is a feature inside your own backend (vs. powering it). See [Authentication](/sdk/authentication/) for the decision.
+<AuthOnly mode="api-key">
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
+
+    const client = new ImbraceClient({
+      apiKey: "your-api-key",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+    from dotenv import load_dotenv
+    from imbrace import ImbraceClient
+
+    load_dotenv()
+
+    client = ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        base_url="https://app-gatewayv2.imbrace.co",
+    )
+    ```
+  </TabItem>
+</Tabs>
+</AuthOnly>
+
+> Switch the **Auth** dropdown in the header to flip between API Key and Access Token examples site-wide. See [Authentication](/sdk/authentication/) for which to pick.
 
 ---
 
@@ -75,4 +107,4 @@ The [Full Flow Guide](/sdk/full-flow-guide/) walks the four major workflows end-
 - **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)
 - **Boards & Items (CRM)** → [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
 
-For the per-namespace API reference, see [Resources](/typescript/resources/) (a unified `/sdk/resources/` page is coming).
+For the per-namespace API reference, see [Resources](/sdk/resources/).
