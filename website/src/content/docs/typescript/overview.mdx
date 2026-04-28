@@ -10,7 +10,7 @@ The `@imbrace/sdk` package is the official TypeScript/JavaScript client for the 
 | Feature                  | Detail                                                                               |
 | ------------------------ | ------------------------------------------------------------------------------------ |
 | **Full Type Safety**     | 100% TypeScript — every request and response is typed via shared `types/` interfaces |
-| **Dual Authentication**  | API Key (server-to-server) or Access Token (client-side JWT / legacy token)          |
+| **Dual Authentication**  | API Key or Access Token — see [Authentication](/typescript/authentication/) for which to pick |
 | **Auto Retry**           | 429 and 5xx errors retry up to 2 times with exponential backoff                      |
 | **Request Cancellation** | AbortSignal propagation for in-flight request cancellation                           |
 | **Streaming AI**         | AsyncGenerator-based streaming for AI completions and SSE chat                       |
@@ -34,12 +34,9 @@ The `@imbrace/sdk` package is the official TypeScript/JavaScript client for the 
 
 | Scenario                                   | Recommended Auth                            |
 | ------------------------------------------ | ------------------------------------------- |
-| Node.js backend, cron jobs, data pipelines | `apiKey` → `x-api-key` header               |
-| User-facing frontend after OTP/OAuth login | `accessToken` JWT → `Authorization: Bearer` |
-| Legacy integration with opaque tokens      | `accessToken` opaque → `x-access-token`     |
+| [Wrap Imbrace](/typescript/authentication/#wrap-imbrace--use-api-key) — Imbrace is a feature inside your own backend | `apiKey` → `x-api-key` header               |
+| [Build on Imbrace](/typescript/authentication/#build-on-imbrace--use-access-token) — Imbrace IS your backend (your users log in via Imbrace) | `accessToken` → `x-access-token` header |
 
-:::tip
-For most server-side use cases, use `apiKey`. For user-facing apps, authenticate with OTP and let the SDK manage the token automatically.
-:::
+See [Authentication](/typescript/authentication/) for the full decision tree and examples.
 
 ---
