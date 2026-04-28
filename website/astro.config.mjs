@@ -80,6 +80,9 @@ export default defineConfig({
             { label: 'Quick Start',      link: '/sdk/quick-start/' },
             { label: 'Authentication',   link: '/sdk/authentication/' },
             { label: 'Full Flow Guide',  link: '/sdk/full-flow-guide/' },
+            { label: 'Resources',        link: '/sdk/resources/' },
+            { label: 'AI Agent',         link: '/sdk/ai-agent/' },
+            { label: 'Error Handling',   link: '/sdk/error-handling/' },
           ],
         },
         {
