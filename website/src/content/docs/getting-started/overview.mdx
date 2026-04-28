@@ -7,10 +7,10 @@ Imbrace is a customer engagement platform — it handles chat channels, CRM pipe
 
 ### What You Can Build
 
-- **AI chat assistants** — stream live responses from an AI assistant trained on your knowledge base
-- **Automated workflows** — trigger and manage multi-step automations via Activepieces
-- **CRM pipelines** — create boards, manage leads, search and export deal data
-- **Document processing** — extract structured data from PDFs and invoices, generate embeddings
+- **AI chat assistants** — stream live responses from an AI assistant trained on your knowledge base ([Full Flow Guide §1](/typescript/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting))
+- **Automated workflows** — trigger and manage multi-step automations via Activepieces ([Full Flow Guide §2](/typescript/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant))
+- **Knowledge Hub** — upload files, attach folders to assistants for RAG ([Full Flow Guide §3](/typescript/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant))
+- **CRM pipelines** — create boards, manage leads, search and export deal data ([Full Flow Guide §4](/typescript/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines))
 
 ### Available SDKs
 
@@ -21,20 +21,7 @@ Imbrace is a customer engagement platform — it handles chat channels, CRM pipe
 
 ### Authentication
 
-There are two ways to authenticate:
-
-- **Access token** — for user-facing apps. Obtained after a user logs in via OTP or OAuth. Pass it as `accessToken` when initializing the client.
-- **API key** — for server-to-server integrations. Generate one from the Imbrace admin dashboard. Pass it as `apiKey`.
-
-### Gateway
-
-All SDK requests route through:
-
-```
-https://app-gatewayv2.imbrace.co
-```
-
-The gateway is set by default — you do not need to configure it unless you are targeting a different environment.
+Two credential types: **API Key** (service-to-service) and **Access Token** (per-user session). See [Authentication](/typescript/authentication/) for which to pick and why.
 
 ### Quick Example
 
@@ -52,5 +39,7 @@ const stream = await client.aiAgent.streamChat({
   messages: [{ role: "user", content: "What deals closed this quarter?" }],
 })
 ```
+
+Continue with the [Full Flow Guide](/typescript/full-flow-guide/) for a complete end-to-end walkthrough.
 
 ---

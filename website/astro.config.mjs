@@ -59,24 +59,24 @@ export default defineConfig({
               link: '/typescript/installation/',
             },
             {
-              label: 'Authentication',
-              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
-              link: '/typescript/authentication/',
-            },
-            {
               label: 'Quick Start',
               translations: { vi: 'Bắt Đầu Nhanh', 'zh-CN': '快速入门', 'zh-TW': '快速入門' },
               link: '/typescript/quick-start/',
             },
             {
-              label: 'Resources',
-              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
-              link: '/typescript/resources/',
+              label: 'Authentication',
+              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
+              link: '/typescript/authentication/',
             },
             {
               label: 'Full Flow Guide',
               translations: { vi: 'Hướng Dẫn Flow Chi Tiết', 'zh-CN': '完整流程指南', 'zh-TW': '完整流程指南' },
               link: '/typescript/full-flow-guide/',
+            },
+            {
+              label: 'Resources',
+              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
+              link: '/typescript/resources/',
             },
             {
               label: 'AI Agent',

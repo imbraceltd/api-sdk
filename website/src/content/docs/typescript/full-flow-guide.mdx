@@ -24,6 +24,8 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    })
    ```
 
+   You can pass either an **access token** (for user-facing apps where Imbrace is your backend) or an **api key** (for service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/typescript/authentication/#which-credential-should-i-use) for the full decision tree.
+
 2. **Create an assistant**
 
    `workflow_name` must be unique within your organization.
@@ -46,7 +48,8 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    to delegate to the org's default LLM provider, or pass a custom
    provider's UUID. With `provider_id: "system"`, `model_id` accepts a
    model name like `"gpt-4o"`, or the literal `"Default"` to fall back
-   to the system default model.
+   to the system default model. For full assistant CRUD, see
+   [Resources → chatAi](/typescript/resources/#chatai).
 
 3. **Stream a chat response using the assistant**
 
@@ -251,7 +254,8 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
    Pass the folder `_id` in `folder_ids` — the assistant retrieves from every
    file in that folder. Use `board_ids` to attach a CRM data-board (its items
-   become a knowledge source). The legacy `knowledge_hubs` field is deprecated.
+   become a knowledge source — see [Resources → boards](/typescript/resources/#boards)).
+   The legacy `knowledge_hubs` field is deprecated.
 
    ```typescript
    await client.chatAi.updateAssistant(assistantId, {

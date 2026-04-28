@@ -5,6 +5,8 @@ description: Error types, automatic retry behavior, and best practices for handl
 
 All errors thrown by the SDK extend a common base and are fully typed, so you can handle them precisely with `instanceof` checks.
 
+For specific error messages and their fixes, see [Troubleshooting](/guides/troubleshooting/). For credential-related errors, see [Authentication](/typescript/authentication/).
+
 ### Error Hierarchy
 
 ```
@@ -19,7 +21,7 @@ Error
 
 ### AuthError
 
-Thrown when the server returns **401** or **403**. Indicates the credentials are invalid or expired.
+Thrown when the server returns **401** or **403**. Indicates the credentials are invalid or expired. Pick the right credential type per [Authentication](/typescript/authentication/).
 
 ```typescript
 import { AuthError } from "@imbrace/sdk";

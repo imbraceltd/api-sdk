@@ -3,16 +3,15 @@ title: TypeScript SDK — Resource Reference
 description: Full reference for all Imbrace SDK resource namespaces.
 ---
 
-```typescript
-import { ImbraceClient } from "@imbrace/sdk"
-const client = new ImbraceClient({ accessToken: "acc_xxx", baseUrl: "https://app-gatewayv2.imbrace.co" })
-```
+Per-namespace API reference. Initialize the client first (see [Setup Guide](/getting-started/setup/) or [Quick Start](/typescript/quick-start/)) — all snippets below assume `client` is the initialized instance. For an end-to-end walkthrough using these resources together, see [Full Flow Guide](/typescript/full-flow-guide/).
 
 ---
 
 ## AI Agent (`client.aiAgent`)
 
 ### Stream Chat (SSE)
+
+> For SSE handling and a session-id walkthrough, see [Full Flow Guide §1](/typescript/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting). The reference below shows the call signature.
 
 ```typescript
 // Keep sessionId across turns to maintain conversation history.

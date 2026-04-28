@@ -36,9 +36,10 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
     Built-in exponential backoff for 429 and 5xx responses. Zero configuration
     needed — your app stays alive under load.
   </Card>
-  <Card title="3-Tier Authentication" icon="setting">
-    API Key, JWT Bearer, and legacy access token — all handled transparently.
-    Switch auth strategy without changing business logic.
+  <Card title="Two Credential Types" icon="setting">
+    **API Key** for service-to-service, **Access Token** for per-user
+    sessions. The transport handles headers automatically.
+    [Learn when to use each →](typescript/authentication/)
   </Card>
   <Card title="Async-first Python" icon="rocket">
     Parallel `AsyncImbraceClient` alongside the sync client. Drop into FastAPI,
@@ -105,14 +106,14 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
     href="python/overview/"
   />
   <LinkCard
-    title="TypeScript — Setup Guide"
-    description="Install, configure credentials, environments, service URL overrides."
+    title="Setup Guide"
+    description="Install, configure credentials, environments — TypeScript & Python."
     href="getting-started/setup/"
   />
   <LinkCard
-    title="Python — Setup Guide"
-    description="Install, configure credentials, environments, service URL overrides."
-    href="getting-started/setup/"
+    title="Authentication"
+    description="API Key vs Access Token: which to use and why."
+    href="typescript/authentication/"
   />
   <LinkCard
     title="Testing Guide"

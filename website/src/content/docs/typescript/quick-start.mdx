@@ -14,6 +14,8 @@ const client = new ImbraceClient({
 })
 ```
 
+> Pass `apiKey` instead if Imbrace is a feature inside your own backend (vs. powering it). See [Authentication](/typescript/authentication/) for the decision.
+
 ---
 
 ### 2. Fetch Your Boards
@@ -34,10 +36,12 @@ That's it. If you see your boards listed, the SDK is connected and authenticated
 
 ### 3. Next Steps
 
-Once connected, you can explore the full feature set:
+The [Full Flow Guide](/typescript/full-flow-guide/) walks the four major workflows end-to-end. Jump straight to a section:
 
-- **AI Agent** — stream live responses from an AI assistant trained on your knowledge base → requires an `assistant_id` from your Imbrace dashboard
-- **Workflows** — trigger and manage Activepieces automations
-- **Boards & Items** — full CRM pipeline management
-- **Knowledge Hub** — manage files and knowledge bases for AI
+- **AI Assistant + streamChat** → [Full Flow Guide §1](/typescript/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting)
+- **Activepieces workflows** → [Full Flow Guide §2](/typescript/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant)
+- **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/typescript/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)
+- **Boards & Items (CRM)** → [Full Flow Guide §4](/typescript/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
+
+For the full per-namespace API reference, see [Resources](/typescript/resources/).
 

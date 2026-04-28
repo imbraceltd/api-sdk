@@ -7,6 +7,8 @@ import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 
 This guide covers everything you need to go from zero to a working Imbrace SDK integration — installation, credentials, environments, and service URL overrides.
 
+> Already installed? Skip to [Authentication](/typescript/authentication/) for credential strategy or [Quick Start](/typescript/quick-start/) for a working call in 60 seconds.
+
 ---
 
 ### System Requirements
@@ -94,21 +96,15 @@ print("SDK loaded:", ImbraceClient)
 
 ### Configure Credentials
 
-#### Create a `.env` file
-
-The SDK does not auto-read environment variables — you pass credentials directly to the constructor. A `.env` file is a user convention for storing secrets; use `dotenv` or your framework's env loader to read them.
+Pass credentials directly to the constructor. Use a `.env` file with `dotenv` or your framework's env loader to manage secrets — the SDK does not read them automatically.
 
 ```env
-# Credentials
 IMBRACE_API_KEY=your_api_key_here
 IMBRACE_ACCESS_TOKEN=your_jwt_token_here
-
-# Organization ID — sent with every request
-IMBRACE_ORGANIZATION_ID=your_org_id_here
-
-# Optional: override the gateway URL directly
 IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 ```
+
+> Not sure which one you need? See [Authentication](/typescript/authentication/) — the choice depends on whether Imbrace is your backend (Access Token) or a feature inside your stack (API Key).
 
 #### Get an API Key
 
@@ -227,79 +223,9 @@ async def main():
 
 ---
 
-### Quick Usage Examples
+### First API call
 
-<Tabs>
-  <TabItem label="TypeScript">
-
-```typescript
-import { ImbraceClient } from '@imbrace/sdk'
-
-const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
-
-// Get current user
-const me = await client.platform.getMe()
-
-// List channels
-const channels = await client.channel.listChannels()
-
-// Send a message
-await client.channel.sendMessage('conv_123', { content: 'Hello!', type: 'text' })
-
-// AI completion
-const result = await client.ai.complete({
-  model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'Summarize this.' }],
-})
-
-// AI streaming
-for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? '')
-}
-
-// AI Agent — streaming chat
-const response = await client.aiAgent.streamChat({
-  id: 'chat_id',
-  assistant_id: 'asst_abc',
-  organization_id: 'org_abc',
-  messages: [{ role: 'user', content: 'Hello' }],
-})
-```
-
-  </TabItem>
-  <TabItem label="Python">
-
-```python
-from imbrace import ImbraceClient
-
-with ImbraceClient(api_key="sk-...") as client:
-    # Get current user
-    me = client.platform.get_me()
-
-    # List channels and boards
-    channels = client.channel.list_channels()
-    boards   = client.boards.list()
-    items    = client.boards.get_items(boards[0]["id"])
-
-    # AI completion
-    result = client.ai.complete(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": "Hello"}],
-    )
-
-    # AI Agent — streaming chat
-    response = client.ai_agent.stream_chat({
-        "id": "chat_id",
-        "assistant_id": "asst_abc",
-        "organization_id": "org_abc",
-        "messages": [{"role": "user", "content": "Hello"}],
-    })
-    for line in response.iter_lines():
-        print(line)
-```
-
-  </TabItem>
-</Tabs>
+For your first working call see [TypeScript Quick Start](/typescript/quick-start/) or [Python Quick Start](/python/quick-start/). For the full end-to-end walkthrough (assistants, workflows, knowledge hub, boards), see [Full Flow Guide](/typescript/full-flow-guide/).
 
 ---
 
@@ -383,17 +309,4 @@ cd ts && npm run build
 cd py && pip install -e ".[dev]"
 ```
 
-##### `401 Unauthorized`
-
-API Key expired or invalid. Generate a new one:
-
-```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"expirationDays": 30}'
-```
-
-##### `UserWarning: ImbraceClient: no credentials provided`
-
-No `api_key` or `access_token` passed. If intentional (e.g. login-only flow), ignore this warning. Otherwise check your `.env` file.
+For runtime auth and API errors, see [Troubleshooting](/guides/troubleshooting/) and [Error Handling](/typescript/error-handling/).

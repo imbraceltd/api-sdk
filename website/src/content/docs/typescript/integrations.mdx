@@ -7,7 +7,7 @@ description: Using the Imbrace TypeScript SDK with React, Next.js, and Node.js.
 
 #### Singleton Client
 
-Create the client once outside the component tree and reuse it across all components:
+Create the client once outside the component tree and reuse it across all components. The token comes from your auth flow — see [Authentication → OTP Login Flow](/typescript/authentication/#otp-login-flow) for how to obtain and store it.
 
 ```typescript
 // lib/imbrace.ts
@@ -71,6 +71,8 @@ export function ProductList() {
 
 #### OTP Login Flow in React
 
+For the underlying flow (request OTP → verify → exchange for access token), see [Authentication → OTP Login Flow](/typescript/authentication/#otp-login-flow). The example below shows the React wiring.
+
 ```tsx
 // components/LoginForm.tsx
 import { useState } from "react";
@@ -117,6 +119,8 @@ export function LoginForm() {
 ### Next.js
 
 #### API Route (App Router)
+
+> `IMBRACE_API_KEY` should be set per [Setup Guide → Configure Credentials](/getting-started/setup/#configure-credentials).
 
 ```typescript
 // app/api/products/route.ts
@@ -173,41 +177,6 @@ export default async function ProductsPage() {
 ---
 
 ### Node.js
-
-#### Long-Running Service
-
-```typescript
-// service.ts
-import { ImbraceClient, NetworkError } from "@imbrace/sdk";
-
-const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
-});
-
-async function processOrders() {
-  const { data: orders } = await client.marketplace.listOrders({
-    status: "pending",
-  });
-
-  for (const order of orders) {
-    await client.marketplace.updateOrderStatus(order.id, "processing");
-    console.log(`Processed order ${order.id}`);
-  }
-}
-
-// Run every minute
-setInterval(async () => {
-  try {
-    await processOrders();
-  } catch (e) {
-    if (e instanceof NetworkError) {
-      console.warn("Gateway unreachable, will retry next interval");
-    } else {
-      throw e;
-    }
-  }
-}, 60_000);
-```
 
 #### CLI Script
 

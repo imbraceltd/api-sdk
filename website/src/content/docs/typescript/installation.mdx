@@ -15,31 +15,26 @@ bun add @imbrace/sdk
 
 ---
 
-### Get Your Credentials
-
-- **Access token** — sign in to the Imbrace dashboard and copy your session token from the account settings page. Use this for user-facing apps.
-- **API key** — generate a long-lived server key from the Imbrace admin panel under API Access. Use this for backend and server-to-server calls.
-
----
-
 ### Initialize the Client
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk"
 
-// Option 1 — access token (user-facing apps)
+// Option 1 — access token (Build on Imbrace: Imbrace handles auth, db, logic)
 const client = new ImbraceClient({
-  accessToken: "your-access-token",
+  accessToken: "acc_your_token",
   baseUrl: "https://app-gatewayv2.imbrace.co",
 })
 
-// Option 2 — API key (server-to-server)
+// Option 2 — API key (Wrap Imbrace: your backend, your users, Imbrace as a feature)
 const client = new ImbraceClient({
-  apiKey: "sk-xxx...",
+  apiKey: "api_xxx...",
   baseUrl: "https://app-gatewayv2.imbrace.co",
 })
 ```
 
 The client is stateful — create it once and reuse it across your application.
+
+For when to use each, see [Authentication](/typescript/authentication/). For step-by-step credential setup (env vars, dotenv), see [Setup Guide](/getting-started/setup/#configure-credentials).
 
 ---

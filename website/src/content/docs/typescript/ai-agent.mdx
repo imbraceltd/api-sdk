@@ -5,47 +5,9 @@ description: Complete reference for the aiAgent resource — streaming chat, emb
 
 import { Aside } from '@astrojs/starlight/components';
 
-`client.aiAgent` connects to the dedicated AI Agent service, which runs on a separate base URL from the main API gateway. It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
+`client.aiAgent` connects to the dedicated AI Agent service, which runs on a separate base URL from the main API gateway (see [Local Testing — environment URLs](/typescript/local-testing/#environment-urls)). It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
 
-```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-const client = new ImbraceClient();
-```
-
----
-
-#### System
-
-```typescript
-const config  = await client.aiAgent.getConfig();
-const health  = await client.aiAgent.getHealth();        // basic check
-const healthD = await client.aiAgent.getHealth(true);    // detailed stats
-const version = await client.aiAgent.getVersion();
-```
-
----
-
-#### Chat v1 — Conversation History
-
-List, read, and delete persisted chat records.
-
-```typescript
-// List chats for an organization
-const chats = await client.aiAgent.listChats({
-  organization_id: "org_abc",
-  user_id: "user_123",
-  limit: 20,
-});
-
-// Get a single chat (pass true to include messages)
-const chat = await client.aiAgent.getChat("chat_id", true);
-
-// Delete a chat
-await client.aiAgent.deleteChat("chat_id", {
-  organization_id: "org_abc",
-  user_id: "user_123",
-});
-```
+Initialize the client first (see [Setup Guide](/getting-started/setup/)). All snippets below assume `client` is the initialized instance.
 
 ---
 
@@ -108,7 +70,7 @@ const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_abc");
 
 #### Embeddings & Knowledge Base
 
-Manage files used for Retrieval-Augmented Generation (RAG). Files must first be uploaded via `client.fileService` before they can be embedded.
+Manage files used for Retrieval-Augmented Generation (RAG). Upload the files first via `client.boards.uploadFile` (see [Full Flow Guide §3](/typescript/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)).
 
 ```typescript
 // Trigger embedding processing for an uploaded file
@@ -199,7 +161,7 @@ const results = await client.aiAgent.searchTraceQL(
 
 #### Chat Client
 
-The Chat Client sub-API powers frontend applications (e.g. the embedded chat widget). It includes auth, full chat/message CRUD, voting, and AI-generated documents.
+The Chat Client sub-API powers frontend applications (e.g. the embedded chat widget). See [Integrations → React](/typescript/integrations/#react) for a full wiring example. It includes auth, full chat/message CRUD, voting, and AI-generated documents.
 
 ##### Auth
 
@@ -291,4 +253,28 @@ const guides = await client.aiAgent.listAdminGuides();
 // Download a specific guide — returns raw Response (PDF stream)
 const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
 const blob = await response.blob();
+```
+
+---
+
+#### Legacy v1 chat (deprecated)
+
+These REST endpoints predate `streamChat` and are kept only for back-compat. New code should always use Chat v2 streaming above.
+
+```typescript
+// List chats for an organization
+const chats = await client.aiAgent.listChats({
+  organization_id: "org_abc",
+  user_id: "user_123",
+  limit: 20,
+});
+
+// Get a single chat (pass true to include messages)
+const chat = await client.aiAgent.getChat("chat_id", true);
+
+// Delete a chat
+await client.aiAgent.deleteChat("chat_id", {
+  organization_id: "org_abc",
+  user_id: "user_123",
+});
 ```
