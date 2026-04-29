@@ -1,0 +1,1776 @@
+# Imbrace SDK — AI-Friendly Reference
+
+> Complete technical reference for the Imbrace TypeScript and Python SDKs.
+> All content is explicit and self-contained. Optimized for AI agents and LLMs.
+
+---
+
+## Table of Contents
+
+1. [What is Imbrace](#1-what-is-imbrace)
+2. [Base URL & Environments](#2-base-url--environments)
+3. [Installation](#3-installation)
+4. [Authentication](#4-authentication)
+5. [Client Initialization](#5-client-initialization)
+6. [Error Handling & Retry](#6-error-handling--retry)
+7. [Resource Namespaces — Quick Reference](#7-resource-namespaces--quick-reference)
+8. [AI Assistants — chatAi / chat_ai](#8-ai-assistants--chatai--chat_ai)
+9. [AI Agent — aiAgent / ai_agent](#9-ai-agent--aiagent--ai_agent)
+10. [Activepieces Workflows — client.activepieces](#10-activepieces-workflows--clientactivepieces)
+11. [Boards & Items (CRM) — client.boards](#11-boards--items-crm--clientboards)
+12. [Contacts — client.contacts](#12-contacts--clientcontacts)
+13. [Conversations — client.conversations](#13-conversations--clientconversations)
+14. [Messaging — client.channel / client.messages](#14-messaging--clientchannel--clientmessages)
+15. [OpenAI-compatible AI — client.ai (Python)](#15-openai-compatible-ai--clientai-python)
+16. [Additional Python-only Resources](#16-additional-python-only-resources)
+17. [Framework Integrations](#17-framework-integrations)
+18. [Testing](#18-testing)
+19. [Troubleshooting](#19-troubleshooting)
+
+---
+
+## 1. What is Imbrace
+
+Imbrace is a customer engagement platform. It handles chat channels, CRM pipelines, AI assistants, automated workflows, and document processing in one place. The SDK lets you embed those features directly into your own applications without building the infrastructure yourself.
+
+**What you can build:**
+- AI chat assistants — stream live responses from an AI assistant trained on your knowledge base
+- Automated workflows — trigger and manage multi-step automations via Activepieces
+- CRM pipelines — create boards, manage leads, search and export deal data
+- Document processing — extract structured data from PDFs and invoices, generate embeddings
+
+**Available SDKs:**
+
+| SDK | Package | Runtime |
+|---|---|---|
+| TypeScript / JavaScript | `@imbrace/sdk` | Node.js 18+, browser |
+| Python | `imbrace` | Python 3.9+ |
+
+**Key features:**
+- Full TypeScript types and Python type hints across every resource namespace
+- Two credential types: `apiKey` or `accessToken`
+- Auto retry with exponential backoff on 429 and 5xx responses (no config needed)
+- Streaming AI via SSE / async iterator for `streamChat` and completions
+- Python provides both `ImbraceClient` (sync) and `AsyncImbraceClient` (async)
+- TypeScript supports `AbortSignal` propagation for in-flight request cancellation
+
+---
+
+## 2. Base URL & Environments
+
+All SDK requests route through the gateway. The default (production) base URL is:
+
+```
+https://app-gatewayv2.imbrace.co
+```
+
+**Named environments:**
+
+| Environment | Gateway URL | Use case |
+|---|---|---|
+| `stable` | `https://app-gatewayv2.imbrace.co` | Production (default) |
+| `develop` | `https://app-gateway.dev.imbrace.co` | Internal development |
+| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | Integration testing |
+
+Switch environments via the `env` constructor option, or override with `baseUrl`:
+
+```typescript
+// TypeScript
+const client = new ImbraceClient({ env: "sandbox" });
+const client = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+```
+
+```python
+# Python
+client = ImbraceClient(env="sandbox")
+client = ImbraceClient(base_url="https://app-gatewayv2.imbrace.co")
+```
+
+**Per-service URL override** (for microservice local dev):
+
+```typescript
+// TypeScript
+const client = new ImbraceClient({
+  env: "develop",
+  services: {
+    aiAgent:        "http://localhost:4000/ai-agent",
+    dataBoard:      "http://localhost:3001/data-board",
+    channelService: "http://localhost:3002/channel-service",
+  },
+});
+```
+
+```python
+# Python
+client = ImbraceClient(
+    env="develop",
+    services={
+        "ai_agent":        "http://localhost:4000/ai-agent",
+        "data_board":      "http://localhost:3001/data-board",
+        "channel_service": "http://localhost:3002/channel-service",
+    },
+)
+```
+
+**All valid service keys:**
+
+| Python key | TypeScript key | Service |
+|---|---|---|
+| `gateway` | `gateway` | App Gateway |
+| `platform` | `platform` | Platform service |
+| `channel_service` | `channelService` | Channel service |
+| `data_board` | `dataBoard` | Data Board |
+| `backend` | `backend` | Board/Items backend (`/v1/backend`) |
+| `ips` | `ips` | IPS service |
+| `ai` | `ai` | AI service |
+| `marketplaces` | `marketplaces` | Marketplace service |
+| `file_service` | `fileService` | File service |
+| `message_suggestion` | `messageSuggestion` | Message Suggestion service |
+| `predict` | `predict` | Predict service |
+| `activepieces` | `activepieces` | ActivePieces |
+| `ai_agent` | `aiAgent` | AI Agent service |
+
+---
+
+## 3. Installation
+
+**System requirements:**
+
+| Requirement | Minimum |
+|---|---|
+| Node.js | 18.0.0+ |
+| npm | 8.0.0+ |
+| Python | 3.9+ |
+| pip | 23.0+ |
+
+**TypeScript — from npm:**
+
+```bash
+npm install @imbrace/sdk
+# or
+yarn add @imbrace/sdk
+# or
+pnpm add @imbrace/sdk
+```
+
+**TypeScript — verify:**
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+console.log("SDK loaded:", typeof ImbraceClient); // 'function'
+```
+
+**Python — from PyPI:**
+
+```bash
+pip install imbrace
+# or
+uv add imbrace
+```
+
+**Python — verify:**
+
+```python
+from imbrace import ImbraceClient
+print("SDK loaded:", ImbraceClient)
+```
+
+**Python — local/editable development:**
+
+```bash
+cd py
+pip install -e ".[dev]"
+# [dev] installs: pytest, pytest-asyncio, pytest-httpx, ruff, mypy
+```
+
+---
+
+## 4. Authentication
+
+The SDK supports two credential types. Pass either `apiKey`/`api_key` or `accessToken`/`access_token` to the client constructor. The transport handles headers automatically.
+
+**Which credential to use:**
+
+| | API Key (`api_...`) | Access Token (`acc_...`) |
+|---|---|---|
+| **Who runs auth?** | You (your own auth) | Imbrace (OTP / password login) |
+| **Whose users?** | Your users | Imbrace users |
+| **Whose DB is canonical?** | Yours | Imbrace's |
+| **Identity Imbrace sees** | One service account | The actual end-user |
+| **Per-user attribution** | Up to you | Built-in |
+| **Credential lifetime** | Long-lived; doesn't expire on its own | Session-scoped; refresh as needed |
+| **Header sent** | `x-api-key: api_...` | `x-access-token: acc_...` |
+| **Best for** | Server-to-server, internal scripts, wrapping Imbrace as a feature | User-facing apps where each end-user logs in directly |
+
+The org context is encoded inside the credential itself — every API key and access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You do NOT pass `organizationId`/`organization_id` to the client constructor when using a credential that already encodes it.
+
+**HTTP headers sent:**
+
+| Credential | Header |
+|---|---|
+| `apiKey` / `api_key` | `x-api-key: api_xxx...` |
+| `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
+
+### Get an API Key
+
+**Option 1 — Imbrace Portal:** log in → Settings → API Keys.
+
+**Option 2 — via API** (requires existing access token):
+
+```bash
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+# Value you need is: response.apiKey.apiKey
+```
+
+### OTP Login Flow
+
+```typescript
+// TypeScript
+const client = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+
+// Step 1: Send OTP to user's email
+await client.requestOtp("user@example.com");
+
+// Step 2: User submits OTP (token stored internally as login_acc_...)
+const loginRes = await client.loginWithOtp("user@example.com", "ABC123");
+
+// Step 3: Exchange for long-lived access token
+const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id");
+
+// Step 4: Activate token for all subsequent calls
+client.setAccessToken(token);
+
+const { data: boards } = await client.boards.list();
+```
+
+```python
+# Python
+client = ImbraceClient()
+client.request_otp("user@example.com")
+client.login_with_otp("user@example.com", "123456")
+me = client.platform.get_me()  # authenticated from here
+
+# Async variant
+async with AsyncImbraceClient() as client:
+    await client.request_otp("user@example.com")
+    await client.login_with_otp("user@example.com", "123456")
+    me = await client.platform.get_me()
+```
+
+### Password Login
+
+```typescript
+// TypeScript
+const client = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+await client.login("user@example.com", "password");
+// Token stored automatically
+```
+
+```python
+# Python
+client = ImbraceClient()
+client.login("user@example.com", "password123")
+boards = client.boards.list()
+```
+
+### Token Management
+
+```typescript
+// TypeScript
+client.setAccessToken("acc_new_token...");  // replace token
+client.clearAccessToken();                  // clear token (logout)
+```
+
+```python
+# Python
+client.set_access_token("acc_new_token...")
+client.clear_access_token()
+```
+
+---
+
+## 5. Client Initialization
+
+### TypeScript
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+// Server-side — API Key
+const client = new ImbraceClient({
+  apiKey:  process.env.IMBRACE_API_KEY,
+  baseUrl: "https://app-gatewayv2.imbrace.co",  // or use env: "stable"
+});
+
+// Client-side — Access Token
+const client = new ImbraceClient({
+  accessToken: "acc_xxxxxxxxxxxxx",
+  baseUrl:     "https://app-gatewayv2.imbrace.co",
+});
+```
+
+### Python (sync)
+
+```python
+import os
+from imbrace import ImbraceClient
+
+# Server-side — API Key
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    env="stable",
+)
+
+# Client-side — Access Token
+client = ImbraceClient(
+    access_token="acc_xxxxxxxxxxxxx",
+)
+
+# Context manager (recommended — closes httpx connection pool cleanly)
+with ImbraceClient(api_key="api_xxx") as client:
+    me = client.platform.get_me()
+```
+
+### Python (async)
+
+```python
+from imbrace import AsyncImbraceClient
+
+async with AsyncImbraceClient(api_key="sk-...") as client:
+    me = await client.platform.get_me()
+```
+
+### Environment Variable Conventions
+
+The SDK does not auto-read environment variables — you pass credentials directly to the constructor. Common `.env` conventions:
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ACCESS_TOKEN=your_jwt_token_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+---
+
+## 6. Error Handling & Retry
+
+### Error Hierarchy
+
+All SDK errors extend a single base type. Both TypeScript and Python use the same hierarchy:
+
+```
+ImbraceError          (base — catch-all for SDK errors)
+├── AuthError         (401, 403 — invalid or expired credentials)
+├── ApiError          (4xx/5xx — request rejected by server)
+└── NetworkError      (timeout, connection refused, DNS failure)
+```
+
+### Imports
+
+```typescript
+// TypeScript
+import { ImbraceError, AuthError, ApiError, NetworkError } from "@imbrace/sdk";
+```
+
+```python
+# Python
+from imbrace import ImbraceError, AuthError, ApiError, NetworkError
+```
+
+### Catching All SDK Errors
+
+```typescript
+// TypeScript
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError)    return handleAuthError(e);
+  if (e instanceof ApiError)     return handleApiError(e);    // e.statusCode, e.message
+  if (e instanceof NetworkError) return handleNetworkError(e);
+  if (e instanceof ImbraceError) return handleUnknown(e);
+  throw e; // re-throw non-SDK errors
+}
+```
+
+```python
+# Python
+try:
+    result = client.platform.get_me()
+except AuthError as e:
+    handle_auth_error(e)
+except ApiError as e:
+    handle_api_error(e)        # e.status_code, str(e)
+except NetworkError as e:
+    handle_network_error(e)
+except ImbraceError as e:
+    handle_unknown_sdk_error(e)
+```
+
+### ApiError Properties
+
+| Language | Property | Type | Description |
+|---|---|---|---|
+| TypeScript | `statusCode` | `number` | HTTP status code |
+| TypeScript | `message` | `string` | Error message from server |
+| Python | `status_code` | `int` | HTTP status code |
+| Python | `message` | `str` | Error message from server |
+
+### Automatic Retry Behavior
+
+**TypeScript (up to 2 retries, 3 total attempts):**
+
+| Condition | Action |
+|---|---|
+| HTTP 429 (rate limit) | Retry up to 2 times |
+| HTTP 5xx (server error) | Retry up to 2 times |
+| Network error / timeout | Retry up to 2 times |
+| HTTP 401 / 403 | No retry — throw `AuthError` immediately |
+| HTTP 4xx (other) | No retry — throw `ApiError` immediately |
+
+Backoff: `2^retryCount` seconds (2s → 4s). Total worst-case: 3 attempts.
+
+**Python (up to 3 retries, 4 total attempts):**
+
+| Condition | Action |
+|---|---|
+| HTTP 429 (rate limit) | Retry up to 3 times |
+| HTTP 5xx (server error) | Retry up to 3 times |
+| Network error / timeout | Retry up to 3 times |
+| HTTP 401 / 403 | No retry — raise `AuthError` immediately |
+| HTTP 4xx (other) | No retry — raise `ApiError` immediately |
+
+Backoff: `2^retryCount` seconds (2s → 4s → 8s). Total worst-case: 4 attempts.
+
+### Request Cancellation (TypeScript only)
+
+```typescript
+const controller = new AbortController();
+setTimeout(() => controller.abort(), 5000);
+
+try {
+  const result = await client.marketplace.listProducts(
+    { page: 1 },
+    { signal: controller.signal },
+  );
+} catch (e) {
+  if (e instanceof NetworkError && e.message.includes("aborted")) {
+    console.log("Request cancelled");
+  }
+}
+```
+
+---
+
+## 7. Resource Namespaces — Quick Reference
+
+Every namespace is available on both SDKs. TypeScript uses camelCase; Python uses snake_case.
+
+| TypeScript namespace | Python namespace | Purpose |
+|---|---|---|
+| `client.chatAi` | `client.chat_ai` | Assistant CRUD, completions, file processing, knowledge bases |
+| `client.aiAgent` | `client.ai_agent` | Streaming AI chat (SSE), embeddings, parquet, tracing, chat client sub-API |
+| `client.activepieces` | `client.activepieces` | Workflow automation — flows, triggers, runs, connections |
+| `client.boards` | `client.boards` | CRM boards — CRUD, items, fields, search, segments, CSV export; KH folders & files |
+| `client.platform` | `client.platform` | Users, organizations, permissions |
+| `client.contacts` | `client.contacts` | Contact management |
+| `client.conversations` | `client.conversations` | Conversation management |
+| `client.messages` | `client.messages` | Message send/list |
+| `client.channel` | `client.channel` | Channel list/manage |
+| `client.ai` | `client.ai` | OpenAI-compatible completions and embeddings (Python; TS uses chatAi) |
+| — | `client.workflows` | Channel automation workflows (Python only) |
+| — | `client.campaign` | Campaigns & touchpoints (Python only) |
+| — | `client.message_suggestion` | AI reply suggestions (Python only) |
+| — | `client.predict` | ML-based scoring (Python only) |
+
+---
+
+## 8. AI Assistants — chatAi / chat_ai
+
+Manages AI assistants (CRUD), runs OpenAI-compatible completions, handles file/document processing, and manages Knowledge Hub folders.
+
+### Assistant CRUD
+
+```typescript
+// TypeScript
+// List all assistants
+const assistants = await client.chatAi.listAssistants();
+// Each assistant has `id` (UUID) and `_id` (MongoDB ObjectId). Use `id` for all calls.
+
+// Get a single assistant
+const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
+
+// Create — provider_id and model_id are required
+const created = await client.chatAi.createAssistant({
+  name:          "Support Bot",
+  workflow_name: "support_bot_v1",  // must be unique within your org
+  provider_id:   "system",          // "system" = org's default LLM provider
+  model_id:      "gpt-4o",          // model name, or "Default" to use system default
+  description:   "Handles tier-1 support queries",
+  instructions:  "You are a helpful support agent. Be concise and friendly.",
+});
+
+const assistantId = created.id;
+
+// Update — workflow_name is required on update too
+await client.chatAi.updateAssistant(created.id, {
+  name:          "Support Bot v2",
+  workflow_name: "support_bot_v1",
+  // Attach knowledge folders:
+  folder_ids:    ["folder_id_1"],
+  // Attach CRM boards as knowledge source:
+  // board_ids: ["board_id_1"],
+  // Bind Activepieces workflow:
+  workflow_function_call: [{ flow_id: "flow_id", description: "Update CRM on new lead" }],
+});
+
+// Update only system instructions
+await client.chatAi.updateAssistantInstructions(created.id, "New instructions here.");
+
+// Delete
+await client.chatAi.deleteAssistant(created.id);
+```
+
+```python
+# Python
+assistants = client.chat_ai.list_assistants()
+assistant  = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
+
+created = client.chat_ai.create_assistant({
+    "name":          "Support Bot",
+    "workflow_name": "support_bot_v1",
+    "provider_id":   "system",
+    "model_id":      "gpt-4o",
+    "description":   "Handles tier-1 support queries",
+    "instructions":  "You are a helpful support agent.",
+})
+assistant_id = created["id"]
+
+client.chat_ai.update_assistant(created["id"], {
+    "name":          "Support Bot v2",
+    "workflow_name": "support_bot_v1",
+    "folder_ids":    ["folder_id_1"],
+})
+
+client.chat_ai.update_assistant_instructions(created["id"], "New instructions.")
+client.chat_ai.delete_assistant(created["id"])
+```
+
+### OpenAI-compatible Completions (chatAi)
+
+```typescript
+// TypeScript
+const response = await client.chatAi.chat({
+  model:    "gpt-4o",
+  messages: [
+    { role: "system", content: "You are a helpful CRM assistant." },
+    { role: "user",   content: "Summarize this customer note: ..." },
+  ],
+});
+console.log(response.choices[0].message.content);
+
+// List available models
+const models = await client.chatAi.listModels();
+```
+
+```python
+# Python
+response = client.chat_ai.chat({
+    "model":    "gpt-4o",
+    "messages": [
+        {"role": "system", "content": "You are a helpful CRM assistant."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
+    ],
+})
+print(response["choices"][0]["message"]["content"])
+
+models = client.chat_ai.list_models()
+```
+
+### File Processing
+
+```typescript
+// TypeScript — Extract structured data from a PDF or image
+const result = await client.chatAi.extractFile({
+  modelName:      "gpt-4o",
+  url:            "https://example.com/invoice.pdf",
+  organizationId: "org_xxx",
+});
+
+const uploaded = await client.chatAi.uploadFile({
+  file: fileBuffer,
+  name: "report.pdf",
+});
+```
+
+```python
+# Python
+result = client.chat_ai.process_document(
+    model_name="gpt-4o",
+    url="https://example.com/invoice.pdf",
+    organization_id="org_xxx",
+)
+# result["data"] → {"invoice_number": "INV-001", "total": 1200, ...}
+```
+
+### Knowledge Hub — Folders & Knowledge Bases
+
+```typescript
+// TypeScript
+const folders  = await client.chatAi.listFolders();
+const folder   = await client.chatAi.createFolder({ name: "Q1 Reports" });
+await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 Reports" });
+await client.chatAi.deleteFolder(folder.id);
+
+const all     = await client.chatAi.listKnowledge();
+const created = await client.chatAi.createKnowledge({ name: "Support Docs", folderId: folder.id });
+await client.chatAi.deleteKnowledge(created.id);
+```
+
+```python
+# Python
+knowledge_bases = client.chat_ai.list_knowledge()
+```
+
+---
+
+## 9. AI Agent — aiAgent / ai_agent
+
+Connects to a dedicated AI Agent service. Exposes streaming chat (SSE), knowledge-base embedding management, columnar data (Parquet), distributed tracing, and the Chat Client sub-API.
+
+### Stream Chat (SSE) — Primary Entry Point
+
+Keep the same `id` (session UUID) across turns to maintain conversation history. Omit it on the first message to auto-generate a new session.
+
+```typescript
+// TypeScript — parse SSE stream
+import { randomUUID } from "crypto";
+
+const sessionId = randomUUID();
+
+const response = await client.aiAgent.streamChat({
+  id:              sessionId,  // reuse across turns for conversation history
+  assistant_id:    "asst_xxx",
+  organization_id: "org_xxx",
+  messages:        [{ role: "user", content: "What deals closed this quarter?" }],
+});
+
+const reader  = response.body!.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  const text = decoder.decode(value);
+  for (const line of text.split("\n")) {
+    if (!line.startsWith("data: ")) continue;
+    const raw = line.slice(6).trim();
+    if (raw === "[DONE]") break;
+    try {
+      const event = JSON.parse(raw);
+      if (event.type === "text-delta") process.stdout.write(event.textDelta);
+      // also check: event.delta, event.content
+    } catch {}
+  }
+}
+```
+
+```python
+# Python — sync
+import uuid, json
+
+session_id = str(uuid.uuid4())
+
+resp = client.ai_agent.stream_chat({
+    "id":              session_id,
+    "assistant_id":    "asst_xxx",
+    "organization_id": "org_xxx",
+    "messages":        [{"role": "user", "content": "What deals closed this quarter?"}],
+})
+
+for line in resp.iter_lines():
+    if isinstance(line, bytes):
+        line = line.decode()
+    if not line.startswith("data: "):
+        continue
+    data = line[6:].strip()
+    if data and data != "[DONE]":
+        try:
+            chunk = json.loads(data)
+            print(chunk.get("delta") or chunk.get("content") or "", end="")
+        except Exception:
+            pass
+```
+
+```python
+# Python — async
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def main():
+    async with AsyncImbraceClient() as client:
+        response = await client.ai_agent.stream_chat({
+            "id":              "chat_id",
+            "assistant_id":    "asst_abc",
+            "organization_id": "org_abc",
+            "messages":        [{"role": "user", "content": "Hello"}],
+        })
+        async for line in response.aiter_lines():
+            if line:
+                print(line)
+
+asyncio.run(main())
+```
+
+### Sub-agent Chat
+
+```typescript
+// TypeScript
+const res = await client.aiAgent.streamSubAgentChat({
+  assistant_id:    "asst_sub",
+  organization_id: "org_abc",
+  session_id:      "sess_xyz",
+  chat_id:         "chat_id",
+  messages:        [{ role: "user", content: "Explain the data." }],
+});
+const history = await client.aiAgent.getSubAgentHistory({ session_id: "sess_xyz", chat_id: "chat_id" });
+```
+
+```python
+# Python
+res     = client.ai_agent.stream_sub_agent_chat({ "assistant_id": "asst_sub", ... })
+history = client.ai_agent.get_sub_agent_history(session_id="sess_xyz", chat_id="chat_id")
+```
+
+### Prompt Suggestions
+
+```typescript
+const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
+```
+
+```python
+suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_xxx")
+```
+
+### Embeddings & Knowledge Base (RAG)
+
+Upload files first via `client.boards.uploadFile` / `client.boards.upload_file`, then trigger embedding processing.
+
+```typescript
+// TypeScript
+await client.aiAgent.processEmbedding({ fileId: "file_abc" });
+
+const files      = await client.aiAgent.listEmbeddingFiles({ page: 1, limit: 20 });
+const file       = await client.aiAgent.getEmbeddingFile("file_abc");
+const preview    = await client.aiAgent.previewEmbeddingFile({ file_id: "file_abc" });
+const classified = await client.aiAgent.classifyFile({ file_id: "file_abc" });
+
+await client.aiAgent.updateEmbeddingFileStatus("file_abc", "active");
+await client.aiAgent.deleteEmbeddingFile("file_abc");
+```
+
+```python
+# Python
+client.ai_agent.process_embedding("file_abc")
+client.ai_agent.process_embedding("file_abc", options={"chunk_size": 512})
+
+files      = client.ai_agent.list_embedding_files(page=1, limit=20)
+file       = client.ai_agent.get_embedding_file("file_abc")
+preview    = client.ai_agent.preview_embedding_file(file_id="file_abc")
+classified = client.ai_agent.classify_file(file_id="file_abc")
+
+client.ai_agent.update_embedding_file_status("file_abc", "active")
+client.ai_agent.delete_embedding_file("file_abc")
+```
+
+### AI-assisted Field Type Suggestion
+
+```typescript
+// TypeScript
+const result = await client.aiAgent.suggestFieldTypes({
+  fields: [
+    { name: "created_at", samples: ["2024-01-01", "2024-02-15"] },
+    { name: "amount",     samples: [100, 200.5, 999] },
+    { name: "is_active",  samples: [true, false, true] },
+  ],
+});
+// result.fields[i].suggestedType → "datetime" | "number" | "boolean" | ...
+```
+
+```python
+# Python
+result = client.ai_agent.suggest_field_types(fields=[
+    {"name": "created_at", "samples": ["2024-01-01", "2024-02-15"]},
+    {"name": "amount",     "samples": [100, 200.5, 999]},
+    {"name": "is_active",  "samples": [True, False, True]},
+])
+```
+
+### Parquet
+
+Generate and manage Parquet columnar files for analytics pipelines.
+
+```typescript
+// TypeScript
+const result = await client.aiAgent.generateParquet({
+  data:       [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
+  fileName:   "users",
+  folderName: "exports",
+});
+const files = await client.aiAgent.listParquetFiles();
+await client.aiAgent.deleteParquetFile("exports/users.parquet");
+```
+
+```python
+# Python
+result = client.ai_agent.generate_parquet(
+    data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+    file_name="users",
+    folder_name="exports",
+)
+files = client.ai_agent.list_parquet_files()
+client.ai_agent.delete_parquet_file("exports/users.parquet")
+```
+
+### Distributed Tracing (Grafana Tempo)
+
+```typescript
+// TypeScript
+const traces = await client.aiAgent.getTraces({
+  service:   "ai-agent",
+  limit:     50,
+  timeRange: 3600,    // seconds
+  orgId:     "org_abc",
+  details:   true,
+});
+const trace    = await client.aiAgent.getTrace("trace_id_hex");
+const services = await client.aiAgent.getTraceServices();
+const tags     = await client.aiAgent.getTraceTags();
+const values   = await client.aiAgent.getTraceTagValues("http.status_code");
+const results  = await client.aiAgent.searchTraceQL(`{ .service.name = "ai-agent" && .http.status = 500 }`);
+```
+
+```python
+# Python
+traces   = client.ai_agent.get_traces(service="ai-agent", limit=50, time_range=3600, org_id="org_abc")
+trace    = client.ai_agent.get_trace("trace_id_hex")
+services = client.ai_agent.get_trace_services()
+tags     = client.ai_agent.get_trace_tags()
+values   = client.ai_agent.get_trace_tag_values("http.status_code")
+results  = client.ai_agent.search_traceql('{ .service.name = "ai-agent" && .http.status = 500 }')
+```
+
+### Chat Client Sub-API (frontend applications)
+
+**Auth:**
+
+```typescript
+// TypeScript
+await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
+await client.aiAgent.registerChatClient({ name: "web-app", secret: "s3cr3t" });
+const user = await client.aiAgent.getChatClientUser({ token: "tok_xxx" });
+```
+
+```python
+# Python
+client.ai_agent.verify_chat_client_credentials({"token": "tok_xxx"})
+client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
+user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
+```
+
+**Chats:**
+
+```typescript
+// TypeScript
+await client.aiAgent.createClientChat({
+  id:             "chat_uuid",
+  assistantId:    "asst_abc",
+  organizationId: "org_abc",
+  message: {
+    id:    "msg_uuid",
+    role:  "user",
+    parts: [{ type: "text", text: "Hello!" }],
+  },
+});
+const chats = await client.aiAgent.listClientChats({ organization_id: "org_abc", limit: 20 });
+const chat  = await client.aiAgent.getClientChat("chat_id");
+await client.aiAgent.updateClientChat("chat_id", { visibility: "private" });
+await client.aiAgent.deleteClientChat("chat_id");
+await client.aiAgent.deleteAllClientChats({ organization_id: "org_abc" });
+await client.aiAgent.generateClientChatTitle("chat_id");
+
+// Stream real-time chat status as SSE
+const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
+```
+
+```python
+# Python
+client.ai_agent.create_client_chat({
+    "id": "chat_uuid", "assistantId": "asst_abc", "organizationId": "org_abc",
+    "message": {"id": "msg_uuid", "role": "user", "parts": [{"type": "text", "text": "Hello!"}]},
+})
+chats = client.ai_agent.list_client_chats(organization_id="org_abc", limit=20)
+client.ai_agent.delete_client_chat("chat_id")
+client.ai_agent.delete_all_client_chats("org_abc")
+client.ai_agent.generate_client_chat_title("chat_id")
+status_stream = client.ai_agent.stream_client_chat_status("chat_id")
+```
+
+**Messages:**
+
+```typescript
+// TypeScript
+await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Hello" });
+const messages = await client.aiAgent.listClientMessages("chat_id");
+await client.aiAgent.deleteTrailingMessages("message_id");
+```
+
+```python
+# Python
+client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "Hello"})
+messages = client.ai_agent.list_client_messages("chat_id")
+client.ai_agent.delete_trailing_messages("message_id")
+```
+
+**Votes:**
+
+```typescript
+// TypeScript
+const votes = await client.aiAgent.getVotes("chat_id");
+await client.aiAgent.updateVote({ messageId: "msg_id", vote: "up" });
+```
+
+```python
+# Python
+votes = client.ai_agent.get_votes("chat_id")
+client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
+```
+
+**Documents (AI-generated artifacts):**
+
+```typescript
+// TypeScript
+await client.aiAgent.createDocument({ kind: "text", content: "Draft..." });
+const doc        = await client.aiAgent.getDocument("doc_id");
+const latest     = await client.aiAgent.getDocumentLatest("doc_id");
+const pub        = await client.aiAgent.getDocumentPublic("doc_id");
+const byKind     = await client.aiAgent.getDocumentLatestByKind({ kind: "text" });
+const suggestion = await client.aiAgent.getDocumentSuggestions("doc_id");
+await client.aiAgent.deleteDocument("doc_id");
+```
+
+```python
+# Python
+client.ai_agent.create_document({"kind": "text", "content": "Draft..."})
+doc        = client.ai_agent.get_document("doc_id")
+latest     = client.ai_agent.get_document_latest("doc_id")
+suggestion = client.ai_agent.get_document_suggestions("doc_id")
+client.ai_agent.delete_document("doc_id")
+```
+
+**Admin Guides (PDF streams):**
+
+```typescript
+// TypeScript
+const guides = await client.aiAgent.listAdminGuides();
+const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
+const blob = await response.blob();
+```
+
+```python
+# Python
+guides   = client.ai_agent.list_admin_guides()
+response = client.ai_agent.get_admin_guide("onboarding.pdf")
+with open("onboarding.pdf", "wb") as f:
+    f.write(response.content)
+```
+
+### Legacy v1 Chat (non-streaming, backwards compat only)
+
+New code should use Chat v2 streaming above.
+
+```typescript
+// TypeScript
+const chats = await client.aiAgent.listChats({ organization_id: "org_abc", user_id: "user_123", limit: 20 });
+const chat  = await client.aiAgent.getChat("chat_id", true);  // true = include messages
+await client.aiAgent.deleteChat("chat_id", { organization_id: "org_abc", user_id: "user_123" });
+```
+
+```python
+# Python
+chats = client.ai_agent.list_chats(organization_id="org_abc", user_id="user_123", limit=20)
+chat  = client.ai_agent.get_chat("chat_id", include_messages=True)
+client.ai_agent.delete_chat("chat_id", organization_id="org_abc", user_id="user_123")
+```
+
+---
+
+## 10. Activepieces Workflows — client.activepieces
+
+Visual workflow builder. The TypeScript SDK exposes flows, runs, folders, connections, tables, and records.
+
+**Important:** A newly created flow is in DRAFT state with no trigger. Add a trigger and publish before calling `triggerFlow`, otherwise you'll get 404.
+
+### Flows
+
+```typescript
+// TypeScript
+const { data: flows } = await client.activepieces.listFlows({ limit: 5 });
+const projectId = flows[0]?.projectId;
+
+const flow = await client.activepieces.createFlow({
+  displayName: "CRM Update on New Lead",
+  projectId,
+});
+
+await client.activepieces.deleteFlow("flow_id");
+```
+
+```python
+# Python
+res     = client.activepieces.list_flows(limit=5)
+flows   = res.get("data", [])
+flow    = client.activepieces.create_flow(display_name="CRM Update on New Lead", project_id=project_id)
+```
+
+### Apply Flow Operations
+
+Used to add/update triggers and actions to a flow:
+
+```typescript
+// TypeScript — Set Webhook trigger
+await client.activepieces.applyFlowOperation(flow.id, {
+  type:    "UPDATE_TRIGGER",
+  request: {
+    name:        "trigger",
+    type:        "PIECE_TRIGGER",
+    valid:       true,
+    displayName: "Webhook",
+    settings: {
+      pieceName:        "@activepieces/piece-webhook",
+      pieceVersion:     "0.1.24",
+      triggerName:      "catch_webhook",
+      input:            { authType: "none" },
+      propertySettings: {},
+    },
+  },
+});
+
+// Publish — DRAFT → ENABLED; webhook URL becomes live
+await client.activepieces.applyFlowOperation(flow.id, {
+  type:    "LOCK_AND_PUBLISH",
+  request: {},
+});
+```
+
+```python
+# Python
+client.activepieces.apply_flow_operation(flow["id"], {
+    "type": "UPDATE_TRIGGER",
+    "request": {
+        "name": "trigger", "type": "PIECE_TRIGGER", "valid": True, "displayName": "Webhook",
+        "settings": {
+            "pieceName": "@activepieces/piece-webhook", "pieceVersion": "0.1.24",
+            "triggerName": "catch_webhook", "input": {"authType": "none"}, "propertySettings": {},
+        },
+    },
+})
+client.activepieces.apply_flow_operation(flow["id"], {"type": "LOCK_AND_PUBLISH", "request": {}})
+```
+
+### Trigger a Flow
+
+```typescript
+// TypeScript — fire and forget
+await client.activepieces.triggerFlow(flow.id, { contact_name: "Jane Smith", email: "jane@example.com" });
+
+// Synchronous — flow must have a "Return Response" action, else times out after 30s
+const result = await client.activepieces.triggerFlowSync(flow.id, { contact_name: "Jane Smith" });
+```
+
+```python
+# Python
+client.activepieces.trigger_flow(flow["id"], {"contact_name": "Jane Smith", "email": "jane@example.com"})
+result = client.activepieces.trigger_flow_sync(flow["id"], {"contact_name": "Jane Smith"})
+```
+
+### Runs, Folders, Connections, Tables
+
+```typescript
+// TypeScript
+const { data: runs }        = await client.activepieces.listRuns({ flowId: flow.id, limit: 10 });
+const run                   = await client.activepieces.getRun("run_id");
+
+const { data: folders }     = await client.activepieces.listFolders();
+const folder                = await client.activepieces.createFolder({ displayName: "CRM Automations" });
+
+const { data: connections } = await client.activepieces.listConnections();
+await client.activepieces.upsertConnection({
+  name:  "slack-integration",
+  type:  "OAUTH2",
+  value: { access_token: "xoxb-xxx" },
+});
+
+const { data: tables }  = await client.activepieces.listTables();
+const { data: records } = await client.activepieces.listRecords({ tableId: "table_id" });
+```
+
+```python
+# Python
+res  = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
+runs = res.get("data", [])
+```
+
+---
+
+## 11. Boards & Items (CRM) — client.boards
+
+Boards are the core CRM data store. Also used for Knowledge Hub file management (folders, uploaded files).
+
+### Board CRUD
+
+```typescript
+// TypeScript
+const { data: boards } = await client.boards.list();
+const board = await client.boards.get("board_id");
+const newBoard = await client.boards.create({ name: "Sales Pipeline", description: "Track all active deals" });
+await client.boards.update("board_id", { name: "Sales Pipeline 2025" });
+await client.boards.delete("board_id");
+```
+
+```python
+# Python
+boards    = client.boards.list().get("data", [])
+board     = client.boards.create(name="Sales Pipeline", description="Track all active deals")
+board_id  = board["_id"]
+```
+
+### Fields
+
+Field types: `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board with all fields.
+
+```typescript
+// TypeScript
+const updated        = await client.boards.createField(board._id, { name: "Company", type: "ShortText" });
+const identifierField = updated.fields.find(f => f.is_identifier);  // auto-created with every board
+
+await client.boards.updateField("board_id", field.id, { name: "Contract Value" });
+await client.boards.deleteField("board_id", field.id);
+```
+
+```python
+# Python
+updated          = client.boards.create_field(board["_id"], {"name": "Company", "type": "ShortText"})
+identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
+```
+
+### Items (Records)
+
+Items use `{ fields: [{ board_field_id, value }] }` format for creation. Update uses `{ data: [{ key: fieldId, value }] }` format.
+
+```typescript
+// TypeScript
+const item = await client.boards.createItem(board._id, {
+  fields: [{ board_field_id: identifierField._id, value: "Acme Corp" }],
+});
+
+const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 });
+const singleItem = await client.boards.getItem("board_id", "item_id");
+
+await client.boards.updateItem(board._id, item._id, {
+  data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
+});
+
+await client.boards.deleteItem(board._id, item._id);
+await client.boards.bulkDeleteItems("board_id", ["item_1", "item_2"]);
+```
+
+```python
+# Python
+item  = client.boards.create_item(board["_id"], {
+    "fields": [{"board_field_id": identifier_field["_id"], "value": "Acme Corp"}],
+})
+items = client.boards.list_items(board["_id"], limit=20, skip=0)
+
+client.boards.update_item(board["_id"], item["_id"], {
+    "data": [{"key": identifier_field["_id"], "value": "Acme Corp — Closed Won"}],
+})
+client.boards.delete_item(board["_id"], item["_id"])
+```
+
+### Search & Segments
+
+```typescript
+// TypeScript
+const { data: results } = await client.boards.search("board_id", { q: "Acme", limit: 10 });
+
+const { data: segments } = await client.boards.listSegments("board_id");
+const segment = await client.boards.createSegment("board_id", {
+  name:    "High Value Leads",
+  filters: [{ field: "value", op: "gt", value: 10000 }],
+});
+```
+
+### CSV Export
+
+```typescript
+const csv = await client.boards.exportCsv("board_id");
+// csv is a string
+```
+
+```python
+csv = client.boards.export_csv("board_id")
+```
+
+### Knowledge Hub File Management (via client.boards)
+
+```typescript
+// TypeScript — Create a folder
+const folder = await client.boards.createFolder({
+  name:             "Product Documentation",
+  organization_id:  "org_your_org_id",
+  parent_folder_id: "root",
+  source_type:      "upload",
+});
+
+// Upload a file
+import { readFileSync } from "fs";
+const fileBuffer = readFileSync("./docs/faq.pdf");
+const formData   = new FormData();
+formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf");
+formData.append("folder_id", folder._id);
+formData.append("organization_id", "org_your_org_id");
+const uploaded = await client.boards.uploadFile(formData);
+
+// Manage folders
+const folders  = await client.boards.searchFolders({ q: "Product" });
+const contents = await client.boards.getFolderContents(folder._id);
+await client.boards.updateFolder(folder._id, { name: "Product Docs v2" });
+const files = await client.boards.searchFiles({ folderId: folder._id });
+await client.boards.deleteFolders({ ids: [folder._id] });
+```
+
+```python
+# Python
+folder = client.boards.create_folder({
+    "name": "Product Documentation",
+    "organization_id": "org_your_org_id",
+    "parent_folder_id": "root",
+    "source_type": "upload",
+})
+
+from pathlib import Path
+path = Path("./docs/faq.pdf")
+files = {
+    "file":            (path.name, path.read_bytes(), "application/pdf"),
+    "folder_id":       (None, folder["_id"]),
+    "organization_id": (None, "org_your_org_id"),
+}
+uploaded = client.boards.upload_file(files)
+file_id  = uploaded.get("file_id") or uploaded.get("_id")
+
+folders  = client.boards.search_folders(q="Product")
+contents = client.boards.get_folder_contents(folder["_id"])
+client.boards.update_folder(folder["_id"], {"name": "Product Docs v2"})
+files    = client.boards.search_files(folder_id=folder["_id"])
+client.boards.delete_folders([folder["_id"]])
+```
+
+---
+
+## 12. Contacts — client.contacts
+
+```typescript
+// TypeScript
+const { data: contacts } = await client.contacts.list({ limit: 50 });
+const contact = await client.contacts.get("contact_id");
+
+await client.contacts.update("contact_id", {
+  name:  "Alice B.",
+  email: "alice@example.com",
+  phone: "+84901234567",
+});
+
+const activity = await client.contacts.getActivity("contact_id");
+const comments = await client.contacts.getComments("contact_id");
+const files    = await client.contacts.getFiles("contact_id");
+```
+
+```python
+# Python
+contacts = client.contacts.list(limit=50).get("data", [])
+contact  = client.contacts.get("contact_id")
+
+client.contacts.update("contact_id", {
+    "name":  "Alice B.",
+    "email": "alice@example.com",
+    "phone": "+84901234567",
+})
+
+activity = client.contacts.get_activities("conversation_id")
+comments = client.contacts.get_comments("contact_id")
+files    = client.contacts.get_files("contact_id")
+```
+
+---
+
+## 13. Conversations — client.conversations
+
+```typescript
+// TypeScript
+const { data: convs } = await client.conversations.search({
+  businessUnitId: "bu_xxx",
+  q:              "support",
+  limit:          20,
+});
+
+const { data: open } = await client.conversations.getOutstanding({ businessUnitId: "bu_xxx", limit: 50 });
+
+await client.conversations.assignTeamMember({ conversation_id: "conv_xxx", user_id: "user_xxx" });
+await client.conversations.updateStatus({ conversation_id: "conv_xxx", status: "resolved" });
+```
+
+```python
+# Python
+convs    = client.conversations.search(business_unit_id="bu_xxx", q="support", limit=20).get("data", [])
+all_conv = client.conversations.list(limit=50).get("data", [])
+client.conversations.update_status({"conversation_id": "conv_xxx", "status": "resolved"})
+```
+
+---
+
+## 14. Messaging — client.channel / client.messages
+
+```typescript
+// TypeScript
+const channels = await client.channel.list();
+await client.messages.send("conversation_id", {
+  parts: [{ type: "text", text: "Hello, how can I help you today?" }],
+});
+const msgs = await client.messages.list("conversation_id");
+await client.channel.markRead("conversation_id");
+```
+
+```python
+# Python
+channels = client.channel.list()
+client.messages.send(type="text", text="Hello, how can I help you today?")
+msgs = client.messages.list(limit=20)
+```
+
+---
+
+## 15. OpenAI-compatible AI — client.ai (Python)
+
+Raw OpenAI-style completions, streaming, and embeddings. TypeScript uses `client.chatAi.chat()` instead.
+
+```python
+# Single completion
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful CRM assistant."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
+    ],
+    temperature=0.7,
+)
+print(response["choices"][0]["message"]["content"])
+
+# Streaming
+for chunk in client.ai.stream(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
+):
+    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
+
+# Embeddings
+result = client.ai.embed(
+    model="text-embedding-ada-002",
+    input=["customer complained about billing", "billing issue escalated"],
+)
+```
+
+---
+
+## 16. Additional Python-only Resources
+
+### Channel Automation — client.workflows
+
+```python
+automations    = client.workflows.list_channel_automation().get("data", [])
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+
+### Campaigns & Touchpoints — client.campaign
+
+```python
+campaigns  = client.campaign.list().get("data", [])
+campaign   = client.campaign.get("campaign_id")
+new_camp   = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+client.campaign.delete("campaign_id")
+
+touchpoints = client.campaign.list_touchpoints().get("data", [])
+tp          = client.campaign.get_touchpoint("touchpoint_id")
+client.campaign.create_touchpoint({"campaign_id": "campaign_id", "type": "email", "delay_days": 3})
+client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
+client.campaign.delete_touchpoint("touchpoint_id")
+
+# Validate config before saving
+result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
+```
+
+### Message Suggestion — client.message_suggestion
+
+```python
+suggestions = client.message_suggestion.get_suggestions({
+    "conversation_id": "conv_xxx",
+    "limit": 3,
+})
+```
+
+### ML Prediction — client.predict
+
+```python
+result = client.predict.predict({
+    "model": "lead_score_v1",
+    "input": {"company_size": 200, "industry": "saas", "mrr": 5000},
+})
+print(result["score"])  # e.g. 0.87
+```
+
+---
+
+## 17. Framework Integrations
+
+### React (TypeScript) — Singleton client
+
+```typescript
+// lib/imbrace.ts
+import { ImbraceClient } from "@imbrace/sdk";
+
+export const client = new ImbraceClient({
+  accessToken:
+    typeof window !== "undefined"
+      ? (localStorage.getItem("imbrace_token") ?? undefined)
+      : undefined,
+});
+```
+
+```tsx
+// hooks/useBoards.ts
+import { useState, useEffect } from "react";
+import { client } from "@/lib/imbrace";
+
+export function useBoards() {
+  const [boards, setBoards] = useState([]);
+  useEffect(() => {
+    client.boards.list().then((res) => setBoards(res.data));
+  }, []);
+  return boards;
+}
+```
+
+### Next.js (TypeScript) — API Route (App Router)
+
+```typescript
+// app/api/products/route.ts
+import { NextResponse } from "next/server";
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const { data } = await client.marketplace.listProducts({ category: searchParams.get("category") ?? undefined });
+  return NextResponse.json(data);
+}
+```
+
+### FastAPI (Python) — Per-request dependency
+
+```python
+from fastapi import FastAPI, Depends
+from imbrace import AsyncImbraceClient
+
+app = FastAPI()
+
+async def get_imbrace() -> AsyncImbraceClient:
+    async with AsyncImbraceClient() as client:
+        yield client
+
+@app.get("/boards")
+async def list_boards(client: AsyncImbraceClient = Depends(get_imbrace)):
+    result = await client.boards.list()
+    return result["data"]
+```
+
+### FastAPI (Python) — Global singleton (better for high throughput)
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from imbrace import AsyncImbraceClient
+
+imbrace: AsyncImbraceClient = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global imbrace
+    imbrace = AsyncImbraceClient()
+    await imbrace.init()  # health check on startup
+    yield
+    await imbrace.close()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+### asyncio (Python) — Concurrent requests
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def fetch_dashboard():
+    async with AsyncImbraceClient() as client:
+        me, boards, channels = await asyncio.gather(
+            client.platform.get_me(),
+            client.boards.list(),
+            client.channel.list(),
+        )
+        return {"user": me, "boards": boards.get("data"), "channels": channels.get("data")}
+
+data = asyncio.run(fetch_dashboard())
+```
+
+### Django (Python)
+
+```python
+# views.py
+from django.http import JsonResponse
+from imbrace import ImbraceClient, ApiError
+
+def board_list(request):
+    with ImbraceClient() as client:
+        try:
+            result = client.boards.list()
+            return JsonResponse(result)
+        except ApiError as e:
+            return JsonResponse({"error": str(e)}, status=e.status_code)
+```
+
+### Celery (Python)
+
+Do not share a single client across Celery workers — create one per task invocation.
+
+```python
+from celery import Celery
+from imbrace import ImbraceClient, NetworkError
+
+app = Celery("tasks")
+
+@app.task(bind=True, max_retries=3)
+def sync_contacts(self):
+    try:
+        with ImbraceClient() as client:
+            result = client.contacts.list(limit=100)
+            for contact in result["data"]:
+                save_to_db(contact)
+    except NetworkError as exc:
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+```
+
+---
+
+## 18. Testing
+
+### Python — Setup
+
+```bash
+cd py
+pip install -e ".[dev]"
+# dev deps: pytest, pytest-asyncio, pytest-httpx, ruff, mypy
+```
+
+Create `py/.env` for integration tests:
+
+```env
+IMBRACE_API_KEY=api_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_ORG_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+**Run unit tests (no API key required):**
+
+```bash
+pytest tests/unit -v
+pytest tests/unit/test_http.py::test_401_raises_auth_error -v
+pytest tests/unit -k "boards" -v
+```
+
+**Run integration tests (requires real API key):**
+
+```bash
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+```
+
+**Coverage:**
+
+```bash
+pytest tests/unit --cov=src/imbrace --cov-report=term-missing
+```
+
+**Lint & type check:**
+
+```bash
+ruff check src/ tests/
+ruff check src/ tests/ --fix
+mypy src/imbrace
+```
+
+### TypeScript — Setup
+
+```bash
+cd ts && npm install
+```
+
+**Build:**
+
+```bash
+npm run build       # single build
+npm run dev         # watch mode
+npm run clean       # clean dist/
+```
+
+**Run unit tests (no API key required):**
+
+```bash
+npm test
+npx vitest run tests/unit/http.test.ts
+npm run test:watch
+```
+
+**Run integration tests:**
+
+```bash
+IMBRACE_API_KEY=api_xxx npm run test:integration
+```
+
+**Type check & lint:**
+
+```bash
+npm run typecheck
+npm run lint
+```
+
+### Error Behavior Under Test
+
+HTTP transport retry behavior (verified by unit tests):
+
+| Scenario | Expected |
+|---|---|
+| Server returns 200 | Response parsed correctly |
+| Request with `api_key` | Header `x-api-key` is present |
+| Request with access token | Header `x-access-token` overrides api_key |
+| Server returns 401 | Raises `AuthError`, no retry |
+| Server returns 403 | Raises `AuthError`, no retry |
+| Server returns 404 | Raises `ApiError(status_code=404)` |
+| Server returns 500 (repeated) | Retries → raises `ApiError` |
+| Network interrupted | Retries → raises `NetworkError` |
+
+---
+
+## 19. Troubleshooting
+
+### `AuthError: Invalid or expired access token.` (HTTP 401)
+
+API key expired. Generate a new one:
+
+```bash
+curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+Update your `.env`:
+
+```env
+IMBRACE_API_KEY=new_api_key
+```
+
+### `ApiError: [400] {"message":"must have required property 'type'"}`
+
+`channel.list()` called without a required parameter.
+
+```python
+# Wrong
+client.channel.list()
+
+# Correct
+client.channel.list(type="web")
+```
+
+### `ApiError: [404]` with double path in URL
+
+`IMBRACE_BASE_URL` set to a full endpoint path instead of the base URL.
+
+```env
+# Wrong
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
+
+# Correct
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+### Integration tests all skipped
+
+`IMBRACE_API_KEY` is not set.
+
+```bash
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+# or add to py/.env
+```
+
+### `Cannot find module` (TypeScript tests)
+
+Import paths must be relative to the test file's directory depth:
+
+| Test file location | Import |
+|---|---|
+| `tests/unit/*.test.ts` | `../../src/client.js` |
+| `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
+| `tests/integration/*.test.ts` | `../../src/client.js` |
+
+### `Cannot find package '@imbrace/sdk'`
+
+```bash
+cd ts && npm link
+cd /path/to/your-project && npm link @imbrace/sdk
+```
+
+### `ERR_MODULE_NOT_FOUND` for files in `dist/`
+
+```bash
+cd ts && npm run build
+```
+
+### `ModuleNotFoundError: No module named 'imbrace'`
+
+```bash
+cd py && pip install -e ".[dev]"
+```
+
+### `UserWarning: ImbraceClient: no credentials provided`
+
+No `api_key` or `access_token` passed to the constructor. If intentional (login-only flow), ignore. Otherwise check your `.env` file and make sure you're reading it with `python-dotenv` or equivalent.
+
+### `mypy` error: `Pattern matching is only supported in Python 3.10`
+
+mypy scanning `site-packages`. Fix:
+
+```bash
+mypy src/imbrace --exclude site-packages
+```
