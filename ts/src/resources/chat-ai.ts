@@ -47,7 +47,19 @@ export interface Assistant {
 export interface CreateAssistantInput {
   name: string
   workflow_name: string
+  /**
+   * The provider this assistant chats through. Use `"system"` to delegate to
+   * the org's default LLM provider; pass a specific provider UUID to pin one.
+   */
+  provider_id: string
+  /**
+   * The model name. With `provider_id: "system"` use a model name (e.g.
+   * `"gpt-4o"`) or the literal `"Default"` to fall back to the system default.
+   * For a custom provider, pass that provider's model id.
+   */
+  model_id: string
   description?: string
+  /** @deprecated legacy field — chat orchestrator type, leave unset. */
   model?: string
   instructions?: string
   [key: string]: unknown
@@ -446,6 +458,13 @@ export class ChatAiResource {
   }
 
   async createAssistant(body: CreateAssistantInput): Promise<Assistant> {
+    if (!body?.provider_id || !body?.model_id) {
+      throw new Error(
+        "createAssistant: provider_id and model_id are required. " +
+        "Use { provider_id: \"system\", model_id: \"gpt-4o\" } for the system default, " +
+        "or pass a custom provider's UUID and model name.",
+      )
+    }
     return this.http.getFetch()(`${this.base}/assistant_apps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

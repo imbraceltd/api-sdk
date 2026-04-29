@@ -68,7 +68,11 @@ describe("HttpTransport", () => {
     expect(capturedHeaders["authorization"]).toBeUndefined()
   })
 
-  it("apiKey mode excludes token headers even when token is set", async () => {
+  it("sends x-api-key + x-access-token in parallel when both credentials are set", async () => {
+    // The transport always forwards x-api-key when set, AND forwards
+    // x-access-token (or Authorization for JWTs) when a token is set —
+    // they are independent. The gateway's authRouter then dispatches
+    // based on which header is present (api-key takes priority).
     const transport = makeTransport({ apiKey: "key_test", token: "tok_test" })
     const capturedHeaders: Record<string, string> = {}
 
@@ -80,7 +84,8 @@ describe("HttpTransport", () => {
 
     await transport.getFetch()(BASE + "/health", { method: "GET" })
     expect(capturedHeaders["x-api-key"]).toBe("key_test")
-    expect(capturedHeaders["x-access-token"]).toBeUndefined()
+    expect(capturedHeaders["x-access-token"]).toBe("tok_test")
+    // No JWT (and no organizationId), so Authorization Bearer is NOT set.
     expect(capturedHeaders["authorization"]).toBeUndefined()
   })
 

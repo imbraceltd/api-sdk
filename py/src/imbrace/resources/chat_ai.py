@@ -192,7 +192,7 @@ class ChatAiResource:
 
     def list_document_models(self) -> List[Dict[str, Any]]:
         """List LLM providers configured by the user — these are the models available for document AI."""
-        return self._http.request("GET", f"{self._base}/ai/providers").json()
+        return self._http.request("GET", f"{self._base}/providers").json()
 
     # --- Assistants ---
 
@@ -215,7 +215,7 @@ class ChatAiResource:
     def delete_assistant(self, assistant_id: str) -> bool:
         """Delete assistant by UUID."""
         r = self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
-        return r.ok
+        return r.is_success
 
     def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
         """Update only the instructions field of an assistant."""
@@ -477,7 +477,7 @@ class AsyncChatAiResource:
     async def delete_assistant(self, assistant_id: str) -> bool:
         """Delete assistant by UUID (async)."""
         r = await self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
-        return r.ok
+        return r.is_success
 
     async def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
         """Update only the instructions field of an assistant (async)."""

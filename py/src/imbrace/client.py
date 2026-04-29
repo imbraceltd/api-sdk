@@ -142,7 +142,7 @@ class ImbraceClient:
         self.predict           = PredictResource(self.http, urls.predict)
 
         # New services
-        self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3")
+        self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = FileServiceResource(self.http, urls.file_service)
         self.activepieces  = ActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AiAgentResource(self.http, urls.ai_agent)

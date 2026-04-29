@@ -1,11 +1,37 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import { visit } from 'unist-util-visit'
 
 const isProd = process.env.NODE_ENV === 'production'
+const base = isProd ? '/api-sdk' : '/'
+
+// Astro does not auto-prefix the configured `base` onto root-relative links
+// in markdown content (e.g. `[Auth](/sdk/authentication/)`). Sidebar entries
+// and Starlight components handle base prefixing themselves, but markdown
+// links would render as `/sdk/authentication/` and 404 in production where
+// the site is served from `/api-sdk/`. This plugin prefixes the base onto
+// internal anchor hrefs.
+function rehypePrefixBase() {
+  const trimmedBase = base.replace(/\/$/, '')
+  if (!trimmedBase) return () => () => {}
+  return () => (tree) => {
+    visit(tree, 'element', (node) => {
+      if (node.tagName !== 'a' || !node.properties) return
+      const href = node.properties.href
+      if (typeof href !== 'string') return
+      if (!href.startsWith('/') || href.startsWith('//')) return
+      if (href.startsWith(trimmedBase + '/') || href === trimmedBase) return
+      node.properties.href = trimmedBase + href
+    })
+  }
+}
 
 export default defineConfig({
   site: 'https://imbraceltd.github.io',
-  base: isProd ? '/api-sdk' : '/',
+  base,
+  markdown: {
+    rehypePlugins: [rehypePrefixBase()],
+  },
   integrations: [
     starlight({
       favicon: '/favicon.svg',
@@ -28,6 +54,9 @@ export default defineConfig({
       customCss: [
         './src/styles/custom.css',
       ],
+      components: {
+        Sidebar: './src/components/Sidebar.astro',
+      },
       sidebar: [
         {
           label: 'Getting Started',
@@ -46,103 +75,19 @@ export default defineConfig({
           ],
         },
         {
-          label: 'TypeScript SDK',
+          label: 'SDK',
+          translations: { vi: 'SDK', 'zh-CN': 'SDK', 'zh-TW': 'SDK' },
           items: [
-            {
-              label: 'Overview',
-              translations: { vi: 'Giới Thiệu', 'zh-CN': '概览', 'zh-TW': '概覽' },
-              link: '/typescript/overview/',
-            },
-            {
-              label: 'Installation',
-              translations: { vi: 'Cài Đặt', 'zh-CN': '安装', 'zh-TW': '安裝' },
-              link: '/typescript/installation/',
-            },
-            {
-              label: 'Authentication',
-              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
-              link: '/typescript/authentication/',
-            },
-            {
-              label: 'Quick Start',
-              translations: { vi: 'Bắt Đầu Nhanh', 'zh-CN': '快速入门', 'zh-TW': '快速入門' },
-              link: '/typescript/quick-start/',
-            },
-            {
-              label: 'Resources',
-              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
-              link: '/typescript/resources/',
-            },
-            {
-              label: 'Full Flow Guide',
-              translations: { vi: 'Hướng Dẫn Flow Chi Tiết', 'zh-CN': '完整流程指南', 'zh-TW': '完整流程指南' },
-              link: '/typescript/full-flow-guide/',
-            },
-            {
-              label: 'AI Agent',
-              translations: { vi: 'AI Agent', 'zh-CN': 'AI Agent', 'zh-TW': 'AI Agent' },
-              link: '/typescript/ai-agent/',
-            },
-            {
-              label: 'Error Handling',
-              translations: { vi: 'Xử Lý Lỗi', 'zh-CN': '错误处理', 'zh-TW': '錯誤處理' },
-              link: '/typescript/error-handling/',
-            },
-            {
-              label: 'Integrations',
-              translations: { vi: 'Tích Hợp', 'zh-CN': '集成', 'zh-TW': '整合' },
-              link: '/typescript/integrations/',
-            },
-            {
-              label: 'Local Testing',
-              translations: { vi: 'Test Local', 'zh-CN': '本地测试', 'zh-TW': '本地測試' },
-              link: '/typescript/local-testing/',
-            },
-          ],
-        },
-        {
-          label: 'Python SDK',
-          items: [
-            {
-              label: 'Overview',
-              translations: { vi: 'Giới Thiệu', 'zh-CN': '概览', 'zh-TW': '概覽' },
-              link: '/python/overview/',
-            },
-            {
-              label: 'Installation',
-              translations: { vi: 'Cài Đặt', 'zh-CN': '安装', 'zh-TW': '安裝' },
-              link: '/python/installation/',
-            },
-            {
-              label: 'Authentication',
-              translations: { vi: 'Xác Thực', 'zh-CN': '身份验证', 'zh-TW': '身份驗證' },
-              link: '/python/authentication/',
-            },
-            {
-              label: 'Quick Start',
-              translations: { vi: 'Bắt Đầu Nhanh', 'zh-CN': '快速入门', 'zh-TW': '快速入門' },
-              link: '/python/quick-start/',
-            },
-            {
-              label: 'Resources',
-              translations: { vi: 'Tài Nguyên API', 'zh-CN': 'API 资源', 'zh-TW': 'API 資源' },
-              link: '/python/resources/',
-            },
-            {
-              label: 'AI Agent',
-              translations: { vi: 'AI Agent', 'zh-CN': 'AI Agent', 'zh-TW': 'AI Agent' },
-              link: '/python/ai-agent/',
-            },
-            {
-              label: 'Error Handling',
-              translations: { vi: 'Xử Lý Lỗi', 'zh-CN': '错误处理', 'zh-TW': '錯誤處理' },
-              link: '/python/error-handling/',
-            },
-            {
-              label: 'Integrations',
-              translations: { vi: 'Tích Hợp', 'zh-CN': '集成', 'zh-TW': '整合' },
-              link: '/python/integrations/',
-            },
+            { label: 'Overview',         link: '/sdk/overview/' },
+            { label: 'Installation',     link: '/sdk/installation/' },
+            { label: 'Quick Start',      link: '/sdk/quick-start/' },
+            { label: 'Authentication',   link: '/sdk/authentication/' },
+            { label: 'Full Flow Guide',  link: '/sdk/full-flow-guide/' },
+            { label: 'Resources',        link: '/sdk/resources/' },
+            { label: 'AI Agent',         link: '/sdk/ai-agent/' },
+            { label: 'Error Handling',   link: '/sdk/error-handling/' },
+            { label: 'Integrations',     link: '/sdk/integrations/' },
+            { label: 'Local Testing',    link: '/sdk/local-testing/' },
           ],
         },
         {
