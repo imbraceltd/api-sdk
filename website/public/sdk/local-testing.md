@@ -1,0 +1,173 @@
+---
+title: Local Testing
+description: Test the built Imbrace SDK packages locally against a real or mock gateway.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+This guide lets you test the **built package** exactly as a consumer would install it — not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
+
+## Prerequisites
+
+- TypeScript: Node 18+
+- Python: Python 3.10+ and `pip`
+- AWS credentials configured (`imbrace` profile) if you need to decrypt env vars from Ansible
+
+## Environment URLs
+
+The same set of gateway base URLs applies to both SDKs. Set this once in your test environment:
+
+| Environment | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| ----------- | ------------------------------------------ |
+| develop     | `https://app-gateway.dev.imbrace.co`       |
+| sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
+| stable      | `https://app-gatewayv2.imbrace.co`         |
+
+## Credentials
+
+Pull live credentials from Ansible (or paste from the portal):
+
+```bash
+# from the SDK repo root
+AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/imbrace.env
+```
+
+Minimum required for live calls:
+
+| Variable          | Where to get it                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
+| `IMBRACE_BASE_URL` | One of the URLs in the table above (defaults to dev when unset)                              |
+
+Org context is encoded inside the API key — you do not pass an organization id.
+
+---
+
+## TypeScript — link the built dist
+
+### One-time setup
+
+```bash
+cd ts
+npm install
+npm run build
+npm link        # exposes @imbrace/sdk globally
+```
+
+Then in the test folder:
+
+```bash
+cd ts/tests/local
+npm link @imbrace/sdk
+cp .env.example .env
+# fill in .env
+```
+
+### Run the tests
+
+```bash
+cd ts/tests/local
+node test-local.mjs
+```
+
+- **Without credentials** — runs instantiation + resource surface checks only (no network).
+- **With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_BASE_URL`.
+
+### Iterating on SDK changes
+
+Every edit needs a rebuild for the link to pick it up:
+
+```bash
+# terminal 1 — ts/
+npm run dev          # tsc --watch
+
+# terminal 2 — ts/tests/local
+node test-local.mjs  # re-run any time
+```
+
+---
+
+## Python — install from a wheel or editable
+
+### Editable install (fastest iteration)
+
+From the `py/` folder:
+
+```bash
+cd py
+pip install -e .
+```
+
+Code edits are picked up without reinstalling.
+
+### Wheel install (verify the published shape)
+
+```bash
+cd py
+python -m build               # produces dist/imbrace-*.whl
+pip install dist/imbrace-*.whl --force-reinstall
+```
+
+This catches missing files, packaging bugs, and import-path issues that an editable install hides.
+
+### Run the tests
+
+```bash
+cd py
+pip install -r tests/requirements.txt
+python -m pytest tests/
+```
+
+For the full-flow regression that mirrors the [Full Flow Guide](/sdk/full-flow-guide/):
+
+```bash
+cd test-pip-pkg/py
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest tests/test_guide_flow.py -v
+```
+
+The same test runs with both `IMBRACE_API_KEY` and `IMBRACE_ACCESS_TOKEN` to cover both auth modes.
+
+---
+
+## Switching environments
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```bash
+IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+```
+</TabItem>
+<TabItem label="Python">
+```bash
+IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Troubleshooting
+
+**`Cannot find package '@imbrace/sdk'`** (TypeScript)
+Run `npm link @imbrace/sdk` from inside the test folder again. The link can break if you delete and reinstall `node_modules` in `ts/`.
+
+**`ERR_MODULE_NOT_FOUND` for a dist file** (TypeScript)
+The build hasn't run yet, or a source file was added without rebuilding. Run `npm run build` in `ts/`.
+
+**`ModuleNotFoundError: No module named 'imbrace'`** (Python)
+The package isn't installed in the active venv. Re-run `pip install -e .` (editable) or `pip install dist/imbrace-*.whl`.
+
+**401 / 403 on live calls**
+Your credential is expired, revoked, or wrong. For an API key, generate a new one:
+
+```bash
+curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+For other runtime errors, see [Error Handling](/sdk/error-handling/) and [Troubleshooting](/guides/troubleshooting/).

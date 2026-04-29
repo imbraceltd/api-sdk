@@ -1,0 +1,64 @@
+## Troubleshooting
+
+### `AuthError: Invalid or expired access token.` (HTTP 401)
+
+API key in `.env` has expired.
+
+```bash
+# Update .env
+IMBRACE_API_KEY=new_api_key
+```
+
+### `ApiError: [400] {"message":"must have required property 'type'"}
+
+`channel.list()` called without mandatory parameter.
+
+```python
+# Incorrect
+client.channel.list()
+
+# Correct
+client.channel.list(type="web")
+```
+
+### `ApiError: [404]` with double path in URL
+
+URL is doubled because `IMBRACE_BASE_URL` was incorrectly set to a full endpoint.
+
+```env
+# Incorrect
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
+
+# Correct
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+```
+
+### Integration tests all skipped
+
+`IMBRACE_API_KEY` is not set.
+
+```bash
+# Set temporarily during execution
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+
+# Or add to .env
+echo "IMBRACE_API_KEY=api_xxx" >> py/.env
+```
+
+### `Cannot find module` (TypeScript tests)
+
+Import paths in test files must be relative to the directory depth:
+
+| Test file location | Import |
+|---|---|
+| `tests/unit/*.test.ts` | `../../src/client.js` |
+| `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
+| `tests/integration/*.test.ts` | `../../src/client.js` |
+
+### `mypy` error: `Pattern matching is only supported in Python 3.10`
+
+mypy scanning `site-packages` by mistake. Configured in `pyproject.toml`. If it persists:
+
+```bash
+mypy src/imbrace --exclude site-packages
+```

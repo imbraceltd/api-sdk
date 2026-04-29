@@ -1,0 +1,173 @@
+---
+title: Test Local
+description: Test package Imbrace SDK đã build tại local, chạy đúng như consumer thực sự sẽ install.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Hướng dẫn này cho phép test **package đã build** chính xác như cách consumer cài từ npm hoặc pip — không phải raw source. Dùng trước khi publish version mới, hoặc khi tái hiện bug mà consumer báo cáo.
+
+## Yêu Cầu
+
+- TypeScript: Node 18+
+- Python: Python 3.10+ và `pip`
+- AWS credentials đã cấu hình (profile `imbrace`) nếu cần giải mã env vars từ Ansible
+
+## Environment URLs
+
+Cùng một bộ gateway base URLs áp dụng cho cả hai SDK. Set một lần trong test environment:
+
+| Environment | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| ----------- | ------------------------------------------ |
+| develop     | `https://app-gateway.dev.imbrace.co`       |
+| sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
+| stable      | `https://app-gatewayv2.imbrace.co`         |
+
+## Credentials
+
+Pull live credentials từ Ansible (hoặc paste từ portal):
+
+```bash
+# từ SDK repo root
+AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/imbrace.env
+```
+
+Tối thiểu cần cho live calls:
+
+| Biến          | Lấy ở đâu                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `IMBRACE_API_KEY` | Imbrace Portal, hoặc `POST /private/backend/v1/third_party_token` với access token hiện có |
+| `IMBRACE_BASE_URL` | Một trong các URL ở bảng trên (mặc định dev khi không set)                              |
+
+Org context được mã hoá trong API key — bạn không cần truyền organization id.
+
+---
+
+## TypeScript — Link Built Dist
+
+### Thiết Lập Ban Đầu (Một Lần)
+
+```bash
+cd ts
+npm install
+npm run build
+npm link        # làm cho @imbrace/sdk available globally
+```
+
+Sau đó trong thư mục test:
+
+```bash
+cd ts/tests/local
+npm link @imbrace/sdk
+cp .env.example .env
+# điền vào .env
+```
+
+### Chạy Tests
+
+```bash
+cd ts/tests/local
+node test-local.mjs
+```
+
+- **Không có credentials** — chỉ chạy instantiation + resource surface checks (không có network).
+- **Với `IMBRACE_API_KEY` được set** — chạy toàn bộ live API checks tới gateway trong `IMBRACE_BASE_URL`.
+
+### Lặp Với SDK Changes
+
+Mỗi khi sửa source files, rebuild và link sẽ tự dùng dist mới:
+
+```bash
+# terminal 1 — ts/
+npm run dev          # tsc --watch
+
+# terminal 2 — ts/tests/local
+node test-local.mjs  # chạy lại bất cứ khi nào muốn
+```
+
+---
+
+## Python — Install Từ Wheel Hoặc Editable
+
+### Editable Install (Nhanh Nhất)
+
+Từ thư mục `py/`:
+
+```bash
+cd py
+pip install -e .
+```
+
+Các thay đổi code được pick up mà không cần reinstall.
+
+### Wheel Install (Kiểm Tra Shape Publish)
+
+```bash
+cd py
+python -m build               # tạo dist/imbrace-*.whl
+pip install dist/imbrace-*.whl --force-reinstall
+```
+
+Điều này bắt được missing files, packaging bugs, và import-path issues mà editable install ẩn đi.
+
+### Chạy Tests
+
+```bash
+cd py
+pip install -r tests/requirements.txt
+python -m pytest tests/
+```
+
+Cho full-flow regression mirror [Hướng Dẫn Luồng Đầy Đủ](/vi/sdk/full-flow-guide/):
+
+```bash
+cd test-pip-pkg/py
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest tests/test_guide_flow.py -v
+```
+
+Test này chạy với cả `IMBRACE_API_KEY` và `IMBRACE_ACCESS_TOKEN` để bao gồm cả hai auth modes.
+
+---
+
+## Chuyển Đổi Môi Trường
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```bash
+IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+```
+</TabItem>
+<TabItem label="Python">
+```bash
+IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Xử Lý Sự Cố
+
+**`Cannot find package '@imbrace/sdk'`** (TypeScript)
+Chạy `npm link @imbrace/sdk` từ bên trong thư mục test lại. Link có thể bị break nếu bạn xóa và cài lại `node_modules` trong `ts/`.
+
+**`ERR_MODULE_NOT_FOUND` cho dist file** (TypeScript)
+Build chưa chạy, hoặc source file mới được thêm mà chưa rebuild. Chạy `npm run build` trong `ts/`.
+
+**`ModuleNotFoundError: No module named 'imbrace'`** (Python)
+Package chưa được cài trong venv hiện tại. Chạy lại `pip install -e .` (editable) hoặc `pip install dist/imbrace-*.whl`.
+
+**401 / 403 trên live calls**
+Credential đã hết hạn, bị thu hồi, hoặc sai. Để tạo API key mới:
+
+```bash
+curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
+  -H "x-access-token: <your_existing_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expirationDays": 30}'
+```
+
+Để xem các lỗi runtime khác, xem [Xử Lý Lỗi](/vi/sdk/error-handling/) và [Troubleshooting](/vi/guides/troubleshooting/).
