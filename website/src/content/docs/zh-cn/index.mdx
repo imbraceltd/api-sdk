@@ -13,11 +13,11 @@ hero:
       link: getting-started/overview/
       icon: right-arrow
       variant: primary
-    - text: TypeScript SDK
-      link: typescript/overview/
+    - text: SDK 概览
+      link: sdk/overview/
       variant: secondary
-    - text: Python SDK
-      link: python/overview/
+    - text: 快速入门
+      link: sdk/quick-start/
       variant: minimal
 ---
 
@@ -91,24 +91,24 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
   <LinkCard
-    title="TypeScript — 概览"
-    description="架构、27 个资源命名空间、认证策略。"
-    href="typescript/overview/"
+    title="SDK 概览"
+    description="架构、资源命名空间、身份验证策略。TypeScript 和 Python 在同一处。"
+    href="sdk/overview/"
   />
   <LinkCard
-    title="Python — 概览"
-    description="同步与异步客户端、29 个命名空间、生命周期。"
-    href="python/overview/"
+    title="快速入门"
+    description="在 60 秒内完成首次 API 调用 — 在 TypeScript 和 Python 之间切换。"
+    href="sdk/quick-start/"
   />
   <LinkCard
-    title="TypeScript — 安装指南"
-    description="安装、配置凭证、环境和服务 URL 覆盖。"
-    href="getting-started/setup/"
+    title="身份验证"
+    description="API 密钥 vs 访问令牌、OTP 登录流程，以及如何选择。"
+    href="sdk/authentication/"
   />
   <LinkCard
-    title="Python — 安装指南"
-    description="安装、配置凭证、环境和服务 URL 覆盖。"
-    href="getting-started/setup/"
+    title="完整流程指南"
+    description="四个主要工作流程的端到端演练。"
+    href="sdk/full-flow-guide/"
   />
   <LinkCard
     title="测试指南"

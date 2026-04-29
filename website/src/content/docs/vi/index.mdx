@@ -13,11 +13,11 @@ hero:
       link: getting-started/overview/
       icon: right-arrow
       variant: primary
-    - text: TypeScript SDK
-      link: typescript/overview/
+    - text: Tổng Quan SDK
+      link: sdk/overview/
       variant: secondary
-    - text: Python SDK
-      link: python/overview/
+    - text: Quick Start
+      link: sdk/quick-start/
       variant: minimal
 ---
 
@@ -95,34 +95,34 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
   <LinkCard
-    title="TypeScript — Tổng Quan"
-    description="Kiến trúc, 27 resource namespace, chiến lược xác thực."
-    href="typescript/overview/"
+    title="Tổng Quan SDK"
+    description="Kiến trúc, resource namespaces, chiến lược xác thực. TypeScript và Python trong cùng một nơi."
+    href="sdk/overview/"
   />
   <LinkCard
-    title="Python — Tổng Quan"
-    description="Client sync vs async, 29 namespace, vòng đời client."
-    href="python/overview/"
+    title="Quick Start"
+    description="Thực hiện cuộc gọi API đầu tiên trong 60 giây — chuyển đổi giữa TypeScript và Python."
+    href="sdk/quick-start/"
   />
   <LinkCard
     title="Xác Thực"
-    description="API Key, JWT Bearer, luồng đăng nhập OTP."
-    href="typescript/authentication/"
+    description="API key vs access token, luồng đăng nhập OTP, và cách chọn cái nào."
+    href="sdk/authentication/"
+  />
+  <LinkCard
+    title="Hướng Dẫn Flow Đầy Đủ"
+    description="Hướng dẫn từ đầu đến cuối của bốn quy trình làm việc chính."
+    href="sdk/full-flow-guide/"
+  />
+  <LinkCard
+    title="Hướng Dẫn Test"
+    description="Unit tests, mocking, integration test patterns."
+    href="guides/testing/"
   />
   <LinkCard
     title="Xử Lý Lỗi"
-    description="Phân cấp exception, hành vi retry, best practices."
-    href="typescript/error-handling/"
-  />
-  <LinkCard
-    title="Tích Hợp — TypeScript"
-    description="Patterns với React, Next.js, Node.js service."
-    href="typescript/integrations/"
-  />
-  <LinkCard
-    title="Tích Hợp — Python"
-    description="Patterns với FastAPI, asyncio, Django, Celery."
-    href="python/integrations/"
+    description="Common errors, debugging tips, known issues."
+    href="guides/troubleshooting/"
   />
 </CardGrid>
 
