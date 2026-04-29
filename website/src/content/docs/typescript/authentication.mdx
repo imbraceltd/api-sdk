@@ -1,0 +1,96 @@
+---
+title: TypeScript SDK — Authentication
+description: API Key and Access Token authentication for the Imbrace TypeScript SDK.
+---
+
+The SDK supports two authentication strategies. Pass either `apiKey` or `accessToken` when constructing `ImbraceClient` — the transport handles headers automatically.
+
+### Authentication Strategies
+
+| Strategy         | When to use                              | Header sent              |
+| ---------------- | ---------------------------------------- | ------------------------ |
+| **API Key**      | Backend scripts, cron jobs, server calls | `x-api-key: sk-xxx...`   |
+| **Access Token** | After user login (OTP or password)       | `x-access-token: acc_...`|
+
+---
+
+### API Key (Server-Side)
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: "sk-xxx...",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+});
+```
+
+---
+
+### Access Token (Client-Side)
+
+If you already have an `acc_...` token, pass it directly:
+
+```typescript
+const client = new ImbraceClient({
+  accessToken: "acc_xxxxxxxxxxxxx",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+});
+```
+
+---
+
+### OTP Login Flow
+
+Use this flow to authenticate a user via email OTP and obtain a session token.
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+});
+
+// Step 1: Send OTP to user's email
+await client.requestOtp("user@example.com");
+
+// Step 2: User submits the OTP they received
+const loginRes = await client.loginWithOtp("user@example.com", "ABC123");
+// loginRes contains a short-lived login_acc_... token (stored internally)
+
+// Step 3: Exchange for a long-lived access token
+const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id");
+
+// Step 4: Activate the token for all subsequent calls
+client.setAccessToken(token);
+
+// Now use any resource
+const { data: boards } = await client.boards.list();
+```
+
+---
+
+### Password Login Flow
+
+```typescript
+const client = new ImbraceClient({
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+});
+
+await client.login("user@example.com", "password");
+
+// Token is stored automatically — proceed with any resource
+const { data: boards } = await client.boards.list();
+```
+
+---
+
+### Token Management
+
+```typescript
+// Replace token (e.g., after token refresh)
+client.setAccessToken("acc_new_token...");
+
+// Clear token (e.g., on logout)
+client.clearAccessToken();
+```

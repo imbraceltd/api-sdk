@@ -1,0 +1,45 @@
+---
+title: TypeScript SDK — Overview
+description: What the Imbrace TypeScript SDK is, how it works, and when to use it.
+---
+
+The `@imbrace/sdk` package is the official TypeScript/JavaScript client for the Imbrace Gateway. It provides fully-typed access to all Imbrace services for both server-side (Node.js) and client-side (browser) contexts.
+
+### Key Features
+
+| Feature                  | Detail                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| **Full Type Safety**     | 100% TypeScript — every request and response is typed via shared `types/` interfaces |
+| **Dual Authentication**  | API Key (server-to-server) or Access Token (client-side JWT / legacy token)          |
+| **Auto Retry**           | 429 and 5xx errors retry up to 2 times with exponential backoff                      |
+| **Request Cancellation** | AbortSignal propagation for in-flight request cancellation                           |
+| **Streaming AI**         | AsyncGenerator-based streaming for AI completions and SSE chat                       |
+
+### Available Resources
+
+| Namespace | Purpose |
+|---|---|
+| `client.aiAgent` | Streaming AI chat, embeddings, parquet data, chat session management |
+| `client.chatAi` | LLM completions, streaming, models, knowledge, files, folders |
+| `client.activepieces` | Workflow automation — flows, triggers, runs, connections |
+| `client.boards` | CRM boards — CRUD, items, fields, search, segments, CSV export |
+| `client.contacts` | Contact management |
+| `client.conversations` | Conversation views, assignment, status |
+| `client.messages` | Send and list messages |
+| `client.channel` | Channel listing and messaging |
+| `client.platform` | Users, organizations, permissions |
+| `client.ai` | Raw OpenAI-compatible completions and embeddings |
+
+### When to Use
+
+| Scenario                                   | Recommended Auth                            |
+| ------------------------------------------ | ------------------------------------------- |
+| Node.js backend, cron jobs, data pipelines | `apiKey` → `x-api-key` header               |
+| User-facing frontend after OTP/OAuth login | `accessToken` JWT → `Authorization: Bearer` |
+| Legacy integration with opaque tokens      | `accessToken` opaque → `x-access-token`     |
+
+:::tip
+For most server-side use cases, use `apiKey`. For user-facing apps, authenticate with OTP and let the SDK manage the token automatically.
+:::
+
+---

@@ -1,0 +1,45 @@
+---
+title: TypeScript SDK — Installation
+description: Install the @imbrace/sdk package and initialize the client.
+---
+
+### Install
+
+```bash
+npm install @imbrace/sdk
+# or
+yarn add @imbrace/sdk
+# or
+bun add @imbrace/sdk
+```
+
+---
+
+### Get Your Credentials
+
+- **Access token** — sign in to the Imbrace dashboard and copy your session token from the account settings page. Use this for user-facing apps.
+- **API key** — generate a long-lived server key from the Imbrace admin panel under API Access. Use this for backend and server-to-server calls.
+
+---
+
+### Initialize the Client
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+// Option 1 — access token (user-facing apps)
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+
+// Option 2 — API key (server-to-server)
+const client = new ImbraceClient({
+  apiKey: "sk-xxx...",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+```
+
+The client is stateful — create it once and reuse it across your application.
+
+---

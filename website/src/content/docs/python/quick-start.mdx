@@ -1,0 +1,137 @@
+---
+title: Python SDK — Quick Start
+description: From zero to your first successful Imbrace API call using the Python SDK.
+---
+
+### Prerequisites
+
+- Python 3.10+
+- `imbrace` installed ([Installation →](installation/))
+- `IMBRACE_API_KEY` set in `.env` or environment
+
+---
+
+### 1. Initialize the Synchronous Client
+
+```python
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient
+
+load_dotenv()  # reads .env
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    env="stable",  # "develop" | "sandbox" | "stable"
+    timeout=30,    # seconds
+)
+```
+
+---
+
+### 2. Make Your First Call
+
+```python
+# Get current user profile
+me = client.platform.get_me()
+print(f"Authenticated as: {me['displayName']}")
+
+# List marketplace products
+result = client.marketplace.list_products(page=1, limit=10)
+print(f"Found {len(result['data'])} products")
+```
+
+---
+
+### 3. Use the Context Manager
+
+The context manager ensures the HTTP connection pool is properly closed:
+
+```python
+with ImbraceClient() as client:
+    me = client.platform.get_me()
+    print(me)
+# Connection closed automatically
+```
+
+---
+
+### 4. Full Script Example
+
+```python
+# main.py
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient, AuthError, ApiError, NetworkError
+
+load_dotenv()
+
+def main():
+    with ImbraceClient() as client:
+        try:
+            me = client.platform.get_me()
+            print(f"User: {me['displayName']} ({me['email']})")
+
+            channels = client.channel.list_channels(type="group")
+            print(f"Channels: {len(channels.get('data', []))}")
+
+        except AuthError:
+            print("Authentication failed — check IMBRACE_API_KEY")
+        except ApiError as e:
+            print(f"API error [{e.status_code}]: {e}")
+        except NetworkError:
+            print("Cannot reach Imbrace Gateway")
+
+if __name__ == "__main__":
+    main()
+```
+
+```bash
+python main.py
+```
+
+---
+
+### 5. Async Client (FastAPI / asyncio)
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def main():
+    async with AsyncImbraceClient() as client:
+        me = await client.platform.get_me()
+        print(f"User: {me['displayName']}")
+
+        products = await client.marketplace.list_products(limit=10)
+        print(f"Products: {len(products['data'])}")
+
+asyncio.run(main())
+```
+
+---
+
+### 6. Environment Switching
+
+```python
+# Development gateway
+client = ImbraceClient(env="develop")
+
+# Sandbox gateway
+client = ImbraceClient(env="sandbox")
+
+# Custom gateway URL
+client = ImbraceClient(gateway="https://my-custom-gateway.example.com")
+```
+
+| Environment | Gateway URL                              |
+| ----------- | ---------------------------------------- |
+| `develop`   | `https://app-gateway.dev.imbrace.co`     |
+| `sandbox`   | `https://app-gateway.sandbox.imbrace.co` |
+| `stable`    | `https://app-gatewayv2.imbrace.co`       |
+
+:::tip
+Set `IMBRACE_GATEWAY_URL` in `.env` for environment switching without code changes.
+:::
+
+---

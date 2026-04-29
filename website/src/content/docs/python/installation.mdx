@@ -1,0 +1,45 @@
+---
+title: Python SDK — Installation
+description: Install the imbrace package and configure your environment.
+---
+
+### Install
+
+```bash
+pip install imbrace
+# or
+uv add imbrace
+```
+
+Development mode (from source, includes dev tools):
+
+```bash
+cd py
+pip install -e ".[dev]"
+# Installs: pytest, ruff, mypy, pytest-httpx
+```
+
+For credentials, environments, and service URL overrides, see the [Setup Guide](/getting-started/setup/).
+
+---
+
+### Verify Installation
+
+```python
+from imbrace import ImbraceClient
+client = ImbraceClient()
+print("SDK ready")
+```
+
+---
+
+### Environment Variables Reference
+
+| Variable           | Required | Default  | Description                                              |
+| ------------------ | -------- | -------- | -------------------------------------------------------- |
+| `IMBRACE_API_KEY`  | Yes\*    | —        | Server-side API Key                                      |
+| `IMBRACE_ENV`      | No       | `stable` | Preset: `develop`, `sandbox`, `stable`                   |
+| `IMBRACE_BASE_URL` | No       | auto     | Override gateway URL (takes priority over `IMBRACE_ENV`) |
+| `IMBRACE_ORG_ID`   | No       | —        | Organization ID (for integration tests)                  |
+
+\*Or pass `access_token` directly for client-side usage.

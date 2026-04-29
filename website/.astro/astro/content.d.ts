@@ -159,13 +159,6 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"getting-started/setup.mdx": {
-	id: "getting-started/setup.mdx";
-  slug: "getting-started/setup";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "guides/testing.mdx": {
 	id: "guides/testing.mdx";
   slug: "guides/testing";
@@ -183,13 +176,6 @@ declare module 'astro:content' {
 "index.mdx": {
 	id: "index.mdx";
   slug: "index";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"python/ai-agent.mdx": {
-	id: "python/ai-agent.mdx";
-  slug: "python/ai-agent";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -243,13 +229,6 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"typescript/ai-agent.mdx": {
-	id: "typescript/ai-agent.mdx";
-  slug: "typescript/ai-agent";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "typescript/authentication.mdx": {
 	id: "typescript/authentication.mdx";
   slug: "typescript/authentication";
@@ -260,13 +239,6 @@ declare module 'astro:content' {
 "typescript/error-handling.mdx": {
 	id: "typescript/error-handling.mdx";
   slug: "typescript/error-handling";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"typescript/full-flow-guide.mdx": {
-	id: "typescript/full-flow-guide.mdx";
-  slug: "typescript/full-flow-guide";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -320,13 +292,6 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/getting-started/setup.mdx": {
-	id: "vi/getting-started/setup.mdx";
-  slug: "vi/getting-started/setup";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "vi/guides/testing.mdx": {
 	id: "vi/guides/testing.mdx";
   slug: "vi/guides/testing";
@@ -348,282 +313,107 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/ai-agent.mdx": {
-	id: "vi/sdk/ai-agent.mdx";
-  slug: "vi/sdk/ai-agent";
+"vi/python/authentication.mdx": {
+	id: "vi/python/authentication.mdx";
+  slug: "vi/python/authentication";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/authentication.mdx": {
-	id: "vi/sdk/authentication.mdx";
-  slug: "vi/sdk/authentication";
+"vi/python/error-handling.mdx": {
+	id: "vi/python/error-handling.mdx";
+  slug: "vi/python/error-handling";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/error-handling.mdx": {
-	id: "vi/sdk/error-handling.mdx";
-  slug: "vi/sdk/error-handling";
+"vi/python/installation.mdx": {
+	id: "vi/python/installation.mdx";
+  slug: "vi/python/installation";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/full-flow-guide.mdx": {
-	id: "vi/sdk/full-flow-guide.mdx";
-  slug: "vi/sdk/full-flow-guide";
+"vi/python/integrations.mdx": {
+	id: "vi/python/integrations.mdx";
+  slug: "vi/python/integrations";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/installation.mdx": {
-	id: "vi/sdk/installation.mdx";
-  slug: "vi/sdk/installation";
+"vi/python/overview.mdx": {
+	id: "vi/python/overview.mdx";
+  slug: "vi/python/overview";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/integrations.mdx": {
-	id: "vi/sdk/integrations.mdx";
-  slug: "vi/sdk/integrations";
+"vi/python/quick-start.mdx": {
+	id: "vi/python/quick-start.mdx";
+  slug: "vi/python/quick-start";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/local-testing.mdx": {
-	id: "vi/sdk/local-testing.mdx";
-  slug: "vi/sdk/local-testing";
+"vi/python/resources.mdx": {
+	id: "vi/python/resources.mdx";
+  slug: "vi/python/resources";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/overview.mdx": {
-	id: "vi/sdk/overview.mdx";
-  slug: "vi/sdk/overview";
+"vi/typescript/authentication.mdx": {
+	id: "vi/typescript/authentication.mdx";
+  slug: "vi/typescript/authentication";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/quick-start.mdx": {
-	id: "vi/sdk/quick-start.mdx";
-  slug: "vi/sdk/quick-start";
+"vi/typescript/error-handling.mdx": {
+	id: "vi/typescript/error-handling.mdx";
+  slug: "vi/typescript/error-handling";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"vi/sdk/resources.mdx": {
-	id: "vi/sdk/resources.mdx";
-  slug: "vi/sdk/resources";
+"vi/typescript/installation.mdx": {
+	id: "vi/typescript/installation.mdx";
+  slug: "vi/typescript/installation";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"zh-cn/getting-started/overview.mdx": {
-	id: "zh-cn/getting-started/overview.mdx";
-  slug: "zh-cn/getting-started/overview";
+"vi/typescript/integrations.mdx": {
+	id: "vi/typescript/integrations.mdx";
+  slug: "vi/typescript/integrations";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"zh-cn/getting-started/setup.mdx": {
-	id: "zh-cn/getting-started/setup.mdx";
-  slug: "zh-cn/getting-started/setup";
+"vi/typescript/local-testing.mdx": {
+	id: "vi/typescript/local-testing.mdx";
+  slug: "vi/typescript/local-testing";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"zh-cn/guides/testing.mdx": {
-	id: "zh-cn/guides/testing.mdx";
-  slug: "zh-cn/guides/testing";
+"vi/typescript/overview.mdx": {
+	id: "vi/typescript/overview.mdx";
+  slug: "vi/typescript/overview";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"zh-cn/guides/troubleshooting.mdx": {
-	id: "zh-cn/guides/troubleshooting.mdx";
-  slug: "zh-cn/guides/troubleshooting";
+"vi/typescript/quick-start.mdx": {
+	id: "vi/typescript/quick-start.mdx";
+  slug: "vi/typescript/quick-start";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"zh-cn/index.mdx": {
-	id: "zh-cn/index.mdx";
-  slug: "zh-cn";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/ai-agent.mdx": {
-	id: "zh-cn/sdk/ai-agent.mdx";
-  slug: "zh-cn/sdk/ai-agent";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/authentication.mdx": {
-	id: "zh-cn/sdk/authentication.mdx";
-  slug: "zh-cn/sdk/authentication";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/error-handling.mdx": {
-	id: "zh-cn/sdk/error-handling.mdx";
-  slug: "zh-cn/sdk/error-handling";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/full-flow-guide.mdx": {
-	id: "zh-cn/sdk/full-flow-guide.mdx";
-  slug: "zh-cn/sdk/full-flow-guide";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/installation.mdx": {
-	id: "zh-cn/sdk/installation.mdx";
-  slug: "zh-cn/sdk/installation";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/integrations.mdx": {
-	id: "zh-cn/sdk/integrations.mdx";
-  slug: "zh-cn/sdk/integrations";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/local-testing.mdx": {
-	id: "zh-cn/sdk/local-testing.mdx";
-  slug: "zh-cn/sdk/local-testing";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/overview.mdx": {
-	id: "zh-cn/sdk/overview.mdx";
-  slug: "zh-cn/sdk/overview";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/quick-start.mdx": {
-	id: "zh-cn/sdk/quick-start.mdx";
-  slug: "zh-cn/sdk/quick-start";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-cn/sdk/resources.mdx": {
-	id: "zh-cn/sdk/resources.mdx";
-  slug: "zh-cn/sdk/resources";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/getting-started/overview.mdx": {
-	id: "zh-tw/getting-started/overview.mdx";
-  slug: "zh-tw/getting-started/overview";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/getting-started/setup.mdx": {
-	id: "zh-tw/getting-started/setup.mdx";
-  slug: "zh-tw/getting-started/setup";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/guides/testing.mdx": {
-	id: "zh-tw/guides/testing.mdx";
-  slug: "zh-tw/guides/testing";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/guides/troubleshooting.mdx": {
-	id: "zh-tw/guides/troubleshooting.mdx";
-  slug: "zh-tw/guides/troubleshooting";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/index.mdx": {
-	id: "zh-tw/index.mdx";
-  slug: "zh-tw";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/ai-agent.mdx": {
-	id: "zh-tw/sdk/ai-agent.mdx";
-  slug: "zh-tw/sdk/ai-agent";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/authentication.mdx": {
-	id: "zh-tw/sdk/authentication.mdx";
-  slug: "zh-tw/sdk/authentication";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/error-handling.mdx": {
-	id: "zh-tw/sdk/error-handling.mdx";
-  slug: "zh-tw/sdk/error-handling";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/full-flow-guide.mdx": {
-	id: "zh-tw/sdk/full-flow-guide.mdx";
-  slug: "zh-tw/sdk/full-flow-guide";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/installation.mdx": {
-	id: "zh-tw/sdk/installation.mdx";
-  slug: "zh-tw/sdk/installation";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/integrations.mdx": {
-	id: "zh-tw/sdk/integrations.mdx";
-  slug: "zh-tw/sdk/integrations";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/local-testing.mdx": {
-	id: "zh-tw/sdk/local-testing.mdx";
-  slug: "zh-tw/sdk/local-testing";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/overview.mdx": {
-	id: "zh-tw/sdk/overview.mdx";
-  slug: "zh-tw/sdk/overview";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/quick-start.mdx": {
-	id: "zh-tw/sdk/quick-start.mdx";
-  slug: "zh-tw/sdk/quick-start";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"zh-tw/sdk/resources.mdx": {
-	id: "zh-tw/sdk/resources.mdx";
-  slug: "zh-tw/sdk/resources";
+"vi/typescript/resources.mdx": {
+	id: "vi/typescript/resources.mdx";
+  slug: "vi/typescript/resources";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -641,16 +431,6 @@ declare module 'astro:content' {
 };
 "vi": {
 	id: "vi";
-  collection: "i18n";
-  data: InferEntrySchema<"i18n">
-};
-"zh-cn": {
-	id: "zh-cn";
-  collection: "i18n";
-  data: InferEntrySchema<"i18n">
-};
-"zh-tw": {
-	id: "zh-tw";
   collection: "i18n";
   data: InferEntrySchema<"i18n">
 };

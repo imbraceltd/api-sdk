@@ -1,0 +1,214 @@
+---
+title: Python SDK — Integrations
+description: Using the Imbrace Python SDK with FastAPI, asyncio, Django, and Celery.
+---
+
+### FastAPI
+
+#### Dependency Injection
+
+The recommended pattern for FastAPI is a per-request async client injected via `Depends`:
+
+```python
+from fastapi import FastAPI, Depends
+from imbrace import AsyncImbraceClient
+
+app = FastAPI()
+
+async def get_imbrace() -> AsyncImbraceClient:
+    async with AsyncImbraceClient() as client:
+        yield client
+
+@app.get("/products")
+async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
+    result = await client.marketplace.list_products(limit=20)
+    return result["data"]
+
+@app.get("/products/{product_id}")
+async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.marketplace.get_product(product_id)
+
+@app.post("/ai/chat")
+async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.ai.complete(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": message}],
+    )
+```
+
+#### Global Singleton (for high throughput)
+
+For better connection reuse, create one client per application lifetime:
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from imbrace import AsyncImbraceClient
+
+imbrace: AsyncImbraceClient = None  # type: ignore
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global imbrace
+    imbrace = AsyncImbraceClient()
+    await imbrace.init()  # health check on startup
+    yield
+    await imbrace.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/me")
+async def get_me():
+    return await imbrace.platform.get_me()
+```
+
+#### OTP Authentication Endpoint
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from imbrace import AsyncImbraceClient, AuthError
+
+app = FastAPI()
+
+class OtpRequest(BaseModel):
+    email: str
+
+class OtpVerify(BaseModel):
+    email: str
+    otp: str
+
+@app.post("/auth/request-otp")
+async def request_otp(body: OtpRequest):
+    async with AsyncImbraceClient() as client:
+        await client.request_otp(body.email)
+    return {"message": "OTP sent"}
+
+@app.post("/auth/verify-otp")
+async def verify_otp(body: OtpVerify):
+    async with AsyncImbraceClient() as client:
+        try:
+            await client.login_with_otp(body.email, body.otp)
+            # Return the stored token to the frontend
+            token = client._token_manager.get_token()
+            return {"access_token": token}
+        except AuthError:
+            raise HTTPException(status_code=401, detail="Invalid OTP")
+```
+
+---
+
+### asyncio
+
+#### Concurrent Requests
+
+Use `asyncio.gather` to fan out multiple API calls simultaneously:
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def fetch_dashboard_data():
+    async with AsyncImbraceClient() as client:
+        # All three requests run in parallel
+        me, products, channels = await asyncio.gather(
+            client.platform.get_me(),
+            client.marketplace.list_products(limit=5),
+            client.channel.list_channels(type="group"),
+        )
+        return {
+            "user": me,
+            "products": products["data"],
+            "channels": channels["data"],
+        }
+
+data = asyncio.run(fetch_dashboard_data())
+```
+
+#### Streaming AI with asyncio
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def stream_response():
+    async with AsyncImbraceClient() as client:
+        async for chunk in client.ai.stream(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "Explain async/await in Python."}],
+        ):
+            content = chunk["choices"][0]["delta"].get("content", "")
+            print(content, end="", flush=True)
+
+asyncio.run(stream_response())
+```
+
+---
+
+### Django
+
+#### Synchronous View
+
+```python
+# views.py
+from django.http import JsonResponse
+from imbrace import ImbraceClient, ApiError
+
+def product_list(request):
+    with ImbraceClient() as client:
+        try:
+            result = client.marketplace.list_products(
+                category=request.GET.get("category"),
+                page=int(request.GET.get("page", 1)),
+            )
+            return JsonResponse(result)
+        except ApiError as e:
+            return JsonResponse({"error": str(e)}, status=e.status_code)
+```
+
+#### Django Settings Integration
+
+```python
+# settings.py
+IMBRACE_API_KEY = env("IMBRACE_API_KEY")
+IMBRACE_ENV = env("IMBRACE_ENV", default="stable")
+
+# utils/imbrace.py
+from django.conf import settings
+from imbrace import ImbraceClient
+
+def get_client() -> ImbraceClient:
+    return ImbraceClient(
+        api_key=settings.IMBRACE_API_KEY,
+        env=settings.IMBRACE_ENV,
+    )
+```
+
+---
+
+### Celery
+
+For background task workers, use the sync client and create it inside the task:
+
+```python
+# tasks.py
+from celery import Celery
+from imbrace import ImbraceClient, NetworkError
+
+app = Celery("tasks")
+
+@app.task(bind=True, max_retries=3)
+def sync_products(self):
+    try:
+        with ImbraceClient() as client:
+            result = client.marketplace.list_products(limit=100)
+            for product in result["data"]:
+                save_to_db(product)
+    except NetworkError as exc:
+        # Retry the Celery task on network failure
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+```
+
+:::tip
+Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+:::

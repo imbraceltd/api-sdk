@@ -1,0 +1,294 @@
+---
+title: TypeScript SDK — AI Agent
+description: Complete reference for the aiAgent resource — streaming chat, embeddings, parquet, distributed tracing, and the chat-client sub-API.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`client.aiAgent` connects to the dedicated AI Agent service, which runs on a separate base URL from the main API gateway. It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+const client = new ImbraceClient();
+```
+
+---
+
+#### System
+
+```typescript
+const config  = await client.aiAgent.getConfig();
+const health  = await client.aiAgent.getHealth();        // basic check
+const healthD = await client.aiAgent.getHealth(true);    // detailed stats
+const version = await client.aiAgent.getVersion();
+```
+
+---
+
+#### Chat v1 — Conversation History
+
+List, read, and delete persisted chat records.
+
+```typescript
+// List chats for an organization
+const chats = await client.aiAgent.listChats({
+  organization_id: "org_abc",
+  user_id: "user_123",
+  limit: 20,
+});
+
+// Get a single chat (pass true to include messages)
+const chat = await client.aiAgent.getChat("chat_id", true);
+
+// Delete a chat
+await client.aiAgent.deleteChat("chat_id", {
+  organization_id: "org_abc",
+  user_id: "user_123",
+});
+```
+
+---
+
+#### Chat v2 — Streaming (SSE)
+
+`streamChat` returns a raw `Response`. Consume the body as a Server-Sent Events stream.
+
+```typescript
+const response = await client.aiAgent.streamChat({
+  id: "chat_id",
+  assistant_id: "asst_abc",
+  organization_id: "org_abc",
+  messages: [{ role: "user", content: "What can you do?" }],
+});
+
+// Read SSE chunks
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  process.stdout.write(decoder.decode(value));
+}
+```
+
+---
+
+#### Sub-agent Chat v2
+
+Stream responses from a sub-agent and retrieve its conversation history.
+
+```typescript
+// Stream from a sub-agent
+const res = await client.aiAgent.streamSubAgentChat({
+  assistant_id: "asst_sub",
+  organization_id: "org_abc",
+  session_id: "sess_xyz",
+  chat_id: "chat_id",
+  messages: [{ role: "user", content: "Explain the data." }],
+});
+
+// Get history for a sub-agent session
+const history = await client.aiAgent.getSubAgentHistory({
+  session_id: "sess_xyz",
+  chat_id: "chat_id",
+});
+```
+
+---
+
+#### Prompt Suggestions
+
+Fetch pre-built prompt suggestions for a given assistant.
+
+```typescript
+const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_abc");
+```
+
+---
+
+#### Embeddings & Knowledge Base
+
+Manage files used for Retrieval-Augmented Generation (RAG). Files must first be uploaded via `client.fileService` before they can be embedded.
+
+```typescript
+// Trigger embedding processing for an uploaded file
+await client.aiAgent.processEmbedding({ fileId: "file_abc" });
+
+// List and inspect embedding files
+const files   = await client.aiAgent.listEmbeddingFiles({ page: 1, limit: 20 });
+const file    = await client.aiAgent.getEmbeddingFile("file_abc");
+const preview = await client.aiAgent.previewEmbeddingFile({ file_id: "file_abc" });
+
+// Update status and delete
+await client.aiAgent.updateEmbeddingFileStatus("file_abc", "active");
+await client.aiAgent.deleteEmbeddingFile("file_abc");
+
+// Classify a file for RAG categorization
+const classification = await client.aiAgent.classifyFile({ file_id: "file_abc" });
+```
+
+---
+
+#### Data Board
+
+AI-assisted field type suggestion for structured datasets.
+
+```typescript
+const result = await client.aiAgent.suggestFieldTypes({
+  fields: [
+    { name: "created_at", samples: ["2024-01-01", "2024-02-15"] },
+    { name: "amount",     samples: [100, 200.5, 999] },
+    { name: "is_active",  samples: [true, false, true] },
+  ],
+});
+// result.fields[i].suggestedType → "datetime" | "number" | "boolean" | ...
+```
+
+---
+
+#### Parquet
+
+Generate and manage Parquet columnar data files for analytics pipelines.
+
+```typescript
+// Generate a Parquet file from JSON data
+const result = await client.aiAgent.generateParquet({
+  data: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
+  fileName: "users",
+  folderName: "exports",
+});
+
+// List all Parquet files
+const files = await client.aiAgent.listParquetFiles();
+
+// Delete a specific file
+await client.aiAgent.deleteParquetFile("exports/users.parquet");
+```
+
+---
+
+#### Distributed Tracing (Tempo)
+
+Query Grafana Tempo traces emitted by the AI Agent service for observability and debugging.
+
+```typescript
+// List recent traces
+const traces = await client.aiAgent.getTraces({
+  service:   "ai-agent",
+  limit:     50,
+  timeRange: 3600,     // seconds
+  orgId:     "org_abc",
+  details:   true,
+});
+
+// Inspect a single trace
+const trace = await client.aiAgent.getTrace("trace_id_hex");
+
+// Enumerate services, tags, and tag values
+const services = await client.aiAgent.getTraceServices();
+const tags     = await client.aiAgent.getTraceTags();
+const values   = await client.aiAgent.getTraceTagValues("http.status_code");
+
+// TraceQL search
+const results = await client.aiAgent.searchTraceQL(
+  `{ .service.name = "ai-agent" && .http.status = 500 }`
+);
+```
+
+---
+
+#### Chat Client
+
+The Chat Client sub-API powers frontend applications (e.g. the embedded chat widget). It includes auth, full chat/message CRUD, voting, and AI-generated documents.
+
+##### Auth
+
+```typescript
+await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
+await client.aiAgent.registerChatClient({ name: "web-app", secret: "s3cr3t" });
+const user = await client.aiAgent.getChatClientUser({ token: "tok_xxx" });
+```
+
+##### Chats
+
+```typescript
+// Create a new chat session
+await client.aiAgent.createClientChat({
+  id: "chat_uuid",
+  message: {
+    id: "msg_uuid",
+    role: "user",
+    parts: [{ type: "text", text: "Hello!" }],
+  },
+  assistantId:    "asst_abc",
+  organizationId: "org_abc",
+});
+
+// List, read, update, delete chats
+const chats = await client.aiAgent.listClientChats({
+  organization_id: "org_abc",
+  limit: 20,
+});
+const chat = await client.aiAgent.getClientChat("chat_id");
+await client.aiAgent.updateClientChat("chat_id", { visibility: "private" });
+await client.aiAgent.deleteClientChat("chat_id");
+await client.aiAgent.deleteAllClientChats({ organization_id: "org_abc" });
+
+// Auto-generate a title for the chat
+await client.aiAgent.generateClientChatTitle("chat_id");
+
+// Stream real-time chat status as SSE — returns raw Response
+const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
+```
+
+##### Messages
+
+```typescript
+// Persist a message
+await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Hello" });
+
+// List all messages in a chat
+const messages = await client.aiAgent.listClientMessages("chat_id");
+
+// Delete a message and all subsequent messages in the thread
+await client.aiAgent.deleteTrailingMessages("message_id");
+```
+
+##### Votes
+
+```typescript
+const votes = await client.aiAgent.getVotes("chat_id");
+await client.aiAgent.updateVote({ messageId: "msg_id", vote: "up" });
+```
+
+##### Documents (AI-generated artifacts)
+
+```typescript
+// Create an AI-generated document
+await client.aiAgent.createDocument({ kind: "text", content: "Draft..." });
+
+// Retrieve documents
+const doc        = await client.aiAgent.getDocument("doc_id");
+const latest     = await client.aiAgent.getDocumentLatest("doc_id");
+const pub        = await client.aiAgent.getDocumentPublic("doc_id");
+const byKind     = await client.aiAgent.getDocumentLatestByKind({ kind: "text" });
+const suggestion = await client.aiAgent.getDocumentSuggestions("doc_id");
+
+// Delete a document
+await client.aiAgent.deleteDocument("doc_id");
+```
+
+---
+
+#### Admin Guides
+
+Access admin documentation hosted by the AI Agent service. Guide files are returned as raw binary streams (typically PDF).
+
+```typescript
+// List available guides
+const guides = await client.aiAgent.listAdminGuides();
+
+// Download a specific guide — returns raw Response (PDF stream)
+const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
+const blob = await response.blob();
+```

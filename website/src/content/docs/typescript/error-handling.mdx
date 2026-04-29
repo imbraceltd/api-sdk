@@ -1,0 +1,175 @@
+---
+title: TypeScript SDK — Error Handling
+description: Error types, automatic retry behavior, and best practices for handling failures in the Imbrace TypeScript SDK.
+---
+
+All errors thrown by the SDK extend a common base and are fully typed, so you can handle them precisely with `instanceof` checks.
+
+### Error Hierarchy
+
+```
+Error
+└── ImbraceError          (base class — catch-all for SDK errors)
+    ├── AuthError          (401, 403 — invalid or expired credentials)
+    ├── ApiError           (4xx/5xx — request rejected by the server)
+    └── NetworkError       (timeout, connection refused, DNS failure)
+```
+
+---
+
+### AuthError
+
+Thrown when the server returns **401** or **403**. Indicates the credentials are invalid or expired.
+
+```typescript
+import { AuthError } from "@imbrace/sdk";
+
+try {
+  const me = await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) {
+    // API Key expired, token revoked, or wrong credentials
+    console.error("Re-authenticate:", e.message);
+  }
+}
+```
+
+:::caution
+`AuthError` is **never retried**. The SDK immediately throws on 401/403 — fix the credentials before retrying.
+:::
+
+---
+
+### ApiError
+
+Thrown for all other **4xx and 5xx** responses (except 429 and 5xx which trigger retry first).
+
+```typescript
+import { ApiError } from "@imbrace/sdk";
+
+try {
+  await client.marketplace.getProduct("nonexistent_id");
+} catch (e) {
+  if (e instanceof ApiError) {
+    console.error(`HTTP ${e.statusCode}: ${e.message}`);
+    // e.g. "HTTP 404: Product not found"
+  }
+}
+```
+
+Key properties:
+
+| Property     | Type     | Description                        |
+| ------------ | -------- | ---------------------------------- |
+| `statusCode` | `number` | HTTP status code                   |
+| `message`    | `string` | Error message from server response |
+
+---
+
+### NetworkError
+
+Thrown when the request never reaches the server — timeout, DNS failure, connection refused.
+
+```typescript
+import { NetworkError } from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof NetworkError) {
+    console.error("Cannot reach baseUrl:", e.message);
+    // e.g. "Request timed out after 30000ms"
+  }
+}
+```
+
+---
+
+### Catching All SDK Errors
+
+Import `ImbraceError` to catch any SDK-originated error in a single block:
+
+```typescript
+import {
+  ImbraceClient,
+  ImbraceError,
+  AuthError,
+  ApiError,
+  NetworkError,
+} from "@imbrace/sdk";
+
+try {
+  await client.platform.getMe();
+} catch (e) {
+  if (e instanceof AuthError) return handleAuthError(e);
+  if (e instanceof ApiError) return handleApiError(e);
+  if (e instanceof NetworkError) return handleNetworkError(e);
+  if (e instanceof ImbraceError) return handleUnknown(e);
+  throw e; // re-throw non-SDK errors
+}
+```
+
+---
+
+### Automatic Retry Behavior
+
+The `HttpTransport` automatically retries on transient failures:
+
+| Condition                   | Action                                   |
+| --------------------------- | ---------------------------------------- |
+| HTTP **429** (rate limit)   | Retry up to 2 times                      |
+| HTTP **5xx** (server error) | Retry up to 2 times                      |
+| Network error / timeout     | Retry up to 2 times                      |
+| HTTP **401 / 403**          | No retry — throw `AuthError` immediately |
+| HTTP **4xx** (other)        | No retry — throw `ApiError` immediately  |
+
+**Backoff formula:** `2^retryCount` seconds between attempts (2s → 4s).
+
+Total worst-case: 3 attempts (initial + 2 retries) before throwing.
+
+---
+
+### Request Cancellation
+
+Use a standard `AbortController` to cancel in-flight requests:
+
+```typescript
+const controller = new AbortController();
+
+// Cancel after 5 seconds
+setTimeout(() => controller.abort(), 5000);
+
+try {
+  const result = await client.marketplace.listProducts(
+    { page: 1 },
+    { signal: controller.signal },
+  );
+} catch (e) {
+  if (e instanceof NetworkError && e.message.includes("aborted")) {
+    console.log("Request cancelled");
+  }
+}
+```
+
+---
+
+### Best Practices
+
+```typescript
+// 1. Always handle AuthError separately — credentials need to be refreshed
+// 2. Log ApiError.statusCode for debugging — 400 means bad params, 404 means not found
+// 3. Wrap top-level entry points in try/catch — don't let NetworkError crash the app
+// 4. Don't retry on AuthError — it won't help until credentials are fixed
+
+async function safeGetMe(client: ImbraceClient) {
+  try {
+    return await client.platform.getMe();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      await refreshCredentials();
+      return await client.platform.getMe(); // retry once after refresh
+    }
+    throw e;
+  }
+}
+```
