@@ -1,0 +1,408 @@
+---
+title: Integrations
+description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
+
+For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication/) and [Setup Guide](/getting-started/setup/#configure-credentials).
+
+---
+
+## React (TypeScript)
+
+### Singleton client
+
+Create the client once outside the component tree and reuse it across all components. The `localStorage` token comes from the [OTP login flow](/sdk/authentication/#otp-login-flow).
+
+```typescript
+// lib/imbrace.ts
+import { ImbraceClient } from "@imbrace/sdk";
+
+export const client = new ImbraceClient({
+  accessToken:
+    typeof window !== "undefined"
+      ? (localStorage.getItem("imbrace_token") ?? undefined)
+      : undefined,
+});
+```
+
+### Data-fetching hook
+
+```tsx
+// hooks/useProducts.ts
+import { useState, useEffect } from "react";
+import { client } from "@/lib/imbrace";
+import type { Product } from "@imbrace/sdk";
+
+export function useProducts(category?: string) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    client.marketplace
+      .listProducts({ category })
+      .then((res) => setProducts(res.data))
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [category]);
+
+  return { products, loading, error };
+}
+```
+
+```tsx
+// components/ProductList.tsx
+import { useProducts } from "@/hooks/useProducts";
+
+export function ProductList() {
+  const { products, loading, error } = useProducts("electronics");
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+  return (
+    <ul>
+      {products.map((p) => (
+        <li key={p.id}>{p.name} — {p.price} {p.currency}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## Next.js (TypeScript)
+
+### API route (App Router)
+
+```typescript
+// app/api/products/route.ts
+import { NextResponse } from "next/server";
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category") ?? undefined;
+  const { data } = await client.marketplace.listProducts({ category });
+  return NextResponse.json(data);
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const product = await client.marketplace.createProduct(body);
+  return NextResponse.json(product, { status: 201 });
+}
+```
+
+`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup/#configure-credentials).
+
+### Server component (App Router)
+
+```tsx
+// app/products/page.tsx
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
+
+export default async function ProductsPage() {
+  const { data: products } = await client.marketplace.listProducts({ limit: 20 });
+  return (
+    <main>
+      <h1>Products</h1>
+      <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
+    </main>
+  );
+}
+```
+
+---
+
+## Node.js CLI script (TypeScript)
+
+For one-shot scripts (data exports, backfills, ad-hoc queries):
+
+```typescript
+// scripts/export-contacts.ts
+import { ImbraceClient } from "@imbrace/sdk";
+import { writeFileSync } from "fs";
+
+const client = new ImbraceClient();
+
+async function exportContacts() {
+  const { data: contacts } = await client.contacts.list({ limit: 1000 });
+  writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
+  console.log(`Exported ${contacts.length} contacts`);
+}
+
+exportContacts().catch(console.error);
+```
+
+```bash
+npx ts-node scripts/export-contacts.ts
+```
+
+---
+
+## FastAPI (Python)
+
+### Per-request dependency injection
+
+The simplest pattern — one async client per request, lifetime managed by the dependency:
+
+```python
+from fastapi import FastAPI, Depends
+from imbrace import AsyncImbraceClient
+
+app = FastAPI()
+
+async def get_imbrace() -> AsyncImbraceClient:
+    async with AsyncImbraceClient() as client:
+        yield client
+
+@app.get("/products")
+async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
+    result = await client.marketplace.list_products(limit=20)
+    return result["data"]
+
+@app.get("/products/{product_id}")
+async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.marketplace.get_product(product_id)
+
+@app.post("/ai/chat")
+async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
+    return await client.ai.complete(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": message}],
+    )
+```
+
+### Global singleton (better connection reuse)
+
+For higher throughput, share one client for the application's lifetime:
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from imbrace import AsyncImbraceClient
+
+imbrace: AsyncImbraceClient = None  # type: ignore
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global imbrace
+    imbrace = AsyncImbraceClient()
+    await imbrace.init()  # health check on startup
+    yield
+    await imbrace.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/me")
+async def get_me():
+    return await imbrace.platform.get_me()
+```
+
+---
+
+## asyncio (Python)
+
+### Concurrent requests
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def fetch_dashboard_data():
+    async with AsyncImbraceClient() as client:
+        me, products, channels = await asyncio.gather(
+            client.platform.get_me(),
+            client.marketplace.list_products(limit=5),
+            client.channel.list_channels(type="group"),
+        )
+        return {
+            "user": me,
+            "products": products["data"],
+            "channels": channels["data"],
+        }
+
+data = asyncio.run(fetch_dashboard_data())
+```
+
+### Streaming AI
+
+```python
+import asyncio
+from imbrace import AsyncImbraceClient
+
+async def stream_response():
+    async with AsyncImbraceClient() as client:
+        async for chunk in client.ai.stream(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "Explain async/await in Python."}],
+        ):
+            content = chunk["choices"][0]["delta"].get("content", "")
+            print(content, end="", flush=True)
+
+asyncio.run(stream_response())
+```
+
+---
+
+## Django (Python)
+
+### Synchronous view
+
+```python
+# views.py
+from django.http import JsonResponse
+from imbrace import ImbraceClient, ApiError
+
+def product_list(request):
+    with ImbraceClient() as client:
+        try:
+            result = client.marketplace.list_products(
+                category=request.GET.get("category"),
+                page=int(request.GET.get("page", 1)),
+            )
+            return JsonResponse(result)
+        except ApiError as e:
+            return JsonResponse({"error": str(e)}, status=e.status_code)
+```
+
+### Settings integration
+
+```python
+# settings.py
+IMBRACE_API_KEY = env("IMBRACE_API_KEY")
+IMBRACE_ENV = env("IMBRACE_ENV", default="stable")
+
+# utils/imbrace.py
+from django.conf import settings
+from imbrace import ImbraceClient
+
+def get_client() -> ImbraceClient:
+    return ImbraceClient(
+        api_key=settings.IMBRACE_API_KEY,
+        env=settings.IMBRACE_ENV,
+    )
+```
+
+---
+
+## Celery (Python)
+
+For background-task workers, use the sync client and create one inside each task:
+
+```python
+# tasks.py
+from celery import Celery
+from imbrace import ImbraceClient, NetworkError
+
+app = Celery("tasks")
+
+@app.task(bind=True, max_retries=3)
+def sync_products(self):
+    try:
+        with ImbraceClient() as client:
+            result = client.marketplace.list_products(limit=100)
+            for product in result["data"]:
+                save_to_db(product)
+    except NetworkError as exc:
+        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+```
+
+:::tip
+Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+:::
+
+---
+
+## OTP login flow
+
+The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```tsx
+// components/LoginForm.tsx
+import { useState } from "react";
+import { ImbraceClient, AuthError } from "@imbrace/sdk";
+
+const client = new ImbraceClient();
+
+export function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+
+  async function requestOtp() {
+    await client.requestOtp(email);
+    setStep("otp");
+  }
+
+  async function verifyOtp() {
+    try {
+      await client.loginWithOtp(email, otp);
+      window.location.href = "/dashboard";
+    } catch (e) {
+      if (e instanceof AuthError) alert("Invalid OTP");
+    }
+  }
+
+  return step === "email" ? (
+    <div>
+      <input value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button onClick={requestOtp}>Send OTP</button>
+    </div>
+  ) : (
+    <div>
+      <input value={otp} onChange={(e) => setOtp(e.target.value)} />
+      <button onClick={verifyOtp}>Verify</button>
+    </div>
+  );
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from imbrace import AsyncImbraceClient, AuthError
+
+app = FastAPI()
+
+class OtpRequest(BaseModel):
+    email: str
+
+class OtpVerify(BaseModel):
+    email: str
+    otp: str
+
+@app.post("/auth/request-otp")
+async def request_otp(body: OtpRequest):
+    async with AsyncImbraceClient() as client:
+        await client.request_otp(body.email)
+    return {"message": "OTP sent"}
+
+@app.post("/auth/verify-otp")
+async def verify_otp(body: OtpVerify):
+    async with AsyncImbraceClient() as client:
+        try:
+            await client.login_with_otp(body.email, body.otp)
+            token = client._token_manager.get_token()
+            return {"access_token": token}
+        except AuthError:
+            raise HTTPException(status_code=401, detail="Invalid OTP")
+```
+</TabItem>
+</Tabs>
