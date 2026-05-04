@@ -1,76 +1,71 @@
-# iMBRACE SDK
+# iMBRACE SDK - Full Reference for LLMs
 
-> iMBRACE is a multi-channel customer engagement platform supporting WhatsApp, Facebook, Instagram, WeChat, LINE, and Email. This monorepo ships the official TypeScript (`@imbrace/sdk`, Node.js 18+ / browser) and Python (`imbrace`, Python 3.9+) SDKs. Both wrap the same three REST gateways: **App Gateway** (public client-facing API), **Server Gateway** (private server-to-server), and **Journey API** (developer portal / app lifecycle).
+> iMBRACE is an enterprise-grade multi-channel engagement platform. This SDK provides a unified interface to three core gateways: **App Gateway** (Stable/v2), **Server Gateway** (3rd party automation), and **Journey API** (Marketplace).
 
-## Things to remember when using iMBRACE SDK
+## Documentation & Links
 
-- Install: `npm install @imbrace/sdk` or `pip install imbrace`.
-- The main client is `ImbraceClient` in both languages. Python also exports `AsyncImbraceClient` for async/await usage.
-- Two credential modes: `apiKey` (server-to-server, from `/private/backend/v1/third_party_token`) or `accessToken` (user OAuth token). Pass one when constructing the client.
-- Default environment is `stable` → `https://app-gatewayv2.imbrace.co`. Override with `baseUrl` or per-service via `services` param.
-- Pass `organizationId` to the constructor (or set `IMBRACE_ORG_ID`) — it is sent as `x-organization-id` on every request.
-- Paginated list methods return `{ data: [...], total, page, limit }` (fields at top level, not nested).
-- The SDK has 30+ resource namespaces on the client. Access them as `client.<resource>.<method>()`.
-- TypeScript: all errors extend `ImbraceError`. Catch `ApiError` (HTTP 4xx/5xx with `.statusCode`), `AuthError` (401), or `NetworkError` (connectivity).
-- Python sync client is used as a context manager (`with ImbraceClient() as c:`). Async client: `async with AsyncImbraceClient() as c:`.
+### Getting Started
+- [Overview](https://imbraceltd.github.io/api-sdk/sdk/overview/) - Key features and architecture.
+- [Installation](https://imbraceltd.github.io/api-sdk/sdk/installation/) - Step-by-step package setup for TS and Python.
+- [Quick Start](https://imbraceltd.github.io/api-sdk/sdk/quick-start/) - Make your first API call in 60 seconds.
 
-## Clients
+### Guides & Workflows
+- [Authentication Guide](https://imbraceltd.github.io/api-sdk/sdk/authentication/) - API Key vs Access Token strategies.
+- [Full Flow Guide (E2E)](https://imbraceltd.github.io/api-sdk/sdk/full-flow-guide/) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
+- [Framework Integrations](https://imbraceltd.github.io/api-sdk/sdk/integrations/) - Patterns for React, Next.js, FastAPI, Django, and Celery.
+- [Testing Guide](https://imbraceltd.github.io/api-sdk/guides/testing/) - Unit testing, mocking, and integration patterns.
+- [Troubleshooting](https://imbraceltd.github.io/api-sdk/guides/troubleshooting/) - Common errors, 401s, and double-path issues.
 
-- [TypeScript SDK — npm](https://www.npmjs.com/package/@imbrace/sdk)
-- [Python SDK — PyPI](https://pypi.org/project/imbrace/)
-- [SDK Documentation](https://imbraceltd.github.io/api-sdk/)
-- [GitHub — source](https://github.com/imbraceltd/api-sdk)
+### API Reference
+- [Namespace Resource Reference](https://imbraceltd.github.io/api-sdk/sdk/resources/) - Detailed signatures for all 30+ namespaces.
+- [AI Agent Deep Dive](https://imbraceltd.github.io/api-sdk/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
 
-## Authentication
+## Core Technical Specs
+- **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
+- **Org Context:** Always send `x-organization-id`. Controlled via `organizationId` or `IMBRACE_ORG_ID`.
+- **Backend Routing:** Gateway routes most logic through `/v1/backend` or `/v2/backend`. SDK handles this automatically.
+- **Retries:** Exponential backoff for 429/5xx. TS: 2 retries. Py: 3 retries.
 
-### API Key (server-side)
-```typescript
-const client = new ImbraceClient({
-  apiKey: process.env.IMBRACE_API_KEY,
-  organizationId: process.env.IMBRACE_ORG_ID,
-})
-```
+## Implementation "Must-Knows"
 
-### User Access Token (client-side)
-```typescript
-// 1. Request OTP
-await client.requestOtp('user@example.com')
-// or: await client.auth.signinEmailRequest('user@example.com')
+### Critical Schemas
+- **Board Item Create:** `fields: [{ board_field_id: string, value: any }]`. Note: Identifier field is usually required.
+- **Board Item Update:** `data: [{ key: fieldId, value: any }]`.
+- **AI Agent SSE:** Events start with `data: `. Payload: `{"type": "text-delta", "textDelta": "..."}` or `[DONE]`.
 
-// 2. Verify OTP → receive token
-const res = await client.loginWithOtp('user@example.com', '123456')
-// or: const res = await client.auth.signinWithEmail('user@example.com', '123456')
-// → returns { token, email, expired_at }
+### Implementation Pitfalls
+- **Workflow State:** Newly created flows are `DRAFT`. You MUST add a trigger and call `LOCK_AND_PUBLISH` before they can be triggered.
+- **Conversation Params:** `conversations.list()` requires `type` (e.g., 'channel') and `view` (e.g., 'all') to avoid 400 errors.
+- **Base URL:** `IMBRACE_BASE_URL` must be a root domain. Do not add path fragments.
 
-// 3. Construct authenticated client
-const authedClient = new ImbraceClient({ accessToken: res.token, organizationId })
-```
+## Resource Inventory (Selected)
 
-### Python (sync)
-```python
-from imbrace import ImbraceClient
-import os
+### AI & Agents
+- **`chatAi`**: Assistant CRUD, LLM completions, Knowledge Hub, File Extraction.
+- **`aiAgent`**: Streaming Chat (SSE), Sub-agent, Embeddings/RAG, Parquet, Tracing.
 
-with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"], organization_id=os.environ["IMBRACE_ORG_ID"]) as client:
-    contacts = client.contacts.list(limit=20)
-```
+### CRM & Automation
+- **`boards`**: CRM pipelines. CRUD for `items`, `fields`, and `segments`.
+- **`activepieces`**: Visual workflow builder. Mandatory ops: `UPDATE_TRIGGER`, `LOCK_AND_PUBLISH`.
 
-### Python (async)
-```python
-from imbrace import AsyncImbraceClient
+### Messaging & Engagement
+- **`contacts`**: Customer profiles, activities, and notifications.
+- **`conversations`**: Management, assignment, status, and `listParticipants(id)`.
+- **`messages`**: Sending text/media, comments, pins.
+- **`channel`**: Config for WhatsApp, FB, WeChat, LINE, Email, and Web.
 
-async with AsyncImbraceClient(api_key="...") as client:
-    contacts = await client.contacts.list(limit=20)
-```
+### Platform & IPS
+- **`platform`**: Orgs, Teams, Permissions, and `listBusinessUnits()`.
+- **`ips`**: Profile management and `listIdentities(userId)`.
 
-## Environments
+## Service Key Registry (URL Overrides)
+`gateway`, `platform`, `channel_service`, `data_board`, `backend`, `ips`, `ai`, `marketplaces`, `file_service`, `message_suggestion`, `predict`, `activepieces`, `ai_agent`.
 
-| Name | Gateway URL | Notes |
-|------|-------------|-------|
-| `stable` (default) | `https://app-gatewayv2.imbrace.co` | Production |
-| `develop` | `https://app-gateway.dev.imbrace.co` | Development |
-| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | Sandbox |
-| `prodv2` | `https://app-gatewayv2.imbrace.co` | Alias for stable |
+## Error Hierarchy
+- `ImbraceError` (Base)
+    - `AuthError` (401/403): Invalid credentials. **No retry.**
+    - `ApiError` (4xx/5xx): Has `statusCode`.
+    - `NetworkError`: Connection/Timeout. **Auto retry.**
 
 Override any individual service URL via `services` param or `baseUrl`.
 
@@ -269,3 +264,6 @@ Full documentation files (plain Markdown, AI-readable):
 - [Architecture](https://imbraceltd.github.io/api-sdk/architecture.md): Monorepo structure, source layout, TS/Python naming conventions
 - [Development Guide](https://imbraceltd.github.io/api-sdk/development.md): Dev setup, build, test, lint for contributors
 - [Release Process](https://imbraceltd.github.io/api-sdk/releasing.md): CI/CD pipelines, npm and PyPI publishing via git tags
+
+## GitHub & Packages
+- [Source](https://github.com/imbraceltd/api-sdk) | [NPM](https://www.npmjs.com/package/@imbrace/sdk) | [PyPI](https://pypi.org/project/imbrace/)
