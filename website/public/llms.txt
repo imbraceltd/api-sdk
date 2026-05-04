@@ -233,3 +233,33 @@ try {
 
 - [Developer Portal](https://devportal.dev.imbrace.co/docs): Full interactive API reference
 - [iMBRACE GitBook](https://imbrace.gitbook.io/imbrace-no-code-workflow): No-code workflow and onboarding guide
+
+---
+
+## Docs
+
+Full documentation files (plain Markdown, AI-readable):
+
+### Using the SDK
+
+- [Overview](https://imbraceltd.github.io/api-sdk/sdk/overview.md): SDK features, namespaces, credential selection
+- [Installation](https://imbraceltd.github.io/api-sdk/sdk/installation.md): Package setup and credential configuration
+- [Quick Start](https://imbraceltd.github.io/api-sdk/sdk/quick-start.md): First API call in 60 seconds
+- [Authentication](https://imbraceltd.github.io/api-sdk/sdk/authentication.md): API Key vs Access Token, OTP login flow
+- [Full Flow Guide](https://imbraceltd.github.io/api-sdk/sdk/full-flow-guide.md): End-to-end walkthroughs — assistants, workflows, knowledge hub, boards
+- [Resource Reference](https://imbraceltd.github.io/api-sdk/sdk/resources.md): Every namespace and method (chatAi, boards, contacts, conversations, messaging…)
+- [AI Agent](https://imbraceltd.github.io/api-sdk/sdk/ai-agent.md): Streaming chat, embeddings, parquet, tracing, Chat Client sub-API
+- [Error Handling](https://imbraceltd.github.io/api-sdk/sdk/error-handling.md): Error types, retry behavior, best practices
+- [Integrations](https://imbraceltd.github.io/api-sdk/sdk/integrations.md): React, Next.js, Node.js, FastAPI, Django, Celery, OTP login flow
+- [Local Testing](https://imbraceltd.github.io/api-sdk/sdk/local-testing.md): Test the built package locally before publishing
+- [Getting Started — Overview](https://imbraceltd.github.io/api-sdk/getting-started/overview.md): Platform introduction
+- [Getting Started — Setup](https://imbraceltd.github.io/api-sdk/getting-started/setup.md): Environment and credentials setup
+- [Testing Guide](https://imbraceltd.github.io/api-sdk/guides/testing.md): Unit tests, integration tests, coverage, lint
+- [Troubleshooting](https://imbraceltd.github.io/api-sdk/guides/troubleshooting.md): Common errors and fixes
+
+### Project & Development
+
+- [API Overview](https://imbraceltd.github.io/api-sdk/api-overview.md): Three gateways, environments, auth modes, all 30+ namespaces
+- [Architecture](https://imbraceltd.github.io/api-sdk/architecture.md): Monorepo structure, source layout, TS/Python naming conventions
+- [Development Guide](https://imbraceltd.github.io/api-sdk/development.md): Dev setup, build, test, lint for contributors
+- [Release Process](https://imbraceltd.github.io/api-sdk/releasing.md): CI/CD pipelines, npm and PyPI publishing via git tags
