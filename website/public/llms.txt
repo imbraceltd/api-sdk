@@ -67,5 +67,203 @@
     - `ApiError` (4xx/5xx): Has `statusCode`.
     - `NetworkError`: Connection/Timeout. **Auto retry.**
 
+Override any individual service URL via `services` param or `baseUrl`.
+
+## Gateway Overview
+
+### App Gateway
+Public REST API for client apps (web, mobile, integrations). Authentication: OTP-based (`x-access-token`). Path prefixes: `/v1/backend/`, `/v2/backend/`.
+
+### Server Gateway
+Private server-to-server API. Authentication: API key (`x-api-key` or `x-access-token`). Path prefix: `/3rd/`. Use for backend automation, bulk operations.
+
+### Journey API
+Developer portal for building, testing, and publishing custom apps (Journeys) to the iMBRACE Marketplace. Path prefixes: `/journeys/api/v1/`, `/journeys/v2/`.
+
+## Resource Reference
+
+### `client.auth`
+OTP login flow: `signinEmailRequest(email)`, `signinWithEmail(email, otp)`.
+Password login: `signIn({ email, password })`, `signUp(body)`, `forgotPassword(email)`, `resetPassword(body)`.
+SSO: `signinSSO(body)`, `getLoginProviders()`.
+Token exchange: `exchangeAccessToken(orgId)`, `exchangeAccessTokenWithToken(body)`.
+Also convenience methods on client: `client.requestOtp(email)`, `client.loginWithOtp(email, otp)`, `client.login(email, password)`.
+
+### `client.account`
+Logged-in user profile: `getAccount()`, `updateAccount(body)`, `uploadAvatar(formData)`.
+
+### `client.organizations`
+Organization management: `list(params?)`, `listAll(params?)`, `create(body)`.
+
+### `client.contacts`
+Customer contact management: `list(params?)`, `get(id)`, `update(id, body)`, `search({ q })`, `exportCsv()`, `getConversations(id)`, `getComments(id)`, `getFiles(id)`, `getActivities(convId)`, `uploadAvatar(formData)`.
+Also notifications: `listNotifications()`, `markNotificationsRead(ids)`, `dismissNotification(id)`, `dismissAllNotifications()`.
+
+### `client.conversations`
+Team conversation management: `list(params?)`, `get(id)`, `getByConversationId(id)`, `search({ businessUnitId, q })`, `getViewsCount()`, `getOutstanding({ businessUnitId })`, `create(body?)`, `join(body)`, `leave(body)`, `updateStatus(body)`, `updateName(body)`, `assignTeamMember(body)`, `removeTeamMember(body)`, `getInvitableUsers(id)`, `initVideoCall(body)`, `joinRequest(body)`.
+
+### `client.messages`
+Conversation messages: `list(params?)`, `send({ type, text?, url?, caption? })`, `uploadFile(formData)`, `addComment(convId, msgId, body)`, `updateComment(convId, commentId, body)`, `deleteComment(convId, commentId)`, `pin(convId, msgId)`, `unpin(convId, msgId)`, `getIndex(convId, msgId)`.
+Message types: `"text" | "image" | "quick_reply" | "file" | "pdf"`.
+
+### `client.boards`
+Data boards (CRM-style records): `list()`, `get(id)`, `create({ name })`, `update(id, body)`, `delete(id)`, `reorder(body)`, `exportCsv(id)`, `importCsv(id, formData)`, `importExcel(id, formData)`, `getImportProgress(id)`.
+Fields: `createField(boardId, body)`, `updateField(boardId, fieldId, body)`, `deleteField(boardId, fieldId)`, `reorderFields(boardId, body)`, `bulkUpdateFields(boardId, body)`.
+Items: `listItems(boardId)`, `getItem(boardId, itemId)`, `createItem(boardId, body)`, `updateItem(boardId, itemId, body)`, `deleteItem(boardId, itemId)`, `bulkDeleteItems(boardId, body)`, `search(boardId, { q })`, `checkConflict(boardId, itemId, body)`.
+Relations: `getRelatedBoards(boardId, itemId)`, `getRelatedItems(boardId, itemId, relatedBoardId)`, `linkItems(...)`, `unlinkItems(...)`.
+Segments: `listSegments(boardId)`, `createSegment(boardId, body)`, `updateSegment(boardId, segId, body)`, `deleteSegment(boardId, segId)`.
+KnowledgeHub: `searchFolders()`, `createFolder(body)`, `getFolder(id)`, `updateFolder(id, body)`, `deleteFolders(body)`, `searchFiles({ folderId })`, `createFile(body)`, `uploadFile(formData)`, `downloadFile(id)`, `deleteFiles(body)`, `generateAiTags(body)`.
+Drive: `initiateDriveAuth(type)`, `listDriveFolders(type)`, `listDriveFiles(type)`, `downloadDriveFile(type)`.
+
+### `client.teams`
+Team management: `list()`, `create(body)`, `update(id, body)`, `delete(id)`.
+Member management: `getUsers(teamId)`, `addUsers({ team_id, user_ids })`, `removeUsers({ user_ids })`, `listMy()`.
+Join flow: `join({ team_id })`, `leave(body)`, `requestJoin(teamId, body)`, `approveJoinRequest(teamId, teamUserId)`, `updateUserRole(teamId, teamUserId, body)`.
+
+### `client.workflows`
+Channel automations: `listChannelAutomation(params?)`.
+
+### `client.agent`
+AI Agent management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
+
+### `client.aiAgent`
+SSE = Server-Sent Events (streaming responses consumed line-by-line).
+Chat: `streamChat(body)` (SSE), `listChats(params)`, `getChat(id)`, `deleteChat(id, params)`.
+Sub-agent: `streamSubAgentChat(body)` (SSE), `getSubAgentHistory(params)`.
+Embeddings / RAG: `processEmbedding(body)`, `listEmbeddingFiles(params?)`, `getEmbeddingFile(id)`, `updateEmbeddingFileStatus(id, status)`, `deleteEmbeddingFile(id)`.
+Chat-client (widget): `registerChatClient(body)`, `createClientChat(body)`, `listClientChats(params?)`, `getClientChat(id)`, `updateClientChat(id, body)`, `deleteClientChat(id)`, `streamClientChatStatus(id)` (SSE).
+System: `getConfig()`, `getHealth()`, `getVersion()`.
+
+### `client.ai`
+LLM completions (`complete()`), streaming (`stream()`), embeddings (`embed()`). Assistants V1/V2 CRUD, assistant apps, RAG file management. Guardrails & guardrail providers (CRUD + test). Custom LLM providers, model listing, tool server verification.
+
+### `client.channel`
+Channel configuration (WhatsApp, Facebook, Instagram, WeChat, LINE, Email, Web): `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
+
+### `client.marketplace`
+Products: `listProducts(params?)`, `getProduct(id)`, `installProduct(id)`, `createOrder(body)`, `listOrders(params?)`, `getOrder(id)`, `updateOrderStatus(id, status)`.
+Templates: `listUseCaseTemplates()`, `installFromJson(body)`.
+Files: `uploadFile(formData)`, `deleteFile(id)`, `getFileDetails(id)`.
+Email templates: `listEmailTemplates(params?)`, `createEmailTemplate(body)`.
+Other: `listCategories()`, `postChannelWorkflows(body)`, `downloadMarketPlaceFile(shortPath)`.
+
+### `client.campaigns`
+Outbound campaign management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`, `launch(id)`.
+
+### `client.outbounds`
+Send outbound messages via WhatsApp (with templates) or Email (subject, body, HTML): `sendWhatsApp(body)`, `sendEmail(body)`.
+
+### `client.settings`
+Message template CRUD (`listMessageTemplates()`, `createMessageTemplate()`, `getMessageTemplate()`, `updateMessageTemplate()`, `deleteMessageTemplate()`, `searchMessageTemplates()`, v2 variants). WhatsApp template listing (v1/v2). User management: `listUsers()`, `getUserRolesCount()`, `bulkInviteUsers()`.
+
+### `client.schedule`
+IPS scheduler management: `list(filter?)`, `delete(id)`.
+
+### `client.sessions`
+Session lifecycle: `list(params?)`, `get(id)`, `create(body)`, `delete(id)`. Workspace/directory-aware filtering.
+
+### `client.categories`
+Category CRUD: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`. Org-level filtering, `apply_to` control.
+
+### `client.ips`
+User profiles: `getProfile()`, `getMyProfile()`, `updateProfile()`, `searchProfiles()`, `follow()`, `unfollow()`, `getFollowers()`, `getFollowing()`.
+Identities: `listIdentities()`, `unlinkIdentity()`.
+Schedulers: `listSchedulers()`, `deleteScheduler()`, `getSchedulerFilterOptions()`.
+Workflows: `listWorkflows()`, `listApWorkflows()`.
+External data sync: `listExternalDataSync()`, `deleteExternalDataSync()`, `enableExternalDataSync()`.
+
+### `client.platform`
+Multi-tenant admin (47+ methods): user/org/team/permission management, N8n workflows & credentials, app lifecycle, email senders, rooms, physical stores, Facebook auth, knowledge uploads, business units, contact management.
+
+### `client.dataFiles` / `client.data_files` (Python)
+Data-board file operations: `search(params?)`, `get(file_id)`, `create(body)`, `update(file_id, body)`, `delete(file_ids[])`, `upload(files)`, `download(file_id)`.
+
+### `client.folders` (Python)
+Data-board folder operations: `search(params?)`, `get(folder_id)`, `get_contents(folder_id)`, `create(body)`, `update(folder_id, body)`, `delete(folder_ids[])`.
+
+### `client.chatAi`
+Chat completions (`chat(body)`), chats CRUD (`listChats()`, `createChat()`, `deleteChat()`). File upload/extraction (`uploadFile()`, `uploadAgentFile()`, `extractFile()`). Audio transcription & TTS (`transcribe()`, `speech()`). Knowledge base CRUD. Custom prompts & tools CRUD. Document AI (`processDocument()`, `listDocumentModels()`). Assistant management (`listAssistants()`, `createAssistant()`, `updateAssistant()`, `deleteAssistant()`). Models: `listModels()`.
+
+### `client.messageSuggestion`
+`getSuggestions(body)` — AI-powered reply suggestion given message and optional context.
+
+### `client.predict`
+`predict(body)` — generic prediction endpoint.
+
+### `client.activepieces`
+Flows CRUD & trigger (`listFlows()`, `createFlow()`, `triggerFlow()`, `triggerFlowSync()`), runs history, folder organization, app connections (`upsertConnection()`), piece discovery, trigger testing, tables/records, MCP server management (CRUD + token rotation), user invitations.
+
+### `client.fileService`
+File upload (regular + agent), `listFiles()`, `searchFiles()`, `getFile()`. Download: binary, HTML, or text content. `getPublicDownloadUrl()`, `updateFileDataContent()`, `deleteFile()`, `deleteAllFiles()`.
+
+### `client.license`
+`get()` — current license info. `activate(key)` — activate by license key.
+
+### `client.health`
+Health check: `check()` — pings gateway root `/`.
+
+## Error Handling
+
+```typescript
+import { ApiError, AuthError, NetworkError } from "@imbrace/sdk"
+
+try {
+  const contact = await client.contacts.get("invalid-id")
+} catch (err) {
+  if (err instanceof AuthError)    { /* 401 — token expired */ }
+  if (err instanceof ApiError)     { /* err.statusCode, err.message */ }
+  if (err instanceof NetworkError) { /* connectivity issue */ }
+}
+```
+
+## API Reference Docs
+
+- [App Gateway — Getting Started](https://devportal.dev.imbrace.co/docs/api-document/app-apis/_gettingStarted)
+- [App Gateway — Contacts](https://devportal.dev.imbrace.co/docs/api-document/app-apis/contactsApis)
+- [App Gateway — Conversations](https://devportal.dev.imbrace.co/docs/api-document/app-apis/conversations)
+- [App Gateway — Boards](https://devportal.dev.imbrace.co/docs/api-document/app-apis/boardApis)
+- [App Gateway — Teams](https://devportal.dev.imbrace.co/docs/api-document/app-apis/team)
+- [App Gateway — Workflows](https://devportal.dev.imbrace.co/docs/api-document/app-apis/workflow)
+- [App Gateway — AI Agent](https://devportal.dev.imbrace.co/docs/api-document/app-apis/aIAgentApis)
+- [App Gateway — Channels](https://devportal.dev.imbrace.co/docs/api-document/app-apis/channel)
+- [Server Gateway — Overview](https://devportal.dev.imbrace.co/docs/api-document/server-gateways)
+- [Journey API — Overview](https://devportal.dev.imbrace.co/docs/api-document/journeyAPIReference)
+
+## Optional
+
+- [Developer Portal](https://devportal.dev.imbrace.co/docs): Full interactive API reference
+- [iMBRACE GitBook](https://imbrace.gitbook.io/imbrace-no-code-workflow): No-code workflow and onboarding guide
+
+---
+
+## Docs
+
+Full documentation files (plain Markdown, AI-readable):
+
+### Using the SDK
+
+- [Overview](https://imbraceltd.github.io/api-sdk/sdk/overview.md): SDK features, namespaces, credential selection
+- [Installation](https://imbraceltd.github.io/api-sdk/sdk/installation.md): Package setup and credential configuration
+- [Quick Start](https://imbraceltd.github.io/api-sdk/sdk/quick-start.md): First API call in 60 seconds
+- [Authentication](https://imbraceltd.github.io/api-sdk/sdk/authentication.md): API Key vs Access Token, OTP login flow
+- [Full Flow Guide](https://imbraceltd.github.io/api-sdk/sdk/full-flow-guide.md): End-to-end walkthroughs — assistants, workflows, knowledge hub, boards
+- [Resource Reference](https://imbraceltd.github.io/api-sdk/sdk/resources.md): Every namespace and method (chatAi, boards, contacts, conversations, messaging…)
+- [AI Agent](https://imbraceltd.github.io/api-sdk/sdk/ai-agent.md): Streaming chat, embeddings, parquet, tracing, Chat Client sub-API
+- [Error Handling](https://imbraceltd.github.io/api-sdk/sdk/error-handling.md): Error types, retry behavior, best practices
+- [Integrations](https://imbraceltd.github.io/api-sdk/sdk/integrations.md): React, Next.js, Node.js, FastAPI, Django, Celery, OTP login flow
+- [Local Testing](https://imbraceltd.github.io/api-sdk/sdk/local-testing.md): Test the built package locally before publishing
+- [Getting Started — Overview](https://imbraceltd.github.io/api-sdk/getting-started/overview.md): Platform introduction
+- [Getting Started — Setup](https://imbraceltd.github.io/api-sdk/getting-started/setup.md): Environment and credentials setup
+- [Testing Guide](https://imbraceltd.github.io/api-sdk/guides/testing.md): Unit tests, integration tests, coverage, lint
+- [Troubleshooting](https://imbraceltd.github.io/api-sdk/guides/troubleshooting.md): Common errors and fixes
+- [Vibe Coding](https://imbraceltd.github.io/api-sdk/guides/vibe-coding.md): Use llms.txt with Claude, Cursor, Copilot to code faster with the SDK
+
+### Project & Development
+
+- [API Overview](https://imbraceltd.github.io/api-sdk/api-overview.md): Three gateways, environments, auth modes, all 30+ namespaces
+- [Architecture](https://imbraceltd.github.io/api-sdk/architecture.md): Monorepo structure, source layout, TS/Python naming conventions
+- [Development Guide](https://imbraceltd.github.io/api-sdk/development.md): Dev setup, build, test, lint for contributors
+- [Release Process](https://imbraceltd.github.io/api-sdk/releasing.md): CI/CD pipelines, npm and PyPI publishing via git tags
+
 ## GitHub & Packages
 - [Source](https://github.com/imbraceltd/api-sdk) | [NPM](https://www.npmjs.com/package/@imbrace/sdk) | [PyPI](https://pypi.org/project/imbrace/)

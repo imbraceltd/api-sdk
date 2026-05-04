@@ -1,4 +1,6 @@
-## Overview
+# Overview
+
+> What Imbrace is and what you can build with the SDK.
 
 Imbrace is a customer engagement platform — it handles chat channels, CRM pipelines, AI assistants, automated workflows, and document processing in one place. The SDK lets you embed those features directly into your own applications without building the infrastructure yourself.
 
@@ -49,3 +51,5 @@ const stream = await client.aiAgent.streamChat({
   messages: [{ role: "user", content: "What deals closed this quarter?" }],
 })
 ```
+
+---

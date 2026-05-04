@@ -1,16 +1,11 @@
----
-title: Error Handling
-description: Error types, automatic retry behavior, and best practices for handling failures with the Imbrace SDKs.
----
+# Error Handling
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
+> Error types, automatic retry behavior, and best practices for handling failures with the Imbrace SDKs.
 
 All errors thrown by the SDK extend a single base type, so you can catch any SDK error in one place or branch on the specific subclass when you need to react differently. The hierarchy is identical across the TypeScript and Python SDKs.
 
 ## Error hierarchy
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```
 Error
 └── ImbraceError          (base — catch-all for SDK errors)
@@ -18,8 +13,7 @@ Error
     ├── ApiError           (4xx/5xx — request rejected by the server)
     └── NetworkError       (timeout, connection refused, DNS failure)
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```
 Exception
 └── ImbraceError          (base — catch-all for SDK errors)
@@ -27,8 +21,6 @@ Exception
     ├── ApiError           (4xx/5xx — request rejected by server)
     └── NetworkError       (timeout, connection refused, DNS failure)
 ```
-</TabItem>
-</Tabs>
 
 For specific error messages and known fixes, see [Troubleshooting](/guides/troubleshooting/).
 
@@ -38,8 +30,6 @@ For specific error messages and known fixes, see [Troubleshooting](/guides/troub
 
 Raised when the server returns **401** or **403** — credentials are invalid, expired, or revoked.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 import { AuthError } from "@imbrace/sdk";
 
@@ -51,8 +41,7 @@ try {
   }
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from imbrace import AuthError
 
@@ -62,12 +51,8 @@ except AuthError as e:
     print(f"Auth failed: {e}")
     # Re-authenticate before retrying
 ```
-</TabItem>
-</Tabs>
 
-:::caution
-`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
-:::
+> `AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
 
 ---
 
@@ -75,8 +60,6 @@ except AuthError as e:
 
 Raised for all other **4xx and 5xx** responses (after retries are exhausted for 429/5xx).
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 import { ApiError } from "@imbrace/sdk";
 
@@ -94,8 +77,7 @@ try {
 | ------------ | -------- | ---------------------------------- |
 | `statusCode` | `number` | HTTP status code                   |
 | `message`    | `string` | Error message from server response |
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from imbrace import ApiError
 
@@ -110,8 +92,6 @@ except ApiError as e:
 | ------------- | ----- | ---------------------------------- |
 | `status_code` | `int` | HTTP status code                   |
 | `message`    | `str` | Error message from server response |
-</TabItem>
-</Tabs>
 
 ---
 
@@ -119,8 +99,6 @@ except ApiError as e:
 
 Raised when the request never reaches the server — timeout, DNS failure, or connection reset.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 import { NetworkError } from "@imbrace/sdk";
 
@@ -133,8 +111,7 @@ try {
   }
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from imbrace import NetworkError
 
@@ -144,8 +121,6 @@ except NetworkError as e:
     print(f"Network error: {e}")
     # e.g. "Request timed out after 30s"
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -153,8 +128,6 @@ except NetworkError as e:
 
 Import the base type to handle any SDK-originated error in a single block:
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 import {
   ImbraceClient,
@@ -174,8 +147,7 @@ try {
   throw e; // re-throw non-SDK errors
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from imbrace import ImbraceError, AuthError, ApiError, NetworkError
 
@@ -190,8 +162,6 @@ except NetworkError as e:
 except ImbraceError as e:
     handle_unknown_sdk_error(e)
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -199,8 +169,6 @@ except ImbraceError as e:
 
 The HTTP transport in both SDKs retries transient failures with exponential backoff. The retry count differs slightly between languages but the conditions are identical.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 | Condition                   | Action                                   |
 | --------------------------- | ---------------------------------------- |
 | HTTP **429** (rate limit)   | Retry up to 2 times                      |
@@ -210,8 +178,7 @@ The HTTP transport in both SDKs retries transient failures with exponential back
 | HTTP **4xx** (other)        | No retry — throw `ApiError` immediately  |
 
 **Backoff:** `2^retryCount` seconds between attempts (2s → 4s). Total worst-case: 3 attempts.
-</TabItem>
-<TabItem label="Python">
+
 | Condition                   | Action                                   |
 | --------------------------- | ---------------------------------------- |
 | HTTP **429** (rate limit)   | Retry up to 3 times                      |
@@ -221,8 +188,6 @@ The HTTP transport in both SDKs retries transient failures with exponential back
 | HTTP **4xx** (other)        | No retry — raise `ApiError` immediately  |
 
 **Backoff:** `2^retryCount` seconds between attempts (2s → 4s → 8s). Total worst-case: 4 attempts.
-</TabItem>
-</Tabs>
 
 ---
 
@@ -266,8 +231,6 @@ async with AsyncImbraceClient() as client:
 
 ## Best practices
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // 1. Always handle AuthError separately — credentials need to be refreshed
 // 2. Log ApiError.statusCode — 400 = bad params, 404 = not found, 409 = conflict
@@ -286,8 +249,7 @@ async function safeGetMe(client: ImbraceClient) {
   }
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 # 1. Use a context manager so connections are closed deterministically
 with ImbraceClient() as client:
@@ -310,5 +272,3 @@ except ApiError as e:
     elif e.status_code == 400:
         print(f"Invalid data: {e}")
 ```
-</TabItem>
-</Tabs>

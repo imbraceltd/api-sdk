@@ -1,30 +1,22 @@
----
-title: AI Agent
-description: Reference for the aiAgent / ai_agent resource — streaming chat, embeddings, parquet, distributed tracing, and the Chat Client sub-API.
----
+# AI Agent
 
-import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
+> Reference for the aiAgent / ai_agent resource — streaming chat, embeddings, parquet, distributed tracing, and the Chat Client sub-API.
 
 The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway. It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
 
 For an end-to-end example of `streamChat` against a real assistant, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
 const client = new ImbraceClient();
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from imbrace import ImbraceClient
 client = ImbraceClient()
 ```
 
 Both sync (`ImbraceClient`) and async (`AsyncImbraceClient`) clients expose the same surface — async methods are awaited and the client uses `AsyncAiAgentResource` under the hood.
-</TabItem>
-</Tabs>
 
 ---
 
@@ -32,8 +24,6 @@ Both sync (`ImbraceClient`) and async (`AsyncImbraceClient`) clients expose the 
 
 Returns a raw response. Consume the body as a Server-Sent Events stream.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const response = await client.aiAgent.streamChat({
   id: "chat_id",
@@ -50,8 +40,7 @@ while (true) {
   process.stdout.write(decoder.decode(value));
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 response = client.ai_agent.stream_chat({
     "id": "chat_id",
@@ -85,8 +74,6 @@ async def main():
 
 asyncio.run(main())
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -94,8 +81,6 @@ asyncio.run(main())
 
 Stream responses from a sub-agent and retrieve its conversation history.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const res = await client.aiAgent.streamSubAgentChat({
   assistant_id: "asst_sub",
@@ -110,8 +95,7 @@ const history = await client.aiAgent.getSubAgentHistory({
   chat_id: "chat_id",
 });
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 res = client.ai_agent.stream_sub_agent_chat({
     "assistant_id": "asst_sub",
@@ -126,8 +110,6 @@ history = client.ai_agent.get_sub_agent_history(
     chat_id="chat_id",
 )
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -135,18 +117,13 @@ history = client.ai_agent.get_sub_agent_history(
 
 Fetch pre-built prompt suggestions for a given assistant.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_abc");
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -154,8 +131,6 @@ suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
 
 Manage files used for Retrieval-Augmented Generation (RAG). Upload files first via [`client.boards.uploadFile`](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant) (TypeScript) / `client.boards.upload_file` (Python), then trigger embedding processing.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // Trigger embedding processing for an uploaded file
 await client.aiAgent.processEmbedding({ fileId: "file_abc" });
@@ -172,8 +147,7 @@ await client.aiAgent.deleteEmbeddingFile("file_abc");
 // Classify a file for RAG categorization
 const classification = await client.aiAgent.classifyFile({ file_id: "file_abc" });
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 # Trigger embedding processing for an uploaded file
 client.ai_agent.process_embedding("file_abc")
@@ -193,8 +167,6 @@ client.ai_agent.delete_embedding_file("file_abc")
 # Classify a file for RAG categorization
 classification = client.ai_agent.classify_file(file_id="file_abc")
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -202,8 +174,6 @@ classification = client.ai_agent.classify_file(file_id="file_abc")
 
 AI-assisted field type suggestion for structured datasets.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const result = await client.aiAgent.suggestFieldTypes({
   fields: [
@@ -214,8 +184,7 @@ const result = await client.aiAgent.suggestFieldTypes({
 });
 // result.fields[i].suggestedType → "datetime" | "number" | "boolean" | ...
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 result = client.ai_agent.suggest_field_types(fields=[
     {"name": "created_at", "samples": ["2024-01-01", "2024-02-15"]},
@@ -224,8 +193,6 @@ result = client.ai_agent.suggest_field_types(fields=[
 ])
 # result["fields"][i]["suggestedType"] → "datetime" | "number" | "boolean" | ...
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -233,8 +200,6 @@ result = client.ai_agent.suggest_field_types(fields=[
 
 Generate and manage Parquet columnar data files for analytics pipelines.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // Generate a Parquet file from JSON data
 const result = await client.aiAgent.generateParquet({
@@ -246,8 +211,7 @@ const result = await client.aiAgent.generateParquet({
 const files = await client.aiAgent.listParquetFiles();
 await client.aiAgent.deleteParquetFile("exports/users.parquet");
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 result = client.ai_agent.generate_parquet(
     data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
@@ -258,8 +222,6 @@ result = client.ai_agent.generate_parquet(
 files = client.ai_agent.list_parquet_files()
 client.ai_agent.delete_parquet_file("exports/users.parquet")
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -267,8 +229,6 @@ client.ai_agent.delete_parquet_file("exports/users.parquet")
 
 Query Grafana Tempo traces emitted by the AI Agent service for observability and debugging.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // List recent traces
 const traces = await client.aiAgent.getTraces({
@@ -292,8 +252,7 @@ const results = await client.aiAgent.searchTraceQL(
   `{ .service.name = "ai-agent" && .http.status = 500 }`
 );
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 # List recent traces
 traces = client.ai_agent.get_traces(
@@ -317,8 +276,6 @@ results = client.ai_agent.search_traceql(
     '{ .service.name = "ai-agent" && .http.status = 500 }'
 )
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -328,27 +285,20 @@ The Chat Client sub-API powers frontend applications (e.g. the embedded chat wid
 
 ### Auth
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
 await client.aiAgent.registerChatClient({ name: "web-app", secret: "s3cr3t" });
 const user = await client.aiAgent.getChatClientUser({ token: "tok_xxx" });
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 client.ai_agent.verify_chat_client_credentials({"token": "tok_xxx"})
 client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
 user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
 ```
-</TabItem>
-</Tabs>
 
 ### Chats
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // Create a new chat session
 await client.aiAgent.createClientChat({
@@ -378,8 +328,7 @@ await client.aiAgent.generateClientChatTitle("chat_id");
 // Stream real-time chat status as SSE — returns raw Response
 const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 # Create a new chat session
 client.ai_agent.create_client_chat({
@@ -406,49 +355,35 @@ client.ai_agent.generate_client_chat_title("chat_id")
 # Stream real-time chat status as SSE — returns raw httpx.Response
 status_stream = client.ai_agent.stream_client_chat_status("chat_id")
 ```
-</TabItem>
-</Tabs>
 
 ### Messages
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Hello" });
 const messages = await client.aiAgent.listClientMessages("chat_id");
 await client.aiAgent.deleteTrailingMessages("message_id");
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "Hello"})
 messages = client.ai_agent.list_client_messages("chat_id")
 client.ai_agent.delete_trailing_messages("message_id")
 ```
-</TabItem>
-</Tabs>
 
 ### Votes
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const votes = await client.aiAgent.getVotes("chat_id");
 await client.aiAgent.updateVote({ messageId: "msg_id", vote: "up" });
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 votes = client.ai_agent.get_votes("chat_id")
 client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
 ```
-</TabItem>
-</Tabs>
 
 ### Documents (AI-generated artifacts)
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 await client.aiAgent.createDocument({ kind: "text", content: "Draft..." });
 
@@ -460,8 +395,7 @@ const suggestion = await client.aiAgent.getDocumentSuggestions("doc_id");
 
 await client.aiAgent.deleteDocument("doc_id");
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 client.ai_agent.create_document({"kind": "text", "content": "Draft..."})
 
@@ -473,8 +407,6 @@ suggestion = client.ai_agent.get_document_suggestions("doc_id")
 
 client.ai_agent.delete_document("doc_id")
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -482,8 +414,6 @@ client.ai_agent.delete_document("doc_id")
 
 Access admin documentation hosted by the AI Agent service. Guide files are returned as raw binary streams (typically PDF).
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 const guides = await client.aiAgent.listAdminGuides();
 
@@ -491,8 +421,7 @@ const guides = await client.aiAgent.listAdminGuides();
 const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
 const blob = await response.blob();
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 guides = client.ai_agent.list_admin_guides()
 
@@ -501,8 +430,6 @@ response = client.ai_agent.get_admin_guide("onboarding.pdf")
 with open("onboarding.pdf", "wb") as f:
     f.write(response.content)
 ```
-</TabItem>
-</Tabs>
 
 ---
 
@@ -510,8 +437,6 @@ with open("onboarding.pdf", "wb") as f:
 
 The original REST chat endpoints persist conversation history without streaming. New code should use [Chat v2 streaming](#chat-v2--streaming-sse) above; v1 stays for backwards compatibility with existing chats.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```typescript
 // List chats for an organization
 const chats = await client.aiAgent.listChats({
@@ -529,8 +454,7 @@ await client.aiAgent.deleteChat("chat_id", {
   user_id: "user_123",
 });
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 chats = client.ai_agent.list_chats(
     organization_id="org_abc",
@@ -546,5 +470,3 @@ client.ai_agent.delete_chat(
     user_id="user_123",
 )
 ```
-</TabItem>
-</Tabs>

@@ -1,4 +1,6 @@
-## Resource Reference.
+# Resource Reference
+
+> Per-namespace reference for the Imbrace SDKs — assistants, AI agent, workflows, boards, contacts, and more.
 
 This page lists every resource namespace exposed by the SDK with the most common calls in each. Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). All snippets below assume `client` is the initialized instance.
 
@@ -6,15 +8,17 @@ For an end-to-end walkthrough that uses these resources together, see [Full Flow
 
 ---
 
-## Assistants — `chatAi` / `chat_ai`.
+## Assistants — `chatAi` / `chat_ai`
 
 Manages AI assistants (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
 
-### Assistant CRUD.
+### Assistant CRUD
 
 ```typescript
-// List all assistants
+// List all assistants in your account
 const assistants = await client.chatAi.listAssistants();
+// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId).
+// Use the `id` field for all subsequent calls.
 
 // Get a single assistant
 const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
@@ -23,25 +27,23 @@ const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb
 const created = await client.chatAi.createAssistant({
   name: "Support Bot",
   workflow_name: "support_bot_v1",
-  provider_id: "system",    // org's default LLM provider
-  model_id: "gpt-4o",    // or "Default" for system default
+  provider_id: "system",
+  model_id: "gpt-4o",
   description: "Handles tier-1 support queries",
 });
 
-const assistantId = created.id;  // Use this for all subsequent calls
-
 // Update — workflow_name is required on update too
-await client.chatAi.updateAssistant(created.id, {
+const updated = await client.chatAi.updateAssistant(created.id, {
   name: "Support Bot v2",
   workflow_name: "support_bot_v1",
-  folder_ids: ["folder_id_1"],  // Attach knowledge folders
-  workflow_function_call: [{ flow_id: "flow_id", description: "Update CRM" }],
 });
 
-// Update only system instructions
-await client.chatAi.updateAssistantInstructions(created.id, "New instructions.");
+// Update only the system instructions
+await client.chatAi.updateAssistantInstructions(
+  created.id,
+  "You are a helpful support agent.",
+);
 
-// Delete
 await client.chatAi.deleteAssistant(created.id);
 ```
 
@@ -54,29 +56,29 @@ assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
 
 # Create — provider_id and model_id are required
 created = client.chat_ai.create_assistant({
-    "name": "Support Bot",
+    "name":          "Support Bot",
     "workflow_name": "support_bot_v1",
-    "provider_id": "system",
-    "model_id": "gpt-4o",
-    "description": "Handles tier-1 support queries",
+    "provider_id":   "system",
+    "model_id":      "gpt-4o",
+    "description":   "Handles tier-1 support queries",
 })
-assistant_id = created["id"]
 
 # Update
-client.chat_ai.update_assistant(created["id"], {
-    "name": "Support Bot v2",
+updated = client.chat_ai.update_assistant(created["id"], {
+    "name":          "Support Bot v2",
     "workflow_name": "support_bot_v1",
-    "folder_ids": ["folder_id_1"],
 })
 
-# Update only instructions
-client.chat_ai.update_assistant_instructions(created["id"], "New instructions.")
+# Update only the system instructions
+client.chat_ai.update_assistant_instructions(
+    created["id"],
+    "You are a helpful support agent.",
+)
 
-# Delete
 client.chat_ai.delete_assistant(created["id"])
 ```
 
-### Completions.
+### Completions
 
 ```typescript
 const response = await client.chatAi.chat({
@@ -87,9 +89,6 @@ const response = await client.chatAi.chat({
   ],
 });
 console.log(response.choices[0].message.content);
-
-// List available models
-const models = await client.chatAi.listModels();
 ```
 
 ```python
@@ -97,27 +96,33 @@ response = client.chat_ai.chat({
     "model": "gpt-4o",
     "messages": [
         {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user", "content": "Summarize this customer note: ..."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
     ],
 })
 print(response["choices"][0]["message"]["content"])
+```
 
-# List models
+### Models
+
+```typescript
+const models = await client.chatAi.listModels();
+```
+
+```python
 models = client.chat_ai.list_models()
 ```
 
-### File Processing.
+### File processing
 
 ```typescript
-// Extract structured data from PDF or image
+// Extract structured data from a PDF or image
 const result = await client.chatAi.extractFile({
   modelName: "gpt-4o",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
 });
-// result.data → {"invoice_number": "INV-001", "total": 1200, ...}
 
-// Upload a file
+// Upload a file for processing
 const uploaded = await client.chatAi.uploadFile({
   file: fileBuffer,
   name: "report.pdf",
@@ -125,47 +130,55 @@ const uploaded = await client.chatAi.uploadFile({
 ```
 
 ```python
-# Extract structured data
 result = client.chat_ai.process_document(
     model_name="gpt-4o",
     url="https://example.com/invoice.pdf",
     organization_id="org_xxx",
 )
-# result["data"] → {"invoice_number": "INV-001", "total": 1200, ...}
-
-# Upload file
-from pathlib import Path
-path = Path("./docs/faq.pdf")
-files = {
-    "file": (path.name, path.read_bytes(), "application/pdf"),
-    "folder_id": (None, folder_id),
-    "organization_id": (None, "org_xxx"),
-}
-uploaded = client.chat_ai.upload_file(files)
+print(result["data"])
+# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
 
-### Knowledge Hub — Folders & Knowledge Bases.
+### Persistent chat sessions (Python)
+
+```python
+chat    = client.chat_ai.create_chat({"title": "Support Chat"})
+history = client.chat_ai.list_chats()
+client.chat_ai.delete_chat(chat["id"])
+```
+
+### Knowledge Hub — folders & knowledge bases
+
+Folders organize knowledge bases. A knowledge base is a set of files an assistant can retrieve from. Pass folder IDs as `folder_ids` when creating an assistant — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant).
 
 ```typescript
-const folders  = await client.chatAi.listFolders();
-const folder   = await client.chatAi.createFolder({ name: "Q1 Reports" });
+// Folders
+const folders = await client.chatAi.listFolders();
+const folder  = await client.chatAi.createFolder({ name: "Q1 Reports" });
 await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 Reports" });
 await client.chatAi.deleteFolder(folder.id);
 
-const all     = await client.chatAi.listKnowledge();
-const created = await client.chatAi.createKnowledge({ name: "Support Docs", folderId: folder.id });
+// Knowledge bases
+const all = await client.chatAi.listKnowledge();
+const kb  = await client.chatAi.getKnowledge("kb_id");
+const created = await client.chatAi.createKnowledge({
+  name: "Support Docs",
+  folderId: folder.id,
+});
 await client.chatAi.deleteKnowledge(created.id);
 ```
 
 ```python
+# Folders are exposed via client.chat_ai (same as TypeScript)
+# Refer to the SDK source for the exact method signatures.
 knowledge_bases = client.chat_ai.list_knowledge()
 ```
 
 ---
 
-## OpenAI-compatible AI — `client.ai` (Python only).
+## OpenAI-compatible AI service — `client.ai` (Python)
 
-Raw OpenAI-style completions, streaming, and embeddings. TypeScript uses `client.chatAi.chat()` instead.
+Raw OpenAI-style completions, streaming, and embeddings against the `aiv2` service. The TypeScript SDK does not currently expose this namespace — use [Assistants → Completions](#completions) instead.
 
 ```python
 # Single completion
@@ -173,7 +186,7 @@ response = client.ai.complete(
     model="gpt-4o",
     messages=[
         {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user", "content": "Summarize this customer note: ..."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
     ],
     temperature=0.7,
 )
@@ -182,7 +195,7 @@ print(response["choices"][0]["message"]["content"])
 # Streaming
 for chunk in client.ai.stream(
     model="gpt-4o",
-    messages=[{"role": "user", "content": "Draft a follow-up email."}],
+    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
 ):
     print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
@@ -195,27 +208,25 @@ result = client.ai.embed(
 
 ---
 
-## AI Agent — `aiAgent` / `ai_agent`.
+## AI Agent — `aiAgent` / `ai_agent`
 
-Connects to a dedicated AI Agent service. Exposes streaming chat (SSE), knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the Chat Client sub-API.
+Streaming chat with assistants, knowledge-base embedding management, parquet data, and end-user chat sessions. For the full method-by-method reference, see [AI Agent](/sdk/ai-agent/). The most common entry point is `streamChat`.
 
-### Stream Chat (SSE) — Primary Entry Point.
+### Stream chat (SSE)
 
-Keep the same `id` (session UUID) across turns to maintain conversation history. Omit it on the first message to auto-generate a new session.
+Keep the `id` (session id) across turns to maintain conversation history. Omit it on the first message to let the SDK generate one. `user_id` is also optional — resolved from the auth context.
 
 ```typescript
-import { randomUUID } from "crypto";
-
-const sessionId = randomUUID();
+const sessionId = crypto.randomUUID();
 
 const response = await client.aiAgent.streamChat({
-  id:              sessionId,
-  assistant_id:    "asst_xxx",
+  id: sessionId,
+  assistant_id: "asst_xxx",
   organization_id: "org_xxx",
-  messages:        [{ role: "user", content: "What deals closed this quarter?" }],
+  messages: [{ role: "user", content: "What deals closed this quarter?" }],
 });
 
-const reader  = response.body!.getReader();
+const reader = response.body!.getReader();
 const decoder = new TextDecoder();
 
 while (true) {
@@ -235,103 +246,70 @@ while (true) {
 ```
 
 ```python
-import uuid, json
+import uuid
 
-session_id = str(uuid.uuid4())
+session_id = str(uuid.uuid4())  # persist for the conversation lifetime
 
 resp = client.ai_agent.stream_chat({
-    "id":              session_id,
-    "assistant_id":    "asst_xxx",
+    "id": session_id,
+    "assistant_id": "asst_xxx",
     "organization_id": "org_xxx",
-    "messages":        [{"role": "user", "content": "What deals closed this quarter?"}],
+    "messages": [{"role": "user", "content": "What deals closed this quarter?"}],
 })
 
 for line in resp.iter_lines():
-    if isinstance(line, bytes):
-        line = line.decode()
-    if not line.startswith("data: "):
-        continue
-    data = line[6:].strip()
-    if data and data != "[DONE]":
-        try:
-            chunk = json.loads(data)
-            print(chunk.get("delta") or chunk.get("content") or "", end="")
-        except Exception:
-            pass
+    if line:
+        print(line)
 ```
 
-### Sub-agent Chat.
-
-```typescript
-const res = await client.aiAgent.streamSubAgentChat({
-  assistant_id:    "asst_sub",
-  organization_id: "org_abc",
-  session_id:      "sess_xyz",
-  chat_id:         "chat_id",
-  messages:        [{ role: "user", content: "Explain the data." }],
-});
-const history = await client.aiAgent.getSubAgentHistory({ session_id: "sess_xyz", chat_id: "chat_id" });
-```
-
-```python
-res     = client.ai_agent.stream_sub_agent_chat({ "assistant_id": "asst_sub", ... })
-history = client.ai_agent.get_sub_agent_history(session_id="sess_xyz", chat_id="chat_id")
-```
-
-### Prompt Suggestions.
+### Prompt suggestions
 
 ```typescript
 const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
 ```
 
 ```python
-suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_xxx")
+suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
 ```
 
-### Embeddings & Knowledge Base (RAG).
-
-Upload files first via `client.boards.uploadFile` / `client.boards.upload_file`, then trigger embedding processing.
+### Embedding files (knowledge base)
 
 ```typescript
-await client.aiAgent.processEmbedding({ fileId: "file_abc" });
+const files = await client.aiAgent.listEmbeddingFiles();
+const file  = await client.aiAgent.getEmbeddingFile("file_id");
 
-const files      = await client.aiAgent.listEmbeddingFiles({ page: 1, limit: 20 });
-const file       = await client.aiAgent.getEmbeddingFile("file_abc");
-const preview    = await client.aiAgent.previewEmbeddingFile({ file_id: "file_abc" });
-const classified = await client.aiAgent.classifyFile({ file_id: "file_abc" });
+const classified = await client.aiAgent.classifyFile({
+  url: "https://example.com/product-catalog.pdf",
+  mime_type: "application/pdf",
+});
 
-await client.aiAgent.updateEmbeddingFileStatus("file_abc", "active");
-await client.aiAgent.deleteEmbeddingFile("file_abc");
+await client.aiAgent.updateEmbeddingFileStatus("file_id", { status: "active" });
+await client.aiAgent.deleteEmbeddingFile("file_id");
 ```
 
 ```python
-client.ai_agent.process_embedding("file_abc")
-client.ai_agent.process_embedding("file_abc", options={"chunk_size": 512})
-
-files      = client.ai_agent.list_embedding_files(page=1, limit=20)
-file       = client.ai_agent.get_embedding_file("file_abc")
-preview    = client.ai_agent.preview_embedding_file(file_id="file_abc")
-classified = client.ai_agent.classify_file(file_id="file_abc")
-
-client.ai_agent.update_embedding_file_status("file_abc", "active")
-client.ai_agent.delete_embedding_file("file_abc")
+files      = client.ai_agent.list_embedding_files()
+classified = client.ai_agent.classify_file(
+    url="https://example.com/product-catalog.pdf",
+    mime_type="application/pdf",
+)
 ```
 
-### Parquet.
+### Parquet data
 
 ```typescript
-const result = await client.aiAgent.generateParquet({
-  data:       [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
-  fileName:   "users",
-  folderName: "exports",
+const job = await client.aiAgent.generateParquet({
+  assistant_id: "asst_xxx",
+  data: [{ id: "1", name: "Acme Corp", revenue: 120000 }],
 });
-const files = await client.aiAgent.listParquetFiles();
-await client.aiAgent.deleteParquetFile("exports/users.parquet");
+
+const parquetFiles = await client.aiAgent.listParquetFiles();
+await client.aiAgent.deleteParquetFile("file_id");
 ```
 
 ```python
 result = client.ai_agent.generate_parquet(
-    data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+    data=[{"id": "1", "name": "Acme Corp", "revenue": 120000}],
     file_name="users",
     folder_name="exports",
 )
@@ -339,435 +317,206 @@ files = client.ai_agent.list_parquet_files()
 client.ai_agent.delete_parquet_file("exports/users.parquet")
 ```
 
-### Distributed Tracing (Grafana Tempo).
+### End-user chat client
 
 ```typescript
-const traces = await client.aiAgent.getTraces({
-  service:   "ai-agent",
-  limit:     50,
-  timeRange: 3600,
-  orgId:     "org_abc",
-  details:   true,
-});
-const trace    = await client.aiAgent.getTrace("trace_id_hex");
-const services = await client.aiAgent.getTraceServices();
-const tags     = await client.aiAgent.getTraceTags();
-const values   = await client.aiAgent.getTraceTagValues("http.status_code");
-const results  = await client.aiAgent.searchTraceQL(`{ .service.name = "ai-agent" && .http.status = 500 }`);
-```
-
-```python
-traces   = client.ai_agent.get_traces(service="ai-agent", limit=50, time_range=3600, org_id="org_abc")
-trace    = client.ai_agent.get_trace("trace_id_hex")
-services = client.ai_agent.get_trace_services()
-tags     = client.ai_agent.get_trace_tags()
-values   = client.ai_agent.get_trace_tag_values("http.status_code")
-results  = client.ai_agent.search_traceql('{ .service.name = "ai-agent" && .http.status = 500 }')
-```
-
-### Chat Client Sub-API (frontend applications).
-
-**Auth:**
-```typescript
-await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
-await client.aiAgent.registerChatClient({ name: "web-app", secret: "s3cr3t" });
-const user = await client.aiAgent.getChatClientUser({ token: "tok_xxx" });
-```
-
-```python
-client.ai_agent.verify_chat_client_credentials({"token": "tok_xxx"})
-client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
-user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
-```
-
-**Chats:**
-```typescript
-await client.aiAgent.createClientChat({
-  id:             "chat_uuid",
-  assistantId:    "asst_abc",
-  organizationId: "org_abc",
+const chat = await client.aiAgent.createClientChat({
+  id: crypto.randomUUID(),
+  assistantId: "asst_xxx",
+  organizationId: "org_xxx",
+  userId: "user_xxx",
+  selectedVisibilityType: "private",
   message: {
-    id:    "msg_uuid",
-    role:  "user",
-    parts: [{ type: "text", text: "Hello!" }],
+    id: crypto.randomUUID(),
+    role: "user",
+    content: "Hello, I need help with my order.",
+    createdAt: new Date().toISOString(),
+    parts: [{ type: "text", text: "Hello, I need help with my order." }],
   },
 });
-const chats = await client.aiAgent.listClientChats({ organization_id: "org_abc", limit: 20 });
-const chat  = await client.aiAgent.getClientChat("chat_id");
-await client.aiAgent.updateClientChat("chat_id", { visibility: "private" });
-await client.aiAgent.deleteClientChat("chat_id");
-await client.aiAgent.deleteAllClientChats({ organization_id: "org_abc" });
-await client.aiAgent.generateClientChatTitle("chat_id");
 
-// Stream real-time chat status as SSE
-const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
+const clientChats = await client.aiAgent.listClientChats();
+const messages    = await client.aiAgent.listClientMessages(chat.id);
+await client.aiAgent.deleteClientChat(chat.id);
 ```
 
 ```python
-client.ai_agent.create_client_chat({
-    "id": "chat_uuid", "assistantId": "asst_abc", "organizationId": "org_abc",
-    "message": {"id": "msg_uuid", "role": "user", "parts": [{"type": "text", "text": "Hello!"}]},
+import uuid
+from datetime import datetime, timezone
+
+chat = client.ai_agent.create_client_chat({
+    "id":              str(uuid.uuid4()),
+    "assistantId":     "assistant_id",
+    "organizationId":  "org_xxx",
+    "userId":          "user_id",
+    "selectedVisibilityType": "private",
+    "message": {
+        "id":        str(uuid.uuid4()),
+        "role":      "user",
+        "content":   "Hello",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "parts":     [{"type": "text", "text": "Hello"}],
+    },
 })
-chats = client.ai_agent.list_client_chats(organization_id="org_abc", limit=20)
-chat  = client.ai_agent.get_client_chat("chat_id")
-client.ai_agent.delete_client_chat("chat_id")
-client.ai_agent.delete_all_client_chats("org_abc")
-client.ai_agent.generate_client_chat_title("chat_id")
-status_stream = client.ai_agent.stream_client_chat_status("chat_id")
-```
 
-**Messages:**
-```typescript
-await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Hello" });
-const messages = await client.aiAgent.listClientMessages("chat_id");
-await client.aiAgent.deleteTrailingMessages("message_id");
-```
-
-```python
-client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "Hello"})
-messages = client.ai_agent.list_client_messages("chat_id")
-client.ai_agent.delete_trailing_messages("message_id")
-```
-
-**Votes:**
-```typescript
-const votes = await client.aiAgent.getVotes("chat_id");
-await client.aiAgent.updateVote({ messageId: "msg_id", vote: "up" });
-```
-
-```python
-votes = client.ai_agent.get_votes("chat_id")
-client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
-```
-
-**Documents (AI-generated artifacts):**
-```typescript
-await client.aiAgent.createDocument({ kind: "text", content: "Draft..." });
-const doc        = await client.aiAgent.getDocument("doc_id");
-const latest     = await client.aiAgent.getDocumentLatest("doc_id");
-const pub        = await client.aiAgent.getDocumentPublic("doc_id");
-const byKind     = await client.aiAgent.getDocumentLatestByKind({ kind: "text" });
-const suggestion = await client.aiAgent.getDocumentSuggestions("doc_id");
-await client.aiAgent.deleteDocument("doc_id");
-```
-
-```python
-client.ai_agent.create_document({"kind": "text", "content": "Draft..."})
-doc        = client.ai_agent.get_document("doc_id")
-latest     = client.ai_agent.get_document_latest("doc_id")
-suggestion = client.ai_agent.get_document_suggestions("doc_id")
-client.ai_agent.delete_document("doc_id")
-```
-
-**Admin Guides (PDF streams):**
-```typescript
-const guides = await client.aiAgent.listAdminGuides();
-const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
-const blob = await response.blob();
-```
-
-```python
-guides   = client.ai_agent.list_admin_guides()
-response = client.ai_agent.get_admin_guide("onboarding.pdf")
-with open("onboarding.pdf", "wb") as f:
-    f.write(response.content)
-```
-
-### Legacy v1 Chat (non-streaming, backwards compat only).
-
-```typescript
-const chats = await client.aiAgent.listChats({ organization_id: "org_abc", user_id: "user_123", limit: 20 });
-const chat  = await client.aiAgent.getChat("chat_id", true);  // true = include messages
-await client.aiAgent.deleteChat("chat_id", { organization_id: "org_abc", user_id: "user_123" });
-```
-
-```python
-chats = client.ai_agent.list_chats(organization_id="org_abc", user_id="user_123", limit=20)
-chat  = client.ai_agent.get_chat("chat_id", include_messages=True)
-client.ai_agent.delete_chat("chat_id", organization_id="org_abc", user_id="user_123")
+messages = client.ai_agent.list_client_messages(chat["id"])
+client.ai_agent.delete_client_chat(chat["id"])
 ```
 
 ---
 
-## Activepieces Workflows — `activepieces`.
+## Workflows — Activepieces (`client.activepieces`, TypeScript)
 
-Visual workflow builder. The TypeScript SDK exposes flows, runs, folders, connections, tables, and records.
+Activepieces is the visual workflow builder. The TypeScript SDK exposes flows, runs, folders, connections, tables, and records. For the full lifecycle (create → publish → trigger), see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant).
 
-**Important:** A newly created flow is in DRAFT state with no trigger. Add a trigger and publish before calling `triggerFlow`, otherwise you'll get 404.
-
-### Flows.
+### Flows
 
 ```typescript
-const { data: flows } = await client.activepieces.listFlows({ limit: 5 });
-const projectId = flows[0]?.projectId;
+const { data: flows } = await client.activepieces.listFlows();
 
-const flow = await client.activepieces.createFlow({
-  displayName: "CRM Update on New Lead",
-  projectId,
+const flow = await client.activepieces.getFlow("flow_id");
+
+const newFlow = await client.activepieces.createFlow({
+  displayName: "New Lead Notification",
+  folderId: "folder_id",
 });
 
 await client.activepieces.deleteFlow("flow_id");
 ```
 
-```python
-res     = client.activepieces.list_flows(limit=5)
-flows   = res.get("data", [])
-flow    = client.activepieces.create_flow(display_name="CRM Update on New Lead", project_id=project_id)
-```
-
-### Apply Flow Operations.
-
-Used to add/update triggers and actions to a flow:
-
-```typescript
-// Set Webhook trigger
-await client.activepieces.applyFlowOperation(flow.id, {
-  type:    "UPDATE_TRIGGER",
-  request: {
-    name:        "trigger",
-    type:        "PIECE_TRIGGER",
-    valid:       true,
-    displayName: "Webhook",
-    settings: {
-      pieceName:        "@activepieces/piece-webhook",
-      pieceVersion:     "0.1.24",
-      triggerName:      "catch_webhook",
-      input:            { authType: "none" },
-      propertySettings: {},
-    },
-  },
-});
-
-// Publish — DRAFT → ENABLED; webhook URL becomes live
-await client.activepieces.applyFlowOperation(flow.id, {
-  type:    "LOCK_AND_PUBLISH",
-  request: {},
-});
-```
-
-```python
-client.activepieces.apply_flow_operation(flow["id"], {
-    "type": "UPDATE_TRIGGER",
-    "request": {
-        "name": "trigger", "type": "PIECE_TRIGGER", "valid": True, "displayName": "Webhook",
-        "settings": {
-            "pieceName": "@activepieces/piece-webhook", "pieceVersion": "0.1.24",
-            "triggerName": "catch_webhook", "input": {"authType": "none"}, "propertySettings": {},
-        },
-    },
-})
-client.activepieces.apply_flow_operation(flow["id"], {"type": "LOCK_AND_PUBLISH", "request": {}})
-```
-
-### Trigger a Flow.
+### Trigger a flow
 
 ```typescript
 // Fire and forget
-await client.activepieces.triggerFlow(flow.id, { contact_name: "Jane Smith", email: "jane@example.com" });
+await client.activepieces.triggerFlow("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
 
-// Synchronous — flow must have a "Return Response" action, else times out after 30s
-const result = await client.activepieces.triggerFlowSync(flow.id, { contact_name: "Jane Smith" });
+// Wait for result
+const result = await client.activepieces.triggerFlowSync("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
 ```
 
-```python
-client.activepieces.trigger_flow(flow["id"], {"contact_name": "Jane Smith", "email": "jane@example.com"})
-result = client.activepieces.trigger_flow_sync(flow["id"], {"contact_name": "Jane Smith"})
-```
-
-### Runs, Folders, Connections, Tables.
+### Runs, folders, connections, tables
 
 ```typescript
-const { data: runs }        = await client.activepieces.listRuns({ flowId: flow.id, limit: 10 });
-const run                   = await client.activepieces.getRun("run_id");
+const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
+const run                = await client.activepieces.getRun("run_id");
 
-const { data: folders }     = await client.activepieces.listFolders();
-const folder                = await client.activepieces.createFolder({ displayName: "CRM Automations" });
+const { data: folders }  = await client.activepieces.listFolders();
+const folder             = await client.activepieces.createFolder({ displayName: "CRM Automations" });
 
 const { data: connections } = await client.activepieces.listConnections();
 await client.activepieces.upsertConnection({
-  name:  "slack-integration",
-  type:  "OAUTH2",
+  name: "slack-integration",
+  type: "OAUTH2",
   value: { access_token: "xoxb-xxx" },
 });
 
-const { data: tables }  = await client.activepieces.listTables();
-const { data: records } = await client.activepieces.listRecords({ tableId: "table_id" });
-```
-
-```python
-res  = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
-runs = res.get("data", [])
-
-# Folders, connections, tables — refer to Python SDK source for method signatures
+const { data: tables }   = await client.activepieces.listTables();
+const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
 ```
 
 ---
 
-## Boards & Items (CRM) — `boards`.
+## Boards & items — `client.boards`
 
-Boards are the core CRM data store. Also used for Knowledge Hub file management (folders, uploaded files).
+Boards are the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Pass board ids in `board_ids` when creating an assistant to give it access to that data — see [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
 
-### Board CRUD.
+### Board CRUD
 
 ```typescript
 const { data: boards } = await client.boards.list();
 const board = await client.boards.get("board_id");
-const newBoard = await client.boards.create({ name: "Sales Pipeline", description: "Track all active deals" });
-await client.boards.update("board_id", { name: "Sales Pipeline 2025" });
+
+const newBoard = await client.boards.create({ name: "Enterprise Leads" });
+await client.boards.update("board_id", { name: "Enterprise Leads 2025" });
 await client.boards.delete("board_id");
 ```
 
 ```python
-boards    = client.boards.list().get("data", [])
-board     = client.boards.create(name="Sales Pipeline", description="Track all active deals")
-board_id  = board["_id"]
+boards = client.boards.list().get("data", [])
 ```
 
-### Fields.
-
-Field types: `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board with all fields.
+### Items
 
 ```typescript
-const updated        = await client.boards.createField(board._id, { name: "Company", type: "ShortText" });
-const identifierField = updated.fields.find(f => f.is_identifier);  // auto-created with every board
+const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
+const item = await client.boards.getItem("board_id", "item_id");
 
+const lead = await client.boards.createItem("board_id", {
+  fields: { name: "Acme Corp", status: "new", value: 50000 },
+});
+
+await client.boards.updateItem("board_id", lead.id, {
+  fields: { status: "qualified" },
+});
+
+await client.boards.deleteItem("board_id", "item_id");
+await client.boards.bulkDeleteItems("board_id", ["item_1", "item_2", "item_3"]);
+```
+
+```python
+leads = client.boards.list_items("board_id", limit=100).get("data", [])
+
+lead = client.boards.create_item("board_id", {
+    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+})
+
+client.boards.update_item("board_id", lead["id"], {
+    "fields": {"status": "qualified"}
+})
+```
+
+### Search
+
+```typescript
+const results = await client.boards.search("board_id", { q: "enterprise" });
+```
+
+```python
+results = client.boards.search("board_id", {"query": "enterprise"})
+```
+
+### Fields, segments, export
+
+```typescript
+// Fields
+const field = await client.boards.createField("board_id", {
+  name: "Deal Value",
+  type: "number",
+});
 await client.boards.updateField("board_id", field.id, { name: "Contract Value" });
 await client.boards.deleteField("board_id", field.id);
-```
 
-```python
-updated          = client.boards.create_field(board["_id"], {"name": "Company", "type": "ShortText"})
-identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
-```
-
-### Items (Records).
-
-Items use `{ fields: [{ board_field_id, value }] }` format for creation. Update uses `{ data: [{ key: fieldId, value }] }` format.
-
-```typescript
-const item = await client.boards.createItem(board._id, {
-  fields: [{ board_field_id: identifierField._id, value: "Acme Corp" }],
-});
-
-const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 });
-const singleItem = await client.boards.getItem("board_id", "item_id");
-
-await client.boards.updateItem(board._id, item._id, {
-  data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
-});
-
-await client.boards.deleteItem(board._id, item._id);
-await client.boards.bulkDeleteItems("board_id", ["item_1", "item_2"]);
-```
-
-```python
-item  = client.boards.create_item(board["_id"], {
-    "fields": [{"board_field_id": identifier_field["_id"], "value": "Acme Corp"}],
-})
-items = client.boards.list_items(board["_id"], limit=20, skip=0)
-
-client.boards.update_item(board["_id"], item["_id"], {
-    "data": [{"key": identifier_field["_id"], "value": "Acme Corp — Closed Won"}],
-})
-client.boards.delete_item(board["_id"], item["_id"])
-```
-
-### Search & Segments.
-
-```typescript
-const { data: results } = await client.boards.search("board_id", { q: "Acme", limit: 10 });
-
+// Segments
 const { data: segments } = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
-  name:    "High Value Leads",
+  name: "High Value Leads",
   filters: [{ field: "value", op: "gt", value: 10000 }],
 });
-```
 
-```python
-results = client.boards.search(board_id, {"q": "Acme", "limit": 10}).get("data", [])
-
-segments = client.boards.list_segments(board_id).get("data", [])
-segment  = client.boards.create_segment(board_id, {
-    "name": "High Value Leads",
-    "filters": [{"field": "value", "op": "gt", "value": 10000}],
-})
-```
-
-### CSV Export.
-
-```typescript
+// Export to CSV
 const csv = await client.boards.exportCsv("board_id");
-// csv is a string
 ```
 
 ```python
 csv = client.boards.export_csv("board_id")
 ```
 
-### Knowledge Hub File Management (via client.boards).
-
-```typescript
-// Create a folder
-const folder = await client.boards.createFolder({
-  name:             "Product Documentation",
-  organization_id:  "org_your_org_id",
-  parent_folder_id: "root",
-  source_type:      "upload",
-});
-
-// Upload a file
-import { readFileSync } from "fs";
-const fileBuffer = readFileSync("./docs/faq.pdf");
-const formData   = new FormData();
-formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf");
-formData.append("folder_id", folder._id);
-formData.append("organization_id", "org_your_org_id");
-const uploaded = await client.boards.uploadFile(formData);
-
-// Manage folders
-const folders  = await client.boards.searchFolders({ q: "Product" });
-const contents = await client.boards.getFolderContents(folder._id);
-await client.boards.updateFolder(folder._id, { name: "Product Docs v2" });
-const files = await client.boards.searchFiles({ folderId: folder._id });
-await client.boards.deleteFolders({ ids: [folder._id] });
-```
-
-```python
-folder = client.boards.create_folder({
-    "name": "Product Documentation",
-    "organization_id": "org_your_org_id",
-    "parent_folder_id": "root",
-    "source_type": "upload",
-})
-
-from pathlib import Path
-path = Path("./docs/faq.pdf")
-files = {
-    "file":            (path.name, path.read_bytes(), "application/pdf"),
-    "folder_id":       (None, folder["_id"]),
-    "organization_id": (None, "org_your_org_id"),
-}
-uploaded = client.boards.upload_file(files)
-file_id  = uploaded.get("file_id") or uploaded.get("_id")
-
-folders  = client.boards.search_folders(q="Product")
-contents = client.boards.get_folder_contents(folder["_id"])
-client.boards.update_folder(folder["_id"], {"name": "Product Docs v2"})
-files    = client.boards.search_files(folder_id=folder["_id"])
-client.boards.delete_folders([folder["_id"]])
-```
-
 ---
 
-## Contacts — `contacts`.
+## Contacts — `client.contacts`
 
 ```typescript
 const { data: contacts } = await client.contacts.list({ limit: 50 });
 const contact = await client.contacts.get("contact_id");
 
 await client.contacts.update("contact_id", {
-  name:  "Alice B.",
+  name: "Alice B.",
   email: "alice@example.com",
   phone: "+84901234567",
 });
@@ -778,8 +527,10 @@ const files    = await client.contacts.getFiles("contact_id");
 ```
 
 ```python
-contacts = client.contacts.list(limit=50).get("data", [])
-contact  = client.contacts.get("contact_id")
+result   = client.contacts.list(limit=50)
+contacts = result.get("data", [])
+
+contact = client.contacts.get("contact_id")
 
 client.contacts.update("contact_id", {
     "name":  "Alice B.",
@@ -787,95 +538,123 @@ client.contacts.update("contact_id", {
     "phone": "+84901234567",
 })
 
-activity = client.contacts.get_activities("conversation_id")
-comments = client.contacts.get_comments("contact_id")
-files    = client.contacts.get_files("contact_id")
+activity  = client.contacts.get_activities("conversation_id")
+comments  = client.contacts.get_comments("contact_id")
+files     = client.contacts.get_files("contact_id")
 ```
 
 ---
 
-## Conversations — `conversations`.
+## Conversations — `client.conversations`
 
 ```typescript
+// Search
 const { data: convs } = await client.conversations.search({
   businessUnitId: "bu_xxx",
-  q:              "support",
-  limit:          20,
+  q: "support",
+  limit: 20,
 });
 
-const { data: open } = await client.conversations.getOutstanding({ businessUnitId: "bu_xxx", limit: 50 });
+// Outstanding (unresolved)
+const { data: open } = await client.conversations.getOutstanding({
+  businessUnitId: "bu_xxx",
+  limit: 50,
+});
 
-await client.conversations.assignTeamMember({ conversation_id: "conv_xxx", user_id: "user_xxx" });
-await client.conversations.updateStatus({ conversation_id: "conv_xxx", status: "resolved" });
+// Assign
+await client.conversations.assignTeamMember({
+  conversation_id: "conv_xxx",
+  user_id: "user_xxx",
+});
+
+// Update status
+await client.conversations.updateStatus({
+  conversation_id: "conv_xxx",
+  status: "resolved",
+});
 ```
 
 ```python
-convs    = client.conversations.search(business_unit_id="bu_xxx", q="support", limit=20).get("data", [])
-all_conv = client.conversations.list(limit=50).get("data", [])
-client.conversations.update_status({"conversation_id": "conv_xxx", "status": "resolved"})
+result = client.conversations.search(
+    business_unit_id="bu_xxx",
+    q="support",
+    limit=20,
+)
+convs = result.get("data", [])
+
+all_convs = client.conversations.list(limit=50).get("data", [])
+
+client.conversations.update_status({
+    "conversation_id": "conv_xxx",
+    "status": "resolved",
+})
 ```
 
 ---
 
-## Messaging — `channel` / `messages`.
+## Messaging — `client.channel`, `client.messages`
 
 ```typescript
 const channels = await client.channel.list();
+
 await client.messages.send("conversation_id", {
   parts: [{ type: "text", text: "Hello, how can I help you today?" }],
 });
+
 const msgs = await client.messages.list("conversation_id");
 await client.channel.markRead("conversation_id");
 ```
 
 ```python
 channels = client.channel.list()
-client.messages.send(type="text", text="Hello, how can I help you today?")
+
+client.messages.send(
+    type="text",
+    text="Hello, how can I help you today?",
+)
+
 msgs = client.messages.list(limit=20)
 ```
 
 ---
 
-## Platform — `platform`.
-
-```typescript
-const me = await client.platform.getMe();
-```
-
-```python
-me = client.platform.get_me()
-```
-
----
-
-## Additional Python-only Resources.
-
-### Channel Automation — `workflows`.
+## Channel automation workflows — `client.workflows` (Python)
 
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
 whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
 ```
 
-### Campaigns & Touchpoints — `campaign`.
+---
+
+## Campaigns & touchpoints — `client.campaign` (Python)
 
 ```python
-campaigns  = client.campaign.list().get("data", [])
-campaign   = client.campaign.get("campaign_id")
-new_camp   = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+# Campaign CRUD
+campaigns = client.campaign.list().get("data", [])
+campaign  = client.campaign.get("campaign_id")
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
 client.campaign.delete("campaign_id")
 
+# Touchpoints
 touchpoints = client.campaign.list_touchpoints().get("data", [])
-tp          = client.campaign.get_touchpoint("touchpoint_id")
-client.campaign.create_touchpoint({"campaign_id": "campaign_id", "type": "email", "delay_days": 3})
+tp = client.campaign.get_touchpoint("touchpoint_id")
+
+client.campaign.create_touchpoint({
+    "campaign_id": "campaign_id",
+    "type":        "email",
+    "delay_days":  3,
+})
 client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
 client.campaign.delete_touchpoint("touchpoint_id")
 
-# Validate config before saving
+# Validate touchpoint config before saving
 result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
 ```
 
-### Message Suggestion — `message_suggestion`.
+---
+
+## Message suggestion — `client.message_suggestion` (Python)
 
 ```python
 suggestions = client.message_suggestion.get_suggestions({
@@ -884,12 +663,14 @@ suggestions = client.message_suggestion.get_suggestions({
 })
 ```
 
-### ML Prediction — `predict`.
+---
+
+## Predict — `client.predict` (Python)
 
 ```python
 result = client.predict.predict({
     "model": "lead_score_v1",
     "input": {"company_size": 200, "industry": "saas", "mrr": 5000},
 })
-print(result["score"])  # e.g. 0.87
+print(result["score"])   # 0.87
 ```

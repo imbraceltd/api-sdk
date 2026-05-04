@@ -1,9 +1,6 @@
----
-title: Integrations
-description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
----
+# Integrations
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
+> Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
 
 Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
 
@@ -321,9 +318,7 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-:::tip
-Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
-:::
+> Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
 
 ---
 
@@ -331,8 +326,6 @@ Don't share a single `ImbraceClient` instance across Celery workers — create o
 
 The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```tsx
 // components/LoginForm.tsx
 import { useState } from "react";
@@ -372,8 +365,7 @@ export function LoginForm() {
   );
 }
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```python
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -404,5 +396,3 @@ async def verify_otp(body: OtpVerify):
         except AuthError:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 ```
-</TabItem>
-</Tabs>

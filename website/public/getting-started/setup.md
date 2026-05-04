@@ -1,21 +1,28 @@
-## Setup Guide
+# Setup Guide
+
+> Install the Imbrace SDK, configure credentials, set up environments, and override service URLs.
 
 This guide covers everything you need to go from zero to a working Imbrace SDK integration — installation, credentials, environments, and service URL overrides.
+
+---
 
 ### System Requirements
 
 | Requirement | Minimum version |
-|---|---|
-| Node.js     | 18.0.0+ |
-| npm         | 8.0.0+   |
-| Python      | 3.9+     |
-| pip         | 23.0+    |
+| ----------- | --------------- |
+| Node.js     | 18.0.0+         |
+| npm         | 8.0.0+          |
+| Python      | 3.9+            |
+| pip         | 23.0+           |
+
+---
 
 ### Installation
 
-**TypeScript:**
+  
 
-From npm registry:
+**From npm registry:**
+
 ```bash
 npm install @imbrace/sdk
 # or
@@ -24,7 +31,8 @@ yarn add @imbrace/sdk
 pnpm add @imbrace/sdk
 ```
 
-Monorepo / local development:
+**Monorepo / local development:**
+
 ```bash
 # Step 1 — install dependencies and build
 cd ts
@@ -36,26 +44,31 @@ npm link
 ```
 
 Then in your external project:
+
 ```bash
 npm link @imbrace/sdk
 ```
 
-Verify:
+**Verify:**
+
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
 console.log("SDK loaded:", typeof ImbraceClient); // 'function'
 ```
 
-**Python:**
+  
+  
 
-From PyPI:
+**From PyPI:**
+
 ```bash
 pip install imbrace
 # or
 uv add imbrace
 ```
 
-Monorepo / local development (editable mode):
+**Monorepo / local development (editable mode):**
+
 ```bash
 cd py
 pip install -e ".[dev]"
@@ -63,15 +76,20 @@ pip install -e ".[dev]"
 
 The `[dev]` flag installs: `pytest`, `pytest-asyncio`, `pytest-httpx`, `ruff`, `mypy`.
 
-Verify:
+**Verify:**
+
 ```python
 from imbrace import ImbraceClient
 print("SDK loaded:", ImbraceClient)
 ```
 
+  
+
+---
+
 ### Configure Credentials
 
-**Create a `.env` file:**
+#### Create a `.env` file
 
 The SDK does not auto-read environment variables — you pass credentials directly to the constructor. A `.env` file is a user convention for storing secrets; use `dotenv` or your framework's env loader to read them.
 
@@ -87,11 +105,12 @@ IMBRACE_ORGANIZATION_ID=your_org_id_here
 IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 ```
 
-**Get an API Key:**
+#### Get an API Key
 
-Option 1 — Imbrace Portal: log in and go to **Settings → API Keys**.
+**Option 1 — Imbrace Portal:** log in and go to **Settings → API Keys**.
 
-Option 2 — via API (requires an existing access token):
+**Option 2 — via API** (requires an existing access token):
+
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
   -H "x-access-token: <your_existing_token>" \
@@ -101,27 +120,38 @@ curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_tok
 
 The value you need is `response.apiKey.apiKey`.
 
+---
+
 ### Environments
 
 | Name      | Gateway URL                              | Use when             |
-|-----------|--------------------------------------- |-------------------|
+| --------- | ---------------------------------------- | -------------------- |
 | `develop` | `https://app-gateway.dev.imbrace.co`     | Internal development |
 | `sandbox` | `https://app-gateway.sandbox.imbrace.co` | Integration testing  |
 | `stable`  | `https://app-gatewayv2.imbrace.co`       | Production (default) |
 
 Switch environments via the `env` constructor option, or override the URL directly with `baseUrl`:
 
+  
+
 ```typescript
 const client = new ImbraceClient({ env: "sandbox" });
 ```
+
+  
+  
 
 ```python
 client = ImbraceClient(env="sandbox")
 ```
 
+  
+
+---
+
 ### Initialize the Client
 
-**TypeScript:**
+  
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk";
@@ -146,7 +176,8 @@ await anon.loginWithOtp("user@example.com", "123456");
 // Token is stored automatically on the client
 ```
 
-**Python (sync):**
+  
+  
 
 ```python
 import os
@@ -171,7 +202,8 @@ anon.request_otp("user@example.com")
 anon.login_with_otp("user@example.com", "123456")
 ```
 
-**Python (async):**
+  
+  
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -182,14 +214,18 @@ async def main():
         print(me)
 ```
 
+  
+
+---
+
 ### Quick Usage Examples
 
-**TypeScript:**
+  
 
 ```typescript
-import { ImbraceClient } from '@imbrace/sdk';
+import { ImbraceClient } from '@imbrace/sdk'
 
-const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY });
+const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 
 // Get current user
 const me = await client.platform.getMe()
@@ -220,7 +256,8 @@ const response = await client.aiAgent.streamChat({
 })
 ```
 
-**Python:**
+  
+  
 
 ```python
 from imbrace import ImbraceClient
@@ -251,9 +288,15 @@ with ImbraceClient(api_key="sk-...") as client:
         print(line)
 ```
 
+  
+
+---
+
 ### Override Service URLs
 
 Use this when a microservice runs at a different address (e.g. local dev, dedicated staging).
+
+  
 
 ```typescript
 const client = new ImbraceClient({
@@ -266,6 +309,9 @@ const client = new ImbraceClient({
 });
 ```
 
+  
+  
+
 ```python
 client = ImbraceClient(
     env="develop",
@@ -277,10 +323,12 @@ client = ImbraceClient(
 )
 ```
 
+  
+
 All valid service keys:
 
 | Python key           | TypeScript key      | Service                             |
-|-------------------|------------------|-----------------------------------|
+| -------------------- | ------------------- | ----------------------------------- |
 | `gateway`            | `gateway`           | App Gateway                         |
 | `platform`           | `platform`          | Platform service                    |
 | `channel_service`    | `channelService`    | Channel service                     |
@@ -295,32 +343,37 @@ All valid service keys:
 | `activepieces`       | `activepieces`      | ActivePieces                        |
 | `ai_agent`           | `aiAgent`           | AI Agent service                    |
 
+---
+
 ### Troubleshooting
 
-**`Cannot find package '@imbrace/sdk'`**
+##### `Cannot find package '@imbrace/sdk'`
 
 Package is not linked. Re-run from `ts`:
+
 ```bash
 npm link
 cd /path/to/your-project && npm link @imbrace/sdk
 ```
 
-**`ERR_MODULE_NOT_FOUND` for files in `dist/`**
+##### `ERR_MODULE_NOT_FOUND` for files in `dist/`
 
 Package has not been built yet:
+
 ```bash
 cd ts && npm run build
 ```
 
-**`ModuleNotFoundError: No module named 'imbrace'`**
+##### `ModuleNotFoundError: No module named 'imbrace'`
 
 ```bash
 cd py && pip install -e ".[dev]"
 ```
 
-**`401 Unauthorized`**
+##### `401 Unauthorized`
 
 API Key expired or invalid. Generate a new one:
+
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
   -H "x-access-token: <your_existing_token>" \
@@ -328,6 +381,6 @@ curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_tok
   -d '{"expirationDays": 30}'
 ```
 
-**`UserWarning: ImbraceClient: no credentials provided`**
+##### `UserWarning: ImbraceClient: no credentials provided`
 
 No `api_key` or `access_token` passed. If intentional (e.g. login-only flow), ignore this warning. Otherwise check your `.env` file.

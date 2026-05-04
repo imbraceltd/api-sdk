@@ -95,6 +95,11 @@ export default defineConfig({
           translations: { vi: 'Hướng Dẫn', 'zh-CN': '指南', 'zh-TW': '指南' },
           items: [
             {
+              label: 'Vibe Coding',
+              translations: { vi: 'Vibe Coding', 'zh-CN': 'Vibe Coding', 'zh-TW': 'Vibe Coding' },
+              link: '/guides/vibe-coding/',
+            },
+            {
               label: 'Testing Guide',
               translations: { vi: 'Hướng Dẫn Test', 'zh-CN': '测试指南', 'zh-TW': '測試指南' },
               link: '/guides/testing/',

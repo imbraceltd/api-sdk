@@ -1,6 +1,8 @@
-## Troubleshooting
+# Troubleshooting
 
-### `AuthError: Invalid or expired access token.` (HTTP 401)
+> Common errors and solutions when using the Imbrace SDK.
+
+## `AuthError: Invalid or expired access token.` (HTTP 401)
 
 API key in `.env` has expired.
 
@@ -9,7 +11,9 @@ API key in `.env` has expired.
 IMBRACE_API_KEY=new_api_key
 ```
 
-### `ApiError: [400] {"message":"must have required property 'type'"}
+---
+
+## `ApiError: [400] {"message":"must have required property 'type'"}`
 
 `channel.list()` called without mandatory parameter.
 
@@ -21,7 +25,9 @@ client.channel.list()
 client.channel.list(type="web")
 ```
 
-### `ApiError: [404]` with double path in URL
+---
+
+## `ApiError: [404]` with double path in URL
 
 URL is doubled because `IMBRACE_BASE_URL` was incorrectly set to a full endpoint.
 
@@ -33,7 +39,9 @@ IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party
 IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 ```
 
-### Integration tests all skipped
+---
+
+## Integration tests all skipped
 
 `IMBRACE_API_KEY` is not set.
 
@@ -45,17 +53,21 @@ IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 echo "IMBRACE_API_KEY=api_xxx" >> py/.env
 ```
 
-### `Cannot find module` (TypeScript tests)
+---
+
+## `Cannot find module` (TypeScript tests)
 
 Import paths in test files must be relative to the directory depth:
 
-| Test file location | Import |
-|---|---|
-| `tests/unit/*.test.ts` | `../../src/client.js` |
+| Test file location               | Import                            |
+| -------------------------------- | --------------------------------- |
+| `tests/unit/*.test.ts`           | `../../src/client.js`             |
 | `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
-| `tests/integration/*.test.ts` | `../../src/client.js` |
+| `tests/integration/*.test.ts`    | `../../src/client.js`             |
 
-### `mypy` error: `Pattern matching is only supported in Python 3.10`
+---
+
+## `mypy` error: `Pattern matching is only supported in Python 3.10`
 
 mypy scanning `site-packages` by mistake. Configured in `pyproject.toml`. If it persists:
 

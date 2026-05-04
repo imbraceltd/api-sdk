@@ -1,96 +1,102 @@
-## Installation
+# Installation
+
+> Install the Imbrace SDK for TypeScript or Python.
 
 ### Install
 
-**TypeScript:**
-```bash
-npm install @imbrace/sdk@1.0.2
-# or
-yarn add @imbrace/sdk@1.0.2
-# or
-pnpm add @imbrace/sdk@1.0.2
-```
+  
+    ```bash
+    npm install @imbrace/sdk@1.0.2
+    # or
+    yarn add @imbrace/sdk@1.0.2
+    # or
+    pnpm add @imbrace/sdk@1.0.2
+    ```
 
-Requires Node.js 18+ (or any browser with native `fetch` and `ReadableStream`).
+    Requires Node.js 18+ (or any browser with native `fetch` and `ReadableStream`).
+  
+  
+    ```bash
+    pip install imbrace==1.0.2
+    # or
+    uv add imbrace==1.0.2
+    ```
 
-**Python:**
-```bash
-pip install imbrace==1.0.2
-# or
-uv add imbrace==1.0.2
-```
-
-Requires Python 3.9+.
+    Requires Python 3.9+.
+  
 
 ### Initialize the client
 
-**Build on Imbrace (Access Token) — TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk"
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
 
-// Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
-const client = new ImbraceClient({
-  accessToken: "acc_your_token",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-})
-```
+    // Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
+    const client = new ImbraceClient({
+      accessToken: "acc_your_token",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
+    ```
 
-The client is stateful — create it once and reuse it across your app.
+    The client is stateful — create it once and reuse it across your app.
+  
+  
+    ```python
+    from imbrace import ImbraceClient
 
-**Build on Imbrace (Access Token) — Python:**
-```python
-from imbrace import ImbraceClient
+    # Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
+    with ImbraceClient(access_token="acc_your_token") as client:
+        ...
+    ```
 
-# Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
-with ImbraceClient(access_token="acc_your_token") as client:
-    ...
-```
+    Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
 
-Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
+    The context manager closes the underlying HTTP connection pool automatically.
+  
 
-The context manager closes the underlying HTTP connection pool automatically.
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
 
-**Wrap Imbrace (API Key) — TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk"
+    // Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    const client = new ImbraceClient({
+      apiKey: "api_xxx...",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
+    ```
 
-// Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
-const client = new ImbraceClient({
-  apiKey: "api_xxx...",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-})
-```
+    The client is stateful — create it once and reuse it across your app.
+  
+  
+    ```python
+    from imbrace import ImbraceClient
 
-The client is stateful — create it once and reuse it across your app.
+    # Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    with ImbraceClient(api_key="api_xxx...") as client:
+        ...
+    ```
 
-**Wrap Imbrace (API Key) — Python:**
-```python
-from imbrace import ImbraceClient
+    Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
 
-# Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
-with ImbraceClient(api_key="api_xxx...") as client:
-    ...
-```
-
-Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
-
-The context manager closes the underlying HTTP connection pool automatically.
+    The context manager closes the underlying HTTP connection pool automatically.
+  
 
 For when to use each credential, see [Authentication](/sdk/authentication/). For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
 
 ### Verify
 
-**TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk"
-console.log("SDK loaded:", typeof ImbraceClient) // "function"
-```
-
-**Python:**
-```python
-from imbrace import ImbraceClient
-print("SDK ready:", ImbraceClient)
-```
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
+    console.log("SDK loaded:", typeof ImbraceClient) // "function"
+    ```
+  
+  
+    ```python
+    from imbrace import ImbraceClient
+    print("SDK ready:", ImbraceClient)
+    ```
+  
 
 ### Environment variables
 
