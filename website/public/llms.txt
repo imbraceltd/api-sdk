@@ -132,6 +132,7 @@ Channel automations: `listChannelAutomation(params?)`.
 AI Agent management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
 
 ### `client.aiAgent`
+SSE = Server-Sent Events (streaming responses consumed line-by-line).
 Chat: `streamChat(body)` (SSE), `listChats(params)`, `getChat(id)`, `deleteChat(id, params)`.
 Sub-agent: `streamSubAgentChat(body)` (SSE), `getSubAgentHistory(params)`.
 Embeddings / RAG: `processEmbedding(body)`, `listEmbeddingFiles(params?)`, `getEmbeddingFile(id)`, `updateEmbeddingFileStatus(id, status)`, `deleteEmbeddingFile(id)`.
@@ -179,11 +180,11 @@ External data sync: `listExternalDataSync()`, `deleteExternalDataSync()`, `enabl
 ### `client.platform`
 Multi-tenant admin (47+ methods): user/org/team/permission management, N8n workflows & credentials, app lifecycle, email senders, rooms, physical stores, Facebook auth, knowledge uploads, business units, contact management.
 
-### `client.dataFiles`
-Data file management.
+### `client.dataFiles` / `client.data_files` (Python)
+Data-board file operations: `search(params?)`, `get(file_id)`, `create(body)`, `update(file_id, body)`, `delete(file_ids[])`, `upload(files)`, `download(file_id)`.
 
-### `client.folders`
-Folder management (standalone, separate from boards KnowledgeHub).
+### `client.folders` (Python)
+Data-board folder operations: `search(params?)`, `get(folder_id)`, `get_contents(folder_id)`, `create(body)`, `update(folder_id, body)`, `delete(folder_ids[])`.
 
 ### `client.chatAi`
 Chat completions (`chat(body)`), chats CRUD (`listChats()`, `createChat()`, `deleteChat()`). File upload/extraction (`uploadFile()`, `uploadAgentFile()`, `extractFile()`). Audio transcription & TTS (`transcribe()`, `speech()`). Knowledge base CRUD. Custom prompts & tools CRUD. Document AI (`processDocument()`, `listDocumentModels()`). Assistant management (`listAssistants()`, `createAssistant()`, `updateAssistant()`, `deleteAssistant()`). Models: `listModels()`.
