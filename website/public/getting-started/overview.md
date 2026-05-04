@@ -38,6 +38,7 @@ The gateway is set by default — you do not need to configure it unless you are
 ### Quick Example
 
 ```typescript
+import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
   accessToken: "your-access-token",

@@ -52,6 +52,7 @@ npm link @imbrace/sdk
 **Verify:**
 
 ```typescript
+import { ImbraceClient } from "@imbrace/sdk";
 console.log("SDK loaded:", typeof ImbraceClient); // 'function'
 ```
 
@@ -153,6 +154,7 @@ client = ImbraceClient(env="sandbox")
   
 
 ```typescript
+import { ImbraceClient } from "@imbrace/sdk";
 
 // Server-side — API Key
 const client = new ImbraceClient({
@@ -178,6 +180,7 @@ await anon.loginWithOtp("user@example.com", "123456");
   
 
 ```python
+import os
 from imbrace import ImbraceClient
 
 # Server-side — API Key
@@ -220,6 +223,7 @@ async def main():
   
 
 ```typescript
+import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 

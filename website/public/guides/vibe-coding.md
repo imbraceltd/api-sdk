@@ -18,21 +18,39 @@ npm install @imbrace/sdk
 pip install imbrace
 ```
 
-**2. Set your credentials**
+**2. Store your credentials**
 
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+Create a `.env` file in your project root. The SDK does **not** auto-read environment variables — you pass them to the constructor in step 3.
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
 ```
 
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+See [Authentication](/sdk/authentication/) to learn when to use API Key vs Access Token, and [Setup Guide](/getting-started/setup/#get-an-api-key) for how to obtain an API key.
+
+**3. Initialize the client**
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey:         process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+});
 ```
 
-See [Authentication](/sdk/authentication/) for how to obtain an API key.
+```python
+import os
+from imbrace import ImbraceClient
 
-**3. Grab `llms.txt`**
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+)
+```
+
+**4. Grab `llms.txt`**
 
 Download or copy the file at [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) and drop it into your AI tool (see [How to use it](#how-to-use-it) below).
 

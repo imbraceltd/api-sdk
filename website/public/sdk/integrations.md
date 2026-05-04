@@ -16,6 +16,7 @@ Create the client once outside the component tree and reuse it across all compon
 
 ```typescript
 // lib/imbrace.ts
+import { ImbraceClient } from "@imbrace/sdk";
 
 export const client = new ImbraceClient({
   accessToken:
@@ -29,11 +30,14 @@ export const client = new ImbraceClient({
 
 ```tsx
 // hooks/useProducts.ts
+import { useState, useEffect } from "react";
+import { client } from "@/lib/imbrace";
+import type { Product } from "@imbrace/sdk";
 
 export function useProducts(category?: string) {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -50,6 +54,7 @@ export function useProducts(category?: string) {
 
 ```tsx
 // components/ProductList.tsx
+import { useProducts } from "@/hooks/useProducts";
 
 export function ProductList() {
   const { products, loading, error } = useProducts("electronics");
@@ -73,6 +78,8 @@ export function ProductList() {
 
 ```typescript
 // app/api/products/route.ts
+import { NextResponse } from "next/server";
+import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
   apiKey: process.env.IMBRACE_API_KEY,
@@ -98,6 +105,7 @@ export async function POST(request: Request) {
 
 ```tsx
 // app/products/page.tsx
+import { ImbraceClient } from "@imbrace/sdk";
 
 const client = new ImbraceClient({
   apiKey: process.env.IMBRACE_API_KEY,
@@ -122,6 +130,8 @@ For one-shot scripts (data exports, backfills, ad-hoc queries):
 
 ```typescript
 // scripts/export-contacts.ts
+import { ImbraceClient } from "@imbrace/sdk";
+import { writeFileSync } from "fs";
 
 const client = new ImbraceClient();
 
@@ -206,6 +216,7 @@ async def get_me():
 ### Concurrent requests
 
 ```python
+import asyncio
 from imbrace import AsyncImbraceClient
 
 async def fetch_dashboard_data():
@@ -227,6 +238,7 @@ data = asyncio.run(fetch_dashboard_data())
 ### Streaming AI
 
 ```python
+import asyncio
 from imbrace import AsyncImbraceClient
 
 async def stream_response():
@@ -316,6 +328,8 @@ The OTP flow is identical conceptually in both SDKs: request an OTP for an email
 
 ```tsx
 // components/LoginForm.tsx
+import { useState } from "react";
+import { ImbraceClient, AuthError } from "@imbrace/sdk";
 
 const client = new ImbraceClient();
 
@@ -339,15 +353,15 @@ export function LoginForm() {
   }
 
   return step === "email" ? (
-    
+    <div>
       <input value={email} onChange={(e) => setEmail(e.target.value)} />
       <button onClick={requestOtp}>Send OTP</button>
-    
+    </div>
   ) : (
-    
+    <div>
       <input value={otp} onChange={(e) => setOtp(e.target.value)} />
       <button onClick={verifyOtp}>Verify</button>
-    
+    </div>
   );
 }
 ```

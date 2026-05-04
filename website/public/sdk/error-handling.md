@@ -31,6 +31,7 @@ For specific error messages and known fixes, see [Troubleshooting](/guides/troub
 Raised when the server returns **401** or **403** — credentials are invalid, expired, or revoked.
 
 ```typescript
+import { AuthError } from "@imbrace/sdk";
 
 try {
   const me = await client.platform.getMe();
@@ -60,6 +61,7 @@ except AuthError as e:
 Raised for all other **4xx and 5xx** responses (after retries are exhausted for 429/5xx).
 
 ```typescript
+import { ApiError } from "@imbrace/sdk";
 
 try {
   await client.marketplace.getProduct("nonexistent_id");
@@ -98,6 +100,7 @@ except ApiError as e:
 Raised when the request never reaches the server — timeout, DNS failure, or connection reset.
 
 ```typescript
+import { NetworkError } from "@imbrace/sdk";
 
 try {
   await client.platform.getMe();
@@ -126,6 +129,7 @@ except NetworkError as e:
 Import the base type to handle any SDK-originated error in a single block:
 
 ```typescript
+import {
   ImbraceClient,
   ImbraceError,
   AuthError,

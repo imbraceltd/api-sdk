@@ -7,6 +7,7 @@ The AI Agent resource connects to a dedicated service that runs on a separate ba
 For an end-to-end example of `streamChat` against a real assistant, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
 
 ```typescript
+import { ImbraceClient } from "@imbrace/sdk";
 const client = new ImbraceClient();
 ```
 
@@ -56,6 +57,7 @@ for line in response.iter_lines():
 **Async:**
 
 ```python
+import asyncio
 from imbrace import AsyncImbraceClient
 
 async def main():

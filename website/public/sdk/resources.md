@@ -246,6 +246,7 @@ while (true) {
 ```
 
 ```python
+import uuid
 
 session_id = str(uuid.uuid4())  # persist for the conversation lifetime
 
@@ -340,6 +341,7 @@ await client.aiAgent.deleteClientChat(chat.id);
 ```
 
 ```python
+import uuid
 from datetime import datetime, timezone
 
 chat = client.ai_agent.create_client_chat({

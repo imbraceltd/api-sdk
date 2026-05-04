@@ -95,10 +95,10 @@ Token exchange: `exchangeAccessToken(orgId)`, `exchangeAccessTokenWithToken(body
 Also convenience methods on client: `client.requestOtp(email)`, `client.loginWithOtp(email, otp)`, `client.login(email, password)`.
 
 ### `client.account`
-Logged-in user profile: `getProfile()`, `updateProfile()`.
+Logged-in user profile: `getAccount()`, `updateAccount(body)`, `uploadAvatar(formData)`.
 
 ### `client.organizations`
-Organization management: `list()`, `get()`, `create()`, `update()`, `delete()`.
+Organization management: `list(params?)`, `listAll(params?)`, `create(body)`.
 
 ### `client.contacts`
 Customer contact management: `list(params?)`, `get(id)`, `update(id, body)`, `search({ q })`, `exportCsv()`, `getConversations(id)`, `getComments(id)`, `getFiles(id)`, `getActivities(convId)`, `uploadAvatar(formData)`.
