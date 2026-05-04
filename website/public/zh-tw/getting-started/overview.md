@@ -1,0 +1,64 @@
+# 架構概覽
+
+> Imbrace SDK 的範圍、結構以及各閘道之間的區別。
+
+### 範圍
+
+- SDK 涵蓋 **App Gateway + Server Gateway**。
+- **Journey API** 和 **n8n 專用 HTTP 路徑**不在本倉庫範圍內。
+
+### SDK 結構
+
+```
+api-sdk/
+├── py/src/imbrace/
+│   ├── client.py              ← ImbraceClient（同步入口）
+│   ├── async_client.py        ← AsyncImbraceClient
+│   ├── http.py                ← 傳輸、認證標頭、重試
+│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
+│   ├── environments.py        ← URL 預設（develop/sandbox/stable）
+│   ├── service_registry.py    ← 解析各服務 base URL
+│   ├── auth/token_manager.py  ← 執行緒安全令牌儲存
+│   ├── resources/             ← 每個檔案對應一個資源命名空間
+│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
+│   │   ├── platform.py
+│   │   ├── channel.py
+│   │   └── ...                （共 29 個資源）
+│   └── types/                 ← 公共 Pydantic 模型
+│
+└── ts/src/
+    ├── client.ts              ← ImbraceClient（入口）
+    ├── http.ts                ← 傳輸、認證標頭、重試
+    ├── errors.ts              ← AuthError, ApiError, NetworkError
+    ├── environments.ts        ← URL 預設
+    ├── service-registry.ts    ← 解析各服務 base URL
+    ├── auth/token-manager.ts  ← 令牌儲存
+    ├── resources/             ← 每個檔案對應一個資源命名空間
+    │   ├── ai-agent.ts        (AiAgentResource)
+    │   ├── platform.ts
+    │   ├── channel.ts
+    │   └── ...                （共 29 個資源）
+    └── types/                 ← TypeScript 公共介面
+```
+
+### 各閘道的區別
+
+| 閘道           | 認證標頭                        | 路徑模式                  |
+| -------------- | ------------------------------- | ------------------------- |
+| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
+| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
+
+### 測試層級
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  單元測試（無需伺服器，無需 API key）                      │
+│  → 完整 HTTP 模擬：pytest-httpx (Python) / vitest (TS)   │
+│  → 離線執行，適合 CI/CD                                   │
+│  → 檢查：SDK 邏輯、請求標頭、URL、參數、錯誤              │
+├──────────────────────────────────────────────────────────┤
+│  整合測試（需要真實伺服器 + 有效 API key）                 │
+│  → 真實呼叫 app-gatewayv2.imbrace.co                     │
+│  → 未設置 IMBRACE_API_KEY 時自動略過                      │
+└──────────────────────────────────────────────────────────┘
+```

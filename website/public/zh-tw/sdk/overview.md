@@ -1,0 +1,82 @@
+# 概覽
+
+> Imbrace SDK 是什麼、如何運作，以及何時使用。
+
+Imbrace SDK 是 Imbrace Gateway 的官方客戶端，提供 **TypeScript** 和 **Python** 兩種版本。兩個 SDK 封裝了相同的 Gateway API，具有相同的資源命名空間、相同的身份驗證模型以及相同的重試/錯誤語義 — 選擇適合你技術棧的語言即可。
+
+> 在本站任意位置切換一次語言 Tab，其餘文件將記住你的選擇。
+
+### 核心特性
+
+| 特性 | 說明 |
+|---|---|
+| **型別安全** | TypeScript 型別和 Python 型別提示覆蓋每個資源 |
+| **兩種憑證類型** | `apiKey` 或 `accessToken` — 參見[身份驗證](/zh-tw/sdk/authentication/) |
+| **自動重試** | 429 和 5xx 使用指數退避自動重試，無需設定 |
+| **AI 串流傳輸** | SSE / async iterator 用於 `streamChat` 和 AI completions |
+| **Async & sync (Py)** | `ImbraceClient`（同步）和 `AsyncImbraceClient`（非同步） |
+| **取消請求 (TS)** | `AbortSignal` 傳播，用於取消進行中的請求 |
+
+### 安裝
+
+  
+    ```bash
+    npm install @imbrace/sdk
+    ```
+  
+  
+    ```bash
+    pip install imbrace
+    ```
+  
+
+### Hello, world
+
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
+
+    const client = new ImbraceClient({ accessToken: "acc_your_token" })
+    const me = await client.platform.getMe()
+    ```
+  
+  
+    ```python
+    from imbrace import ImbraceClient
+
+    with ImbraceClient(access_token="acc_your_token") as client:
+        me = client.platform.get_me()
+    ```
+  
+
+### 可用資源
+
+每個命名空間在兩個 SDK 上均可用。方法遵循語言慣例 — TypeScript 中為 `client.aiAgent.streamChat()`，Python 中為 `client.ai_agent.stream_chat()`。
+
+| 命名空間 | 用途 |
+|---|---|
+| `client.aiAgent` / `client.ai_agent` | 串流 AI 聊天、嵌入、parquet、chat-client 子 API |
+| `client.chatAi` / `client.chat_ai` | 助手 CRUD（建立/更新/刪除/列出助手） |
+| `client.activepieces` | 工作流程自動化 — flows、triggers、runs |
+| `client.boards` | CRM 看板 — CRUD、項目、欄位、搜尋、段、CSV；KH 資料夾和檔案 |
+| `client.platform` | 使用者、組織、權限 |
+| `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | 聯絡人 / 頻道層 |
+| `client.ai` | OpenAI 相容的 completions 和 embeddings |
+
+完整列表和方法參考，請參閱[資源參考](/zh-tw/sdk/resources/)。
+
+### 選擇哪種憑證
+
+| | API Key | Access Token |
+|---|---|---|
+| **Imbrace 的角色？** | 你的後端中的某項功能 | *Imbrace 就是*你的後端 |
+| **誰的使用者？** | 你的 | Imbrace 的 |
+| **最適合** | 伺服器端對伺服器端、內部腳本、CRM 整合 | 每個終端使用者登入的面向使用者應用 |
+
+完整決策樹：[身份驗證 →](/zh-tw/sdk/authentication/)。
+
+### 後續步驟
+
+- [安裝 →](/zh-tw/sdk/installation/) — 設定 package 和憑證
+- [快速入門 →](/zh-tw/sdk/quick-start/) — 60 秒內完成第一次呼叫
+- [完整流程指南 →](/zh-tw/sdk/full-flow-guide/) — 四個主要工作流程的端到端演示（assistants、workflows、knowledge hub、boards）

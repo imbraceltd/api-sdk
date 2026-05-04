@@ -1,4 +1,6 @@
-## Testing Guide
+# Testing Guide
+
+> Comprehensive guide for running unit tests, integration tests, lint, and type checks for the Imbrace SDK.
 
 **Updated:** 2026-04-10
 
@@ -188,25 +190,25 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 
 #### `tests/unit/resources/` — Resource tests
 
-| File                        | Endpoint Verified                                                 |
-| --------------------------- | ----------------------------------------------------------------- |
-| `test_account.py`           | `GET /v1/backend/account`                                         |
-| `test_agent.py`             | `GET/POST/PATCH/DELETE /v2/backend/templates`                     |
-| `test_ai.py`                | AI completion, embedding, streaming                               |
-| `test_auth.py`              | OTP signin, verify, signout                                       |
-| `test_boards.py`            | Board CRUD, items, search, export CSV                             |
+| File                        | Endpoint Verified                                          |
+| --------------------------- | ---------------------------------------------------------- |
+| `test_account.py`           | `GET /v1/backend/account`                                  |
+| `test_agent.py`             | `GET/POST/PATCH/DELETE /v2/backend/templates`              |
+| `test_ai.py`                | AI completion, embedding, streaming                        |
+| `test_auth.py`              | OTP signin, verify, signout                                |
+| `test_boards.py`            | Board CRUD, items, search, export CSV                      |
 | `test_campaigns.py`         | Campaign CRUD, touchpoints list/get/create/update/delete/validate |
-| `test_channel.py`           | Channel list, get, delete, conv count                             |
-| `test_contacts.py`          | Contacts list, search, update, notifications                      |
-| `test_conversations.py`     | Views count, create, search                                       |
-| `test_messages.py`          | List, send (text/image)                                           |
-| `test_message_suggestion.py`| `POST /v1/message-suggestion` — AI reply suggestions              |
-| `test_organizations.py`     | List, pagination, auth header                                     |
-| `test_predict.py`           | `POST /predict/` — ML-based scoring                               |
-| `test_sessions.py`          | List sessions, directory filter                                   |
-| `test_settings.py`          | Message templates, users, bulk invite                             |
-| `test_teams.py`             | List, my teams, add/remove users                                  |
-| `test_workflows.py`         | List, tag filter, channel automation, create/update               |
+| `test_channel.py`           | Channel list, get, delete, conv count                      |
+| `test_contacts.py`          | Contacts list, search, update, notifications               |
+| `test_conversations.py`     | Views count, create, search                                |
+| `test_messages.py`          | List, send (text/image)                                    |
+| `test_message_suggestion.py`| `POST /v1/message-suggestion` — AI reply suggestions       |
+| `test_organizations.py`     | List, pagination, auth header                              |
+| `test_predict.py`           | `POST /predict/` — ML-based scoring                        |
+| `test_sessions.py`          | List sessions, directory filter                            |
+| `test_settings.py`          | Message templates, users, bulk invite                      |
+| `test_teams.py`             | List, my teams, add/remove users                           |
+| `test_workflows.py`         | List, tag filter, channel automation, create/update        |
 
 ---
 

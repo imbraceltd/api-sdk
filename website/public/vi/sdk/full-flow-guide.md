@@ -1,16 +1,15 @@
-# Full Flow Guide
+# Hướng Dẫn Luồng Đầy Đủ
 
-> End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
+> Hướng dẫn end-to-end — từ khởi tạo client đến AI agents, workflows, knowledge hubs và data boards. TypeScript và Python.
 
-This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
+Hướng dẫn này đi qua bốn luồng chính của Imbrace SDK từ đầu đến cuối. Mỗi phần độc lập — có thể theo thứ tự hoặc nhảy thẳng đến phần cần dùng. Chuyển tab ngôn ngữ một lần và phần còn lại của trang sẽ ghi nhớ lựa chọn của bạn.
 
 ---
 
-## 1. Create an AI Assistant and Start Chatting
+## 1. Tạo AI Assistant và Bắt Đầu Chat
 
-1. **Initialize the client**
+1. **Khởi tạo client**
 
-   
    
      
        ```typescript
@@ -33,38 +32,12 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        ```
      
    
-   
 
-   
-   
-     
-       ```typescript
-       import { ImbraceClient } from "@imbrace/sdk"
+   Xem [Xác Thực → nên chọn credential nào](/vi/sdk/authentication/#nên-dùng-credential-nào) để biết thêm chi tiết.
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         apiKey: "api_your_key",
-       })
-       ```
-     
-     
-       ```python
-       from imbrace import ImbraceClient
+2. **Tạo assistant**
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           api_key="api_your_key",
-       )
-       ```
-     
-   
-   
-
-   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
-
-2. **Create an assistant**
-
-   `workflow_name` must be unique within your organization.
+   `workflow_name` phải là duy nhất trong tổ chức.
 
    
      
@@ -72,13 +45,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        const assistant = await client.chatAi.createAssistant({
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         description: "Handles tier-1 customer support queries",
-         instructions: "You are a helpful support agent. Be concise and friendly.",
-         provider_id: "system",   // use the org's default LLM provider
-         model_id: "gpt-4o",      // any model name the system provider exposes
+         description: "Xử lý các câu hỏi hỗ trợ khách hàng cấp 1",
+         instructions: "Bạn là trợ lý hỗ trợ. Hãy trả lời ngắn gọn và thân thiện.",
+         provider_id: "system",   // dùng provider LLM mặc định của tổ chức
+         model_id: "gpt-4o",      // tên model mà system provider hỗ trợ
        })
 
-       const assistantId = assistant.id  // UUID — use this for all subsequent calls
+       const assistantId = assistant.id  // UUID — dùng cho tất cả các call tiếp theo
        console.log("Assistant created:", assistantId)
        ```
      
@@ -87,10 +60,10 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        assistant = client.chat_ai.create_assistant({
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
-           "description": "Handles tier-1 customer support queries",
-           "instructions": "You are a helpful support agent. Be concise and friendly.",
-           "provider_id": "system",   # use the org's default LLM provider
-           "model_id": "gpt-4o",      # any model name the system provider exposes
+           "description": "Xử lý các câu hỏi hỗ trợ khách hàng cấp 1",
+           "instructions": "Bạn là trợ lý hỗ trợ. Hãy trả lời ngắn gọn và thân thiện.",
+           "provider_id": "system",   # dùng provider LLM mặc định của tổ chức
+           "model_id": "gpt-4o",      # tên model mà system provider hỗ trợ
        })
 
        assistant_id = assistant["id"]
@@ -99,9 +72,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-   `provider_id` and `model_id` are required. Pass `provider_id: "system"` to delegate to the org's default LLM provider, or pass a custom provider's UUID. With `provider_id: "system"`, `model_id` accepts a model name like `"gpt-4o"`, or the literal `"Default"` to fall back to the system default model.
+   `provider_id` và `model_id` là bắt buộc. Truyền `provider_id: "system"` để dùng provider LLM mặc định của tổ chức, hoặc truyền UUID của provider tuỳ chỉnh. Với `provider_id: "system"`, `model_id` nhận tên model (ví dụ `"gpt-4o"`) hoặc giá trị `"Default"` để dùng model mặc định của hệ thống.
 
-3. **Stream a chat response using the assistant**
+3. **Stream phản hồi chat từ assistant**
 
    
      
@@ -109,9 +82,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        const response = await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
-         messages: [{ role: "user", content: "How do I reset my password?" }],
-         // id is the session UUID — reuse it to maintain conversation history
-         // If omitted, a new UUID is auto-generated each call
+         messages: [{ role: "user", content: "Làm sao để đặt lại mật khẩu?" }],
+         // id là session UUID — truyền lại để giữ lịch sử hội thoại
+         // Nếu bỏ qua, UUID mới sẽ tự tạo mỗi lần gọi
        })
 
        const reader = response.body!.getReader()
@@ -140,9 +113,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        response = client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
-           "messages": [{"role": "user", "content": "How do I reset my password?"}],
-           # id is the session UUID — reuse it to maintain conversation history.
-           # If omitted, a new UUID is auto-generated each call.
+           "messages": [{"role": "user", "content": "Làm sao để đặt lại mật khẩu?"}],
+           # id là session UUID — truyền lại để giữ lịch sử hội thoại.
+           # Nếu bỏ qua, UUID mới sẽ tự tạo mỗi lần gọi.
        })
 
        import json
@@ -162,9 +135,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-4. **Maintain conversation history (session ID)**
+4. **Duy trì lịch sử hội thoại (session ID)**
 
-   Pass the same `id` (must be a UUID) across calls to keep context:
+   Truyền cùng một `id` (phải là UUID) qua các lượt gọi để giữ ngữ cảnh:
 
    
      
@@ -173,20 +146,20 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
        const sessionId = randomUUID()
 
-       // First message
+       // Tin nhắn đầu tiên
        await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
          id: sessionId,
-         messages: [{ role: "user", content: "What's your refund policy?" }],
+         messages: [{ role: "user", content: "Chính sách hoàn tiền của bạn là gì?" }],
        })
 
-       // Follow-up — same session, assistant remembers context
+       // Tin nhắn tiếp theo — cùng session, assistant nhớ ngữ cảnh
        await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
          id: sessionId,
-         messages: [{ role: "user", content: "How long does it take?" }],
+         messages: [{ role: "user", content: "Mất bao lâu để xử lý?" }],
        })
        ```
      
@@ -196,20 +169,20 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
        session_id = str(uuid.uuid4())
 
-       # First message
+       # Tin nhắn đầu tiên
        client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
            "id": session_id,
-           "messages": [{"role": "user", "content": "What's your refund policy?"}],
+           "messages": [{"role": "user", "content": "Chính sách hoàn tiền của bạn là gì?"}],
        })
 
-       # Follow-up — same session, assistant remembers context
+       # Tin nhắn tiếp theo — cùng session, assistant nhớ ngữ cảnh
        client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
            "id": session_id,
-           "messages": [{"role": "user", "content": "How long does it take?"}],
+           "messages": [{"role": "user", "content": "Mất bao lâu để xử lý?"}],
        })
        ```
      
@@ -217,9 +190,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 2. Create a Workflow with Activepieces and Bind it to an Assistant
+## 2. Tạo Workflow với Activepieces và Liên Kết với Assistant
 
-1. **List existing flows to find your project ID**
+1. **Liệt kê flows hiện có để lấy project ID**
 
    
      
@@ -239,13 +212,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-2. **Create a new flow**
+2. **Tạo flow mới**
 
    
      
        ```typescript
        const flow = await client.activepieces.createFlow({
-         displayName: "CRM Update on New Lead",
+         displayName: "Cập Nhật CRM Khi Có Lead Mới",
          projectId,
        })
        console.log("Flow created:", flow.id)
@@ -254,7 +227,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
        ```python
        flow = client.activepieces.create_flow(
-           display_name="CRM Update on New Lead",
+           display_name="Cập Nhật CRM Khi Có Lead Mới",
            project_id=project_id,
        )
        print("Flow created:", flow["id"])
@@ -262,14 +235,14 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-3. **Add a Webhook trigger and publish the flow**
+3. **Thêm Webhook trigger và publish flow**
 
-   A freshly created flow is in **DRAFT** with no trigger — the webhook URL doesn't exist yet, so `triggerFlow` would 404. Add the Webhook piece as the trigger, then publish:
+   Flow vừa tạo đang ở trạng thái **DRAFT** không có trigger — webhook URL chưa tồn tại nên gọi `triggerFlow` sẽ trả 404. Thêm piece Webhook làm trigger rồi publish:
 
    
      
        ```typescript
-       // Set the Webhook piece as the flow's trigger
+       // Đặt piece Webhook làm trigger của flow
        await client.activepieces.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
@@ -287,7 +260,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          },
        })
 
-       // Publish — flow status flips DISABLED → ENABLED and webhook URL becomes live
+       // Publish — status chuyển DISABLED → ENABLED và webhook URL được kích hoạt
        await client.activepieces.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
@@ -296,7 +269,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
      
        ```python
-       # Set the Webhook piece as the flow's trigger
+       # Đặt piece Webhook làm trigger của flow
        client.activepieces.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
@@ -314,7 +287,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            },
        })
 
-       # Publish — DISABLED → ENABLED, webhook URL becomes live
+       # Publish — DISABLED → ENABLED, webhook URL được kích hoạt
        client.activepieces.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
@@ -323,52 +296,50 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-4. **Trigger the flow manually with a payload**
+4. **Kích hoạt flow thủ công với payload**
 
    
      
        ```typescript
-       // Fire and forget (async)
+       // Bất đồng bộ (fire and forget)
        await client.activepieces.triggerFlow(flow.id, {
-         contact_name: "Jane Smith",
-         email: "jane@example.com",
+         contact_name: "Nguyễn Văn A",
+         email: "nva@example.com",
        })
 
-       // Sync trigger — for this to actually return data instead of timing out,
-       // the flow needs a "Return Response" action added via applyFlowOperation
-       // ADD_ACTION (otherwise the gateway waits 30s for a response and gives up).
+       // Sync trigger — để có dữ liệu trả về thay vì timeout, flow cần
+       // thêm action "Return Response" qua applyFlowOperation ADD_ACTION
        const result = await client.activepieces.triggerFlowSync(flow.id, {
-         contact_name: "Jane Smith",
-         email: "jane@example.com",
+         contact_name: "Nguyễn Văn A",
+         email: "nva@example.com",
        })
        console.log("Flow result:", result)
        ```
      
      
        ```python
-       # Fire and forget (async)
+       # Bất đồng bộ (fire and forget)
        client.activepieces.trigger_flow(flow["id"], {
-           "contact_name": "Jane Smith",
-           "email": "jane@example.com",
+           "contact_name": "Nguyễn Văn A",
+           "email": "nva@example.com",
        })
 
-       # Sync trigger — for this to actually return data instead of timing out,
-       # the flow needs a "Return Response" action added via apply_flow_operation
-       # ADD_ACTION (otherwise the gateway waits 30s and gives up).
+       # Sync trigger — để có dữ liệu trả về thay vì timeout, flow cần
+       # thêm action "Return Response" qua apply_flow_operation ADD_ACTION
        result = client.activepieces.trigger_flow_sync(flow["id"], {
-           "contact_name": "Jane Smith",
-           "email": "jane@example.com",
+           "contact_name": "Nguyễn Văn A",
+           "email": "nva@example.com",
        })
        print("Flow result:", result)
        ```
      
    
 
-5. **Bind the flow to your assistant**
+5. **Liên kết flow với assistant**
 
-   Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
+   Mở assistant trong dashboard Imbrace, vào **Tools → Workflows** và gắn flow vào. Assistant sẽ có thể kích hoạt flow trong quá trình hội thoại khi phù hợp.
 
-   Alternatively, update the assistant to reference the workflow by name:
+   Hoặc cập nhật assistant để tham chiếu workflow theo tên:
 
    
      
@@ -376,7 +347,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        await client.chatAi.updateAssistant(assistantId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
+         workflow_function_call: [{ flow_id: flow.id, description: "Cập nhật CRM khi có lead mới" }],
        })
        ```
      
@@ -386,14 +357,14 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "workflow_function_call": [
-               {"flow_id": flow["id"], "description": "Update CRM on new lead"}
+               {"flow_id": flow["id"], "description": "Cập nhật CRM khi có lead mới"}
            ],
        })
        ```
      
    
 
-6. **Check run history**
+6. **Xem lịch sử chạy**
 
    
      
@@ -418,17 +389,17 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 3. Manage Knowledge Hubs and Attach to an Assistant
+## 3. Quản Lý Knowledge Hub và Gắn Vào Assistant
 
-Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an assistant as its knowledge source.
+Knowledge Hub chứa files và folders trong service **data-board** (`client.boards`). `_id` của folder là giá trị bạn truyền vào assistant làm nguồn tri thức.
 
-1. **Create a folder**
+1. **Tạo folder**
 
    
      
        ```typescript
        const folder = await client.boards.createFolder({
-         name: "Product Documentation",
+         name: "Tài Liệu Sản Phẩm",
          organization_id: "org_your_org_id",
          parent_folder_id: "root",
          source_type: "upload",
@@ -439,7 +410,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
        ```python
        folder = client.boards.create_folder({
-           "name": "Product Documentation",
+           "name": "Tài Liệu Sản Phẩm",
            "organization_id": "org_your_org_id",
            "parent_folder_id": "root",
            "source_type": "upload",
@@ -449,7 +420,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-2. **Upload a file to the folder**
+2. **Upload file vào folder**
 
    
      
@@ -482,9 +453,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-3. **Attach the folder to the assistant**
+3. **Gắn folder vào assistant**
 
-   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
+   Truyền `_id` của folder vào `folder_ids` — assistant sẽ truy xuất từ mọi file trong folder đó. Dùng `board_ids` để gắn thêm một CRM data-board (các item của board trở thành nguồn tri thức). Trường `knowledge_hubs` cũ đã ngừng hỗ trợ.
 
    
      
@@ -493,7 +464,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          folder_ids: [folder._id],
-         // board_ids: [boardId],  // optional: attach a CRM data-board too
+         // board_ids: [boardId],  // tuỳ chọn: gắn thêm một CRM data-board
        })
        ```
      
@@ -503,50 +474,50 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "folder_ids": [folder["_id"]],
-           # "board_ids": [board_id],  # optional: attach a CRM data-board too
+           # "board_ids": [board_id],  # tuỳ chọn: gắn thêm một CRM data-board
        })
        ```
      
    
 
-4. **Inspect and manage folders and files**
+4. **Xem và quản lý folders/files**
 
    
      
        ```typescript
-       // Search folders
-       const folders = await client.boards.searchFolders({ q: "Product" })
+       // Tìm kiếm folders
+       const folders = await client.boards.searchFolders({ q: "Sản Phẩm" })
 
-       // Get folder with contents
+       // Lấy nội dung folder
        const contents = await client.boards.getFolderContents(folder._id)
        console.log("Files:", contents.files?.length)
 
-       // Rename a folder
-       await client.boards.updateFolder(folder._id, { name: "Product Docs v2" })
+       // Đổi tên folder
+       await client.boards.updateFolder(folder._id, { name: "Tài Liệu Sản Phẩm v2" })
 
-       // Search files in a folder
+       // Tìm kiếm files trong folder
        const files = await client.boards.searchFiles({ folderId: folder._id })
 
-       // Delete folders
+       // Xóa folder
        await client.boards.deleteFolders({ ids: [folder._id] })
        ```
      
      
        ```python
-       # Search folders
-       folders = client.boards.search_folders(q="Product")
+       # Tìm kiếm folders
+       folders = client.boards.search_folders(q="Sản Phẩm")
 
-       # Get folder with contents
+       # Lấy nội dung folder
        contents = client.boards.get_folder_contents(folder["_id"])
        print("Files:", len(contents.get("files") or []))
 
-       # Rename a folder
-       client.boards.update_folder(folder["_id"], {"name": "Product Docs v2"})
+       # Đổi tên folder
+       client.boards.update_folder(folder["_id"], {"name": "Tài Liệu Sản Phẩm v2"})
 
-       # Search files in a folder
+       # Tìm kiếm files trong folder
        files = client.boards.search_files(folder_id=folder["_id"])
 
-       # Delete folders
+       # Xóa folder
        client.boards.delete_folders([folder["_id"]])
        ```
      
@@ -554,18 +525,18 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 ---
 
-## 4. Manage Data Boards and Items (CRM Pipelines)
+## 4. Quản Lý Data Boards và Items (CRM Pipeline)
 
-1. **Create a board**
+1. **Tạo board**
 
-   A board is a CRM pipeline — leads, deals, tasks, or any structured data.
+   Board là một CRM pipeline — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào.
 
    
      
        ```typescript
        const board = await client.boards.create({
          name: "Sales Pipeline",
-         description: "Track all active deals",
+         description: "Theo dõi tất cả deals đang hoạt động",
        })
        console.log("Board ID:", board._id)
        ```
@@ -574,32 +545,32 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        ```python
        board = client.boards.create(
            name="Sales Pipeline",
-           description="Track all active deals",
+           description="Theo dõi tất cả deals đang hoạt động",
        )
        print("Board ID:", board["_id"])
        ```
      
    
 
-2. **Add a custom field**
+2. **Thêm custom field**
 
-   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board — find your new field inside `board.fields`.
+   Các loại field: `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, v.v. `createField` trả về board đã cập nhật — field mới nằm trong `board.fields`.
 
    
      
        ```typescript
        const updated = await client.boards.createField(board._id, {
-         name: "Company",
+         name: "Công Ty",
          type: "ShortText",
        })
-       // Find the identifier field (auto-created with every board)
+       // Lấy identifier field (tự tạo kèm mỗi board)
        const identifierField = updated.fields.find(f => f.is_identifier)
        ```
      
      
        ```python
        updated = client.boards.create_field(board["_id"], {
-           "name": "Company",
+           "name": "Công Ty",
            "type": "ShortText",
        })
        identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
@@ -607,9 +578,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-3. **Create board items (records)**
+3. **Tạo board items (records)**
 
-   Items use `{ fields: [{ board_field_id, value }] }` format:
+   Items dùng format `{ fields: [{ board_field_id, value }] }`:
 
    
      
@@ -634,15 +605,15 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-4. **List and search items**
+4. **Liệt kê và tìm kiếm items**
 
    
      
        ```typescript
-       // Paginate through items
+       // Phân trang items
        const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 })
 
-       // Full-text search
+       // Tìm kiếm full-text
        const { data: results } = await client.boards.search(board._id, {
          q: "Acme",
          limit: 10,
@@ -651,18 +622,18 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
      
        ```python
-       # Paginate through items
+       # Phân trang items
        items = client.boards.list_items(board["_id"], limit=20, skip=0)
 
-       # Full-text search
+       # Tìm kiếm full-text
        results = client.boards.search(board["_id"], q="Acme", limit=10)
        ```
      
    
 
-5. **Update and delete items**
+5. **Cập nhật và xóa items**
 
-   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
+   `updateItem` dùng format mảng `{ data: [{ key: fieldId, value }] }`:
 
    
      
@@ -685,17 +656,17 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-6. **Export to CSV**
+6. **Xuất board ra CSV**
 
    
      
        ```typescript
        const csv = await client.boards.exportCsv(board._id)
-       // csv is a string — write to a file or send as a download
+       // csv là string — ghi ra file hoặc gửi dưới dạng download
        ```
      
      
        ```python
        csv = client.boards.export_csv(board["_id"])
-       # csv is a str — write to a file or send as a download
+       # csv là str — ghi ra file hoặc gửi dưới dạng download
        ```

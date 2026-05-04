@@ -1,55 +1,55 @@
-# Troubleshooting
+# Lỗi Thường Gặp
 
-> Common errors and solutions when using the Imbrace SDK.
+> Các lỗi phổ biến và cách khắc phục khi sử dụng Imbrace SDK.
 
 ## `AuthError: Invalid or expired access token.` (HTTP 401)
 
-API key in `.env` has expired.
+API key trong `.env` đã hết hạn.
 
 ```bash
-# Update .env
-IMBRACE_API_KEY=new_api_key
+# Cập nhật .env
+IMBRACE_API_KEY=api_xxx_moi
 ```
 
 ---
 
 ## `ApiError: [400] {"message":"must have required property 'type'"}`
 
-`channel.list()` called without mandatory parameter.
+Gọi `channel.list()` thiếu param bắt buộc.
 
 ```python
-# Incorrect
+# Sai
 client.channel.list()
 
-# Correct
+# Đúng
 client.channel.list(type="web")
 ```
 
 ---
 
-## `ApiError: [404]` with double path in URL
+## `ApiError: [404]` với URL có path kép
 
-URL is doubled because `IMBRACE_BASE_URL` was incorrectly set to a full endpoint.
+URL bị double vì `IMBRACE_BASE_URL` được set nhầm thành full endpoint.
 
 ```env
-# Incorrect
+# Sai
 IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
 
-# Correct
+# Đúng
 IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
 ```
 
 ---
 
-## Integration tests all skipped
+## Integration test bị skip toàn bộ
 
-`IMBRACE_API_KEY` is not set.
+`IMBRACE_API_KEY` chưa được set.
 
 ```bash
-# Set temporarily during execution
+# Set tạm thời khi chạy
 IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 
-# Or add to .env
+# Hoặc thêm vào .env
 echo "IMBRACE_API_KEY=api_xxx" >> py/.env
 ```
 
@@ -57,9 +57,9 @@ echo "IMBRACE_API_KEY=api_xxx" >> py/.env
 
 ## `Cannot find module` (TypeScript tests)
 
-Import paths in test files must be relative to the directory depth:
+Đường dẫn import trong test file cần đúng cấp thư mục:
 
-| Test file location               | Import                            |
+| Vị trí test file                 | Import                            |
 | -------------------------------- | --------------------------------- |
 | `tests/unit/*.test.ts`           | `../../src/client.js`             |
 | `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
@@ -67,9 +67,9 @@ Import paths in test files must be relative to the directory depth:
 
 ---
 
-## `mypy` error: `Pattern matching is only supported in Python 3.10`
+## `mypy` báo lỗi `Pattern matching is only supported in Python 3.10`
 
-mypy scanning `site-packages` by mistake. Configured in `pyproject.toml`. If it persists:
+mypy scan nhầm vào `site-packages`. Đã config trong `pyproject.toml`. Nếu vẫn lỗi:
 
 ```bash
 mypy src/imbrace --exclude site-packages

@@ -1,16 +1,15 @@
-# Full Flow Guide
+# 完整流程指南
 
-> End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
+> 端到端指南 — 从初始化 client 到 AI agents、工作流、knowledge hubs 和数据看板。TypeScript 和 Python。
 
-This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
+本指南从头到尾演示 Imbrace SDK 的四个主要流程。每个部分相互独立 — 可以按顺序阅读，也可以直接跳到需要的部分。切换一次语言 Tab，页面其余部分将记住你的选择。
 
 ---
 
-## 1. Create an AI Assistant and Start Chatting
+## 1. 创建 AI 助手并开始聊天
 
-1. **Initialize the client**
+1. **初始化 client**
 
-   
    
      
        ```typescript
@@ -33,38 +32,12 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        ```
      
    
-   
 
-   
-   
-     
-       ```typescript
-       import { ImbraceClient } from "@imbrace/sdk"
+   参见[身份验证 → 选哪种凭证](/zh-cn/sdk/authentication/#我该选哪种凭证)了解完整决策树。
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         apiKey: "api_your_key",
-       })
-       ```
-     
-     
-       ```python
-       from imbrace import ImbraceClient
+2. **创建助手**
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           api_key="api_your_key",
-       )
-       ```
-     
-   
-   
-
-   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
-
-2. **Create an assistant**
-
-   `workflow_name` must be unique within your organization.
+   `workflow_name` 在组织内必须唯一。
 
    
      
@@ -72,13 +45,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        const assistant = await client.chatAi.createAssistant({
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         description: "Handles tier-1 customer support queries",
-         instructions: "You are a helpful support agent. Be concise and friendly.",
-         provider_id: "system",   // use the org's default LLM provider
-         model_id: "gpt-4o",      // any model name the system provider exposes
+         description: "处理一级客户支持问题",
+         instructions: "您是支持助手。请简洁友好地回答。",
+         provider_id: "system",   // 使用组织默认的 LLM 提供商
+         model_id: "gpt-4o",      // system 提供商支持的模型名称
        })
 
-       const assistantId = assistant.id  // UUID — use this for all subsequent calls
+       const assistantId = assistant.id  // UUID — 用于所有后续调用
        console.log("Assistant created:", assistantId)
        ```
      
@@ -87,10 +60,10 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        assistant = client.chat_ai.create_assistant({
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
-           "description": "Handles tier-1 customer support queries",
-           "instructions": "You are a helpful support agent. Be concise and friendly.",
-           "provider_id": "system",   # use the org's default LLM provider
-           "model_id": "gpt-4o",      # any model name the system provider exposes
+           "description": "处理一级客户支持问题",
+           "instructions": "您是支持助手。请简洁友好地回答。",
+           "provider_id": "system",   # 使用组织默认的 LLM 提供商
+           "model_id": "gpt-4o",      # system 提供商支持的模型名称
        })
 
        assistant_id = assistant["id"]
@@ -99,9 +72,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-   `provider_id` and `model_id` are required. Pass `provider_id: "system"` to delegate to the org's default LLM provider, or pass a custom provider's UUID. With `provider_id: "system"`, `model_id` accepts a model name like `"gpt-4o"`, or the literal `"Default"` to fall back to the system default model.
+   `provider_id` 与 `model_id` 为必填。传入 `provider_id: "system"` 使用组织默认的 LLM 提供商，或传入自定义提供商的 UUID。当 `provider_id: "system"` 时，`model_id` 可填模型名称（例如 `"gpt-4o"`）或字符串 `"Default"` 以使用系统默认模型。
 
-3. **Stream a chat response using the assistant**
+3. **从助手流式获取聊天响应**
 
    
      
@@ -109,9 +82,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        const response = await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
-         messages: [{ role: "user", content: "How do I reset my password?" }],
-         // id is the session UUID — reuse it to maintain conversation history
-         // If omitted, a new UUID is auto-generated each call
+         messages: [{ role: "user", content: "如何重置密码？" }],
+         // id 是会话 UUID — 重复传入以保留对话历史
+         // 若省略，每次调用将自动生成新 UUID
        })
 
        const reader = response.body!.getReader()
@@ -140,9 +113,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        response = client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
-           "messages": [{"role": "user", "content": "How do I reset my password?"}],
-           # id is the session UUID — reuse it to maintain conversation history.
-           # If omitted, a new UUID is auto-generated each call.
+           "messages": [{"role": "user", "content": "如何重置密码？"}],
+           # id 是会话 UUID — 重复传入以保留对话历史
+           # 若省略，每次调用将自动生成新 UUID
        })
 
        import json
@@ -162,9 +135,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-4. **Maintain conversation history (session ID)**
+4. **维护对话历史（session ID）**
 
-   Pass the same `id` (must be a UUID) across calls to keep context:
+   在多次调用中传入相同的 `id`（必须是 UUID）以保留上下文：
 
    
      
@@ -173,20 +146,20 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
        const sessionId = randomUUID()
 
-       // First message
+       // 第一条消息
        await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
          id: sessionId,
-         messages: [{ role: "user", content: "What's your refund policy?" }],
+         messages: [{ role: "user", content: "您的退款政策是什么？" }],
        })
 
-       // Follow-up — same session, assistant remembers context
+       // 下一条消息 — 同一会话，助手记住上下文
        await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
          id: sessionId,
-         messages: [{ role: "user", content: "How long does it take?" }],
+         messages: [{ role: "user", content: "需要多长时间处理？" }],
        })
        ```
      
@@ -196,20 +169,20 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
        session_id = str(uuid.uuid4())
 
-       # First message
+       # 第一条消息
        client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
            "id": session_id,
-           "messages": [{"role": "user", "content": "What's your refund policy?"}],
+           "messages": [{"role": "user", "content": "您的退款政策是什么？"}],
        })
 
-       # Follow-up — same session, assistant remembers context
+       # 下一条消息 — 同一会话，助手记住上下文
        client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
            "id": session_id,
-           "messages": [{"role": "user", "content": "How long does it take?"}],
+           "messages": [{"role": "user", "content": "需要多长时间处理？"}],
        })
        ```
      
@@ -217,9 +190,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 2. Create a Workflow with Activepieces and Bind it to an Assistant
+## 2. 使用 Activepieces 创建工作流并与助手关联
 
-1. **List existing flows to find your project ID**
+1. **列出现有 flows 以获取 project ID**
 
    
      
@@ -239,13 +212,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-2. **Create a new flow**
+2. **创建新 flow**
 
    
      
        ```typescript
        const flow = await client.activepieces.createFlow({
-         displayName: "CRM Update on New Lead",
+         displayName: "新 Lead 时更新 CRM",
          projectId,
        })
        console.log("Flow created:", flow.id)
@@ -254,7 +227,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
        ```python
        flow = client.activepieces.create_flow(
-           display_name="CRM Update on New Lead",
+           display_name="新 Lead 时更新 CRM",
            project_id=project_id,
        )
        print("Flow created:", flow["id"])
@@ -262,14 +235,14 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-3. **Add a Webhook trigger and publish the flow**
+3. **添加 Webhook 触发器并发布 flow**
 
-   A freshly created flow is in **DRAFT** with no trigger — the webhook URL doesn't exist yet, so `triggerFlow` would 404. Add the Webhook piece as the trigger, then publish:
+   刚创建的 flow 处于 **DRAFT** 状态且没有触发器 — webhook URL 尚未存在，因此调用 `triggerFlow` 会返回 404。添加 Webhook piece 作为触发器，然后发布：
 
    
      
        ```typescript
-       // Set the Webhook piece as the flow's trigger
+       // 将 Webhook piece 设为 flow 的触发器
        await client.activepieces.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
@@ -287,7 +260,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          },
        })
 
-       // Publish — flow status flips DISABLED → ENABLED and webhook URL becomes live
+       // 发布 — 状态从 DISABLED → ENABLED，webhook URL 开始可用
        await client.activepieces.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
@@ -296,7 +269,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
      
        ```python
-       # Set the Webhook piece as the flow's trigger
+       # 将 Webhook piece 设为 flow 的触发器
        client.activepieces.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
@@ -314,7 +287,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            },
        })
 
-       # Publish — DISABLED → ENABLED, webhook URL becomes live
+       # 发布 — DISABLED → ENABLED，webhook URL 开始可用
        client.activepieces.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
@@ -323,52 +296,50 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      
    
 
-4. **Trigger the flow manually with a payload**
+4. **手动触发 flow 并传入 payload**
 
    
      
        ```typescript
-       // Fire and forget (async)
+       // 异步（fire and forget）
        await client.activepieces.triggerFlow(flow.id, {
-         contact_name: "Jane Smith",
-         email: "jane@example.com",
+         contact_name: "张三",
+         email: "zhangsan@example.com",
        })
 
-       // Sync trigger — for this to actually return data instead of timing out,
-       // the flow needs a "Return Response" action added via applyFlowOperation
-       // ADD_ACTION (otherwise the gateway waits 30s for a response and gives up).
+       // 同步触发 — 要实际拿到返回值而非超时，flow 需要通过
+       // applyFlowOperation ADD_ACTION 添加 "Return Response" 动作
        const result = await client.activepieces.triggerFlowSync(flow.id, {
-         contact_name: "Jane Smith",
-         email: "jane@example.com",
+         contact_name: "张三",
+         email: "zhangsan@example.com",
        })
        console.log("Flow result:", result)
        ```
      
      
        ```python
-       # Fire and forget (async)
+       # 异步（fire and forget）
        client.activepieces.trigger_flow(flow["id"], {
-           "contact_name": "Jane Smith",
-           "email": "jane@example.com",
+           "contact_name": "张三",
+           "email": "zhangsan@example.com",
        })
 
-       # Sync trigger — for this to actually return data instead of timing out,
-       # the flow needs a "Return Response" action added via apply_flow_operation
-       # ADD_ACTION (otherwise the gateway waits 30s and gives up).
+       # 同步触发 — 要实际拿到返回值而非超时，flow 需要通过
+       # apply_flow_operation ADD_ACTION 添加 "Return Response" 动作
        result = client.activepieces.trigger_flow_sync(flow["id"], {
-           "contact_name": "Jane Smith",
-           "email": "jane@example.com",
+           "contact_name": "张三",
+           "email": "zhangsan@example.com",
        })
        print("Flow result:", result)
        ```
      
    
 
-5. **Bind the flow to your assistant**
+5. **将 flow 与助手关联**
 
-   Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
+   在 Imbrace dashboard 中打开助手，进入 **Tools → Workflows** 并绑定 flow。助手在对话中将能够在适当时机触发 flow。
 
-   Alternatively, update the assistant to reference the workflow by name:
+   或更新助手以按名称引用工作流：
 
    
      
@@ -376,7 +347,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        await client.chatAi.updateAssistant(assistantId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
+         workflow_function_call: [{ flow_id: flow.id, description: "新 lead 时更新 CRM" }],
        })
        ```
      
@@ -386,14 +357,14 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "workflow_function_call": [
-               {"flow_id": flow["id"], "description": "Update CRM on new lead"}
+               {"flow_id": flow["id"], "description": "新 lead 时更新 CRM"}
            ],
        })
        ```
      
    
 
-6. **Check run history**
+6. **查看运行历史**
 
    
      
@@ -418,17 +389,17 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 3. Manage Knowledge Hubs and Attach to an Assistant
+## 3. 管理 Knowledge Hub 并绑定到助手
 
-Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an assistant as its knowledge source.
+Knowledge Hub 在 **data-board** 服务（`client.boards`）中存储文件和文件夹。文件夹的 `_id` 是您传给助手作为知识来源的值。
 
-1. **Create a folder**
+1. **创建文件夹**
 
    
      
        ```typescript
        const folder = await client.boards.createFolder({
-         name: "Product Documentation",
+         name: "产品文档",
          organization_id: "org_your_org_id",
          parent_folder_id: "root",
          source_type: "upload",
@@ -439,7 +410,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
        ```python
        folder = client.boards.create_folder({
-           "name": "Product Documentation",
+           "name": "产品文档",
            "organization_id": "org_your_org_id",
            "parent_folder_id": "root",
            "source_type": "upload",
@@ -449,7 +420,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-2. **Upload a file to the folder**
+2. **上传文件到文件夹**
 
    
      
@@ -482,9 +453,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-3. **Attach the folder to the assistant**
+3. **将文件夹绑定到助手**
 
-   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
+   将文件夹的 `_id` 传入 `folder_ids` — 助手将从该文件夹的所有文件中检索。使用 `board_ids` 可额外附加 CRM data-board。旧的 `knowledge_hubs` 字段已停用。
 
    
      
@@ -493,7 +464,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          folder_ids: [folder._id],
-         // board_ids: [boardId],  // optional: attach a CRM data-board too
+         // board_ids: [boardId],  // 可选：同时附加 CRM data-board
        })
        ```
      
@@ -503,50 +474,50 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "folder_ids": [folder["_id"]],
-           # "board_ids": [board_id],  # optional: attach a CRM data-board too
+           # "board_ids": [board_id],  # 可选：同时附加 CRM data-board
        })
        ```
      
    
 
-4. **Inspect and manage folders and files**
+4. **查看和管理文件夹/文件**
 
    
      
        ```typescript
-       // Search folders
-       const folders = await client.boards.searchFolders({ q: "Product" })
+       // 搜索文件夹
+       const folders = await client.boards.searchFolders({ q: "产品" })
 
-       // Get folder with contents
+       // 获取文件夹内容
        const contents = await client.boards.getFolderContents(folder._id)
        console.log("Files:", contents.files?.length)
 
-       // Rename a folder
-       await client.boards.updateFolder(folder._id, { name: "Product Docs v2" })
+       // 重命名文件夹
+       await client.boards.updateFolder(folder._id, { name: "产品文档 v2" })
 
-       // Search files in a folder
+       // 搜索文件夹中的文件
        const files = await client.boards.searchFiles({ folderId: folder._id })
 
-       // Delete folders
+       // 删除文件夹
        await client.boards.deleteFolders({ ids: [folder._id] })
        ```
      
      
        ```python
-       # Search folders
-       folders = client.boards.search_folders(q="Product")
+       # 搜索文件夹
+       folders = client.boards.search_folders(q="产品")
 
-       # Get folder with contents
+       # 获取文件夹内容
        contents = client.boards.get_folder_contents(folder["_id"])
        print("Files:", len(contents.get("files") or []))
 
-       # Rename a folder
-       client.boards.update_folder(folder["_id"], {"name": "Product Docs v2"})
+       # 重命名文件夹
+       client.boards.update_folder(folder["_id"], {"name": "产品文档 v2"})
 
-       # Search files in a folder
+       # 搜索文件夹中的文件
        files = client.boards.search_files(folder_id=folder["_id"])
 
-       # Delete folders
+       # 删除文件夹
        client.boards.delete_folders([folder["_id"]])
        ```
      
@@ -554,18 +525,18 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 ---
 
-## 4. Manage Data Boards and Items (CRM Pipelines)
+## 4. 管理数据看板和条目（CRM Pipelines）
 
-1. **Create a board**
+1. **创建看板**
 
-   A board is a CRM pipeline — leads, deals, tasks, or any structured data.
+   看板是 CRM pipeline — leads、deals、tasks 或任何结构化数据。
 
    
      
        ```typescript
        const board = await client.boards.create({
          name: "Sales Pipeline",
-         description: "Track all active deals",
+         description: "跟踪所有活跃交易",
        })
        console.log("Board ID:", board._id)
        ```
@@ -574,32 +545,32 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        ```python
        board = client.boards.create(
            name="Sales Pipeline",
-           description="Track all active deals",
+           description="跟踪所有活跃交易",
        )
        print("Board ID:", board["_id"])
        ```
      
    
 
-2. **Add a custom field**
+2. **添加自定义字段**
 
-   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board — find your new field inside `board.fields`.
+   字段类型：`ShortText`、`LongText`、`Number`、`Dropdown`、`Date`、`Checkbox` 等。`createField` 返回已更新的看板 — 新字段位于 `board.fields` 中。
 
    
      
        ```typescript
        const updated = await client.boards.createField(board._id, {
-         name: "Company",
+         name: "公司",
          type: "ShortText",
        })
-       // Find the identifier field (auto-created with every board)
+       // 获取标识符字段（每个看板自动创建）
        const identifierField = updated.fields.find(f => f.is_identifier)
        ```
      
      
        ```python
        updated = client.boards.create_field(board["_id"], {
-           "name": "Company",
+           "name": "公司",
            "type": "ShortText",
        })
        identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
@@ -607,9 +578,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-3. **Create board items (records)**
+3. **创建看板条目（记录）**
 
-   Items use `{ fields: [{ board_field_id, value }] }` format:
+   条目使用格式 `{ fields: [{ board_field_id, value }] }`：
 
    
      
@@ -634,15 +605,15 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-4. **List and search items**
+4. **列出和搜索条目**
 
    
      
        ```typescript
-       // Paginate through items
+       // 分页条目
        const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 })
 
-       // Full-text search
+       // 全文搜索
        const { data: results } = await client.boards.search(board._id, {
          q: "Acme",
          limit: 10,
@@ -651,18 +622,18 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
      
        ```python
-       # Paginate through items
+       # 分页条目
        items = client.boards.list_items(board["_id"], limit=20, skip=0)
 
-       # Full-text search
+       # 全文搜索
        results = client.boards.search(board["_id"], q="Acme", limit=10)
        ```
      
    
 
-5. **Update and delete items**
+5. **更新和删除条目**
 
-   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
+   `updateItem` 使用数组格式 `{ data: [{ key: fieldId, value }] }`：
 
    
      
@@ -685,17 +656,17 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      
    
 
-6. **Export to CSV**
+6. **导出看板为 CSV**
 
    
      
        ```typescript
        const csv = await client.boards.exportCsv(board._id)
-       // csv is a string — write to a file or send as a download
+       // csv 是字符串 — 写入文件或作为下载发送
        ```
      
      
        ```python
        csv = client.boards.export_csv(board["_id"])
-       # csv is a str — write to a file or send as a download
+       # csv 是 str — 写入文件或作为下载发送
        ```

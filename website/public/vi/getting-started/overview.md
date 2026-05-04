@@ -1,0 +1,64 @@
+# Tổng Quan Kiến Trúc
+
+> Phạm vi, cấu trúc SDK và sự khác biệt giữa các gateway của Imbrace SDK.
+
+### Phạm Vi
+
+- SDK bao gồm **App Gateway + Server Gateway**.
+- **Journey API** và **các HTTP path dành riêng cho n8n** nằm ngoài phạm vi của repo này.
+
+### Cấu Trúc SDK
+
+```
+api-sdk/
+├── py/src/imbrace/
+│   ├── client.py              ← ImbraceClient (sync entry point)
+│   ├── async_client.py        ← AsyncImbraceClient
+│   ├── http.py                ← transport, auth headers, retry
+│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
+│   ├── environments.py        ← URL presets (develop/sandbox/stable)
+│   ├── service_registry.py    ← resolve base URL từng service
+│   ├── auth/token_manager.py  ← lưu token thread-safe
+│   ├── resources/             ← mỗi file = một resource namespace
+│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
+│   │   ├── platform.py
+│   │   ├── channel.py
+│   │   └── ...                (tổng cộng 29 resources)
+│   └── types/                 ← Pydantic models chung
+│
+└── ts/src/
+    ├── client.ts              ← ImbraceClient (entry point)
+    ├── http.ts                ← transport, auth headers, retry
+    ├── errors.ts              ← AuthError, ApiError, NetworkError
+    ├── environments.ts        ← URL presets
+    ├── service-registry.ts    ← resolve base URL từng service
+    ├── auth/token-manager.ts  ← lưu token
+    ├── resources/             ← mỗi file = một resource namespace
+    │   ├── ai-agent.ts        (AiAgentResource)
+    │   ├── platform.ts
+    │   ├── channel.ts
+    │   └── ...                (tổng cộng 29 resources)
+    └── types/                 ← TypeScript interfaces chung
+```
+
+### Sự Khác Biệt Giữa Các Gateway
+
+| Gateway        | Auth Header                     | Pattern Path              |
+| -------------- | ------------------------------- | ------------------------- |
+| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
+| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
+
+### Các Tầng Test
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  UNIT TESTS  (Không cần server, không cần API key)       │
+│  → Mock toàn bộ HTTP: pytest-httpx (Python) / vitest (TS)│
+│  → Chạy offline, phù hợp cho CI/CD                       │
+│  → Kiểm tra: SDK logic, headers, URL, params, errors     │
+├──────────────────────────────────────────────────────────┤
+│  INTEGRATION TESTS (Cần server thật + API key hợp lệ)    │
+│  → Gọi thật tới app-gatewayv2.imbrace.co                 │
+│  → Tự động bỏ qua nếu IMBRACE_API_KEY không được set     │
+└──────────────────────────────────────────────────────────┘
+```

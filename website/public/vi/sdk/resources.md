@@ -1,78 +1,76 @@
-# Resource Reference
+# Tham Chiếu Resources
 
-> Per-namespace reference for the Imbrace SDKs — assistants, AI agent, workflows, boards, contacts, and more.
+> Tham chiếu theo namespace cho Imbrace SDKs — assistants, AI agent, workflows, boards, contacts, và nhiều hơn.
 
-This page lists every resource namespace exposed by the SDK with the most common calls in each. Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). All snippets below assume `client` is the initialized instance.
+Trang này liệt kê mọi resource namespace được SDK expose với các call phổ biến nhất trong mỗi namespace. Khởi tạo client trước (xem [Cài Đặt](/vi/sdk/installation/) hoặc [Bắt Đầu Nhanh](/vi/sdk/quick-start/)). Tất cả snippets bên dưới giả định `client` là instance đã khởi tạo.
 
-For an end-to-end walkthrough that uses these resources together, see [Full Flow Guide](/sdk/full-flow-guide/).
+Để xem hướng dẫn end-to-end sử dụng các resources này cùng nhau, xem [Hướng Dẫn Luồng Đầy Đủ](/vi/sdk/full-flow-guide/).
 
 ---
 
 ## Assistants — `chatAi` / `chat_ai`
 
-Manages AI assistants (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
+Quản lý AI assistants (CRUD), chạy OpenAI-compatible completions, và xử lý document/file. Namespace này cũng bao gồm Knowledge Hub folders và knowledge bases.
 
 ### Assistant CRUD
 
 ```typescript
-// List all assistants in your account
+// Liệt kê tất cả assistants trong tài khoản
 const assistants = await client.chatAi.listAssistants();
-// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId).
-// Use the `id` field for all subsequent calls.
 
-// Get a single assistant
+// Lấy một assistant
 const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
 
-// Create — provider_id and model_id are required
+// Tạo — provider_id và model_id là bắt buộc
 const created = await client.chatAi.createAssistant({
   name: "Support Bot",
   workflow_name: "support_bot_v1",
   provider_id: "system",
   model_id: "gpt-4o",
-  description: "Handles tier-1 support queries",
+  description: "Xử lý các câu hỏi hỗ trợ cấp 1",
 });
 
-// Update — workflow_name is required on update too
+// Cập nhật — workflow_name cũng bắt buộc khi update
 const updated = await client.chatAi.updateAssistant(created.id, {
   name: "Support Bot v2",
   workflow_name: "support_bot_v1",
 });
 
-// Update only the system instructions
+// Cập nhật chỉ system instructions
 await client.chatAi.updateAssistantInstructions(
   created.id,
-  "You are a helpful support agent.",
+  "Bạn là trợ lý hỗ trợ hữu ích.",
 );
 
 await client.chatAi.deleteAssistant(created.id);
 ```
 
 ```python
-# List all assistants
+# Liệt kê tất cả assistants
 assistants = client.chat_ai.list_assistants()
 
-# Get a single assistant
+# Lấy một assistant
 assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
 
-# Create — provider_id and model_id are required
+# Tạo — provider_id và model_id là bắt buộc
 created = client.chat_ai.create_assistant({
     "name":          "Support Bot",
     "workflow_name": "support_bot_v1",
     "provider_id":   "system",
     "model_id":      "gpt-4o",
-    "description":   "Handles tier-1 support queries",
+    "description":   "Xử lý các câu hỏi hỗ trợ cấp 1",
 })
 
-# Update
+# Cập nhật
 updated = client.chat_ai.update_assistant(created["id"], {
     "name":          "Support Bot v2",
     "workflow_name": "support_bot_v1",
 })
 
-# Update only the system instructions
+# Cập nhật chỉ system instructions
 client.chat_ai.update_assistant_instructions(
     created["id"],
-    "You are a helpful support agent.",
+    "Bạn là trợ lý hỗ trợ hữu ích.",
 )
 
 client.chat_ai.delete_assistant(created["id"])
@@ -84,8 +82,8 @@ client.chat_ai.delete_assistant(created["id"])
 const response = await client.chatAi.chat({
   model: "gpt-4o",
   messages: [
-    { role: "system", content: "You are a helpful CRM assistant." },
-    { role: "user", content: "Summarize this customer note: ..." },
+    { role: "system", content: "Bạn là trợ lý CRM hữu ích." },
+    { role: "user", content: "Tóm tắt ghi chú khách hàng này: ..." },
   ],
 });
 console.log(response.choices[0].message.content);
@@ -95,8 +93,8 @@ console.log(response.choices[0].message.content);
 response = client.chat_ai.chat({
     "model": "gpt-4o",
     "messages": [
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        {"role": "system", "content": "Bạn là trợ lý CRM hữu ích."},
+        {"role": "user",   "content": "Tóm tắt ghi chú khách hàng này: ..."},
     ],
 })
 print(response["choices"][0]["message"]["content"])
@@ -112,20 +110,14 @@ const models = await client.chatAi.listModels();
 models = client.chat_ai.list_models()
 ```
 
-### File processing
+### File Processing
 
 ```typescript
-// Extract structured data from a PDF or image
+// Trích xuất dữ liệu có cấu trúc từ PDF hoặc image
 const result = await client.chatAi.extractFile({
   modelName: "gpt-4o",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
-});
-
-// Upload a file for processing
-const uploaded = await client.chatAi.uploadFile({
-  file: fileBuffer,
-  name: "report.pdf",
 });
 ```
 
@@ -139,7 +131,7 @@ print(result["data"])
 # {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
 
-### Persistent chat sessions (Python)
+### Persistent Chat Sessions (Python)
 
 ```python
 chat    = client.chat_ai.create_chat({"title": "Support Chat"})
@@ -147,46 +139,45 @@ history = client.chat_ai.list_chats()
 client.chat_ai.delete_chat(chat["id"])
 ```
 
-### Knowledge Hub — folders & knowledge bases
+### Knowledge Hub — Folders & Knowledge Bases
 
-Folders organize knowledge bases. A knowledge base is a set of files an assistant can retrieve from. Pass folder IDs as `folder_ids` when creating an assistant — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant).
+Folders tổ chức knowledge bases. Truyền folder IDs như `folder_ids` khi tạo assistant — xem [Hướng Dẫn Luồng Đầy Đủ §3](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-assistant).
 
 ```typescript
 // Folders
 const folders = await client.chatAi.listFolders();
-const folder  = await client.chatAi.createFolder({ name: "Q1 Reports" });
-await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 Reports" });
+const folder  = await client.chatAi.createFolder({ name: "Báo Cáo Q1" });
+await client.chatAi.updateFolder(folder.id, { name: "Báo Cáo Q1 2025" });
 await client.chatAi.deleteFolder(folder.id);
 
 // Knowledge bases
 const all = await client.chatAi.listKnowledge();
 const kb  = await client.chatAi.getKnowledge("kb_id");
 const created = await client.chatAi.createKnowledge({
-  name: "Support Docs",
+  name: "Tài Liệu Hỗ Trợ",
   folderId: folder.id,
 });
 await client.chatAi.deleteKnowledge(created.id);
 ```
 
 ```python
-# Folders are exposed via client.chat_ai (same as TypeScript)
-# Refer to the SDK source for the exact method signatures.
+# Folders được expose qua client.chat_ai (giống TypeScript)
 knowledge_bases = client.chat_ai.list_knowledge()
 ```
 
 ---
 
-## OpenAI-compatible AI service — `client.ai` (Python)
+## OpenAI-compatible AI Service — `client.ai` (Python)
 
-Raw OpenAI-style completions, streaming, and embeddings against the `aiv2` service. The TypeScript SDK does not currently expose this namespace — use [Assistants → Completions](#completions) instead.
+Raw OpenAI-style completions, streaming, và embeddings. TypeScript SDK hiện không expose namespace này — dùng [Assistants → Completions](#completions) thay thế.
 
 ```python
 # Single completion
 response = client.ai.complete(
     model="gpt-4o",
     messages=[
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        {"role": "system", "content": "Bạn là trợ lý CRM hữu ích."},
+        {"role": "user",   "content": "Tóm tắt ghi chú khách hàng này: ..."},
     ],
     temperature=0.7,
 )
@@ -195,14 +186,14 @@ print(response["choices"][0]["message"]["content"])
 # Streaming
 for chunk in client.ai.stream(
     model="gpt-4o",
-    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
+    messages=[{"role": "user", "content": "Soạn email follow-up cho lead này."}],
 ):
     print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
 # Embeddings
 result = client.ai.embed(
     model="text-embedding-ada-002",
-    input=["customer complained about billing", "billing issue escalated"],
+    input=["khách hàng khiếu nại về billing", "vấn đề billing leo thang"],
 )
 ```
 
@@ -210,11 +201,9 @@ result = client.ai.embed(
 
 ## AI Agent — `aiAgent` / `ai_agent`
 
-Streaming chat with assistants, knowledge-base embedding management, parquet data, and end-user chat sessions. For the full method-by-method reference, see [AI Agent](/sdk/ai-agent/). The most common entry point is `streamChat`.
+Streaming chat với assistants, quản lý embedding knowledge-base, parquet data, và end-user chat sessions. Xem [AI Agent](/vi/sdk/ai-agent/) để biết tham chiếu method đầy đủ. Entry point phổ biến nhất là `streamChat`.
 
-### Stream chat (SSE)
-
-Keep the `id` (session id) across turns to maintain conversation history. Omit it on the first message to let the SDK generate one. `user_id` is also optional — resolved from the auth context.
+### Stream Chat (SSE)
 
 ```typescript
 const sessionId = crypto.randomUUID();
@@ -223,7 +212,7 @@ const response = await client.aiAgent.streamChat({
   id: sessionId,
   assistant_id: "asst_xxx",
   organization_id: "org_xxx",
-  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+  messages: [{ role: "user", content: "Deals nào đã chốt quý này?" }],
 });
 
 const reader = response.body!.getReader();
@@ -247,13 +236,13 @@ while (true) {
 
 ```python
 
-session_id = str(uuid.uuid4())  # persist for the conversation lifetime
+session_id = str(uuid.uuid4())
 
 resp = client.ai_agent.stream_chat({
     "id": session_id,
     "assistant_id": "asst_xxx",
     "organization_id": "org_xxx",
-    "messages": [{"role": "user", "content": "What deals closed this quarter?"}],
+    "messages": [{"role": "user", "content": "Deals nào đã chốt quý này?"}],
 })
 
 for line in resp.iter_lines():
@@ -261,7 +250,7 @@ for line in resp.iter_lines():
         print(line)
 ```
 
-### Prompt suggestions
+### Prompt Suggestions
 
 ```typescript
 const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
@@ -271,7 +260,7 @@ const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
 suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
 ```
 
-### Embedding files (knowledge base)
+### Embedding Files (Knowledge Base)
 
 ```typescript
 const files = await client.aiAgent.listEmbeddingFiles();
@@ -294,7 +283,7 @@ classified = client.ai_agent.classify_file(
 )
 ```
 
-### Parquet data
+### Parquet Data
 
 ```typescript
 const job = await client.aiAgent.generateParquet({
@@ -316,7 +305,7 @@ files = client.ai_agent.list_parquet_files()
 client.ai_agent.delete_parquet_file("exports/users.parquet")
 ```
 
-### End-user chat client
+### End-user Chat Client
 
 ```typescript
 const chat = await client.aiAgent.createClientChat({
@@ -328,9 +317,9 @@ const chat = await client.aiAgent.createClientChat({
   message: {
     id: crypto.randomUUID(),
     role: "user",
-    content: "Hello, I need help with my order.",
+    content: "Xin chào, tôi cần hỗ trợ về đơn hàng.",
     createdAt: new Date().toISOString(),
-    parts: [{ type: "text", text: "Hello, I need help with my order." }],
+    parts: [{ type: "text", text: "Xin chào, tôi cần hỗ trợ về đơn hàng." }],
   },
 });
 
@@ -351,9 +340,9 @@ chat = client.ai_agent.create_client_chat({
     "message": {
         "id":        str(uuid.uuid4()),
         "role":      "user",
-        "content":   "Hello",
+        "content":   "Xin chào",
         "createdAt": datetime.now(timezone.utc).isoformat(),
-        "parts":     [{"type": "text", "text": "Hello"}],
+        "parts":     [{"type": "text", "text": "Xin chào"}],
     },
 })
 
@@ -365,7 +354,7 @@ client.ai_agent.delete_client_chat(chat["id"])
 
 ## Workflows — Activepieces (`client.activepieces`, TypeScript)
 
-Activepieces is the visual workflow builder. The TypeScript SDK exposes flows, runs, folders, connections, tables, and records. For the full lifecycle (create → publish → trigger), see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant).
+Activepieces là visual workflow builder. Để xem toàn bộ lifecycle (create → publish → trigger), xem [Hướng Dẫn Luồng Đầy Đủ §2](/vi/sdk/full-flow-guide/#2-tạo-workflow-với-activepieces-và-liên-kết-với-assistant).
 
 ### Flows
 
@@ -375,14 +364,14 @@ const { data: flows } = await client.activepieces.listFlows();
 const flow = await client.activepieces.getFlow("flow_id");
 
 const newFlow = await client.activepieces.createFlow({
-  displayName: "New Lead Notification",
+  displayName: "Thông Báo Lead Mới",
   folderId: "folder_id",
 });
 
 await client.activepieces.deleteFlow("flow_id");
 ```
 
-### Trigger a flow
+### Trigger a Flow
 
 ```typescript
 // Fire and forget
@@ -391,14 +380,14 @@ await client.activepieces.triggerFlow("flow_id", {
   event: "lead_qualified",
 });
 
-// Wait for result
+// Đợi kết quả
 const result = await client.activepieces.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 ```
 
-### Runs, folders, connections, tables
+### Runs, Folders, Connections, Tables
 
 ```typescript
 const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
@@ -420,9 +409,9 @@ const { data: records }  = await client.activepieces.listRecords({ tableId: "tab
 
 ---
 
-## Boards & items — `client.boards`
+## Boards & Items — `client.boards`
 
-Boards are the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Pass board ids in `board_ids` when creating an assistant to give it access to that data — see [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
+Boards là core data store cho CRM pipelines — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào. Xem [Hướng Dẫn Luồng Đầy Đủ §4](/vi/sdk/full-flow-guide/#4-quản-lý-data-boards-và-items-crm-pipeline).
 
 ### Board CRUD
 
@@ -479,25 +468,25 @@ const results = await client.boards.search("board_id", { q: "enterprise" });
 results = client.boards.search("board_id", {"query": "enterprise"})
 ```
 
-### Fields, segments, export
+### Fields, Segments, Export
 
 ```typescript
 // Fields
 const field = await client.boards.createField("board_id", {
-  name: "Deal Value",
+  name: "Giá Trị Deal",
   type: "number",
 });
-await client.boards.updateField("board_id", field.id, { name: "Contract Value" });
+await client.boards.updateField("board_id", field.id, { name: "Giá Trị Hợp Đồng" });
 await client.boards.deleteField("board_id", field.id);
 
 // Segments
 const { data: segments } = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
-  name: "High Value Leads",
+  name: "Leads Giá Trị Cao",
   filters: [{ field: "value", op: "gt", value: 10000 }],
 });
 
-// Export to CSV
+// Xuất CSV
 const csv = await client.boards.exportCsv("board_id");
 ```
 
@@ -546,26 +535,26 @@ files     = client.contacts.get_files("contact_id")
 ## Conversations — `client.conversations`
 
 ```typescript
-// Search
+// Tìm kiếm
 const { data: convs } = await client.conversations.search({
   businessUnitId: "bu_xxx",
   q: "support",
   limit: 20,
 });
 
-// Outstanding (unresolved)
+// Chưa xử lý
 const { data: open } = await client.conversations.getOutstanding({
   businessUnitId: "bu_xxx",
   limit: 50,
 });
 
-// Assign
+// Phân công
 await client.conversations.assignTeamMember({
   conversation_id: "conv_xxx",
   user_id: "user_xxx",
 });
 
-// Update status
+// Cập nhật trạng thái
 await client.conversations.updateStatus({
   conversation_id: "conv_xxx",
   status: "resolved",
@@ -596,7 +585,7 @@ client.conversations.update_status({
 const channels = await client.channel.list();
 
 await client.messages.send("conversation_id", {
-  parts: [{ type: "text", text: "Hello, how can I help you today?" }],
+  parts: [{ type: "text", text: "Xin chào, tôi có thể giúp gì cho bạn hôm nay?" }],
 });
 
 const msgs = await client.messages.list("conversation_id");
@@ -608,7 +597,7 @@ channels = client.channel.list()
 
 client.messages.send(
     type="text",
-    text="Hello, how can I help you today?",
+    text="Xin chào, tôi có thể giúp gì cho bạn hôm nay?",
 )
 
 msgs = client.messages.list(limit=20)
@@ -616,7 +605,7 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## Channel automation workflows — `client.workflows` (Python)
+## Channel Automation Workflows — `client.workflows` (Python)
 
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
@@ -625,7 +614,7 @@ whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp
 
 ---
 
-## Campaigns & touchpoints — `client.campaign` (Python)
+## Campaigns & Touchpoints — `client.campaign` (Python)
 
 ```python
 # Campaign CRUD
@@ -646,13 +635,13 @@ client.campaign.create_touchpoint({
 client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
 client.campaign.delete_touchpoint("touchpoint_id")
 
-# Validate touchpoint config before saving
+# Kiểm tra cấu hình touchpoint trước khi lưu
 result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
 ```
 
 ---
 
-## Message suggestion — `client.message_suggestion` (Python)
+## Message Suggestion — `client.message_suggestion` (Python)
 
 ```python
 suggestions = client.message_suggestion.get_suggestions({

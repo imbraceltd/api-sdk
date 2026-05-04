@@ -139,7 +139,7 @@ Chat-client (widget): `registerChatClient(body)`, `createClientChat(body)`, `lis
 System: `getConfig()`, `getHealth()`, `getVersion()`.
 
 ### `client.ai`
-AI utilities: completion, suggestions, prediction helpers.
+LLM completions (`complete()`), streaming (`stream()`), embeddings (`embed()`). Assistants V1/V2 CRUD, assistant apps, RAG file management. Guardrails & guardrail providers (CRUD + test). Custom LLM providers, model listing, tool server verification.
 
 ### `client.channel`
 Channel configuration (WhatsApp, Facebook, Instagram, WeChat, LINE, Email, Web): `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`.
@@ -155,25 +155,29 @@ Other: `listCategories()`, `postChannelWorkflows(body)`, `downloadMarketPlaceFil
 Outbound campaign management: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`, `launch(id)`.
 
 ### `client.outbounds`
-Outbound message operations.
+Send outbound messages via WhatsApp (with templates) or Email (subject, body, HTML): `sendWhatsApp(body)`, `sendEmail(body)`.
 
 ### `client.settings`
-Message templates, email templates, user management settings.
+Message template CRUD (`listMessageTemplates()`, `createMessageTemplate()`, `getMessageTemplate()`, `updateMessageTemplate()`, `deleteMessageTemplate()`, `searchMessageTemplates()`, v2 variants). WhatsApp template listing (v1/v2). User management: `listUsers()`, `getUserRolesCount()`, `bulkInviteUsers()`.
 
 ### `client.schedule`
-Scheduled message / job management.
+IPS scheduler management: `list(filter?)`, `delete(id)`.
 
 ### `client.sessions`
-User session management.
+Session lifecycle: `list(params?)`, `get(id)`, `create(body)`, `delete(id)`. Workspace/directory-aware filtering.
 
 ### `client.categories`
-Category / tag management.
+Category CRUD: `list()`, `get(id)`, `create(body)`, `update(id, body)`, `delete(id)`. Org-level filtering, `apply_to` control.
 
 ### `client.ips`
-IPS (Intelligent Prospect Scoring) operations.
+User profiles: `getProfile()`, `getMyProfile()`, `updateProfile()`, `searchProfiles()`, `follow()`, `unfollow()`, `getFollowers()`, `getFollowing()`.
+Identities: `listIdentities()`, `unlinkIdentity()`.
+Schedulers: `listSchedulers()`, `deleteScheduler()`, `getSchedulerFilterOptions()`.
+Workflows: `listWorkflows()`, `listApWorkflows()`.
+External data sync: `listExternalDataSync()`, `deleteExternalDataSync()`, `enableExternalDataSync()`.
 
 ### `client.platform`
-Platform-level admin operations.
+Multi-tenant admin (47+ methods): user/org/team/permission management, N8n workflows & credentials, app lifecycle, email senders, rooms, physical stores, Facebook auth, knowledge uploads, business units, contact management.
 
 ### `client.dataFiles`
 Data file management.
@@ -182,22 +186,22 @@ Data file management.
 Folder management (standalone, separate from boards KnowledgeHub).
 
 ### `client.chatAi`
-Chat AI / LLM-powered conversation features.
+Chat completions (`chat(body)`), chats CRUD (`listChats()`, `createChat()`, `deleteChat()`). File upload/extraction (`uploadFile()`, `uploadAgentFile()`, `extractFile()`). Audio transcription & TTS (`transcribe()`, `speech()`). Knowledge base CRUD. Custom prompts & tools CRUD. Document AI (`processDocument()`, `listDocumentModels()`). Assistant management (`listAssistants()`, `createAssistant()`, `updateAssistant()`, `deleteAssistant()`). Models: `listModels()`.
 
 ### `client.messageSuggestion`
-AI-powered message suggestion for agents.
+`getSuggestions(body)` — AI-powered reply suggestion given message and optional context.
 
 ### `client.predict`
-Predictive analytics and scoring.
+`predict(body)` — generic prediction endpoint.
 
 ### `client.activepieces`
-ActivePieces automation integration.
+Flows CRUD & trigger (`listFlows()`, `createFlow()`, `triggerFlow()`, `triggerFlowSync()`), runs history, folder organization, app connections (`upsertConnection()`), piece discovery, trigger testing, tables/records, MCP server management (CRUD + token rotation), user invitations.
 
 ### `client.fileService`
-General file upload/download service.
+File upload (regular + agent), `listFiles()`, `searchFiles()`, `getFile()`. Download: binary, HTML, or text content. `getPublicDownloadUrl()`, `updateFileDataContent()`, `deleteFile()`, `deleteAllFiles()`.
 
 ### `client.license`
-License and subscription management.
+`get()` — current license info. `activate(key)` — activate by license key.
 
 ### `client.health`
 Health check: `check()` — pings gateway root `/`.
@@ -256,6 +260,7 @@ Full documentation files (plain Markdown, AI-readable):
 - [Getting Started — Setup](https://imbraceltd.github.io/api-sdk/getting-started/setup.md): Environment and credentials setup
 - [Testing Guide](https://imbraceltd.github.io/api-sdk/guides/testing.md): Unit tests, integration tests, coverage, lint
 - [Troubleshooting](https://imbraceltd.github.io/api-sdk/guides/troubleshooting.md): Common errors and fixes
+- [Vibe Coding](https://imbraceltd.github.io/api-sdk/guides/vibe-coding.md): Use llms.txt with Claude, Cursor, Copilot to code faster with the SDK
 
 ### Project & Development
 

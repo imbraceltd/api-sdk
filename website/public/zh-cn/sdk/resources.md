@@ -1,78 +1,76 @@
-# Resource Reference
+# 资源参考
 
-> Per-namespace reference for the Imbrace SDKs — assistants, AI agent, workflows, boards, contacts, and more.
+> Imbrace SDKs 的按命名空间参考 — assistants、AI agent、workflows、boards、contacts 等。
 
-This page lists every resource namespace exposed by the SDK with the most common calls in each. Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). All snippets below assume `client` is the initialized instance.
+本页列出 SDK 公开的每个资源命名空间以及每个命名空间中最常用的调用。首先初始化 client（参阅[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。以下所有代码片段均假设 `client` 是已初始化的实例。
 
-For an end-to-end walkthrough that uses these resources together, see [Full Flow Guide](/sdk/full-flow-guide/).
+端到端演练请参阅[完整流程指南](/zh-cn/sdk/full-flow-guide/)。
 
 ---
 
-## Assistants — `chatAi` / `chat_ai`
+## 助手 — `chatAi` / `chat_ai`
 
-Manages AI assistants (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
+管理 AI 助手（CRUD）、运行 OpenAI 兼容的 completions，以及处理 document/file。该命名空间也涵盖 Knowledge Hub 文件夹和 knowledge bases。
 
-### Assistant CRUD
+### 助手 CRUD
 
 ```typescript
-// List all assistants in your account
+// 列出账户中的所有助手
 const assistants = await client.chatAi.listAssistants();
-// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId).
-// Use the `id` field for all subsequent calls.
 
-// Get a single assistant
+// 获取单个助手
 const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
 
-// Create — provider_id and model_id are required
+// 创建 — provider_id 和 model_id 为必填
 const created = await client.chatAi.createAssistant({
   name: "Support Bot",
   workflow_name: "support_bot_v1",
   provider_id: "system",
   model_id: "gpt-4o",
-  description: "Handles tier-1 support queries",
+  description: "处理一级支持问题",
 });
 
-// Update — workflow_name is required on update too
+// 更新 — 更新时 workflow_name 也是必填
 const updated = await client.chatAi.updateAssistant(created.id, {
   name: "Support Bot v2",
   workflow_name: "support_bot_v1",
 });
 
-// Update only the system instructions
+// 仅更新系统指令
 await client.chatAi.updateAssistantInstructions(
   created.id,
-  "You are a helpful support agent.",
+  "您是一位乐于助人的支持代理。",
 );
 
 await client.chatAi.deleteAssistant(created.id);
 ```
 
 ```python
-# List all assistants
+# 列出所有助手
 assistants = client.chat_ai.list_assistants()
 
-# Get a single assistant
+# 获取单个助手
 assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
 
-# Create — provider_id and model_id are required
+# 创建 — provider_id 和 model_id 为必填
 created = client.chat_ai.create_assistant({
     "name":          "Support Bot",
     "workflow_name": "support_bot_v1",
     "provider_id":   "system",
     "model_id":      "gpt-4o",
-    "description":   "Handles tier-1 support queries",
+    "description":   "处理一级支持问题",
 })
 
-# Update
+# 更新
 updated = client.chat_ai.update_assistant(created["id"], {
     "name":          "Support Bot v2",
     "workflow_name": "support_bot_v1",
 })
 
-# Update only the system instructions
+# 仅更新系统指令
 client.chat_ai.update_assistant_instructions(
     created["id"],
-    "You are a helpful support agent.",
+    "您是一位乐于助人的支持代理。",
 )
 
 client.chat_ai.delete_assistant(created["id"])
@@ -84,8 +82,8 @@ client.chat_ai.delete_assistant(created["id"])
 const response = await client.chatAi.chat({
   model: "gpt-4o",
   messages: [
-    { role: "system", content: "You are a helpful CRM assistant." },
-    { role: "user", content: "Summarize this customer note: ..." },
+    { role: "system", content: "您是 CRM 助手。" },
+    { role: "user", content: "总结这位客户的备注：..." },
   ],
 });
 console.log(response.choices[0].message.content);
@@ -95,14 +93,14 @@ console.log(response.choices[0].message.content);
 response = client.chat_ai.chat({
     "model": "gpt-4o",
     "messages": [
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        {"role": "system", "content": "您是 CRM 助手。"},
+        {"role": "user",   "content": "总结这位客户的备注：..."},
     ],
 })
 print(response["choices"][0]["message"]["content"])
 ```
 
-### Models
+### 模型
 
 ```typescript
 const models = await client.chatAi.listModels();
@@ -112,20 +110,14 @@ const models = await client.chatAi.listModels();
 models = client.chat_ai.list_models()
 ```
 
-### File processing
+### 文件处理
 
 ```typescript
-// Extract structured data from a PDF or image
+// 从 PDF 或图像中提取结构化数据
 const result = await client.chatAi.extractFile({
   modelName: "gpt-4o",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
-});
-
-// Upload a file for processing
-const uploaded = await client.chatAi.uploadFile({
-  file: fileBuffer,
-  name: "report.pdf",
 });
 ```
 
@@ -139,7 +131,7 @@ print(result["data"])
 # {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
 ```
 
-### Persistent chat sessions (Python)
+### 持久化聊天会话（Python）
 
 ```python
 chat    = client.chat_ai.create_chat({"title": "Support Chat"})
@@ -147,62 +139,61 @@ history = client.chat_ai.list_chats()
 client.chat_ai.delete_chat(chat["id"])
 ```
 
-### Knowledge Hub — folders & knowledge bases
+### Knowledge Hub — 文件夹和 Knowledge Bases
 
-Folders organize knowledge bases. A knowledge base is a set of files an assistant can retrieve from. Pass folder IDs as `folder_ids` when creating an assistant — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant).
+文件夹组织 knowledge bases。创建助手时在 `folder_ids` 中传入文件夹 ID — 参阅[完整流程指南 §3](/zh-cn/sdk/full-flow-guide/#3-管理-knowledge-hub-并绑定到助手)。
 
 ```typescript
-// Folders
+// 文件夹
 const folders = await client.chatAi.listFolders();
-const folder  = await client.chatAi.createFolder({ name: "Q1 Reports" });
-await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 Reports" });
+const folder  = await client.chatAi.createFolder({ name: "Q1 报告" });
+await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 报告" });
 await client.chatAi.deleteFolder(folder.id);
 
 // Knowledge bases
 const all = await client.chatAi.listKnowledge();
 const kb  = await client.chatAi.getKnowledge("kb_id");
 const created = await client.chatAi.createKnowledge({
-  name: "Support Docs",
+  name: "支持文档",
   folderId: folder.id,
 });
 await client.chatAi.deleteKnowledge(created.id);
 ```
 
 ```python
-# Folders are exposed via client.chat_ai (same as TypeScript)
-# Refer to the SDK source for the exact method signatures.
+# 文件夹通过 client.chat_ai 公开（与 TypeScript 相同）
 knowledge_bases = client.chat_ai.list_knowledge()
 ```
 
 ---
 
-## OpenAI-compatible AI service — `client.ai` (Python)
+## OpenAI 兼容 AI 服务 — `client.ai`（Python）
 
-Raw OpenAI-style completions, streaming, and embeddings against the `aiv2` service. The TypeScript SDK does not currently expose this namespace — use [Assistants → Completions](#completions) instead.
+原始 OpenAI 风格的 completions、streaming 和 embeddings。TypeScript SDK 目前不公开此命名空间 — 请改用[助手 → Completions](#completions)。
 
 ```python
-# Single completion
+# 单次 completion
 response = client.ai.complete(
     model="gpt-4o",
     messages=[
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        {"role": "system", "content": "您是 CRM 助手。"},
+        {"role": "user",   "content": "总结这位客户的备注：..."},
     ],
     temperature=0.7,
 )
 print(response["choices"][0]["message"]["content"])
 
-# Streaming
+# 流式传输
 for chunk in client.ai.stream(
     model="gpt-4o",
-    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
+    messages=[{"role": "user", "content": "为这个 lead 起草跟进邮件。"}],
 ):
     print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
 
 # Embeddings
 result = client.ai.embed(
     model="text-embedding-ada-002",
-    input=["customer complained about billing", "billing issue escalated"],
+    input=["客户投诉计费问题", "计费问题升级"],
 )
 ```
 
@@ -210,11 +201,9 @@ result = client.ai.embed(
 
 ## AI Agent — `aiAgent` / `ai_agent`
 
-Streaming chat with assistants, knowledge-base embedding management, parquet data, and end-user chat sessions. For the full method-by-method reference, see [AI Agent](/sdk/ai-agent/). The most common entry point is `streamChat`.
+与助手的流式聊天、knowledge base embedding 管理、parquet 数据和终端用户聊天会话。参阅 [AI Agent](/zh-cn/sdk/ai-agent/) 获取完整的方法参考。最常用的入口是 `streamChat`。
 
-### Stream chat (SSE)
-
-Keep the `id` (session id) across turns to maintain conversation history. Omit it on the first message to let the SDK generate one. `user_id` is also optional — resolved from the auth context.
+### 流式聊天（SSE）
 
 ```typescript
 const sessionId = crypto.randomUUID();
@@ -223,7 +212,7 @@ const response = await client.aiAgent.streamChat({
   id: sessionId,
   assistant_id: "asst_xxx",
   organization_id: "org_xxx",
-  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+  messages: [{ role: "user", content: "本季度哪些交易已成交？" }],
 });
 
 const reader = response.body!.getReader();
@@ -247,13 +236,13 @@ while (true) {
 
 ```python
 
-session_id = str(uuid.uuid4())  # persist for the conversation lifetime
+session_id = str(uuid.uuid4())
 
 resp = client.ai_agent.stream_chat({
     "id": session_id,
     "assistant_id": "asst_xxx",
     "organization_id": "org_xxx",
-    "messages": [{"role": "user", "content": "What deals closed this quarter?"}],
+    "messages": [{"role": "user", "content": "本季度哪些交易已成交？"}],
 })
 
 for line in resp.iter_lines():
@@ -261,7 +250,7 @@ for line in resp.iter_lines():
         print(line)
 ```
 
-### Prompt suggestions
+### 提示建议
 
 ```typescript
 const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
@@ -271,7 +260,7 @@ const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
 suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
 ```
 
-### Embedding files (knowledge base)
+### Embedding 文件（Knowledge Base）
 
 ```typescript
 const files = await client.aiAgent.listEmbeddingFiles();
@@ -294,7 +283,7 @@ classified = client.ai_agent.classify_file(
 )
 ```
 
-### Parquet data
+### Parquet 数据
 
 ```typescript
 const job = await client.aiAgent.generateParquet({
@@ -316,7 +305,7 @@ files = client.ai_agent.list_parquet_files()
 client.ai_agent.delete_parquet_file("exports/users.parquet")
 ```
 
-### End-user chat client
+### 终端用户聊天客户端
 
 ```typescript
 const chat = await client.aiAgent.createClientChat({
@@ -328,9 +317,9 @@ const chat = await client.aiAgent.createClientChat({
   message: {
     id: crypto.randomUUID(),
     role: "user",
-    content: "Hello, I need help with my order.",
+    content: "您好，我需要帮助。",
     createdAt: new Date().toISOString(),
-    parts: [{ type: "text", text: "Hello, I need help with my order." }],
+    parts: [{ type: "text", text: "您好，我需要帮助。" }],
   },
 });
 
@@ -351,9 +340,9 @@ chat = client.ai_agent.create_client_chat({
     "message": {
         "id":        str(uuid.uuid4()),
         "role":      "user",
-        "content":   "Hello",
+        "content":   "您好",
         "createdAt": datetime.now(timezone.utc).isoformat(),
-        "parts":     [{"type": "text", "text": "Hello"}],
+        "parts":     [{"type": "text", "text": "您好"}],
     },
 })
 
@@ -363,75 +352,63 @@ client.ai_agent.delete_client_chat(chat["id"])
 
 ---
 
-## Workflows — Activepieces (`client.activepieces`, TypeScript)
+## 工作流 — Activepieces (`client.activepieces`，TypeScript)
 
-Activepieces is the visual workflow builder. The TypeScript SDK exposes flows, runs, folders, connections, tables, and records. For the full lifecycle (create → publish → trigger), see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant).
+完整 lifecycle（create → publish → trigger），参阅[完整流程指南 §2](/zh-cn/sdk/full-flow-guide/#2-使用-activepieces-创建工作流并与助手关联)。
 
 ### Flows
 
 ```typescript
 const { data: flows } = await client.activepieces.listFlows();
-
 const flow = await client.activepieces.getFlow("flow_id");
-
 const newFlow = await client.activepieces.createFlow({
-  displayName: "New Lead Notification",
+  displayName: "新 Lead 通知",
   folderId: "folder_id",
 });
-
 await client.activepieces.deleteFlow("flow_id");
 ```
 
-### Trigger a flow
+### 触发 Flow
 
 ```typescript
-// Fire and forget
+// 异步触发
 await client.activepieces.triggerFlow("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 
-// Wait for result
+// 等待结果
 const result = await client.activepieces.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 ```
 
-### Runs, folders, connections, tables
+### Runs、文件夹、连接、表
 
 ```typescript
 const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
 const run                = await client.activepieces.getRun("run_id");
-
 const { data: folders }  = await client.activepieces.listFolders();
-const folder             = await client.activepieces.createFolder({ displayName: "CRM Automations" });
-
+const folder             = await client.activepieces.createFolder({ displayName: "CRM 自动化" });
 const { data: connections } = await client.activepieces.listConnections();
-await client.activepieces.upsertConnection({
-  name: "slack-integration",
-  type: "OAUTH2",
-  value: { access_token: "xoxb-xxx" },
-});
-
 const { data: tables }   = await client.activepieces.listTables();
 const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
 ```
 
 ---
 
-## Boards & items — `client.boards`
+## 看板 & 条目 — `client.boards`
 
-Boards are the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Pass board ids in `board_ids` when creating an assistant to give it access to that data — see [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
+看板是 CRM pipeline 的核心数据存储。参阅[完整流程指南 §4](/zh-cn/sdk/full-flow-guide/#4-管理数据看板和条目crm-pipelines)。
 
-### Board CRUD
+### 看板 CRUD
 
 ```typescript
 const { data: boards } = await client.boards.list();
 const board = await client.boards.get("board_id");
-
-const newBoard = await client.boards.create({ name: "Enterprise Leads" });
-await client.boards.update("board_id", { name: "Enterprise Leads 2025" });
+const newBoard = await client.boards.create({ name: "企业 Leads" });
+await client.boards.update("board_id", { name: "企业 Leads 2025" });
 await client.boards.delete("board_id");
 ```
 
@@ -439,7 +416,7 @@ await client.boards.delete("board_id");
 boards = client.boards.list().get("data", [])
 ```
 
-### Items
+### 条目
 
 ```typescript
 const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
@@ -469,7 +446,7 @@ client.boards.update_item("board_id", lead["id"], {
 })
 ```
 
-### Search
+### 搜索
 
 ```typescript
 const results = await client.boards.search("board_id", { q: "enterprise" });
@@ -479,25 +456,25 @@ const results = await client.boards.search("board_id", { q: "enterprise" });
 results = client.boards.search("board_id", {"query": "enterprise"})
 ```
 
-### Fields, segments, export
+### 字段、段和导出
 
 ```typescript
-// Fields
+// 字段
 const field = await client.boards.createField("board_id", {
-  name: "Deal Value",
+  name: "交易价值",
   type: "number",
 });
-await client.boards.updateField("board_id", field.id, { name: "Contract Value" });
+await client.boards.updateField("board_id", field.id, { name: "合同价值" });
 await client.boards.deleteField("board_id", field.id);
 
-// Segments
+// 段
 const { data: segments } = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
-  name: "High Value Leads",
+  name: "高价值 Leads",
   filters: [{ field: "value", op: "gt", value: 10000 }],
 });
 
-// Export to CSV
+// 导出 CSV
 const csv = await client.boards.exportCsv("board_id");
 ```
 
@@ -507,7 +484,7 @@ csv = client.boards.export_csv("board_id")
 
 ---
 
-## Contacts — `client.contacts`
+## 联系人 — `client.contacts`
 
 ```typescript
 const { data: contacts } = await client.contacts.list({ limit: 50 });
@@ -543,29 +520,29 @@ files     = client.contacts.get_files("contact_id")
 
 ---
 
-## Conversations — `client.conversations`
+## 对话 — `client.conversations`
 
 ```typescript
-// Search
+// 搜索
 const { data: convs } = await client.conversations.search({
   businessUnitId: "bu_xxx",
   q: "support",
   limit: 20,
 });
 
-// Outstanding (unresolved)
+// 未处理的对话
 const { data: open } = await client.conversations.getOutstanding({
   businessUnitId: "bu_xxx",
   limit: 50,
 });
 
-// Assign
+// 分配
 await client.conversations.assignTeamMember({
   conversation_id: "conv_xxx",
   user_id: "user_xxx",
 });
 
-// Update status
+// 更新状态
 await client.conversations.updateStatus({
   conversation_id: "conv_xxx",
   status: "resolved",
@@ -590,13 +567,13 @@ client.conversations.update_status({
 
 ---
 
-## Messaging — `client.channel`, `client.messages`
+## 消息 — `client.channel`、`client.messages`
 
 ```typescript
 const channels = await client.channel.list();
 
 await client.messages.send("conversation_id", {
-  parts: [{ type: "text", text: "Hello, how can I help you today?" }],
+  parts: [{ type: "text", text: "您好，有什么可以帮您？" }],
 });
 
 const msgs = await client.messages.list("conversation_id");
@@ -608,7 +585,7 @@ channels = client.channel.list()
 
 client.messages.send(
     type="text",
-    text="Hello, how can I help you today?",
+    text="您好，有什么可以帮您？",
 )
 
 msgs = client.messages.list(limit=20)
@@ -616,7 +593,7 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## Channel automation workflows — `client.workflows` (Python)
+## 渠道自动化工作流 — `client.workflows`（Python）
 
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
@@ -625,16 +602,16 @@ whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp
 
 ---
 
-## Campaigns & touchpoints — `client.campaign` (Python)
+## 营销活动 & 触点 — `client.campaign`（Python）
 
 ```python
 # Campaign CRUD
 campaigns = client.campaign.list().get("data", [])
 campaign  = client.campaign.get("campaign_id")
-new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+new_camp  = client.campaign.create({"name": "Q2 推广", "type": "email"})
 client.campaign.delete("campaign_id")
 
-# Touchpoints
+# 触点
 touchpoints = client.campaign.list_touchpoints().get("data", [])
 tp = client.campaign.get_touchpoint("touchpoint_id")
 
@@ -646,13 +623,13 @@ client.campaign.create_touchpoint({
 client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
 client.campaign.delete_touchpoint("touchpoint_id")
 
-# Validate touchpoint config before saving
+# 保存前验证触点配置
 result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
 ```
 
 ---
 
-## Message suggestion — `client.message_suggestion` (Python)
+## 消息建议 — `client.message_suggestion`（Python）
 
 ```python
 suggestions = client.message_suggestion.get_suggestions({
@@ -663,7 +640,7 @@ suggestions = client.message_suggestion.get_suggestions({
 
 ---
 
-## Predict — `client.predict` (Python)
+## 预测 — `client.predict`（Python）
 
 ```python
 result = client.predict.predict({

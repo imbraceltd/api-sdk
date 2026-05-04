@@ -1,4 +1,6 @@
-## Authentication.
+# Authentication
+
+> API Key vs Access Token — when to use each, and how to pass them to the SDK.
 
 The SDK supports two credential types. Pass either `apiKey` / `api_key` or `accessToken` / `access_token` to the client constructor — the transport handles headers automatically.
 
@@ -19,7 +21,7 @@ You have your own backend, your own users, your own database. Imbrace is one cap
 Typical product: an existing CRM, ticketing system, or internal tool that embeds Imbrace as a feature. One credential lives in your env file and serves every request.
 
 | | Build on Imbrace (Access Token) | Wrap Imbrace (API Key) |
-|---|---|---|
+| --- | --- | --- |
 | **Who runs auth?** | Imbrace (OTP / password login) | You (your own auth) |
 | **Whose users?** | Imbrace users | Your users |
 | **Whose DB is canonical?** | Imbrace's | Yours |
@@ -30,10 +32,10 @@ Typical product: an existing CRM, ticketing system, or internal tool that embeds
 
 > Both credential types are first-class. Most resources accept either. A few features that depend on user context (document artifacts, per-user chat history) are only meaningful under an access token.
 
-### Header reference.
+### Header reference
 
 | Credential | Header sent |
-|---|---|
+| --- | --- |
 | `apiKey` / `api_key` | `x-api-key: api_xxx...` |
 | `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
 
@@ -43,158 +45,162 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
 
 ---
 
-### API Key.
+### API Key
 
-**TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk";
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
 
-const client = new ImbraceClient({
-  apiKey: "api_xxx...",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-});
-```
+    const client = new ImbraceClient({
+      apiKey: "api_xxx...",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    });
+    ```
+  
+  
+    ```python
+    import os
+    from imbrace import ImbraceClient
 
-**Python:**
-```python
-import os
-from imbrace import ImbraceClient
-
-client = ImbraceClient(
-    api_key=os.environ["IMBRACE_API_KEY"],
-)
-```
+    client = ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+    )
+    ```
+  
 
 ---
 
-### Access Token.
+### Access Token
 
 If you already have an `acc_...` token, pass it directly:
 
-**TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-
-const client = new ImbraceClient({
-  accessToken: "acc_xxxxxxxxxxxxx",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-});
-```
-
-**Python:**
-```python
-client = ImbraceClient(
-    access_token="acc_xxxxxxxxxxxxx",
-)
-```
+  
+    ```typescript
+    const client = new ImbraceClient({
+      accessToken: "acc_xxxxxxxxxxxxx",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    });
+    ```
+  
+  
+    ```python
+    client = ImbraceClient(
+        access_token="acc_xxxxxxxxxxxxx",
+    )
+    ```
+  
 
 ---
 
-### OTP Login Flow.
+### OTP Login Flow
 
 Use this flow to authenticate a user via email OTP and obtain a session token. The SDK stores the token automatically after login.
 
-**TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk";
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
 
-const client = new ImbraceClient({
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-});
+    const client = new ImbraceClient({
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
 
-// Step 1: Send OTP to the user's email
-await client.requestOtp("user@example.com");
+    // Step 1: Send OTP to the user's email
+    await client.requestOtp("user@example.com")
 
-// Step 2: User submits the OTP they received
-const loginRes = await client.loginWithOtp("user@example.com", "ABC123");
-// loginRes contains a short-lived login_acc_... token (stored internally)
+    // Step 2: User submits the OTP they received
+    const loginRes = await client.loginWithOtp("user@example.com", "ABC123")
+    // loginRes contains a short-lived login_acc_... token (stored internally)
 
-// Step 3: Exchange for a long-lived access token
-const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id");
+    // Step 3: Exchange for a long-lived access token
+    const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id")
 
-// Step 4: Activate the token for all subsequent calls
-client.setAccessToken(token);
+    // Step 4: Activate the token for all subsequent calls
+    client.setAccessToken(token)
 
-// Now use any resource
-const { data: boards } = await client.boards.list();
-```
+    // Now use any resource
+    const { data: boards } = await client.boards.list()
+    ```
+  
+  
+    ```python
+    from imbrace import ImbraceClient
 
-**Python (sync):**
-```python
-from imbrace import ImbraceClient
+    client = ImbraceClient()
 
-client = ImbraceClient()
+    # Step 1: Send OTP to the user's email
+    client.request_otp("user@example.com")
 
-# Step 1: Send OTP
-client.request_otp("user@example.com")
+    # Step 2: User enters OTP — token stored automatically
+    client.login_with_otp("user@example.com", "123456")
 
-# Step 2: User enters OTP — token stored automatically
-client.login_with_otp("user@example.com", "123456")
+    # Step 3: All subsequent calls are authenticated
+    me = client.platform.get_me()
+    ```
 
-# Step 3 & 4: All subsequent calls are authenticated
-me = client.platform.get_me()
-```
+    Async variant:
 
-**Python (async):**
-```python
-from imbrace import AsyncImbraceClient
+    ```python
+    from imbrace import AsyncImbraceClient
 
-async with AsyncImbraceClient() as client:
-    await client.request_otp("user@example.com")
-    await client.login_with_otp("user@example.com", "123456")
-    me = await client.platform.get_me()
-```
-
----
-
-### Password Login.
-
-**TypeScript:**
-```typescript
-const client = new ImbraceClient({
-  baseUrl: "https://app-gatewayv2.imbrace.co",
-});
-
-await client.login("user@example.com", "password");
-
-// Token is stored automatically — proceed with any resource
-const { data: boards } = await client.boards.list();
-```
-
-**Python:**
-```python
-client = ImbraceClient()
-client.login("user@example.com", "password123")
-
-# Token stored automatically
-boards = client.boards.list()
-```
+    async with AsyncImbraceClient() as client:
+        await client.request_otp("user@example.com")
+        await client.login_with_otp("user@example.com", "123456")
+        me = await client.platform.get_me()
+    ```
+  
 
 ---
 
-### Token management.
+### Password Login
 
-**TypeScript:**
-```typescript
-// Replace token (e.g., after a refresh)
-client.setAccessToken("acc_new_token...");
+  
+    ```typescript
+    const client = new ImbraceClient({
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
 
-// Clear token (e.g., on logout)
-client.clearAccessToken();
-```
+    await client.login("user@example.com", "password")
 
-**Python:**
-```python
-# Replace token (e.g., after refresh)
-client.set_access_token("acc_new_token...")
+    // Token is stored automatically — proceed with any resource
+    const { data: boards } = await client.boards.list()
+    ```
+  
+  
+    ```python
+    client = ImbraceClient()
+    client.login("user@example.com", "password123")
 
-# Clear token (e.g., on logout)
-client.clear_access_token()
-```
+    # Token stored automatically
+    boards = client.boards.list()
+    ```
+  
 
 ---
 
-### Context manager (Python only).
+### Token management
+
+  
+    ```typescript
+    // Replace token (e.g., after a refresh)
+    client.setAccessToken("acc_new_token...")
+
+    // Clear token (e.g., on logout)
+    client.clearAccessToken()
+    ```
+  
+  
+    ```python
+    # Replace token (e.g., after refresh)
+    client.set_access_token("acc_new_token...")
+
+    # Clear token (e.g., on logout)
+    client.clear_access_token()
+    ```
+  
+
+---
+
+### Context manager (Python only)
 
 Always wrap the Python client in a context manager so the underlying `httpx` connection pool is closed cleanly:
 

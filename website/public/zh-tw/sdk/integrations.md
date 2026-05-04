@@ -1,18 +1,18 @@
-# Integrations
+# 框架整合
 
-> Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
+> 在 React、Next.js、Node.js、FastAPI、asyncio、Django 和 Celery 中使用 Imbrace SDKs。
 
-Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
+兩個 SDK 的框架級接線模式。TypeScript 部分涵蓋 React、Next.js 和 Node.js；Python 部分涵蓋 FastAPI、asyncio、Django 和 Celery。OTP 登入流程為兩者均有記錄。
 
-For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication/) and [Setup Guide](/getting-started/setup/#configure-credentials).
+憑證策略（api key vs access token、env vars），參閱[身份驗證](/zh-tw/sdk/authentication/)和[安裝指南](/zh-tw/getting-started/setup/#configure-credentials)。
 
 ---
 
 ## React (TypeScript)
 
-### Singleton client
+### 單例客戶端
 
-Create the client once outside the component tree and reuse it across all components. The `localStorage` token comes from the [OTP login flow](/sdk/authentication/#otp-login-flow).
+在元件樹外建立一次客戶端並重用。`localStorage` 中的 token 來自 [OTP 登入流程](/zh-tw/sdk/authentication/#otp-登入流程)。
 
 ```typescript
 // lib/imbrace.ts
@@ -25,7 +25,7 @@ export const client = new ImbraceClient({
 });
 ```
 
-### Data-fetching hook
+### 資料擷取 Hook
 
 ```tsx
 // hooks/useProducts.ts
@@ -53,8 +53,8 @@ export function useProducts(category?: string) {
 
 export function ProductList() {
   const { products, loading, error } = useProducts("electronics");
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p>載入中...</p>;
+  if (error) return <p>錯誤：{error.message}</p>;
   return (
     <ul>
       {products.map((p) => (
@@ -69,7 +69,7 @@ export function ProductList() {
 
 ## Next.js (TypeScript)
 
-### API route (App Router)
+### API 路由（App Router）
 
 ```typescript
 // app/api/products/route.ts
@@ -92,9 +92,9 @@ export async function POST(request: Request) {
 }
 ```
 
-`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup/#configure-credentials).
+`process.env.IMBRACE_API_KEY` 應按你的部署平台的方式設定。參閱[安裝指南 → 設定憑證](/zh-tw/getting-started/setup/#configure-credentials)。
 
-### Server component (App Router)
+### 伺服器端元件（App Router）
 
 ```tsx
 // app/products/page.tsx
@@ -107,7 +107,7 @@ export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
     <main>
-      <h1>Products</h1>
+      <h1>商品</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
@@ -116,9 +116,9 @@ export default async function ProductsPage() {
 
 ---
 
-## Node.js CLI script (TypeScript)
+## Node.js CLI 腳本 (TypeScript)
 
-For one-shot scripts (data exports, backfills, ad-hoc queries):
+適用於一次性腳本（資料匯出、回填、臨時查詢）：
 
 ```typescript
 // scripts/export-contacts.ts
@@ -128,7 +128,7 @@ const client = new ImbraceClient();
 async function exportContacts() {
   const { data: contacts } = await client.contacts.list({ limit: 1000 });
   writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
-  console.log(`Exported ${contacts.length} contacts`);
+  console.log(`已匯出 ${contacts.length} 個聯絡人`);
 }
 
 exportContacts().catch(console.error);
@@ -142,9 +142,9 @@ npx ts-node scripts/export-contacts.ts
 
 ## FastAPI (Python)
 
-### Per-request dependency injection
+### Per-request 依賴注入
 
-The simplest pattern — one async client per request, lifetime managed by the dependency:
+最簡單的模式 — 每個請求一個 async client，由依賴項管理生命週期：
 
 ```python
 from fastapi import FastAPI, Depends
@@ -173,9 +173,9 @@ async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
     )
 ```
 
-### Global singleton (better connection reuse)
+### 全域單例（提高連線重用）
 
-For higher throughput, share one client for the application's lifetime:
+對於更高吞吐量，在應用程式生命週期內共享一個 client：
 
 ```python
 from contextlib import asynccontextmanager
@@ -188,7 +188,7 @@ imbrace: AsyncImbraceClient = None  # type: ignore
 async def lifespan(app: FastAPI):
     global imbrace
     imbrace = AsyncImbraceClient()
-    await imbrace.init()  # health check on startup
+    await imbrace.init()  # 啟動時健康檢查
     yield
     await imbrace.close()
 
@@ -203,7 +203,7 @@ async def get_me():
 
 ## asyncio (Python)
 
-### Concurrent requests
+### 並發請求
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -224,7 +224,7 @@ async def fetch_dashboard_data():
 data = asyncio.run(fetch_dashboard_data())
 ```
 
-### Streaming AI
+### 串流 AI
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -233,7 +233,7 @@ async def stream_response():
     async with AsyncImbraceClient() as client:
         async for chunk in client.ai.stream(
             model="gpt-4o",
-            messages=[{"role": "user", "content": "Explain async/await in Python."}],
+            messages=[{"role": "user", "content": "解釋 Python 中的 async/await。"}],
         ):
             content = chunk["choices"][0]["delta"].get("content", "")
             print(content, end="", flush=True)
@@ -245,7 +245,7 @@ asyncio.run(stream_response())
 
 ## Django (Python)
 
-### Synchronous view
+### 同步視圖
 
 ```python
 # views.py
@@ -264,7 +264,7 @@ def product_list(request):
             return JsonResponse({"error": str(e)}, status=e.status_code)
 ```
 
-### Settings integration
+### Django 設定整合
 
 ```python
 # settings.py
@@ -286,7 +286,7 @@ def get_client() -> ImbraceClient:
 
 ## Celery (Python)
 
-For background-task workers, use the sync client and create one inside each task:
+對於背景任務 workers，在每個 task 內部建立 client — 不要在 worker 之間共享：
 
 ```python
 # tasks.py
@@ -306,13 +306,13 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-> Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+> 不要在 Celery worker 之間共享單一 `ImbraceClient` — 在每個 task 中建立新的。httpx 連線池無法安全地在程序間共享。
 
 ---
 
-## OTP login flow
+## OTP 登入流程
 
-The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+OTP 流程在兩個 SDK 中概念上相同：為電子郵件請求 OTP，然後交換為 access token。參閱[身份驗證 → OTP 登入流程](/zh-tw/sdk/authentication/#otp-登入流程)了解完整的憑證生命週期。
 
 ```tsx
 // components/LoginForm.tsx
@@ -334,19 +334,19 @@ export function LoginForm() {
       await client.loginWithOtp(email, otp);
       window.location.href = "/dashboard";
     } catch (e) {
-      if (e instanceof AuthError) alert("Invalid OTP");
+      if (e instanceof AuthError) alert("OTP 不正確");
     }
   }
 
   return step === "email" ? (
     
-      <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <button onClick={requestOtp}>Send OTP</button>
+      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="電子郵件" />
+      <button onClick={requestOtp}>發送 OTP</button>
     
   ) : (
     
-      <input value={otp} onChange={(e) => setOtp(e.target.value)} />
-      <button onClick={verifyOtp}>Verify</button>
+      <input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="輸入 OTP" />
+      <button onClick={verifyOtp}>確認</button>
     
   );
 }
@@ -370,7 +370,7 @@ class OtpVerify(BaseModel):
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
         await client.request_otp(body.email)
-    return {"message": "OTP sent"}
+    return {"message": "OTP 已發送"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
@@ -380,5 +380,5 @@ async def verify_otp(body: OtpVerify):
             token = client._token_manager.get_token()
             return {"access_token": token}
         except AuthError:
-            raise HTTPException(status_code=401, detail="Invalid OTP")
+            raise HTTPException(status_code=401, detail="OTP 不正確")
 ```

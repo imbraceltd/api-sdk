@@ -1,0 +1,245 @@
+# 測試指南
+
+> 執行 Imbrace SDK 單元測試、整合測試、程式碼檢查和型別檢查的完整指南。
+
+**更新日期：** 2026-04-10
+
+## 環境配置
+
+### Python SDK
+
+```bash
+cd py
+
+# 安裝依賴 + 開發工具（pytest, ruff, mypy, pytest-httpx）
+pip install -e ".[dev]"
+```
+
+建立 `py/.env` 檔案（僅整合測試需要）：
+
+```env
+IMBRACE_API_KEY=api_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_ORG_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+### TypeScript SDK
+
+```bash
+cd ts
+npm install
+```
+
+---
+
+## Python — 執行與測試
+
+### 單元測試（無需 API key）
+
+```bash
+cd py
+
+# 執行所有單元測試
+pytest tests/unit -v
+
+# 執行特定檔案
+pytest tests/unit/test_http.py -v
+pytest tests/unit/resources/test_channel.py -v
+
+# 執行特定測試案例
+pytest tests/unit/test_http.py::test_401_raises_auth_error -v
+
+# 按關鍵字執行
+pytest tests/unit -k "channel" -v
+pytest tests/unit -k "boards" -v
+```
+
+### 整合測試（需要真實 API key）
+
+整合測試會真實呼叫 API Gateway。
+
+```bash
+cd py
+
+# 方式 1：在命令中直接設置 key
+IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
+
+# 方式 2：使用 .env（SDK 自動讀取）
+pytest tests/integration -v -m integration
+```
+
+### 執行全部（單元 + 整合）
+
+```bash
+pytest tests/ -v
+```
+
+### 覆蓋率報告
+
+```bash
+pytest tests/unit --cov=src/imbrace --cov-report=term-missing
+```
+
+---
+
+## TypeScript — 執行與測試
+
+### 建置
+
+```bash
+cd ts
+
+# 單次建置
+npm run build
+
+# 監視模式（檔案變更時自動重新建置）
+npm run dev
+
+# 清除 dist/
+npm run clean
+```
+
+### 單元測試（無需 API key）
+
+```bash
+cd ts
+
+# 執行所有單元測試
+npm test
+
+# 執行特定檔案
+npx vitest run tests/unit/http.test.ts
+npx vitest run tests/unit/resources/contacts.test.ts
+
+# 監視模式（程式碼變更時自動重新執行）
+npm run test:watch
+```
+
+### 整合測試（需要真實 API key）
+
+```bash
+cd ts
+
+IMBRACE_API_KEY=api_xxx npm run test:integration
+```
+
+### 執行全部（單元 + 整合）
+
+```bash
+npm run test:all
+```
+
+---
+
+## 各測試檔案詳情
+
+### Python — 單元測試
+
+#### `tests/unit/test_auth.py` — TokenManager
+
+測試執行緒安全的令牌儲存/刪除。
+
+| 測試案例                  | 檢查內容                                            |
+| ------------------------- | --------------------------------------------------- |
+| `test_initial_token_none` | 初始令牌為 `None`                                   |
+| `test_initial_token_set`  | 建構子中的令牌正確儲存                              |
+| `test_set_token`          | 令牌成功更新                                        |
+| `test_clear_token`        | 令牌被刪除，`get_token()` → `None`                  |
+| `test_thread_safety`      | 2 個執行緒同時讀寫 — 無崩潰、無競爭條件             |
+
+#### `tests/unit/test_exceptions.py` — 錯誤類別
+
+| 錯誤類型       | 觸發時機              |
+| -------------- | --------------------- |
+| `AuthError`    | 伺服器回傳 401、403   |
+| `ApiError`     | 伺服器回傳其他 4xx、5xx |
+| `NetworkError` | 連線斷開、逾時        |
+
+| 測試案例                                        | 檢查內容                                               |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `test_hierarchy`                                | 三者都是 `ImbraceError` 的子類別                       |
+| `test_api_error_message`                        | `status_code` 和 message 格式正確 `[404] Not Found`    |
+| `test_auth_error_is_catchable_as_imbrace_error` | 可透過 `except ImbraceError` 捕獲                      |
+
+#### `tests/unit/test_http.py` — HttpTransport
+
+使用 `pytest-httpx` 模擬伺服器 — 無真實請求。
+
+| 測試案例                                 | 場景                 | 檢查內容                                        |
+| ---------------------------------------- | -------------------- | ----------------------------------------------- |
+| `test_get_success`                       | 伺服器回傳 200       | 回應正確解析                                    |
+| `test_sets_api_key_header`               | 使用 `api_key` 請求  | 請求中包含 `x-api-key` 標頭                     |
+| `test_sets_bearer_token_header`          | 使用 access token    | 令牌覆蓋 api_key                                |
+| `test_401_raises_auth_error`             | 伺服器回傳 401       | 拋出 `AuthError`，不重試                        |
+| `test_403_raises_auth_error`             | 伺服器回傳 403       | 拋出 `AuthError`，不重試                        |
+| `test_404_raises_api_error`              | 伺服器回傳 404       | 拋出 `ApiError(status_code=404)`                |
+| `test_500_retries_then_raises`           | 伺服器持續回傳 500   | 重試 2 次 → 共 3 次請求 → 拋出 `ApiError`      |
+| `test_network_error_retries_then_raises` | 網路中斷             | 重試 2 次 → 拋出 `NetworkError`                 |
+
+#### `tests/unit/test_client.py` — ImbraceClient
+
+| 測試案例                              | 檢查內容                        |
+| ------------------------------------- | ------------------------------- |
+| `test_default_base_url`               | 預設 URL 正確                   |
+| `test_custom_base_url`                | 末尾斜線被移除                  |
+| `test_reads_api_key_from_env`         | 從環境變數讀取 `IMBRACE_API_KEY` |
+| `test_explicit_api_key_overrides_env` | 直接傳參優先於環境變數          |
+| `test_all_resources_initialized`      | 所有資源均已初始化              |
+| `test_set_access_token`               | 令牌成功更新                    |
+| `test_context_manager`                | `with` 區塊自動呼叫 `close()`   |
+
+#### `tests/unit/resources/` — 資源測試
+
+| 檔案                         | 測試的 Endpoint                                          |
+| ---------------------------- | -------------------------------------------------------- |
+| `test_account.py`            | `GET /v1/backend/account`                                |
+| `test_agent.py`              | `GET/POST/PATCH/DELETE /v2/backend/templates`            |
+| `test_ai.py`                 | AI 補全、嵌入、串流傳輸                                  |
+| `test_auth.py`               | OTP 登入、驗證、登出                                     |
+| `test_boards.py`             | 看板 CRUD、項目、搜尋、匯出 CSV                          |
+| `test_campaigns.py`          | 行銷活動 CRUD、觸點 list/get/create/update/delete/validate |
+| `test_channel.py`            | 頻道列表、取得、刪除、對話計數                           |
+| `test_contacts.py`           | 聯絡人列表、搜尋、更新、通知                             |
+| `test_conversations.py`      | 檢視計數、建立、搜尋                                     |
+| `test_messages.py`           | 列表、發送（文字/圖片）                                  |
+| `test_message_suggestion.py` | `POST /v1/message-suggestion` — AI 訊息建議              |
+| `test_organizations.py`      | 列表、分頁、認證標頭                                     |
+| `test_predict.py`            | `POST /predict/` — ML 評分                               |
+| `test_sessions.py`           | 工作階段列表、目錄過濾                                   |
+| `test_settings.py`           | 訊息範本、使用者、批次邀請                               |
+| `test_teams.py`              | 列表、我的團隊、新增/移除使用者                          |
+| `test_workflows.py`          | 列表、標籤過濾、頻道自動化、建立/更新                    |
+
+---
+
+## 程式碼檢查與型別檢查
+
+### Python
+
+```bash
+cd py
+
+# 檢查程式碼風格
+ruff check src/ tests/
+
+# 自動修復可修復的 ruff 錯誤
+ruff check src/ tests/ --fix
+
+# 檢查型別注解
+mypy src/imbrace
+```
+
+### TypeScript
+
+```bash
+cd ts
+
+# 型別檢查
+npm run typecheck
+
+# 程式碼檢查
+npm run lint
+
+# 建置（編譯為 JS）
+npm run build
+```

@@ -1,18 +1,18 @@
-# Integrations
+# Tích Hợp
 
-> Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
+> Sử dụng Imbrace SDKs với React, Next.js, Node.js, FastAPI, asyncio, Django, và Celery.
 
-Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
+Các pattern tích hợp ở cấp độ framework cho cả hai SDK. TypeScript bao gồm React, Next.js, và Node.js thuần; Python bao gồm FastAPI, asyncio, Django, và Celery. Luồng OTP login được ghi lại cho cả hai.
 
-For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication/) and [Setup Guide](/getting-started/setup/#configure-credentials).
+Để biết chiến lược credential (api key vs access token, env vars), xem [Xác Thực](/vi/sdk/authentication/) và [Hướng Dẫn Cài Đặt](/vi/getting-started/setup/#configure-credentials).
 
 ---
 
 ## React (TypeScript)
 
-### Singleton client
+### Singleton Client
 
-Create the client once outside the component tree and reuse it across all components. The `localStorage` token comes from the [OTP login flow](/sdk/authentication/#otp-login-flow).
+Tạo client một lần bên ngoài component tree và tái sử dụng. Token trong `localStorage` đến từ [luồng OTP login](/vi/sdk/authentication/#luồng-otp-login).
 
 ```typescript
 // lib/imbrace.ts
@@ -25,7 +25,7 @@ export const client = new ImbraceClient({
 });
 ```
 
-### Data-fetching hook
+### Custom Hook Fetch Data
 
 ```tsx
 // hooks/useProducts.ts
@@ -53,8 +53,8 @@ export function useProducts(category?: string) {
 
 export function ProductList() {
   const { products, loading, error } = useProducts("electronics");
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p>Đang tải...</p>;
+  if (error) return <p>Lỗi: {error.message}</p>;
   return (
     <ul>
       {products.map((p) => (
@@ -69,7 +69,7 @@ export function ProductList() {
 
 ## Next.js (TypeScript)
 
-### API route (App Router)
+### API Route (App Router)
 
 ```typescript
 // app/api/products/route.ts
@@ -92,9 +92,9 @@ export async function POST(request: Request) {
 }
 ```
 
-`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup/#configure-credentials).
+`process.env.IMBRACE_API_KEY` nên được set theo cách platform deploy của bạn. Xem [Hướng Dẫn Cài Đặt → Cấu hình credentials](/vi/getting-started/setup/#configure-credentials).
 
-### Server component (App Router)
+### Server Component (App Router)
 
 ```tsx
 // app/products/page.tsx
@@ -107,7 +107,7 @@ export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
     <main>
-      <h1>Products</h1>
+      <h1>Sản Phẩm</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
@@ -116,9 +116,9 @@ export default async function ProductsPage() {
 
 ---
 
-## Node.js CLI script (TypeScript)
+## Node.js CLI Script (TypeScript)
 
-For one-shot scripts (data exports, backfills, ad-hoc queries):
+Cho các script one-shot (data exports, backfills, ad-hoc queries):
 
 ```typescript
 // scripts/export-contacts.ts
@@ -128,7 +128,7 @@ const client = new ImbraceClient();
 async function exportContacts() {
   const { data: contacts } = await client.contacts.list({ limit: 1000 });
   writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
-  console.log(`Exported ${contacts.length} contacts`);
+  console.log(`Đã xuất ${contacts.length} liên hệ`);
 }
 
 exportContacts().catch(console.error);
@@ -142,9 +142,9 @@ npx ts-node scripts/export-contacts.ts
 
 ## FastAPI (Python)
 
-### Per-request dependency injection
+### Per-request Dependency Injection
 
-The simplest pattern — one async client per request, lifetime managed by the dependency:
+Pattern đơn giản nhất — một async client per request, lifetime được quản lý bởi dependency:
 
 ```python
 from fastapi import FastAPI, Depends
@@ -173,9 +173,9 @@ async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
     )
 ```
 
-### Global singleton (better connection reuse)
+### Global Singleton (Tái Sử Dụng Connection Pool)
 
-For higher throughput, share one client for the application's lifetime:
+Để đạt throughput cao hơn, chia sẻ một client cho suốt vòng đời ứng dụng:
 
 ```python
 from contextlib import asynccontextmanager
@@ -188,7 +188,7 @@ imbrace: AsyncImbraceClient = None  # type: ignore
 async def lifespan(app: FastAPI):
     global imbrace
     imbrace = AsyncImbraceClient()
-    await imbrace.init()  # health check on startup
+    await imbrace.init()  # health check khi khởi động
     yield
     await imbrace.close()
 
@@ -203,7 +203,7 @@ async def get_me():
 
 ## asyncio (Python)
 
-### Concurrent requests
+### Concurrent Requests
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -233,7 +233,7 @@ async def stream_response():
     async with AsyncImbraceClient() as client:
         async for chunk in client.ai.stream(
             model="gpt-4o",
-            messages=[{"role": "user", "content": "Explain async/await in Python."}],
+            messages=[{"role": "user", "content": "Giải thích async/await trong Python."}],
         ):
             content = chunk["choices"][0]["delta"].get("content", "")
             print(content, end="", flush=True)
@@ -245,7 +245,7 @@ asyncio.run(stream_response())
 
 ## Django (Python)
 
-### Synchronous view
+### Synchronous View
 
 ```python
 # views.py
@@ -264,7 +264,7 @@ def product_list(request):
             return JsonResponse({"error": str(e)}, status=e.status_code)
 ```
 
-### Settings integration
+### Django Settings
 
 ```python
 # settings.py
@@ -286,7 +286,7 @@ def get_client() -> ImbraceClient:
 
 ## Celery (Python)
 
-For background-task workers, use the sync client and create one inside each task:
+Với background task workers, tạo client bên trong mỗi task — không chia sẻ giữa các worker:
 
 ```python
 # tasks.py
@@ -306,13 +306,13 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-> Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+> Không chia sẻ một `ImbraceClient` duy nhất giữa các Celery worker — tạo mới trong mỗi task. httpx connection pool không an toàn để chia sẻ giữa các process.
 
 ---
 
-## OTP login flow
+## Luồng OTP Login
 
-The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+Luồng OTP về mặt khái niệm giống nhau ở cả hai SDK: yêu cầu OTP cho email, rồi đổi lấy access token. Xem [Xác Thực → luồng OTP login](/vi/sdk/authentication/#luồng-otp-login) để xem toàn bộ vòng đời credential.
 
 ```tsx
 // components/LoginForm.tsx
@@ -334,19 +334,19 @@ export function LoginForm() {
       await client.loginWithOtp(email, otp);
       window.location.href = "/dashboard";
     } catch (e) {
-      if (e instanceof AuthError) alert("Invalid OTP");
+      if (e instanceof AuthError) alert("OTP không đúng");
     }
   }
 
   return step === "email" ? (
     
-      <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <button onClick={requestOtp}>Send OTP</button>
+      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+      <button onClick={requestOtp}>Gửi OTP</button>
     
   ) : (
     
-      <input value={otp} onChange={(e) => setOtp(e.target.value)} />
-      <button onClick={verifyOtp}>Verify</button>
+      <input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Nhập OTP" />
+      <button onClick={verifyOtp}>Xác nhận</button>
     
   );
 }
@@ -370,7 +370,7 @@ class OtpVerify(BaseModel):
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
         await client.request_otp(body.email)
-    return {"message": "OTP sent"}
+    return {"message": "OTP đã được gửi"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
@@ -380,5 +380,5 @@ async def verify_otp(body: OtpVerify):
             token = client._token_manager.get_token()
             return {"access_token": token}
         except AuthError:
-            raise HTTPException(status_code=401, detail="Invalid OTP")
+            raise HTTPException(status_code=401, detail="OTP không đúng")
 ```

@@ -1,4 +1,6 @@
-## Overview
+# Overview
+
+> What the Imbrace SDK is, how it works, and when to use it.
 
 The Imbrace SDK is the official client for the Imbrace Gateway, available in **TypeScript** and **Python**. Both SDKs wrap the same Gateway API with the same resource namespaces, the same auth model, and the same retry/error semantics — pick whichever language fits your stack.
 
@@ -17,33 +19,35 @@ The Imbrace SDK is the official client for the Imbrace Gateway, available in **T
 
 ### Install
 
-**TypeScript:**
-```bash
-npm install @imbrace/sdk
-```
-
-**Python:**
-```bash
-pip install imbrace
-```
+  
+    ```bash
+    npm install @imbrace/sdk
+    ```
+  
+  
+    ```bash
+    pip install imbrace
+    ```
+  
 
 ### Hello, world
 
-**TypeScript:**
-```typescript
-import { ImbraceClient } from "@imbrace/sdk"
+  
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
 
-const client = new ImbraceClient({ accessToken: "acc_your_token" })
-const me = await client.platform.getMe()
-```
+    const client = new ImbraceClient({ accessToken: "acc_your_token" })
+    const me = await client.platform.getMe()
+    ```
+  
+  
+    ```python
+    from imbrace import ImbraceClient
 
-**Python:**
-```python
-from imbrace import ImbraceClient
-
-with ImbraceClient(access_token="acc_your_token") as client:
-    me = client.platform.get_me()
-```
+    with ImbraceClient(access_token="acc_your_token") as client:
+        me = client.platform.get_me()
+    ```
+  
 
 ### Available resources
 

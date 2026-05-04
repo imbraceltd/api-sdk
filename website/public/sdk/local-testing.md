@@ -1,9 +1,6 @@
----
-title: Local Testing
-description: Test the built Imbrace SDK packages locally against a real or mock gateway.
----
+# Local Testing
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
+> Test the built Imbrace SDK packages locally against a real or mock gateway.
 
 This guide lets you test the **built package** exactly as a consumer would install it — not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
 
@@ -134,18 +131,13 @@ The same test runs with both `IMBRACE_API_KEY` and `IMBRACE_ACCESS_TOKEN` to cov
 
 ## Switching environments
 
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
 ```bash
 IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
 ```
-</TabItem>
-<TabItem label="Python">
+
 ```bash
 IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 ```
-</TabItem>
-</Tabs>
 
 ---
 

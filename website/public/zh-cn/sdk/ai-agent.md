@@ -1,10 +1,10 @@
 # AI Agent
 
-> Reference for the aiAgent / ai_agent resource — streaming chat, embeddings, parquet, distributed tracing, and the Chat Client sub-API.
+> aiAgent / ai_agent 资源参考 — 流式聊天、embeddings、parquet、分布式追踪以及 Chat Client 子 API。
 
-The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway. It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
+`client.aiAgent` / `client.ai_agent` 连接到独立的 AI Agent 服务，运行在与主 API gateway 不同的 base URL 上。该资源提供流式聊天、embedding knowledge base 管理、列式数据（Parquet）、分布式追踪（Tempo），以及前端应用使用的完整 Chat Client 子 API。
 
-For an end-to-end example of `streamChat` against a real assistant, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
+端到端 `streamChat` 示例，参阅[完整流程指南 §1](/zh-cn/sdk/full-flow-guide/#1-创建-ai-助手并开始聊天)。
 
 ```typescript
 const client = new ImbraceClient();
@@ -15,20 +15,20 @@ from imbrace import ImbraceClient
 client = ImbraceClient()
 ```
 
-Both sync (`ImbraceClient`) and async (`AsyncImbraceClient`) clients expose the same surface — async methods are awaited and the client uses `AsyncAiAgentResource` under the hood.
+sync（`ImbraceClient`）和 async（`AsyncImbraceClient`）客户端公开相同的接口 — async 方法需要 await，底层使用 `AsyncAiAgentResource`。
 
 ---
 
-## Chat v2 — Streaming (SSE)
+## Chat v2 — 流式传输（SSE）
 
-Returns a raw response. Consume the body as a Server-Sent Events stream.
+返回原始 response。将 body 作为 Server-Sent Events 流消费。
 
 ```typescript
 const response = await client.aiAgent.streamChat({
   id: "chat_id",
   assistant_id: "asst_abc",
   organization_id: "org_abc",
-  messages: [{ role: "user", content: "What can you do?" }],
+  messages: [{ role: "user", content: "您能做什么？" }],
 });
 
 const reader = response.body!.getReader();
@@ -45,7 +45,7 @@ response = client.ai_agent.stream_chat({
     "id": "chat_id",
     "assistant_id": "asst_abc",
     "organization_id": "org_abc",
-    "messages": [{"role": "user", "content": "What can you do?"}],
+    "messages": [{"role": "user", "content": "您能做什么？"}],
 })
 
 for line in response.iter_lines():
@@ -53,7 +53,7 @@ for line in response.iter_lines():
         print(line)
 ```
 
-**Async:**
+**异步：**
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -64,7 +64,7 @@ async def main():
             "id": "chat_id",
             "assistant_id": "asst_abc",
             "organization_id": "org_abc",
-            "messages": [{"role": "user", "content": "Hello"}],
+            "messages": [{"role": "user", "content": "您好"}],
         })
         async for line in response.aiter_lines():
             if line:
@@ -75,9 +75,9 @@ asyncio.run(main())
 
 ---
 
-## Sub-agent Chat v2
+## 子 Agent 聊天 v2
 
-Stream responses from a sub-agent and retrieve its conversation history.
+从子 agent 流式获取响应并获取其对话历史。
 
 ```typescript
 const res = await client.aiAgent.streamSubAgentChat({
@@ -85,7 +85,7 @@ const res = await client.aiAgent.streamSubAgentChat({
   organization_id: "org_abc",
   session_id: "sess_xyz",
   chat_id: "chat_id",
-  messages: [{ role: "user", content: "Explain the data." }],
+  messages: [{ role: "user", content: "解释这些数据。" }],
 });
 
 const history = await client.aiAgent.getSubAgentHistory({
@@ -100,7 +100,7 @@ res = client.ai_agent.stream_sub_agent_chat({
     "organization_id": "org_abc",
     "session_id": "sess_xyz",
     "chat_id": "chat_id",
-    "messages": [{"role": "user", "content": "Explain the data."}],
+    "messages": [{"role": "user", "content": "解释这些数据。"}],
 })
 
 history = client.ai_agent.get_sub_agent_history(
@@ -111,9 +111,9 @@ history = client.ai_agent.get_sub_agent_history(
 
 ---
 
-## Prompt Suggestions
+## 提示建议
 
-Fetch pre-built prompt suggestions for a given assistant.
+获取助手的建议提示列表。
 
 ```typescript
 const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_abc");
@@ -127,50 +127,50 @@ suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
 
 ## Embeddings & Knowledge Base
 
-Manage files used for Retrieval-Augmented Generation (RAG). Upload files first via [`client.boards.uploadFile`](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant) (TypeScript) / `client.boards.upload_file` (Python), then trigger embedding processing.
+管理用于检索增强生成（RAG）的文件。先通过 [`client.boards.uploadFile`](/zh-cn/sdk/full-flow-guide/#3-管理-knowledge-hub-并绑定到助手) 上传文件，再触发 embedding 处理。
 
 ```typescript
-// Trigger embedding processing for an uploaded file
+// 触发已上传文件的 embedding 处理
 await client.aiAgent.processEmbedding({ fileId: "file_abc" });
 
-// List and inspect embedding files
+// 列出和检查 embedding 文件
 const files   = await client.aiAgent.listEmbeddingFiles({ page: 1, limit: 20 });
 const file    = await client.aiAgent.getEmbeddingFile("file_abc");
 const preview = await client.aiAgent.previewEmbeddingFile({ file_id: "file_abc" });
 
-// Update status and delete
+// 更新状态和删除
 await client.aiAgent.updateEmbeddingFileStatus("file_abc", "active");
 await client.aiAgent.deleteEmbeddingFile("file_abc");
 
-// Classify a file for RAG categorization
+// 为 RAG 分类文件
 const classification = await client.aiAgent.classifyFile({ file_id: "file_abc" });
 ```
 
 ```python
-# Trigger embedding processing for an uploaded file
+# 触发已上传文件的 embedding 处理
 client.ai_agent.process_embedding("file_abc")
 
-# With optional processing options
+# 带处理选项
 client.ai_agent.process_embedding("file_abc", options={"chunk_size": 512})
 
-# List and inspect embedding files
+# 列出和检查 embedding 文件
 files   = client.ai_agent.list_embedding_files(page=1, limit=20)
 file    = client.ai_agent.get_embedding_file("file_abc")
 preview = client.ai_agent.preview_embedding_file(file_id="file_abc")
 
-# Update status and delete
+# 更新状态和删除
 client.ai_agent.update_embedding_file_status("file_abc", "active")
 client.ai_agent.delete_embedding_file("file_abc")
 
-# Classify a file for RAG categorization
+# 为 RAG 分类文件
 classification = client.ai_agent.classify_file(file_id="file_abc")
 ```
 
 ---
 
-## Data Board
+## 数据看板
 
-AI-assisted field type suggestion for structured datasets.
+为结构化数据集使用 AI 建议字段类型。
 
 ```typescript
 const result = await client.aiAgent.suggestFieldTypes({
@@ -196,10 +196,10 @@ result = client.ai_agent.suggest_field_types(fields=[
 
 ## Parquet
 
-Generate and manage Parquet columnar data files for analytics pipelines.
+为分析管道创建和管理列式 Parquet 数据文件。
 
 ```typescript
-// Generate a Parquet file from JSON data
+// 从 JSON 数据创建 Parquet 文件
 const result = await client.aiAgent.generateParquet({
   data: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
   fileName: "users",
@@ -223,53 +223,53 @@ client.ai_agent.delete_parquet_file("exports/users.parquet")
 
 ---
 
-## Distributed Tracing (Tempo)
+## 分布式追踪（Tempo）
 
-Query Grafana Tempo traces emitted by the AI Agent service for observability and debugging.
+从 AI Agent 服务查询 Grafana Tempo traces 以进行观测和调试。
 
 ```typescript
-// List recent traces
+// 列出最近的 traces
 const traces = await client.aiAgent.getTraces({
   service:   "ai-agent",
   limit:     50,
-  timeRange: 3600,     // seconds
+  timeRange: 3600,     // 秒
   orgId:     "org_abc",
   details:   true,
 });
 
-// Inspect a single trace
+// 查看单个 trace 详情
 const trace = await client.aiAgent.getTrace("trace_id_hex");
 
-// Enumerate services, tags, and tag values
+// 列出 services、tags 和 tag 值
 const services = await client.aiAgent.getTraceServices();
 const tags     = await client.aiAgent.getTraceTags();
 const values   = await client.aiAgent.getTraceTagValues("http.status_code");
 
-// TraceQL search
+// 使用 TraceQL 搜索
 const results = await client.aiAgent.searchTraceQL(
   `{ .service.name = "ai-agent" && .http.status = 500 }`
 );
 ```
 
 ```python
-# List recent traces
+# 列出最近的 traces
 traces = client.ai_agent.get_traces(
     service="ai-agent",
     limit=50,
-    time_range=3600,     # seconds
+    time_range=3600,     # 秒
     org_id="org_abc",
     details=True,
 )
 
-# Inspect a single trace
+# 查看单个 trace 详情
 trace = client.ai_agent.get_trace("trace_id_hex")
 
-# Enumerate services, tags, and tag values
+# 列出 services、tags 和 tag 值
 services = client.ai_agent.get_trace_services()
 tags     = client.ai_agent.get_trace_tags()
 values   = client.ai_agent.get_trace_tag_values("http.status_code")
 
-# TraceQL search
+# 使用 TraceQL 搜索
 results = client.ai_agent.search_traceql(
     '{ .service.name = "ai-agent" && .http.status = 500 }'
 )
@@ -279,9 +279,9 @@ results = client.ai_agent.search_traceql(
 
 ## Chat Client
 
-The Chat Client sub-API powers frontend applications (e.g. the embedded chat widget). For framework-level wiring (React singleton, Express auth proxy, etc.), see [Integrations](/sdk/integrations/).
+Chat Client 子 API 为前端应用（如嵌入式聊天 widget）提供服务。框架级接线参阅[集成](/zh-cn/sdk/integrations/)。
 
-### Auth
+### 认证
 
 ```typescript
 await client.aiAgent.verifyChatClientCredentials({ token: "tok_xxx" });
@@ -295,22 +295,22 @@ client.ai_agent.register_chat_client({"name": "web-app", "secret": "s3cr3t"})
 user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
 ```
 
-### Chats
+### 聊天
 
 ```typescript
-// Create a new chat session
+// 创建新聊天会话
 await client.aiAgent.createClientChat({
   id: "chat_uuid",
   message: {
     id: "msg_uuid",
     role: "user",
-    parts: [{ type: "text", text: "Hello!" }],
+    parts: [{ type: "text", text: "您好！" }],
   },
   assistantId:    "asst_abc",
   organizationId: "org_abc",
 });
 
-// List, read, update, delete chats
+// 列出、读取、更新、删除
 const chats = await client.aiAgent.listClientChats({
   organization_id: "org_abc",
   limit: 20,
@@ -320,55 +320,55 @@ await client.aiAgent.updateClientChat("chat_id", { visibility: "private" });
 await client.aiAgent.deleteClientChat("chat_id");
 await client.aiAgent.deleteAllClientChats({ organization_id: "org_abc" });
 
-// Auto-generate a title for the chat
+// 自动生成聊天标题
 await client.aiAgent.generateClientChatTitle("chat_id");
 
-// Stream real-time chat status as SSE — returns raw Response
+// 以 SSE 方式流式传输实时聊天状态 — 返回原始 Response
 const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
 ```
 
 ```python
-# Create a new chat session
+# 创建新聊天会话
 client.ai_agent.create_client_chat({
     "id": "chat_uuid",
     "message": {
         "id": "msg_uuid",
         "role": "user",
-        "parts": [{"type": "text", "text": "Hello!"}],
+        "parts": [{"type": "text", "text": "您好！"}],
     },
     "assistantId":    "asst_abc",
     "organizationId": "org_abc",
 })
 
-# List, read, update, delete
+# 列出、读取、更新、删除
 chats = client.ai_agent.list_client_chats(organization_id="org_abc", limit=20)
 chat  = client.ai_agent.get_client_chat("chat_id")
 client.ai_agent.update_client_chat("chat_id", {"visibility": "private"})
 client.ai_agent.delete_client_chat("chat_id")
 client.ai_agent.delete_all_client_chats("org_abc")
 
-# Auto-generate a title for the chat
+# 自动生成聊天标题
 client.ai_agent.generate_client_chat_title("chat_id")
 
-# Stream real-time chat status as SSE — returns raw httpx.Response
+# 以 SSE 方式流式传输实时聊天状态 — 返回原始 httpx.Response
 status_stream = client.ai_agent.stream_client_chat_status("chat_id")
 ```
 
-### Messages
+### 消息
 
 ```typescript
-await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "Hello" });
+await client.aiAgent.persistClientMessage({ chatId: "chat_id", content: "您好" });
 const messages = await client.aiAgent.listClientMessages("chat_id");
 await client.aiAgent.deleteTrailingMessages("message_id");
 ```
 
 ```python
-client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "Hello"})
+client.ai_agent.persist_client_message({"chatId": "chat_id", "content": "您好"})
 messages = client.ai_agent.list_client_messages("chat_id")
 client.ai_agent.delete_trailing_messages("message_id")
 ```
 
-### Votes
+### 投票
 
 ```typescript
 const votes = await client.aiAgent.getVotes("chat_id");
@@ -380,10 +380,10 @@ votes = client.ai_agent.get_votes("chat_id")
 client.ai_agent.update_vote({"messageId": "msg_id", "vote": "up"})
 ```
 
-### Documents (AI-generated artifacts)
+### 文档（AI 生成的制品）
 
 ```typescript
-await client.aiAgent.createDocument({ kind: "text", content: "Draft..." });
+await client.aiAgent.createDocument({ kind: "text", content: "草稿..." });
 
 const doc        = await client.aiAgent.getDocument("doc_id");
 const latest     = await client.aiAgent.getDocumentLatest("doc_id");
@@ -395,7 +395,7 @@ await client.aiAgent.deleteDocument("doc_id");
 ```
 
 ```python
-client.ai_agent.create_document({"kind": "text", "content": "Draft..."})
+client.ai_agent.create_document({"kind": "text", "content": "草稿..."})
 
 doc        = client.ai_agent.get_document("doc_id")
 latest     = client.ai_agent.get_document_latest("doc_id")
@@ -408,14 +408,14 @@ client.ai_agent.delete_document("doc_id")
 
 ---
 
-## Admin Guides
+## 管理员指南
 
-Access admin documentation hosted by the AI Agent service. Guide files are returned as raw binary streams (typically PDF).
+访问由 AI Agent 服务存储的管理员文档。指南文件以原始二进制流形式返回（通常是 PDF）。
 
 ```typescript
 const guides = await client.aiAgent.listAdminGuides();
 
-// Download a specific guide — returns raw Response (PDF stream)
+// 下载特定指南 — 返回原始 Response（PDF 流）
 const response = await client.aiAgent.getAdminGuide("onboarding.pdf");
 const blob = await response.blob();
 ```
@@ -423,7 +423,7 @@ const blob = await response.blob();
 ```python
 guides = client.ai_agent.list_admin_guides()
 
-# Download a specific guide — returns raw httpx.Response
+# 下载特定指南 — 返回原始 httpx.Response
 response = client.ai_agent.get_admin_guide("onboarding.pdf")
 with open("onboarding.pdf", "wb") as f:
     f.write(response.content)
@@ -431,22 +431,22 @@ with open("onboarding.pdf", "wb") as f:
 
 ---
 
-## Legacy v1 chat
+## 旧版 v1 聊天
 
-The original REST chat endpoints persist conversation history without streaming. New code should use [Chat v2 streaming](#chat-v2--streaming-sse) above; v1 stays for backwards compatibility with existing chats.
+原始 REST 聊天接口，无需流式传输即可保留对话历史。新代码应使用上方的 [Chat v2 流式传输](#chat-v2--流式传输sse)；v1 保留用于向后兼容。
 
 ```typescript
-// List chats for an organization
+// 列出某组织的聊天记录
 const chats = await client.aiAgent.listChats({
   organization_id: "org_abc",
   user_id: "user_123",
   limit: 20,
 });
 
-// Get a single chat (pass true to include messages)
+// 获取单个聊天（传 true 以包含消息）
 const chat = await client.aiAgent.getChat("chat_id", true);
 
-// Delete a chat
+// 删除聊天
 await client.aiAgent.deleteChat("chat_id", {
   organization_id: "org_abc",
   user_id: "user_123",
