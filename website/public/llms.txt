@@ -23,7 +23,6 @@
 
 ## Core Technical Specs
 - **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
-- **Org Context:** Always send `x-organization-id`. Controlled via `organizationId` or `IMBRACE_ORGANIZATION_ID`.
 - **Backend Routing:** Gateway routes most logic through `/v1/backend` or `/v2/backend`. SDK handles this automatically.
 - **Retries:** Exponential backoff for 429/5xx. TS: 2 retries. Py: 3 retries.
 
