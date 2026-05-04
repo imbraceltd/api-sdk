@@ -4,6 +4,40 @@
 
 **Vibe Coding** 是指透過與 AI 助手協作來撰寫程式碼——以自然語言描述需求，讓 AI 生成、解釋或重構程式碼。Imbrace SDK 提供了 [`llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) 檔案，使任何 AI 工具都能立即理解 SDK，不會憑空捏造方法名稱或參數結構。
 
+## 環境配置
+
+開始 Vibe Coding 前，請確保 SDK 已安裝且憑證已配置。
+
+**1. 安裝 SDK**
+
+```bash
+npm install @imbrace/sdk
+```
+
+```bash
+pip install imbrace
+```
+
+**2. 設定憑證**
+
+```bash
+export IMBRACE_API_KEY=your_api_key
+export IMBRACE_ORG_ID=your_org_id
+```
+
+```bash
+export IMBRACE_API_KEY=your_api_key
+export IMBRACE_ORG_ID=your_org_id
+```
+
+如需瞭解如何取得 API Key，請參閱 [Authentication](/sdk/authentication/)。
+
+**3. 取得 `llms.txt`**
+
+下載或複製 [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) 的檔案內容，並匯入你的 AI 工具（見下方[如何使用](#如何使用)）。
+
+---
+
 ## 什麼是 `llms.txt`？
 
 `llms.txt` 是一個純文字檔案（類似 `robots.txt`），為 AI 模型提供函式庫的簡潔、準確摘要——包括客戶端、資源、認證和常見模式。將其貼入 AI 的上下文視窗後，模型便已了解 SDK，可以一次寫出正確的程式碼。

@@ -3,9 +3,53 @@ title: Vibe Coding
 description: Dùng Imbrace SDK nhanh hơn bằng cách đưa llms.txt vào AI coding assistant — Claude, Cursor, Copilot, hay bất kỳ IDE nào hỗ trợ LLM.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
 
 **Vibe Coding** là cách viết code bằng cách cộng tác với AI assistant — mô tả yêu cầu bằng ngôn ngữ tự nhiên và để AI tạo, giải thích, hoặc refactor code cho bạn. Imbrace SDK đi kèm file [`llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) để bất kỳ AI tool nào cũng có thể hiểu SDK ngay lập tức mà không bịa ra tên method hay shape của argument.
+
+## Thiết lập
+
+Trước khi bắt đầu vibe code, hãy đảm bảo SDK đã được cài đặt và credentials đã được cấu hình.
+
+**1. Cài đặt SDK**
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```bash
+npm install @imbrace/sdk
+```
+</TabItem>
+<TabItem label="Python">
+```bash
+pip install imbrace
+```
+</TabItem>
+</Tabs>
+
+**2. Cấu hình credentials**
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```bash
+export IMBRACE_API_KEY=your_api_key
+export IMBRACE_ORG_ID=your_org_id
+```
+</TabItem>
+<TabItem label="Python">
+```bash
+export IMBRACE_API_KEY=your_api_key
+export IMBRACE_ORG_ID=your_org_id
+```
+</TabItem>
+</Tabs>
+
+Xem [Authentication](/sdk/authentication/) để biết cách lấy API key.
+
+**3. Lấy file `llms.txt`**
+
+Tải hoặc copy file tại [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
+
+---
 
 ## `llms.txt` là gì?
 
