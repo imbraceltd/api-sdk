@@ -8,8 +8,8 @@ const base = isProd ? '/' : '/'
 // Astro does not auto-prefix the configured `base` onto root-relative links
 // in markdown content (e.g. `[Auth](/sdk/authentication/)`). Sidebar entries
 // and Starlight components handle base prefixing themselves, but markdown
-// links would render as `/sdk/authentication/` and 404 in production where
-// the site is served from `/api-sdk/`. This plugin prefixes the base onto
+// links would render as `/sdk/authentication/` and 404 if the site is
+// served from a sub-path. This plugin prefixes the base onto
 // internal anchor hrefs.
 function rehypePrefixBase() {
   const trimmedBase = base.replace(/\/$/, '')

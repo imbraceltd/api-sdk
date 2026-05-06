@@ -5,7 +5,7 @@ description: Use the Imbrace SDK faster by dropping llms.txt into your AI coding
 
 import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
 
-**Vibe Coding** means writing code by collaborating with an AI assistant — describing what you want in plain language and letting the AI generate, explain, or refactor the code for you. The Imbrace SDK ships an [`llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) file so any AI tool can instantly understand the SDK without hallucinating method names or argument shapes.
+**Vibe Coding** means writing code by collaborating with an AI assistant — describing what you want in plain language and letting the AI generate, explain, or refactor the code for you. The Imbrace SDK ships an [`llms.txt`](https://developer.imbrace.co/llms.txt) file so any AI tool can instantly understand the SDK without hallucinating method names or argument shapes.
 
 ## Setup
 
@@ -65,7 +65,7 @@ client = ImbraceClient(
 
 **4. Grab `llms.txt`**
 
-Download or copy the file at [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) and drop it into your AI tool (see [How to use it](#how-to-use-it) below).
+Download or copy the file at [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) and drop it into your AI tool (see [How to use it](#how-to-use-it) below).
 
 ---
 
@@ -73,7 +73,7 @@ Download or copy the file at [`https://imbraceltd.github.io/api-sdk/llms.txt`](h
 
 `llms.txt` is a plain-text file (similar to `robots.txt`) that gives AI models a compact, accurate summary of a library — its clients, resources, authentication, and common patterns. When you paste it into an AI context window, the model already knows the SDK and can write correct code on the first try.
 
-**File URL:** [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt)
+**File URL:** [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt)
 
 ## How to use it
 
@@ -96,7 +96,7 @@ and prints each text delta to the console.
 Add the URL to your AI context via **@ docs** or the equivalent "add context" feature in your IDE. Cursor supports `@URL` directly:
 
 ```
-@https://imbraceltd.github.io/api-sdk/llms.txt
+@https://developer.imbrace.co/llms.txt
 
 How do I upload a file and trigger embedding processing?
 ```

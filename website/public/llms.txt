@@ -5,21 +5,21 @@
 ## Documentation & Links
 
 ### Getting Started
-- [Overview](https://imbraceltd.github.io/api-sdk/sdk/overview/) - Key features and architecture.
-- [Installation](https://imbraceltd.github.io/api-sdk/sdk/installation/) - Step-by-step package setup for TS and Python.
-- [Quick Start](https://imbraceltd.github.io/api-sdk/sdk/quick-start/) - Make your first API call in 60 seconds.
+- [Overview](https://developer.imbrace.co/sdk/overview/) - Key features and architecture.
+- [Installation](https://developer.imbrace.co/sdk/installation/) - Step-by-step package setup for TS and Python.
+- [Quick Start](https://developer.imbrace.co/sdk/quick-start/) - Make your first API call in 60 seconds.
 
 ### Guides & Workflows
-- [Authentication Guide](https://imbraceltd.github.io/api-sdk/sdk/authentication/) - API Key vs Access Token strategies.
-- [Full Flow Guide (E2E)](https://imbraceltd.github.io/api-sdk/sdk/full-flow-guide/) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
-- [Framework Integrations](https://imbraceltd.github.io/api-sdk/sdk/integrations/) - Patterns for React, Next.js, FastAPI, Django, and Celery.
-- [Testing Guide](https://imbraceltd.github.io/api-sdk/guides/testing/) - Unit testing, mocking, and integration patterns.
-- [Troubleshooting](https://imbraceltd.github.io/api-sdk/guides/troubleshooting/) - Common errors, 401s, and double-path issues.
-- [Vibe Coding](https://imbraceltd.github.io/api-sdk/guides/vibe-coding/) - Use llms.txt with Claude, Cursor, Copilot to code faster.
+- [Authentication Guide](https://developer.imbrace.co/sdk/authentication/) - API Key vs Access Token strategies.
+- [Full Flow Guide (E2E)](https://developer.imbrace.co/sdk/full-flow-guide/) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
+- [Framework Integrations](https://developer.imbrace.co/sdk/integrations/) - Patterns for React, Next.js, FastAPI, Django, and Celery.
+- [Testing Guide](https://developer.imbrace.co/guides/testing/) - Unit testing, mocking, and integration patterns.
+- [Troubleshooting](https://developer.imbrace.co/guides/troubleshooting/) - Common errors, 401s, and double-path issues.
+- [Vibe Coding](https://developer.imbrace.co/guides/vibe-coding/) - Use llms.txt with Claude, Cursor, Copilot to code faster.
 
 ### API Reference
-- [Namespace Resource Reference](https://imbraceltd.github.io/api-sdk/sdk/resources/) - Detailed signatures for all 30+ namespaces.
-- [AI Agent Deep Dive](https://imbraceltd.github.io/api-sdk/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
+- [Namespace Resource Reference](https://developer.imbrace.co/sdk/resources/) - Detailed signatures for all 30+ namespaces.
+- [AI Agent Deep Dive](https://developer.imbrace.co/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
 
 ## Core Technical Specs
 - **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
