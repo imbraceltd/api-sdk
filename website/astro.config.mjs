@@ -3,7 +3,7 @@ import starlight from '@astrojs/starlight'
 import { visit } from 'unist-util-visit'
 
 const isProd = process.env.NODE_ENV === 'production'
-const base = isProd ? '/api-sdk' : '/'
+const base = isProd ? '/' : '/'
 
 // Astro does not auto-prefix the configured `base` onto root-relative links
 // in markdown content (e.g. `[Auth](/sdk/authentication/)`). Sidebar entries
