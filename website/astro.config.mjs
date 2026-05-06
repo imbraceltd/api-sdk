@@ -27,7 +27,7 @@ function rehypePrefixBase() {
 }
 
 export default defineConfig({
-  site: 'https://imbraceltd.github.io',
+  site: 'https://developer.imbrace.co',
   base,
   markdown: {
     rehypePlugins: [rehypePrefixBase()],
