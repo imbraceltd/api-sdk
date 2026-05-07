@@ -86,7 +86,7 @@ Triggered automatically on every push to `main` that touches `website/**`.
 1. `npm ci` in `website/`
 2. `NODE_ENV=production npm run build`
 3. Upload `website/dist/` as a GitHub Pages artifact
-4. Deploy to `https://imbraceltd.github.io/api-sdk/`
+4. Deploy to `https://developer.imbrace.co/`
 
 ---
 

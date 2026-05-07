@@ -5,7 +5,7 @@ description: Dùng Imbrace SDK nhanh hơn bằng cách đưa llms.txt vào AI co
 
 import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
 
-**Vibe Coding** là cách viết code bằng cách cộng tác với AI assistant — mô tả yêu cầu bằng ngôn ngữ tự nhiên và để AI tạo, giải thích, hoặc refactor code cho bạn. Imbrace SDK đi kèm file [`llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) để bất kỳ AI tool nào cũng có thể hiểu SDK ngay lập tức mà không bịa ra tên method hay shape của argument.
+**Vibe Coding** là cách viết code bằng cách cộng tác với AI assistant — mô tả yêu cầu bằng ngôn ngữ tự nhiên và để AI tạo, giải thích, hoặc refactor code cho bạn. Imbrace SDK đi kèm file [`llms.txt`](https://developer.imbrace.co/llms.txt) để bất kỳ AI tool nào cũng có thể hiểu SDK ngay lập tức mà không bịa ra tên method hay shape của argument.
 
 ## Thiết lập
 
@@ -47,7 +47,7 @@ Xem [Authentication](/sdk/authentication/) để biết cách lấy API key.
 
 **3. Lấy file `llms.txt`**
 
-Tải hoặc copy file tại [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
+Tải hoặc copy file tại [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
 
 ---
 
@@ -55,7 +55,7 @@ Tải hoặc copy file tại [`https://imbraceltd.github.io/api-sdk/llms.txt`](h
 
 `llms.txt` là file plain-text (tương tự `robots.txt`) cung cấp cho AI model bản tóm tắt chính xác, gọn nhẹ về thư viện — clients, resources, authentication, và các pattern phổ biến. Khi bạn paste nó vào context window của AI, model đã hiểu SDK và có thể viết code đúng ngay từ lần đầu.
 
-**URL file:** [`https://imbraceltd.github.io/api-sdk/llms.txt`](https://imbraceltd.github.io/api-sdk/llms.txt)
+**URL file:** [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt)
 
 ## Cách sử dụng
 
@@ -78,7 +78,7 @@ và in từng text delta ra console.
 Thêm URL vào AI context qua tính năng **@ docs** hoặc "add context" trong IDE của bạn. Cursor hỗ trợ `@URL` trực tiếp:
 
 ```
-@https://imbraceltd.github.io/api-sdk/llms.txt
+@https://developer.imbrace.co/llms.txt
 
 Làm thế nào để upload file và trigger embedding processing?
 ```
