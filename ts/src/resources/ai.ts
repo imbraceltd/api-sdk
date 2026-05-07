@@ -1,5 +1,5 @@
 import { HttpTransport } from "../http.js"
-import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChunk } from "../types/index.js"
+import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChunk, AnswerQuestionInput, AnswerQuestionResponse, RagStreamChunk } from "../types/index.js"
 
 // ─── Assistant interfaces 
 
@@ -408,6 +408,63 @@ export class AiResource {
 
   async deleteRagFile(fileId: string): Promise<void> {
     await this.http.getFetch()(`${this.v3}/rag/files/${fileId}`, { method: "DELETE" })
+  }
+
+  // ─── RAG Question ─────────────────────────────────────────────────────────
+
+  answerQuestion(input: AnswerQuestionInput & { streaming: true }): AsyncGenerator<RagStreamChunk>
+  answerQuestion(input: AnswerQuestionInput & { streaming?: false }): Promise<AnswerQuestionResponse>
+  answerQuestion(
+    input: AnswerQuestionInput
+  ): Promise<AnswerQuestionResponse> | AsyncGenerator<RagStreamChunk> {
+    if (input.streaming === true) return this._answerQuestionStream(input)
+
+    return this.http.getFetch()(`${this.v3}/rag/answer_question`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }).then(r => r.json())
+  }
+
+  private async * _answerQuestionStream(input: AnswerQuestionInput): AsyncGenerator<RagStreamChunk> {
+    const res = await this.http.getFetch()(`${this.v3}/rag/answer_question`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream",
+      },
+      body: JSON.stringify({ ...input, streaming: true }),
+    })
+
+    if (!res.body) throw new Error("No response body for streaming")
+
+    const reader  = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer    = ""
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() ?? ""
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          const data = line.slice(6).trim()
+          if (!data) continue
+          try {
+            yield JSON.parse(data) as RagStreamChunk
+          } catch {
+            // skip malformed lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
   }
 
   // ─── Guardrails   
