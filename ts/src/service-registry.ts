@@ -27,6 +27,13 @@ export interface ServiceUrls {
   workflowEngine: string
   /** ai-agent — /api/ai-agent */
   aiAgent: string
+  /**
+   * When true, platform/account/organizations/teams resources fall back to
+   * the legacy /v1/backend and /v2/backend paths instead of /platform/v{N}.
+   * The platform microservice is not deployed on prodv2/stable, so these
+   * presets enable legacy mode by default.
+   */
+  legacyBackend?: boolean
 }
 
 
@@ -53,6 +60,7 @@ export function resolveServiceUrls(
     predict:           `${gw}/predict`,
     workflowEngine:    `${gw}/activepieces`,
     aiAgent:           `${gw}/ai-agent`,
+    legacyBackend:     preset.legacyBackend,
   }
 
   return { ...resolved, ...overrides }

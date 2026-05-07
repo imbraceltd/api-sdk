@@ -62,10 +62,18 @@ export class TeamsResource {
     private readonly http: HttpTransport,
     private readonly base: string,
     private readonly backendBase?: string,
+    /** When true, route through legacy backend (platform service not deployed on prodv2). */
+    private readonly legacy?: boolean,
   ) {}
 
-  private get v1() { return `${this.base}/v1` }
-  private get v2() { return `${this.base}/v2` }
+  private get v1() {
+    if (this.legacy && this.backendBase) return this.backendBase
+    return `${this.base}/v1`
+  }
+  private get v2() {
+    if (this.legacy && this.backendBase) return this.backendBase.replace(/\/v1\/backend$/, "/v2/backend")
+    return `${this.base}/v2`
+  }
 
   /** Upload team icon. Endpoint: /v1/backend/teams/_fileupload */
   async uploadIcon(body: FormData): Promise<{ url: string }> {
