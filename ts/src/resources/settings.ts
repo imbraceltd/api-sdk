@@ -65,8 +65,18 @@ export class SettingsResource {
   constructor(
     private readonly http: HttpTransport,
     private readonly channelServiceBase: string,
-    private readonly platformBase: string
+    private readonly platformBase: string,
+    /** Legacy backend base (e.g. `${gw}/v1/backend`); used for user routes when `legacy=true`. */
+    private readonly backendBase?: string,
+    /** When true (prodv2/stable), user routes resolve to /v1/backend/users instead of /platform/v1/users. */
+    private readonly legacy?: boolean,
   ) {}
+
+  /** Returns the platform-or-legacy v1 base for /users routes. */
+  private get platformV1() {
+    if (this.legacy && this.backendBase) return this.backendBase
+    return `${this.platformBase}/v1`
+  }
 
   // Message templates
   async listMessageTemplates(params?: { businessUnitId?: string; limit?: number; skip?: number }): Promise<MessageTemplateListResponse> {
@@ -133,21 +143,27 @@ export class SettingsResource {
 
   // Users
   async listUsers(params?: { skip?: number; limit?: number; search?: string; roles?: string; status?: string }): Promise<SettingsUser[]> {
-    const url = new URL(`${this.platformBase}/v1/users`)
+    const url = new URL(`${this.platformV1}/users`)
     if (params?.skip !== undefined) url.searchParams.set("skip", String(params.skip))
     if (params?.limit) url.searchParams.set("limit", String(params.limit))
     if (params?.search) url.searchParams.set("search", params.search)
     if (params?.roles) url.searchParams.set("roles", params.roles)
     if (params?.status) url.searchParams.set("status", params.status)
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then((res: unknown) => {
+      // Legacy backend wraps in {object_name, data}
+      if (res && typeof res === "object" && "data" in (res as Record<string, unknown>)) {
+        return (res as { data: SettingsUser[] }).data
+      }
+      return res as SettingsUser[]
+    })
   }
 
   async getUserRolesCount(): Promise<UserRolesCountResponse> {
-    return this.http.getFetch()(`${this.platformBase}/v1/users/_roles_count`, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(`${this.platformV1}/users/_roles_count`, { method: "GET" }).then(r => r.json())
   }
 
   async bulkInviteUsers(body: BulkInviteInput): Promise<BulkInviteResponse> {
-    return this.http.getFetch()(`${this.platformBase}/v1/users/_bulk_invite`, {
+    return this.http.getFetch()(`${this.platformV1}/users/_bulk_invite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
