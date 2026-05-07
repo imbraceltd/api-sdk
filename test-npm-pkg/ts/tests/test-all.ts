@@ -1,6 +1,6 @@
 import { testAiAgent } from "./test-ai-agent.js";
 import { testChatAi } from "./test-chat-ai.js";
-import { testActivepieces } from "./test-activepieces.js";
+import { testWorkflows } from "./test-workflows.js";
 import { testBoards } from "./test-boards.js";
 import { testCrm } from "./test-crm.js";
 import { testPlatform } from "./test-platform.js";
@@ -28,7 +28,7 @@ async function runAllTests() {
     { name: "Marketplace", fn: testMarketplace },
     { name: "AiAgent", fn: testAiAgent },
     { name: "ChatAi", fn: testChatAi },
-    { name: "Activepieces", fn: testActivepieces },
+    { name: "Workflows", fn: testWorkflows },
     { name: "Boards", fn: testBoards },
     { name: "CRM", fn: testCrm },
     { name: "Full Flow Guide", fn: testFullFlowGuide },

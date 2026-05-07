@@ -30,9 +30,9 @@ async function main() {
     });
     console.log("AI Response:", response.choices[0].message.content);
 
-    // 5. Automation - Gọi ActivePieces Workflow
+    // 5. Automation - Trigger Workflow
     // Giả sử bạn có một workflow xử lý lead từ Chat
-    const flowResult = await client.activepieces.post("/v1/webhooks/YOUR_FLOW_ID", {
+    const flowResult = await client.workflows.triggerFlow("YOUR_FLOW_ID", {
       chat_id: "chat_123",
       content: response.choices[0].message.content
     });

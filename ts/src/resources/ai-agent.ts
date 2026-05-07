@@ -47,7 +47,8 @@ export class AiAgentResource {
     assistant_id: string
     messages: any[]
     id?: string
-    organization_id?: string
+    model_id?: string
+    provider_id?: string
     user_id?: string
     [key: string]: unknown
   }): Promise<Response> {
@@ -73,7 +74,6 @@ export class AiAgentResource {
 
   async streamSubAgentChat(body: {
     assistant_id: string
-    organization_id: string
     session_id: string
     chat_id: string
     messages: any[]

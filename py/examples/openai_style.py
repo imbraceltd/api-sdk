@@ -34,9 +34,9 @@ def main():
         })
         print("AI Response:", response["choices"][0]["message"]["content"])
 
-        # 5. Automation - Xử lý thông qua ActivePieces
+        # 5. Automation - Trigger Workflow
         # Gửi dữ liệu vào Workflow xử lý lead hoặc lưu database
-        automation_res = client.activepieces.post("/v1/webhooks/YOUR_FLOW_ID", {
+        automation_res = client.workflows.trigger_flow("YOUR_FLOW_ID", {
             "source": "SDK_DEMO",
             "payload": response["choices"][0]["message"]["content"]
         })

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 from urllib.parse import urlencode, quote
 from uuid import uuid4
 from ..http import HttpTransport, AsyncHttpTransport
@@ -9,6 +9,27 @@ def _qs(params: Dict[str, Any]) -> str:
     if not filtered:
         return ""
     return "?" + urlencode(filtered)
+
+
+class StreamChatBody(TypedDict, total=False):
+    """Body for `stream_chat`. Required: `assistant_id`, `messages`.
+
+    Optional: `id`, `model_id`, `provider_id`, `user_id`.
+    """
+    assistant_id: str
+    messages: List[Dict[str, Any]]
+    id: str
+    model_id: str
+    provider_id: str
+    user_id: str
+
+
+class StreamSubAgentChatBody(TypedDict, total=False):
+    """Body for `stream_sub_agent_chat`. Required: `assistant_id`, `session_id`, `chat_id`, `messages`."""
+    assistant_id: str
+    session_id: str
+    chat_id: str
+    messages: List[Dict[str, Any]]
 
 
 class AiAgentResource:
@@ -40,7 +61,7 @@ class AiAgentResource:
 
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .iter_lines()) ---
 
-    def stream_chat(self, body: Dict[str, Any]) -> Any:
+    def stream_chat(self, body: StreamChatBody) -> Any:
         user_id = body.get("user_id")
         if not user_id:
             auth = self._http.request("POST", f"{self._base}/chat-client/auth/user").json()
@@ -50,7 +71,7 @@ class AiAgentResource:
 
     # --- Sub-agent chat v2 ---
 
-    def stream_sub_agent_chat(self, body: Dict[str, Any]) -> Any:
+    def stream_sub_agent_chat(self, body: StreamSubAgentChatBody) -> Any:
         return self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=body)
 
     def get_sub_agent_history(self, session_id: str, chat_id: str) -> Dict[str, Any]:
@@ -252,7 +273,7 @@ class AsyncAiAgentResource:
 
     # --- Chat v2 (streaming — returns raw httpx.Response; iterate with .aiter_lines()) ---
 
-    async def stream_chat(self, body: Dict[str, Any]) -> Any:
+    async def stream_chat(self, body: StreamChatBody) -> Any:
         user_id = body.get("user_id")
         if not user_id:
             res = await self._http.request("POST", f"{self._base}/chat-client/auth/user")
@@ -262,7 +283,7 @@ class AsyncAiAgentResource:
 
     # --- Sub-agent chat v2 ---
 
-    async def stream_sub_agent_chat(self, body: Dict[str, Any]) -> Any:
+    async def stream_sub_agent_chat(self, body: StreamSubAgentChatBody) -> Any:
         return await self._http.request("POST", f"{self._base}/v2/sub-agent-chat", json=body)
 
     async def get_sub_agent_history(self, session_id: str, chat_id: str) -> Dict[str, Any]:

@@ -4,10 +4,11 @@ import { HttpTransport } from "../../../src/http.js"
 import { TokenManager } from "../../../src/auth/token-manager.js"
 
 const BACKEND = "https://app-gatewayv2.imbrace.co/v1/backend"
+const WORKFLOW_ENGINE = "https://app-gatewayv2.imbrace.co/activepieces"
 
 function makeResource() {
   const http = new HttpTransport({ apiKey: "test_key", timeout: 5000, tokenManager: new TokenManager() })
-  return new WorkflowsResource(http, BACKEND)
+  return new WorkflowsResource(http, BACKEND, WORKFLOW_ENGINE)
 }
 
 function mockFetch(data: unknown, status = 200) {

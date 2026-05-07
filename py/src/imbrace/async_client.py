@@ -34,8 +34,8 @@ from .resources.message_suggestion import AsyncMessageSuggestionResource
 from .resources.predict import AsyncPredictResource
 from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
-from .resources.activepieces import AsyncActivePiecesResource
 from .resources.ai_agent import AsyncAiAgentResource
+from .resources.document_ai import AsyncDocumentAIResource
 from .resources.license import AsyncLicenseResource
 
 
@@ -115,7 +115,7 @@ class AsyncImbraceClient:
         self.conversations = AsyncConversationsResource(self.http, urls.channel_service)
         self.messages      = AsyncMessagesResource(self.http, urls.channel_service, urls.backend)
         self.categories    = AsyncCategoriesResource(self.http, urls.channel_service)
-        self.workflows     = AsyncWorkflowsResource(self.http, urls.backend)
+        self.workflows     = AsyncWorkflowsResource(self.http, urls.backend, urls.workflow_engine)
 
         self.boards        = AsyncBoardsResource(self.http, urls.data_board, urls.backend)
         self.ips           = AsyncIpsResource(self.http, urls.ips)
@@ -136,8 +136,8 @@ class AsyncImbraceClient:
         # New services
         self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
-        self.activepieces  = AsyncActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)
+        self.document_ai   = AsyncDocumentAIResource(self.http, urls.ai)
         self.license       = AsyncLicenseResource(self.http, urls.gateway)
 
         # —— Convenience auth
