@@ -18,7 +18,7 @@ class ServiceUrls:
     file_service: str
     message_suggestion: str
     predict: str
-    activepieces: str
+    workflow_engine: str
     ai_agent: str
 
 
@@ -45,7 +45,7 @@ def resolve_service_urls(
         file_service=f"{gw}/v1/backend/file-service",
         message_suggestion=f"{gw}/v1/message-suggestion",
         predict=f"{gw}/predict",
-        activepieces=f"{gw}/activepieces",
+        workflow_engine=f"{gw}/activepieces",
         ai_agent=f"{gw}/ai-agent",
     )
 

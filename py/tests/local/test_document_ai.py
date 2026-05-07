@@ -40,10 +40,15 @@ def skip(label, reason):
 # Sync
 # ─────────────────────────────────────────────────────────────────────────────
 
+TEST_FILE_ID   = os.environ.get("IMBRACE_FIN_FILE_ID")
+TEST_REPORT_ID = os.environ.get("IMBRACE_FIN_REPORT_ID")
+
+
 def test_sync():
     print("\n--- Synchronous Tests ---")
     client = ImbraceClient(access_token=ACCESS_TOKEN, gateway=GATEWAY, organization_id=ORG_ID)
     chat_ai = client.chat_ai
+    document_ai = client.document_ai
 
     # [1] List document AI providers
     print("\n[1] List document AI providers")
@@ -101,6 +106,53 @@ def test_sync():
             ok(f"process_document() {vision_model}", f"extracted keys: {', '.join(keys)}")
         except Exception as e: fail(f"process_document() {vision_model}", e)
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # Financial Documents — new client.document_ai.* resource
+    # ─────────────────────────────────────────────────────────────────────────
+
+    print("\n[3] Financial Documents — get_file / get_report (smoke)")
+    if TEST_FILE_ID:
+        try:
+            res = document_ai.get_file(TEST_FILE_ID, page=1, limit=5)
+            pagination = (res or {}).get("importedFile", {}).get("pagination") or \
+                         (res or {}).get("report", {}).get("pagination")
+            ok("get_file()", f"pagination={pagination}")
+        except Exception as e: fail("get_file()", e)
+    else:
+        skip("get_file()", "set IMBRACE_FIN_FILE_ID to test")
+
+    if TEST_REPORT_ID:
+        try:
+            res = document_ai.get_report(TEST_REPORT_ID, page=1, limit=5)
+            data = (res or {}).get("data", [])
+            ok("get_report()", f"rows={len(data) if isinstance(data, list) else 'n/a'}")
+        except Exception as e: fail("get_report()", e)
+    else:
+        skip("get_report()", "set IMBRACE_FIN_REPORT_ID to test")
+
+    print("\n[4] Financial Documents — list_errors (smoke)")
+    if TEST_FILE_ID:
+        try:
+            res = document_ai.list_errors(TEST_FILE_ID, limit=10)
+            lst = res if isinstance(res, list) else (res or {}).get("data", [])
+            ok("list_errors()", f"{len(lst)} errors")
+        except Exception as e: fail("list_errors()", e)
+    else:
+        skip("list_errors()", "set IMBRACE_FIN_FILE_ID to test")
+
+    print("\n[5] Financial Documents — URL routing smoke (fake ID, expect 4xx)")
+    try:
+        document_ai.get_file("FAKE_DOCUMENT_ID_FOR_ROUTING_CHECK")
+        ok("get_file(fake)", "returned without error (unexpected — backend should 404)")
+    except Exception as e:
+        msg = str(e)
+        if "404" in msg or "not found" in msg.lower():
+            ok("get_file(fake)", "404 — URL routed correctly")
+        elif "401" in msg or "403" in msg:
+            skip("get_file(fake)", f"auth error ({msg[:60]})")
+        else:
+            fail("get_file(fake)", e)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Async
 # ─────────────────────────────────────────────────────────────────────────────
@@ -109,11 +161,25 @@ async def test_async():
     print("\n--- Asynchronous Tests ---")
     async with AsyncImbraceClient(access_token=ACCESS_TOKEN, gateway=GATEWAY, organization_id=ORG_ID) as client:
         chat_ai = client.chat_ai
+        document_ai = client.document_ai
         try:
             res = await chat_ai.list_document_models()
             lst = res.get("data", res) if isinstance(res, dict) else res
             ok("async list_document_models()", f"count={len(lst) if isinstance(lst, list) else '?'}")
         except Exception as e: fail("async list_document_models()", e)
+
+        # async smoke for new document_ai resource
+        try:
+            await document_ai.get_file("FAKE_DOCUMENT_ID_FOR_ROUTING_CHECK")
+            ok("async get_file(fake)", "returned without error (unexpected)")
+        except Exception as e:
+            msg = str(e)
+            if "404" in msg or "not found" in msg.lower():
+                ok("async get_file(fake)", "404 — URL routed correctly")
+            elif "401" in msg or "403" in msg:
+                skip("async get_file(fake)", f"auth error ({msg[:60]})")
+            else:
+                fail("async get_file(fake)", e)
 
 if __name__ == "__main__":
     test_sync()

@@ -107,14 +107,14 @@ await step("streamChat (follow-up, same session)", async () => {
   return await res.text().then(t => t.slice(0, 100))
 })
 
-// ─── Flow 2: Activepieces Workflow ────────────────────────────────────────────
+// ─── Flow 2: Workflow ─────────────────────────────────────────────────────────
 
-section("Flow 2: Activepieces — List Flows + Trigger")
+section("Flow 2: Workflows — List Flows + Trigger")
 
 let flowId = null
 
 const flows = await step("listFlows", () =>
-  client.activepieces.listFlows({ limit: 5 })
+  client.workflows.listFlows({ limit: 5 })
 )
 
 if (flows?.data?.length > 0) {
@@ -122,15 +122,15 @@ if (flows?.data?.length > 0) {
   console.log(`    (using existing flow: ${flowId})`)
 
   await step("getFlow", () =>
-    client.activepieces.getFlow(flowId)
+    client.workflows.getFlow(flowId)
   )
 
   await step("triggerFlow (async)", () =>
-    client.activepieces.triggerFlow(flowId, { source: "sdk-test", timestamp: ts })
+    client.workflows.triggerFlow(flowId, { source: "sdk-test", timestamp: ts })
   )
 
   await step("listRuns", () =>
-    client.activepieces.listRuns({ flowId, limit: 3 })
+    client.workflows.listRuns({ flowId, limit: 3 })
   )
 } else {
   console.log("  ℹ No flows found — skipping trigger/run steps")

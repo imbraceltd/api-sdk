@@ -34,8 +34,8 @@ import { ChatAiResource } from "./resources/chat-ai.js"
 import { FileServiceResource } from "./resources/file-service.js"
 import { MessageSuggestionResource } from "./resources/message-suggestion.js"
 import { PredictResource } from "./resources/predict.js"
-import { ActivePiecesResource } from "./resources/activepieces.js"
 import { AiAgentResource } from "./resources/ai-agent.js"
+import { DocumentAIResource } from "./resources/document-ai.js"
 
 export interface ImbraceClientConfig {
   /**
@@ -99,8 +99,8 @@ export class ImbraceClient {
   public readonly fileService: FileServiceResource
   public readonly messageSuggestion: MessageSuggestionResource
   public readonly predict: PredictResource
-  public readonly activepieces: ActivePiecesResource
   public readonly aiAgent: AiAgentResource
+  public readonly documentAi: DocumentAIResource
 
   constructor(opts?: ImbraceClientConfig) {
     this.opts = opts ?? {}
@@ -156,7 +156,7 @@ export class ImbraceClient {
     this.messages      = new MessagesResource(this.http, urls.channelService, urls.backend)
     this.categories    = new CategoriesResource(this.http, urls.channelService)
 
-    this.workflows     = new WorkflowsResource(this.http, urls.backend)
+    this.workflows     = new WorkflowsResource(this.http, urls.backend, urls.workflowEngine)
 
     // Dedicated services
     this.boards        = new BoardsResource(this.http, urls.dataBoard, urls.backend)
@@ -185,8 +185,8 @@ export class ImbraceClient {
     this.fileService      = new FileServiceResource(this.http, urls.fileService)       
     this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
     this.predict          = new PredictResource(this.http, urls.predict)
-    this.activepieces      = new ActivePiecesResource(this.http, urls.activepieces)
     this.aiAgent           = new AiAgentResource(this.http, urls.aiAgent)
+    this.documentAi        = new DocumentAIResource(this.http, urls.ai)
     }
   // -- Convenience auth ------------------------------------------------------
 

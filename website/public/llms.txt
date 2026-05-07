@@ -46,7 +46,7 @@
 
 ### CRM & Automation
 - **`boards`**: CRM pipelines. CRUD for `items`, `fields`, and `segments`.
-- **`activepieces`**: Visual workflow builder. Mandatory ops: `UPDATE_TRIGGER`, `LOCK_AND_PUBLISH`.
+- **`workflows`**: Channel automation + visual flow engine (CRUD flows, runs, folders, connections, pieces, MCP servers, tables, invitations). Mandatory ops for new flows: `UPDATE_TRIGGER`, `LOCK_AND_PUBLISH`. Renamed from `activepieces` in v2.0.0.
 
 ### Messaging & Engagement
 - **`contacts`**: Customer profiles, activities, and notifications.
@@ -59,7 +59,7 @@
 - **`ips`**: Profile management and `listIdentities(userId)`.
 
 ## Service Key Registry (URL Overrides)
-`gateway`, `platform`, `channel_service`, `data_board`, `backend`, `ips`, `ai`, `marketplaces`, `file_service`, `message_suggestion`, `predict`, `activepieces`, `ai_agent`.
+`gateway`, `platform`, `channel_service`, `data_board`, `backend`, `ips`, `ai`, `marketplaces`, `file_service`, `message_suggestion`, `predict`, `workflow_engine` (TS: `workflowEngine`, gateway path `/activepieces`), `ai_agent`.
 
 ## Error Hierarchy
 - `ImbraceError` (Base)

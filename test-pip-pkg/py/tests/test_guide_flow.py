@@ -145,10 +145,10 @@ def main() -> None:
         step("1.4 streamChat (multi-turn w/ session)", s14)
 
     # ---------------- SECTION 2 ----------------
-    print("\n[Section 2] Activepieces Workflow")
+    print("\n[Section 2] Workflow")
 
     def s21():
-        res = client.activepieces.list_flows(limit=5)
+        res = client.workflows.list_flows(limit=5)
         flows = res.get("data", []) if isinstance(res, dict) else []
         state["flows"] = flows
         state["project_id"] = flows[0].get("projectId") if flows else None
@@ -158,7 +158,7 @@ def main() -> None:
 
     if state.get("project_id"):
         def s22():
-            f = client.activepieces.create_flow(
+            f = client.workflows.create_flow(
                 display_name=f"CRM Update on New Lead {ts}",
                 project_id=state["project_id"],
             )
@@ -172,7 +172,7 @@ def main() -> None:
 
     if state.get("flow_id"):
         def s23a():
-            client.activepieces.apply_flow_operation(state["flow_id"], {
+            client.workflows.apply_flow_operation(state["flow_id"], {
                 "type": "UPDATE_TRIGGER",
                 "request": {
                     "name": "trigger",
@@ -192,7 +192,7 @@ def main() -> None:
         step("2.3 UPDATE_TRIGGER (catch_webhook)", s23a)
 
         def s23b():
-            client.activepieces.apply_flow_operation(state["flow_id"], {
+            client.workflows.apply_flow_operation(state["flow_id"], {
                 "type": "LOCK_AND_PUBLISH",
                 "request": {},
             })
@@ -200,7 +200,7 @@ def main() -> None:
         step("2.3 LOCK_AND_PUBLISH", s23b)
 
         def s23c():
-            client.activepieces.trigger_flow(
+            client.workflows.trigger_flow(
                 state["flow_id"],
                 {"contact_name": "Jane Smith", "email": "jane@example.com"},
             )
@@ -223,7 +223,7 @@ def main() -> None:
             step("2.5 updateAssistant w/ workflow_function_call", s25)
 
         def s26():
-            r = client.activepieces.list_runs(limit=10, flow_id=state["flow_id"])
+            r = client.workflows.list_runs(limit=10, flow_id=state["flow_id"])
             data = r.get("data", []) if isinstance(r, dict) else []
             return f"{len(data)} runs"
 
@@ -381,7 +381,7 @@ def main() -> None:
     if state.get("flow_id"):
         def cflow():
             try:
-                client.activepieces.delete_flow(state["flow_id"])
+                client.workflows.delete_flow(state["flow_id"])
             except Exception:
                 pass
         step("cleanup.flow", cflow)

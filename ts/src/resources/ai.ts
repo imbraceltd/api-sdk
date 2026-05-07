@@ -241,7 +241,7 @@ export interface UpdateAiProviderInput {
 }
 
 export interface LlmModelsResponse {
-  models: Array<{ id: string; name: string; provider?: string; [key: string]: unknown }>
+  models: Array<{ id: string; name: string; provider?: string; provider_id?: string; [key: string]: unknown }>
 }
 
 export interface VerifyToolServerInput {

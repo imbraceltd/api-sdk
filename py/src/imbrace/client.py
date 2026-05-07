@@ -34,8 +34,8 @@ from .resources.message_suggestion import MessageSuggestionResource
 from .resources.predict import PredictResource
 from .resources.chat_ai import ChatAiResource
 from .resources.file_service import FileServiceResource
-from .resources.activepieces import ActivePiecesResource
 from .resources.ai_agent import AiAgentResource
+from .resources.document_ai import DocumentAIResource
 from .resources.license import LicenseResource
 
 
@@ -116,8 +116,8 @@ class ImbraceClient:
         self.messages      = MessagesResource(self.http, urls.channel_service, urls.backend)
         self.categories    = CategoriesResource(self.http, urls.channel_service)
 
-        # Workflows: channel-service (automation) + platform (n8n)
-        self.workflows     = WorkflowsResource(self.http, urls.backend)
+        # Workflows: backend (channel automation) + workflow_engine (flow engine)
+        self.workflows     = WorkflowsResource(self.http, urls.backend, urls.workflow_engine)
 
         # Dedicated services
         self.boards        = BoardsResource(self.http, urls.data_board, urls.backend)
@@ -144,8 +144,8 @@ class ImbraceClient:
         # New services
         self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = FileServiceResource(self.http, urls.file_service)
-        self.activepieces  = ActivePiecesResource(self.http, urls.activepieces)
         self.ai_agent      = AiAgentResource(self.http, urls.ai_agent)
+        self.document_ai   = DocumentAIResource(self.http, urls.ai)
         self.license       = LicenseResource(self.http, urls.gateway)
 
         if check_health:

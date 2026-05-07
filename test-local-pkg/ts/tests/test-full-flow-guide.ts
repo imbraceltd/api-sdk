@@ -87,24 +87,24 @@ async function testFullFlowGuide() {
       logResult("Assistant Renamed", updated.name);
     });
 
-    // --- Flow 2: Activepieces Workflow ---------------------------------------
-    console.log("\n[FLOW 2] Activepieces Workflows");
+    // --- Flow 2: Workflow ----------------------------------------------------
+    console.log("\n[FLOW 2] Workflows");
 
     await runTestSection("Workflow Lifecycle", async () => {
       try {
-        const flows = await client.activepieces.listFlows({ limit: 5 });
+        const flows = await client.workflows.listFlows({ limit: 5 });
         if (flows?.data?.length > 0) {
           state.flowId = flows.data[0].id;
           logResult("Using Existing Flow", state.flowId);
 
-          await client.activepieces.getFlow(state.flowId);
+          await client.workflows.getFlow(state.flowId);
 
           // Trigger Async
-          await client.activepieces.triggerFlow(state.flowId, { source: "sdk-test-async" });
+          await client.workflows.triggerFlow(state.flowId, { source: "sdk-test-async" });
           logResult("Trigger Flow Async", "Sent");
 
           // List Runs
-          const runs = await client.activepieces.listRuns({ flowId: state.flowId, limit: 3 });
+          const runs = await client.workflows.listRuns({ flowId: state.flowId, limit: 3 });
           logResult("Recent Runs Count", runs.data?.length);
         } else {
           console.log("   ⚠️ No flows found, skipping workflow triggers.");

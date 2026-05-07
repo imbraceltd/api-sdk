@@ -132,10 +132,10 @@ async function main() {
   }
 
   // ---------------- SECTION 2 ----------------
-  console.log("\n[Section 2] Activepieces Workflow");
+  console.log("\n[Section 2] Workflow");
 
   await step("2.1 listFlows", async () => {
-    const res: any = await client.activepieces.listFlows({ limit: 5 });
+    const res: any = await client.workflows.listFlows({ limit: 5 });
     state.flows = res?.data || [];
     state.projectId = state.flows[0]?.projectId;
     return `${state.flows.length} flows, projectId=${state.projectId}`;
@@ -143,7 +143,7 @@ async function main() {
 
   if (state.projectId) {
     await step("2.2 createFlow", async () => {
-      const f: any = await client.activepieces.createFlow({
+      const f: any = await client.workflows.createFlow({
         displayName: `CRM Update on New Lead ${ts}`,
         projectId: state.projectId,
       });
@@ -157,14 +157,14 @@ async function main() {
 
   if (state.flowId) {
     await step("2.3 triggerFlow (async)", async () => {
-      await client.activepieces.triggerFlow(state.flowId, {
+      await client.workflows.triggerFlow(state.flowId, {
         contact_name: "Jane Smith",
         email: "jane@example.com",
       });
     });
 
     await step("2.3 triggerFlowSync", async () => {
-      const r = await client.activepieces.triggerFlowSync(state.flowId, {
+      const r = await client.workflows.triggerFlowSync(state.flowId, {
         contact_name: "Jane Smith",
         email: "jane@example.com",
       });
@@ -184,7 +184,7 @@ async function main() {
     }
 
     await step("2.5 listRuns", async () => {
-      const r: any = await client.activepieces.listRuns({ flowId: state.flowId, limit: 10 });
+      const r: any = await client.workflows.listRuns({ flowId: state.flowId, limit: 10 });
       return `${r?.data?.length ?? 0} runs`;
     });
   } else {
@@ -330,7 +330,7 @@ async function main() {
   if (state.flowId) {
     await step("cleanup.flow", async () => {
       try {
-        await (client.activepieces as any).deleteFlow?.(state.flowId);
+        await (client.workflows as any).deleteFlow?.(state.flowId);
       } catch {}
     });
   }

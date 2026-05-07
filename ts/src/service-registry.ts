@@ -23,8 +23,8 @@ export interface ServiceUrls {
   messageSuggestion: string
   /** predict — /predict */
   predict: string
-  /** activepieces — /activepieces */
-  activepieces: string
+  /** workflow engine — /activepieces (gateway path is unchanged for v2) */
+  workflowEngine: string
   /** ai-agent — /api/ai-agent */
   aiAgent: string
 }
@@ -51,7 +51,7 @@ export function resolveServiceUrls(
     fileService:       `${gw}/v1/backend/file-service`,
     messageSuggestion: `${gw}/v1/message-suggestion`,
     predict:           `${gw}/predict`,
-    activepieces:      `${gw}/activepieces`,
+    workflowEngine:    `${gw}/activepieces`,
     aiAgent:           `${gw}/ai-agent`,
   }
 
