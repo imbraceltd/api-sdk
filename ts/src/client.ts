@@ -35,7 +35,7 @@ import { FileServiceResource } from "./resources/file-service.js"
 import { MessageSuggestionResource } from "./resources/message-suggestion.js"
 import { PredictResource } from "./resources/predict.js"
 import { AiAgentResource } from "./resources/ai-agent.js"
-import { DocumentAIResource } from "./resources/document-ai.js"
+import { FinancialDocumentsResource } from "./resources/financial-documents.js"
 
 export interface ImbraceClientConfig {
   /**
@@ -100,7 +100,7 @@ export class ImbraceClient {
   public readonly messageSuggestion: MessageSuggestionResource
   public readonly predict: PredictResource
   public readonly aiAgent: AiAgentResource
-  public readonly documentAi: DocumentAIResource
+  public readonly financialDocuments: FinancialDocumentsResource
 
   constructor(opts?: ImbraceClientConfig) {
     this.opts = opts ?? {}
@@ -186,7 +186,7 @@ export class ImbraceClient {
     this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
     this.predict          = new PredictResource(this.http, urls.predict)
     this.aiAgent           = new AiAgentResource(this.http, urls.aiAgent)
-    this.documentAi        = new DocumentAIResource(this.http, urls.ai)
+    this.financialDocuments = new FinancialDocumentsResource(this.http, urls.ai)
     }
   // -- Convenience auth ------------------------------------------------------
 

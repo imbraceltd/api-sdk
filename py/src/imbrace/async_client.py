@@ -35,7 +35,7 @@ from .resources.predict import AsyncPredictResource
 from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
 from .resources.ai_agent import AsyncAiAgentResource
-from .resources.document_ai import AsyncDocumentAIResource
+from .resources.financial_documents import AsyncFinancialDocumentsResource
 from .resources.license import AsyncLicenseResource
 
 
@@ -137,7 +137,7 @@ class AsyncImbraceClient:
         self.chat_ai       = AsyncChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)
-        self.document_ai   = AsyncDocumentAIResource(self.http, urls.ai)
+        self.financial_documents = AsyncFinancialDocumentsResource(self.http, urls.ai)
         self.license       = AsyncLicenseResource(self.http, urls.gateway)
 
         # —— Convenience auth

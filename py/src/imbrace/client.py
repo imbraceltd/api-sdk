@@ -35,7 +35,7 @@ from .resources.predict import PredictResource
 from .resources.chat_ai import ChatAiResource
 from .resources.file_service import FileServiceResource
 from .resources.ai_agent import AiAgentResource
-from .resources.document_ai import DocumentAIResource
+from .resources.financial_documents import FinancialDocumentsResource
 from .resources.license import LicenseResource
 
 
@@ -145,7 +145,7 @@ class ImbraceClient:
         self.chat_ai       = ChatAiResource(self.http, f"{urls.ai}/v3/ai")
         self.file_service  = FileServiceResource(self.http, urls.file_service)
         self.ai_agent      = AiAgentResource(self.http, urls.ai_agent)
-        self.document_ai   = DocumentAIResource(self.http, urls.ai)
+        self.financial_documents = FinancialDocumentsResource(self.http, urls.ai)
         self.license       = LicenseResource(self.http, urls.gateway)
 
         if check_health:

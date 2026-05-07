@@ -15,7 +15,8 @@
     "test:all": "tsx tests/test-all.ts",
     "test:ai": "tsx tests/test-ai-agent.ts",
     "test:boards": "tsx tests/test-boards.ts",
-    "test:crm": "tsx tests/test-crm.ts"
+    "test:crm": "tsx tests/test-crm.ts",
+    "test:financial-documents": "tsx tests/test-financial-documents.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +27,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@imbrace/sdk": "file:../../ts/imbrace-sdk-1.0.1.tgz",
+    "@imbrace/sdk": "file:../../ts/imbrace-sdk-1.0.2.tgz",
     "dotenv": "^17.4.2"
   }
 }

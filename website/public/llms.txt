@@ -41,8 +41,9 @@
 ## Resource Inventory (Selected)
 
 ### AI & Agents
-- **`chatAi`**: Assistant CRUD, LLM completions, Knowledge Hub, File Extraction.
+- **`chatAi`**: Assistant CRUD, LLM completions, Knowledge Hub, File Extraction. Includes `processDocument(body)` → `POST /ai/v3/document/` — one-shot URL-to-structured-data extraction with an LLM vision model.
 - **`aiAgent`**: Streaming Chat (SSE), Sub-agent, Embeddings/RAG, Parquet, Tracing.
+- **`financialDocuments`**: multi-step review/correction workflow for documents extracted via `chatAi.processDocument`. 10 methods: `getFile`, `getReport`, `listErrors`, `suggest`, `fix`, `reset`, `updateFile`, `updateReport`, `deleteFile`, `deleteReport` → `/v2/ai/financial_documents/*`. **@experimental**: throws `FinancialDocumentsNotDeployedError` if backend module not deployed on the gateway. Distinguishable from "id not found" by FastAPI default `{"detail":"Not Found"}` response.
 
 ### CRM & Automation
 - **`boards`**: CRM pipelines. CRUD for `items`, `fields`, and `segments`.

@@ -188,7 +188,7 @@ class ChatAiResource:
         if max_concurrent is not None: body["maxConcurrent"] = max_concurrent
         if max_retries is not None: body["maxRetries"] = max_retries
         if use_enhanced_processing is not None: body["useEnhancedProcessing"] = use_enhanced_processing
-        return self._http.request("POST", f"{self._base}/ai/document", json=body).json()
+        return self._http.request("POST", f"{self._base}/document", json=body).json()
 
     def list_document_models(self) -> List[Dict[str, Any]]:
         """List LLM providers configured by the user — these are the models available for document AI."""
