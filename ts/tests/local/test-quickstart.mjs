@@ -16,6 +16,6 @@ async function test(name, fn) {
 
 await test('boards.list',         () => client.boards.list({ limit: 3 }))
 await test('contacts.list',       () => client.contacts.list({ limit: 3 }))
-await test('chatAi.listModels',   () => client.chatAi.listModels())
+await test('chatAi.listAssistants', () => client.chatAi.listAssistants())
 await test('aiAgent.listEmbeddingFiles', () => client.aiAgent.listEmbeddingFiles())
 await test('conversations.getOutstanding', () => client.conversations.getOutstanding({ businessUnitId: 'any', limit: 3 }))

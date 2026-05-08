@@ -57,22 +57,22 @@ export class HttpTransport {
         const headers = reqInit.headers as Headers;
         const token = this.opts.tokenManager.getToken();
 
-        // 1. Always set API Key if provided (Organization context)
+        // 1. API key (server-to-server)
         if (this.opts.apiKey) {
           headers.set("x-api-key", this.opts.apiKey);
         }
 
-        // 2. Set Access Token or Bearer Token (User context)
+        // 2. Access token / JWT (user context)
         if (token && this.opts.organizationId && isJwt(token)) {
-          // JWT Bearer mode: auth-service JWT + org scope (only for real JWTs)
           headers.set("authorization", `Bearer ${token}`);
-          headers.set("x-organization-id", this.opts.organizationId);
         } else if (token) {
-          // Legacy access token mode (opaque tokens like login_acc_...)
           headers.set("x-access-token", token);
-          if (this.opts.organizationId) {
-            headers.set("x-organization-id", this.opts.organizationId);
-          }
+        }
+
+        // 3. Organization scope — required by some services (chat-ai, document) even with x-api-key,
+        //    since the gateway does not auto-inject it from the api-key for every route.
+        if (this.opts.organizationId) {
+          headers.set("x-organization-id", this.opts.organizationId);
         }
 
         try {
@@ -86,14 +86,18 @@ export class HttpTransport {
           }
 
           if (res.status === 401 || res.status === 403) {
+            // Surface the server's reason — useful when the cause isn't bad creds
+            // (e.g. missing x-organization-id, missing required header, route ACL).
+            const detail = await res.text().catch(() => "");
+            const suffix = detail ? ` — server: ${detail.slice(0, 300)}` : "";
             if (this.opts.apiKey) {
-              throw new AuthError("Invalid or expired API key (x-api-key).");
+              throw new AuthError(`Auth failed [${res.status}] with x-api-key${suffix}`);
             } else if (token && this.opts.organizationId && isJwt(token)) {
-              throw new AuthError("Invalid or expired JWT token (Authorization: Bearer) or organizationId not in token.");
+              throw new AuthError(`Auth failed [${res.status}] with JWT (Authorization: Bearer)${suffix}`);
             } else if (token) {
-              throw new AuthError("Invalid or expired access token (x-access-token).");
+              throw new AuthError(`Auth failed [${res.status}] with x-access-token${suffix}`);
             }
-            throw new AuthError("No credentials provided — set accessToken= (user login) or apiKey= (server-to-server).");
+            throw new AuthError(`No credentials provided — set accessToken= (user login) or apiKey= (server-to-server)${suffix}`);
           }
 
           if ((res.status === 429 || res.status >= 500) && retries < maxRetries) {

@@ -143,15 +143,17 @@ export class ImbraceClient {
 
     // -- Wire resources with per-service base URLs ----------------------------
 
+    const legacy = urls.legacyBackend === true
+
     // Auth & Account - platform service
     this.auth          = new AuthResource(this.http, urls.backend, urls.gateway)
-    this.account       = new AccountResource(this.http, urls.platform)
+    this.account       = new AccountResource(this.http, urls.platform, urls.backend, legacy)
 
-    // Platform group
-    this.platform      = new PlatformResource(this.http, urls.platform, urls.backend)
-    this.organizations = new OrganizationsResource(this.http, urls.platform)
-    this.teams         = new TeamsResource(this.http, urls.platform, urls.backend)
-    this.settings      = new SettingsResource(this.http, urls.channelService, urls.platform)
+    // Platform group — when legacy=true (prodv2/stable), routes fall back to /v1/backend, /v2/backend
+    this.platform      = new PlatformResource(this.http, urls.platform, urls.backend, legacy)
+    this.organizations = new OrganizationsResource(this.http, urls.platform, urls.gateway, legacy)
+    this.teams         = new TeamsResource(this.http, urls.platform, urls.backend, legacy)
+    this.settings      = new SettingsResource(this.http, urls.channelService, urls.platform, urls.backend, legacy)
 
     // channel-service group
     this.channel       = new ChannelResource(this.http, urls.channelService)

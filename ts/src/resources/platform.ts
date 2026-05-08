@@ -278,10 +278,18 @@ export class PlatformResource {
     private readonly http: HttpTransport,
     private readonly base: string,
     private readonly backendBase?: string,
+    /** When true, route through legacy backend (platform service not deployed on prodv2/stable). */
+    private readonly legacy?: boolean,
   ) {}
 
-  private get v1() { return `${this.base}/v1` }
-  private get v2() { return `${this.base}/v2` }
+  private get v1() {
+    if (this.legacy && this.backendBase) return this.backendBase
+    return `${this.base}/v1`
+  }
+  private get v2() {
+    if (this.legacy && this.backendBase) return this.backendBase.replace(/\/v1\/backend$/, "/v2/backend")
+    return `${this.base}/v2`
+  }
 
   async listUsers(params?: {
     page?: number
@@ -308,6 +316,10 @@ export class PlatformResource {
   }
 
   async getMe(): Promise<User> {
+    if (this.legacy && this.backendBase) {
+      // Legacy backend has no /users/me — use /account which returns the caller's user
+      return this.http.getFetch()(`${this.backendBase}/account`, { method: "GET" }).then(r => r.json())
+    }
     return this.http.getFetch()(`${this.v1}/users/me`, { method: "GET" }).then(r => r.json())
   }
 
@@ -360,6 +372,11 @@ export class PlatformResource {
     skip?: number
     is_active?: boolean
   }): Promise<PagedResponse<Organization>> {
+    // Legacy backend has no paged /v2/backend/organizations — defer to listAllOrgs
+    if (this.legacy && this.backendBase) {
+      const all = await this.listAllOrgs({ is_active: params?.is_active })
+      return { data: all, total: all.length, page: 1, limit: all.length }
+    }
     const url = new URL(`${this.v2}/organizations`)
     if (params?.limit)  url.searchParams.set("limit",     String(params.limit))
     if (params?.skip !== undefined) url.searchParams.set("skip", String(params.skip))
@@ -370,7 +387,13 @@ export class PlatformResource {
   async listAllOrgs(params?: { is_active?: boolean }): Promise<Organization[]> {
     const url = new URL(`${this.v2}/organizations/_all`)
     if (params?.is_active !== undefined) url.searchParams.set("is_active", String(params.is_active))
-    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
+    return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then((res: unknown) => {
+      // Legacy backend wraps in {object_name, data}
+      if (res && typeof res === "object" && "data" in (res as Record<string, unknown>)) {
+        return (res as { data: Organization[] }).data
+      }
+      return res as Organization[]
+    })
   }
 
   async createOrg(body: Partial<Organization>): Promise<Organization> {
@@ -510,6 +533,10 @@ export class PlatformResource {
   }
 
   async listApps(): Promise<AppListResponse> {
+    // Legacy backend's /v2/backend/apps returns 400; /v1/backend/apps works.
+    if (this.legacy && this.backendBase) {
+      return this.http.getFetch()(`${this.backendBase}/apps`, { method: "GET" }).then(r => r.json())
+    }
     return this.http.getFetch()(`${this.v2}/apps`, { method: "GET" }).then(r => r.json())
   }
 
