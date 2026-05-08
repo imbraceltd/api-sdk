@@ -1,6 +1,36 @@
 import { HttpTransport } from "../http.js"
 import type { Board, BoardItem, PagedResponse } from "../types/index.js"
 
+export interface CreateBoardFieldInput {
+  name: string
+  type: string
+  description?: string
+  is_unique_identifier?: boolean
+  is_default?: boolean
+  is_identifier?: boolean
+  hidden?: boolean
+  hidden_on_record?: boolean
+  data?: unknown[]
+  board_child_mapped?: string
+  [key: string]: unknown
+}
+
+export interface CreateBoardInput {
+  name: string
+  description?: string
+  /**
+   * Board kind. Use `"DocumentAI"` to create a Document AI board with
+   * extraction schema embedded via `fields`. Other values: `"Contacts"`,
+   * `"Opportunities"`, etc. Omit for default board type.
+   */
+  type?: string
+  /** Schema fields, embedded at creation time (used by Document AI boards). */
+  fields?: CreateBoardFieldInput[]
+  team_ids?: string[]
+  show_id?: boolean
+  [key: string]: unknown
+}
+
 export interface UpdateBoardInput {
   name?: string
   description?: string
@@ -254,7 +284,14 @@ export class BoardsResource {
     return this.http.getFetch()(`${this.backend}/board/${boardId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async create(body: { name: string; description?: string }): Promise<Board> {
+  /**
+   * Create a board.
+   *
+   * Pass `type: "DocumentAI"` + `fields: [...]` to create a Document AI board
+   * with extraction schema embedded. `fields[].type` can be `ShortText`,
+   * `Number`, `Date`, `Email`, `LongText`, etc.
+   */
+  async create(body: CreateBoardInput): Promise<Board> {
     return this.http.getFetch()(`${this.backend}/board`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

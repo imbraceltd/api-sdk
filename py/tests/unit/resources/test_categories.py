@@ -3,7 +3,7 @@ from pytest_httpx import HTTPXMock
 from imbrace import ImbraceClient, AsyncImbraceClient
 
 BASE = "https://app-gatewayv2.imbrace.co"
-URL = f"{BASE}/channel-service/v1/categories"
+URL = f"{BASE}/channel-service/v1/backend/categories"
 
 @pytest.fixture
 def client():

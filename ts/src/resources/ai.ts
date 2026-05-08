@@ -207,12 +207,30 @@ export interface GuardrailProviderModelsResponse {
   models: Array<{ id: string; name: string; [key: string]: unknown }>
 }
 
-// ─── Custom Provider interfaces 
+// ─── Custom Provider interfaces
+
+export interface AiProviderModel {
+  name: string
+  provider?: string
+  is_toolCall_available?: boolean
+  is_vision_available?: boolean
+  is_support_thinking?: boolean
+  is_shown?: boolean
+  [key: string]: unknown
+}
 
 export interface AiProvider {
   _id: string
+  id?: string
+  provider_id?: string
   name: string
   type?: string
+  config?: Record<string, unknown>
+  metadata?: Record<string, unknown>
+  source?: string
+  is_shown?: boolean
+  models?: AiProviderModel[]
+  organization_id?: string
   api_key?: string
   base_url?: string
   created_at?: string
@@ -220,6 +238,10 @@ export interface AiProvider {
   [key: string]: unknown
 }
 
+/**
+ * Legacy wrapped shape — some endpoints may return `{data, total}`.
+ * `GET /v3/ai/providers` returns a raw `AiProvider[]`.
+ */
 export interface AiProviderListResponse {
   data: AiProvider[]
   total?: number
@@ -240,6 +262,21 @@ export interface UpdateAiProviderInput {
   [key: string]: unknown
 }
 
+export interface WorkflowAgentModel {
+  name: string
+  is_toolCall_available?: boolean
+  is_vision_available?: boolean
+  is_support_thinking?: boolean
+  [key: string]: unknown
+}
+
+export interface WorkflowAgentModelsResponse {
+  success: boolean
+  message?: string
+  data: WorkflowAgentModel[]
+}
+
+/** Legacy alias kept for backward compat. */
 export interface LlmModelsResponse {
   models: Array<{ id: string; name: string; provider?: string; provider_id?: string; [key: string]: unknown }>
 }
@@ -484,8 +521,44 @@ export class AiResource {
 
   // ─── Custom Providers   
 
-  async listProviders(): Promise<AiProviderListResponse> {
-    return this.http.getFetch()(`${this.v3}/providers`, { method: "GET" }).then(r => r.json())
+  /**
+   * List AI providers — `GET /v3/ai/providers` returns custom providers.
+   *
+   * When `includeSystem` is `true` (default), also calls
+   * `GET /v3/ai/workflow-agent/models` and prepends an entry for the
+   * system-default provider with `provider_id === "system"` (the literal
+   * value backend recognizes). `_id` and `id` are `null` because no backend
+   * record exists for this entry.
+   *
+   * Pass `{ includeSystem: false }` to get only the raw custom list.
+   */
+  async listProviders(opts: { includeSystem?: boolean } = {}): Promise<AiProvider[]> {
+    const includeSystem = opts.includeSystem ?? true
+    const custom: AiProvider[] = await this.http
+      .getFetch()(`${this.v3}/providers`, { method: "GET" })
+      .then(r => r.json())
+    if (!includeSystem) return Array.isArray(custom) ? custom : []
+    let sysModels: any[] = []
+    try {
+      const sys = await this.http
+        .getFetch()(`${this.v3}/workflow-agent/models`, { method: "GET" })
+        .then(r => r.json())
+      sysModels = Array.isArray(sys?.data) ? sys.data : []
+    } catch {
+      sysModels = []
+    }
+    if (sysModels.length === 0) return Array.isArray(custom) ? custom : []
+    const systemProvider = {
+      _id: null,
+      id: null,
+      provider_id: "system",
+      name: "System Default",
+      type: "system",
+      source: "system",
+      is_shown: true,
+      models: sysModels,
+    } as unknown as AiProvider
+    return [systemProvider, ...(Array.isArray(custom) ? custom : [])]
   }
 
   async createProvider(body: CreateAiProviderInput): Promise<AiProvider> {
@@ -514,7 +587,11 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async getLlmModels(): Promise<LlmModelsResponse> {
+  /**
+   * List models available for workflow-agent — `GET /v3/ai/workflow-agent/models`.
+   * Returns wrapped shape: `{success, message, data: [{name, is_toolCall_available, is_vision_available}]}`.
+   */
+  async getLlmModels(): Promise<WorkflowAgentModelsResponse> {
     return this.http.getFetch()(`${this.v3}/workflow-agent/models`, { method: "GET" }).then(r => r.json())
   }
 

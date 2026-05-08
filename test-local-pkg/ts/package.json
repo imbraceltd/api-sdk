@@ -16,7 +16,8 @@
     "test:ai": "tsx tests/test-ai-agent.ts",
     "test:boards": "tsx tests/test-boards.ts",
     "test:crm": "tsx tests/test-crm.ts",
-    "test:financial-documents": "tsx tests/test-financial-documents.ts"
+    "test:financial-documents": "tsx tests/test-financial-documents.ts",
+    "test:document-ai": "tsx tests/test-document-ai.ts"
   },
   "keywords": [],
   "author": "",

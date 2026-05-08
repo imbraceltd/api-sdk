@@ -36,6 +36,8 @@ from .resources.chat_ai import ChatAiResource
 from .resources.file_service import FileServiceResource
 from .resources.ai_agent import AiAgentResource
 from .resources.financial_documents import FinancialDocumentsResource
+from .resources.document_ai import DocumentAIResource
+from .resources.templates import TemplatesResource
 from .resources.license import LicenseResource
 
 
@@ -127,6 +129,9 @@ class ImbraceClient:
         # Marketplace: standalone service + platform/v2 sub-paths
         self.marketplace   = MarketplaceResource(self.http, urls.marketplaces)
 
+        # Use Case Templates — sibling to marketplaces under /v2/backend/
+        self.templates     = TemplatesResource(self.http, f"{urls.gateway}/v2/backend/templates")
+
         # Agent templates + use-cases
         self.agent         = AgentResource(self.http, urls.marketplaces, urls.gateway)
 
@@ -146,6 +151,10 @@ class ImbraceClient:
         self.file_service  = FileServiceResource(self.http, urls.file_service)
         self.ai_agent      = AiAgentResource(self.http, urls.ai_agent)
         self.financial_documents = FinancialDocumentsResource(self.http, urls.ai)
+        self.document_ai         = DocumentAIResource(
+            self.http, f"{urls.ai}/v3/ai",
+            boards=self.boards, templates=self.templates,
+        )
         self.license       = LicenseResource(self.http, urls.gateway)
 
         if check_health:

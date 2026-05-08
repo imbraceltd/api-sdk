@@ -50,6 +50,37 @@ describe("BoardsResource", () => {
     expect(res.id).toBe("b_new")
   })
 
+  it("create() with type='DocumentAI' + fields embeds extraction schema", async () => {
+    mockFetch({ _id: "brd_x", name: "DEMO", type: "DocumentAI" })
+    const fields = [
+      { name: "invoice_number", type: "ShortText", is_identifier: true, data: [] },
+      { name: "total_amount", type: "Number", data: [] },
+    ]
+    await makeResource().create({
+      name: "DEMO",
+      description: "Receipt extractor",
+      type: "DocumentAI",
+      fields,
+      team_ids: [],
+      show_id: false,
+    })
+    const body = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
+    expect(body.name).toBe("DEMO")
+    expect(body.description).toBe("Receipt extractor")
+    expect(body.type).toBe("DocumentAI")
+    expect(body.fields).toEqual(fields)
+    expect(body.team_ids).toEqual([])
+    expect(body.show_id).toBe(false)
+  })
+
+  it("create() forwards arbitrary extra fields", async () => {
+    mockFetch({ id: "b_3" })
+    await makeResource().create({ name: "X", workflow_id: "wf_1", managers: ["u1"] })
+    const body = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
+    expect(body.workflow_id).toBe("wf_1")
+    expect(body.managers).toEqual(["u1"])
+  })
+
   it("delete() calls DELETE /v1/backend/board/:id", async () => {
     mockFetch({ success: true })
     await makeResource().delete("b_1")

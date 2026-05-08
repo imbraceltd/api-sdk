@@ -36,6 +36,8 @@ from .resources.chat_ai import AsyncChatAiResource
 from .resources.file_service import AsyncFileServiceResource
 from .resources.ai_agent import AsyncAiAgentResource
 from .resources.financial_documents import AsyncFinancialDocumentsResource
+from .resources.document_ai import AsyncDocumentAIResource
+from .resources.templates import AsyncTemplatesResource
 from .resources.license import AsyncLicenseResource
 
 
@@ -121,6 +123,7 @@ class AsyncImbraceClient:
         self.ips           = AsyncIpsResource(self.http, urls.ips)
         self.ai            = AsyncAiResource(self.http, urls.ai)
         self.marketplace   = AsyncMarketplaceResource(self.http, urls.marketplaces)
+        self.templates     = AsyncTemplatesResource(self.http, f"{urls.gateway}/v2/backend/templates")
         self.agent         = AsyncAgentResource(self.http, urls.marketplaces, urls.gateway)
 
         self.health        = AsyncHealthResource(self.http, urls.gateway)
@@ -138,6 +141,10 @@ class AsyncImbraceClient:
         self.file_service  = AsyncFileServiceResource(self.http, urls.file_service)
         self.ai_agent      = AsyncAiAgentResource(self.http, urls.ai_agent)
         self.financial_documents = AsyncFinancialDocumentsResource(self.http, urls.ai)
+        self.document_ai         = AsyncDocumentAIResource(
+            self.http, f"{urls.ai}/v3/ai",
+            boards=self.boards, templates=self.templates,
+        )
         self.license       = AsyncLicenseResource(self.http, urls.gateway)
 
         # —— Convenience auth

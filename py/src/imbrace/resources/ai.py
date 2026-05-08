@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union, cast
 import json
 from typing_extensions import TypedDict
 from ..http import HttpTransport, AsyncHttpTransport
@@ -192,16 +192,35 @@ class GuardrailProviderModelsResponse(TypedDict, total=False):
     models: List[Dict[str, Any]]
 
 
+class AiProviderModel(TypedDict, total=False):
+    name: str
+    provider: Optional[str]
+    is_toolCall_available: Optional[bool]
+    is_vision_available: Optional[bool]
+    is_support_thinking: Optional[bool]
+    is_shown: Optional[bool]
+
+
 class AiProvider(TypedDict, total=False):
     _id: str
+    id: Optional[str]
+    provider_id: Optional[str]
     name: str
     type: Optional[str]
+    config: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]]
+    source: Optional[str]
+    is_shown: Optional[bool]
+    models: Optional[List[AiProviderModel]]
+    organization_id: Optional[str]
     api_key: Optional[str]
     base_url: Optional[str]
     created_at: Optional[str]
     updated_at: Optional[str]
 
 
+# Legacy wrapped shape — some endpoints may return {data, total}.
+# `GET /v3/ai/providers` returns a raw List[AiProvider].
 class AiProviderListResponse(TypedDict, total=False):
     data: List[AiProvider]
     total: Optional[int]
@@ -220,6 +239,20 @@ class UpdateAiProviderInput(TypedDict, total=False):
     base_url: str
 
 
+class WorkflowAgentModel(TypedDict, total=False):
+    name: str
+    is_toolCall_available: Optional[bool]
+    is_vision_available: Optional[bool]
+    is_support_thinking: Optional[bool]
+
+
+class WorkflowAgentModelsResponse(TypedDict, total=False):
+    success: bool
+    message: Optional[str]
+    data: List[WorkflowAgentModel]
+
+
+# Legacy alias kept for backward compat.
 class LlmModelsResponse(TypedDict, total=False):
     models: List[Dict[str, Any]]
 
@@ -380,8 +413,39 @@ class AiResource:
         return self._http.request("GET", f"{self._v3}/guardrail-providers/{provider_id}/models").json()
 
     # --- Custom Providers ---
-    def list_providers(self) -> AiProviderListResponse:
-        return self._http.request("GET", f"{self._v3}/providers").json()
+    def list_providers(self, include_system: bool = True) -> List[AiProvider]:
+        """List AI providers — ``GET /v3/ai/providers`` returns custom providers.
+
+        When ``include_system=True`` (default), also calls
+        ``GET /v3/ai/workflow-agent/models`` and prepends an entry for the
+        system-default provider with ``provider_id = "system"`` (the literal
+        value backend recognizes). ``_id`` and ``id`` are ``None`` because no
+        backend record exists for this entry.
+
+        Pass ``include_system=False`` to get only the raw custom list.
+        """
+        custom = self._http.request("GET", f"{self._v3}/providers").json()
+        if not include_system:
+            return cast(List[AiProvider], custom)
+        try:
+            sys_res = self._http.request("GET", f"{self._v3}/workflow-agent/models").json()
+            sys_models = sys_res.get("data", []) if isinstance(sys_res, dict) else []
+        except Exception:
+            sys_models = []
+        if not sys_models:
+            return cast(List[AiProvider], custom)
+        system_provider: Dict[str, Any] = {
+            "_id": None,
+            "id": None,
+            "provider_id": "system",
+            "name": "System Default",
+            "type": "system",
+            "source": "system",
+            "is_shown": True,
+            "models": sys_models,
+        }
+        merged = [system_provider, *custom] if isinstance(custom, list) else [system_provider]
+        return cast(List[AiProvider], merged)
 
     def create_provider(self, body: CreateAiProviderInput) -> AiProvider:
         return self._http.request("POST", f"{self._v3}/providers", json=body).json()
@@ -395,7 +459,11 @@ class AiResource:
     def refresh_provider_models(self, provider_id: str) -> AiProvider:
         return self._http.request("POST", f"{self._v3}/providers/{provider_id}/models/refresh").json()
 
-    def get_llm_models(self) -> LlmModelsResponse:
+    def get_llm_models(self) -> WorkflowAgentModelsResponse:
+        """List models available for workflow-agent — `GET /v3/ai/workflow-agent/models`.
+
+        Returns wrapped shape: ``{success, message, data: [{name, is_toolCall_available, is_vision_available}]}``.
+        """
         return self._http.request("GET", f"{self._v3}/workflow-agent/models").json()
 
     def verify_tool_server(self, body: VerifyToolServerInput) -> VerifyToolServerResponse:
@@ -603,9 +671,32 @@ class AsyncAiResource:
 
     # --- Custom Providers ---
 
-    async def list_providers(self) -> AiProviderListResponse:
+    async def list_providers(self, include_system: bool = True) -> List[AiProvider]:
+        """See :meth:`AiResource.list_providers`."""
         res = await self._http.request("GET", f"{self._v3}/providers")
-        return res.json()
+        custom = res.json()
+        if not include_system:
+            return cast(List[AiProvider], custom)
+        try:
+            sys_res = await self._http.request("GET", f"{self._v3}/workflow-agent/models")
+            sys_data = sys_res.json()
+            sys_models = sys_data.get("data", []) if isinstance(sys_data, dict) else []
+        except Exception:
+            sys_models = []
+        if not sys_models:
+            return cast(List[AiProvider], custom)
+        system_provider: Dict[str, Any] = {
+            "_id": None,
+            "id": None,
+            "provider_id": "system",
+            "name": "System Default",
+            "type": "system",
+            "source": "system",
+            "is_shown": True,
+            "models": sys_models,
+        }
+        merged = [system_provider, *custom] if isinstance(custom, list) else [system_provider]
+        return cast(List[AiProvider], merged)
 
     async def create_provider(self, body: CreateAiProviderInput) -> AiProvider:
         res = await self._http.request("POST", f"{self._v3}/providers", json=body)
@@ -622,7 +713,7 @@ class AsyncAiResource:
         res = await self._http.request("POST", f"{self._v3}/providers/{provider_id}/models/refresh")
         return res.json()
 
-    async def get_llm_models(self) -> LlmModelsResponse:
+    async def get_llm_models(self) -> WorkflowAgentModelsResponse:
         res = await self._http.request("GET", f"{self._v3}/workflow-agent/models")
         return res.json()
 
