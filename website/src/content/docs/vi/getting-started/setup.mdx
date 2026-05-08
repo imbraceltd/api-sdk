@@ -227,6 +227,27 @@ async def main():
 
 ---
 
+### Cài Đặt CLI
+
+Imbrace CLI là công cụ dòng lệnh sử dụng proxy API cục bộ để giao tiếp với nền tảng.
+
+```bash
+# Cài đặt global
+npm install -g @imbrace/cli
+
+# Khởi động server API cục bộ (giữ chạy)
+cd api
+bun install
+bun run dev    # http://localhost:3456
+
+# Đăng nhập để bắt đầu
+imbrace login --api-key api_xxx...
+```
+
+Xem [CLI Installation](/cli/installation/) để biết thêm cách cài đặt và [CLI Commands](/cli/commands/) để tham khảo lệnh đầy đủ.
+
+---
+
 ### Ví Dụ Sử Dụng Nhanh
 
 <Tabs>
@@ -352,7 +373,7 @@ Tất cả service keys hợp lệ:
 | `file_service` | `fileService` | File service |
 | `message_suggestion` | `messageSuggestion` | Message Suggestion service |
 | `predict` | `predict` | Predict service |
-| `activepieces` | `activepieces` | ActivePieces |
+| `activepieces` | `activepieces` | Workflows |
 | `ai_agent` | `aiAgent` | AI Agent service |
 
 ---

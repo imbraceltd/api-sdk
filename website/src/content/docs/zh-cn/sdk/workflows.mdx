@@ -1,35 +1,35 @@
 ---
 title: 工作流
-description: Activepieces 可视化工作流构建器和渠道自动化 — 通过 SDK 创建、触发和管理 flows。
+description: Workflows — 可视化工作流构建器和渠道自动化 — 通过 SDK 创建、触发和管理 flows。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK 公开两个工作流系统：**Activepieces**（`client.activepieces` / `client.workflows`）用于可视化工作流自动化，**渠道自动化**（`client.workflows`）用于消息渠道流程（如 WhatsApp）。
+SDK 公开两个工作流系统：**Workflows**（`client.workflows`）用于可视化工作流自动化，**渠道自动化**（`client.workflows`）用于消息渠道流程（如 WhatsApp）。
 
-首先初始化 client（参阅[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。端到端演练请参阅[完整流程指南 §2](/zh-cn/sdk/full-flow-guide/#2-使用-activepieces-创建工作流并与助手关联)。
+首先初始化 client（参阅[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。端到端演练请参阅[完整流程指南 §2](/zh-cn/sdk/full-flow-guide/#2-创建工作流并与-ai-agent-关联)。
 
 ---
 
-## Activepieces — `client.activepieces` / `client.workflows`
+## Workflows — `client.workflows`
 
-Activepieces 是可视化工作流构建器。TypeScript 和 Python 均可使用。
+可视化工作流构建器。TypeScript 和 Python 均可使用。
 
 ### Flows
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: flows } = await client.activepieces.listFlows();
+const { data: flows } = await client.workflows.listFlows();
 
-const flow = await client.activepieces.getFlow("flow_id");
+const flow = await client.workflows.getFlow("flow_id");
 
-const newFlow = await client.activepieces.createFlow({
+const newFlow = await client.workflows.createFlow({
   displayName: "新 Lead 通知",
   projectId: "project_id",
 });
 
-await client.activepieces.deleteFlow("flow_id");
+await client.workflows.deleteFlow("flow_id");
 ```
 </TabItem>
 <TabItem label="Python">
@@ -54,13 +54,13 @@ client.workflows.delete_flow("flow_id")
 <TabItem label="TypeScript">
 ```typescript
 // 异步触发
-await client.activepieces.triggerFlow("flow_id", {
+await client.workflows.triggerFlow("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 
 // 等待结果
-const result = await client.activepieces.triggerFlowSync("flow_id", {
+const result = await client.workflows.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
@@ -82,21 +82,21 @@ result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xx
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
-const run                = await client.activepieces.getRun("run_id");
+const { data: runs }     = await client.workflows.listRuns({ flowId: "flow_id", limit: 20 });
+const run                = await client.workflows.getRun("run_id");
 
-const { data: folders }  = await client.activepieces.listFolders();
-const folder             = await client.activepieces.createFolder({ displayName: "CRM 自动化", projectId: "project_id" });
+const { data: folders }  = await client.workflows.listFolders();
+const folder             = await client.workflows.createFolder({ displayName: "CRM 自动化", projectId: "project_id" });
 
-const { data: connections } = await client.activepieces.listConnections();
-await client.activepieces.upsertConnection({
+const { data: connections } = await client.workflows.listConnections();
+await client.workflows.upsertConnection({
   name: "slack-integration",
   type: "OAUTH2",
   value: { access_token: "xoxb-xxx" },
 });
 
-const { data: tables }   = await client.activepieces.listTables();
-const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
+const { data: tables }   = await client.workflows.listTables();
+const { data: records }  = await client.workflows.listRecords({ tableId: "table_id" });
 ```
 </TabItem>
 <TabItem label="Python">

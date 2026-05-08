@@ -1,0 +1,93 @@
+---
+title: Installation
+description: Install and authenticate with the Imbrace CLI.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Install the CLI
+
+### Public npm Package
+
+```bash
+npm install -g @imbrace/cli
+```
+
+### From Source
+
+Clone the repository and run the install script:
+
+```bash
+git clone https://github.com/imbraceltd/imbrace-cli.git
+cd imbrace-cli
+./install.sh
+```
+
+`install.sh` runs `npm install`, `npm run build`, `npm link`, then symlinks `imbrace` into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel).
+
+### Manual Build
+
+```bash
+cd cli
+npm install
+npm run build
+npm link
+```
+
+### Start the API Server
+
+The CLI requires the local API proxy server to be running:
+
+```bash
+cd api
+bun install
+bun run dev    # runs on http://localhost:3456
+```
+
+## Authentication
+
+All commands (except `login`) auto-prompt login if not authenticated.
+
+### Login with API Key
+
+Recommended for CI/CD and coding agents:
+
+```bash
+imbrace login --api-key api_xxx...
+```
+
+### Login with Email + Password
+
+```bash
+imbrace login --email user@example.com --password mypass
+```
+
+### Custom API URL
+
+```bash
+imbrace login --api-url http://localhost:3456 --api-key api_xxx...
+```
+
+### Check Current Login
+
+```bash
+imbrace whoami [--json]
+```
+
+### Logout
+
+```bash
+imbrace logout
+```
+
+<Aside type="tip">
+  If a command returns 401, run `imbrace login --api-key api_xxx...` again.
+</Aside>
+
+## Credential Storage
+
+| OS | Path |
+|---|---|
+| macOS | `~/Library/Preferences/imbrace-nodejs/config.json` |
+| Linux | `~/.config/imbrace-nodejs/config.json` |
+| Windows | `%APPDATA%\imbrace-nodejs\Config\config.json` |

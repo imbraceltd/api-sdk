@@ -75,3 +75,37 @@ mypy scan nhầm vào `site-packages`. Đã config trong `pyproject.toml`. Nếu
 ```bash
 mypy src/imbrace --exclude site-packages
 ```
+
+---
+
+## CLI: lệnh trả về `401 Unauthorized`
+
+Credential đã hết hạn hoặc server API có token cũ.
+
+```bash
+imbrace login --api-key api_xxx...
+```
+
+---
+
+## CLI: kết nối bị từ chối
+
+Server API cục bộ không chạy trên cổng 3456.
+
+```bash
+cd api
+bun install
+bun run dev    # http://localhost:3456
+```
+
+---
+
+## CLI: `workflow run --sync` hết thời gian
+
+Chế độ sync có thể hết thời gian chờ ở ~30s. Dùng async + poll để thay thế:
+
+```bash
+imbrace workflow run <flowId> --payload '{}'
+imbrace workflow runs --limit 10           # tìm run ID
+imbrace workflow run-detail <runId>        # kiểm tra kết quả
+```

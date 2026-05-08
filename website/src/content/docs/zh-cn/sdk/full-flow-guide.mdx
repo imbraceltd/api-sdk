@@ -10,7 +10,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 1. 创建 AI 助手并开始聊天
+## 1. 创建 AI Agent 并开始聊天
 
 <Steps>
 
@@ -41,7 +41,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
    参见[身份验证 → 选哪种凭证](/zh-cn/sdk/authentication/#我该选哪种凭证)了解完整决策树。
 
-2. **创建助手**
+2. **创建 AI Agent**
 
    `workflow_name` 在组织内必须唯一。
 
@@ -80,7 +80,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
    `provider_id` 与 `model_id` 为必填。传入 `provider_id: "system"` 使用组织默认的 LLM 提供商，或传入自定义提供商的 UUID。当 `provider_id: "system"` 时，`model_id` 可填模型名称（例如 `"gpt-4o"`）或字符串 `"Default"` 以使用系统默认模型。
 
-3. **从助手流式获取聊天响应**
+3. **从 AI Agent 流式获取聊天响应**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -198,7 +198,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 2. 使用 Activepieces 创建工作流并与助手关联
+## 2. 创建工作流并与 AI Agent 关联
 
 <Steps>
 
@@ -207,14 +207,14 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
+       const { data: flows } = await client.workflows.listFlows({ limit: 5 })
        const projectId = flows[0]?.projectId
        console.log("Project ID:", projectId)
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_flows(limit=5)
+       res = client.workflows.list_flows(limit=5)
        flows = res.get("data", [])
        project_id = flows[0]["projectId"] if flows else None
        print("Project ID:", project_id)
@@ -227,7 +227,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const flow = await client.activepieces.createFlow({
+       const flow = await client.workflows.createFlow({
          displayName: "新 Lead 时更新 CRM",
          projectId,
        })
@@ -236,7 +236,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
      <TabItem label="Python">
        ```python
-       flow = client.activepieces.create_flow(
+       flow = client.workflows.create_flow(
            display_name="新 Lead 时更新 CRM",
            project_id=project_id,
        )
@@ -253,7 +253,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="TypeScript">
        ```typescript
        // 将 Webhook piece 设为 flow 的触发器
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
            name: "trigger",
@@ -271,7 +271,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        })
 
        // 发布 — 状态从 DISABLED → ENABLED，webhook URL 开始可用
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
        })
@@ -280,7 +280,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="Python">
        ```python
        # 将 Webhook piece 设为 flow 的触发器
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
                "name": "trigger",
@@ -298,7 +298,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        })
 
        # 发布 — DISABLED → ENABLED，webhook URL 开始可用
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
        })
@@ -312,14 +312,14 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="TypeScript">
        ```typescript
        // 异步（fire and forget）
-       await client.activepieces.triggerFlow(flow.id, {
+       await client.workflows.triggerFlow(flow.id, {
          contact_name: "张三",
          email: "zhangsan@example.com",
        })
 
        // 同步触发 — 要实际拿到返回值而非超时，flow 需要通过
        // applyFlowOperation ADD_ACTION 添加 "Return Response" 动作
-       const result = await client.activepieces.triggerFlowSync(flow.id, {
+       const result = await client.workflows.triggerFlowSync(flow.id, {
          contact_name: "张三",
          email: "zhangsan@example.com",
        })
@@ -329,14 +329,14 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="Python">
        ```python
        # 异步（fire and forget）
-       client.activepieces.trigger_flow(flow["id"], {
+       client.workflows.trigger_flow(flow["id"], {
            "contact_name": "张三",
            "email": "zhangsan@example.com",
        })
 
        # 同步触发 — 要实际拿到返回值而非超时，flow 需要通过
        # apply_flow_operation ADD_ACTION 添加 "Return Response" 动作
-       result = client.activepieces.trigger_flow_sync(flow["id"], {
+       result = client.workflows.trigger_flow_sync(flow["id"], {
            "contact_name": "张三",
            "email": "zhangsan@example.com",
        })
@@ -345,11 +345,11 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-5. **将 flow 与助手关联**
+5. **将 flow 与 AI Agent 关联**
 
-   在 Imbrace dashboard 中打开助手，进入 **Tools → Workflows** 并绑定 flow。助手在对话中将能够在适当时机触发 flow。
+   在 Imbrace dashboard 中打开 AI Agent，进入 **Tools → Workflows** 并绑定 flow。AI Agent 在对话中将能够在适当时机触发 flow。
 
-   或更新助手以按名称引用工作流：
+   或更新 AI Agent 以按名称引用工作流：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -379,7 +379,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: runs } = await client.activepieces.listRuns({
+       const { data: runs } = await client.workflows.listRuns({
          flowId: flow.id,
          limit: 10,
        })
@@ -390,7 +390,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
+       res = client.workflows.list_runs(flow_id=flow["id"], limit=10)
        for run in res.get("data", []):
            print(run["id"], run.get("status"), run.get("startTime"))
        ```
@@ -401,9 +401,9 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 3. 管理 Knowledge Hub 并绑定到助手
+## 3. 管理 Knowledge Hub 并绑定到 AI Agent
 
-Knowledge Hub 在 **data-board** 服务（`client.boards`）中存储文件和文件夹。文件夹的 `_id` 是您传给助手作为知识来源的值。
+Knowledge Hub 在 **data-board** 服务（`client.boards`）中存储文件和文件夹。文件夹的 `_id` 是您传给 AI Agent 作为知识来源的值。
 
 <Steps>
 
@@ -467,9 +467,9 @@ Knowledge Hub 在 **data-board** 服务（`client.boards`）中存储文件和�
      </TabItem>
    </Tabs>
 
-3. **将文件夹绑定到助手**
+3. **将文件夹绑定到 AI Agent**
 
-   将文件夹的 `_id` 传入 `folder_ids` — 助手将从该文件夹的所有文件中检索。使用 `board_ids` 可额外附加 CRM data-board。旧的 `knowledge_hubs` 字段已停用。
+   将文件夹的 `_id` 传入 `folder_ids` — AI Agent 将从该文件夹的所有文件中检索。使用 `board_ids` 可额外附加 CRM data-board。旧的 `knowledge_hubs` 字段已停用。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">

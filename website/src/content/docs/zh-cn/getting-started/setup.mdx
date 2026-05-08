@@ -227,6 +227,27 @@ async def main():
 
 ---
 
+### CLI 安装
+
+Imbrace CLI 是一个终端工具，使用本地 API 代理与平台通信。
+
+```bash
+# 全局安装
+npm install -g @imbrace/cli
+
+# 启动本地 API 服务器（保持运行）
+cd api
+bun install
+bun run dev    # http://localhost:3456
+
+# 登录开始使用
+imbrace login --api-key api_xxx...
+```
+
+请参阅 [CLI 安装](/cli/installation/) 了解其他安装方法，以及 [CLI 命令](/cli/commands/) 获取完整命令参考。
+
+---
+
 ### 快速使用示例
 
 <Tabs>
@@ -352,7 +373,7 @@ client = ImbraceClient(
 | `file_service`         | `fileService`       | File service                        |
 | `message_suggestion`   | `messageSuggestion` | Message Suggestion service          |
 | `predict`              | `predict`           | Predict service                     |
-| `activepieces`         | `activepieces`      | ActivePieces                        |
+| `activepieces`         | `activepieces`      | Workflows                           |
 | `ai_agent`             | `aiAgent`           | AI Agent service                    |
 
 ---

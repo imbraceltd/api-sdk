@@ -1,6 +1,6 @@
 ---
-title: AI Agent & Assistants
-description: Tham chiếu cho chatAi / chat_ai (quản lý assistant), aiAgent / ai_agent (streaming chat, embeddings, parquet, tracing) và OpenAI-compatible service client.ai.
+title: AI Agent
+description: Tham chiếu cho chatAi / chat_ai (quản lý AI agent), aiAgent / ai_agent (streaming chat, embeddings, parquet, tracing) và OpenAI-compatible service client.ai.
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
@@ -8,12 +8,12 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 Trang này bao gồm hai AI namespaces liên quan:
 
-- **`chatAi` / `chat_ai`** — tạo và quản lý AI assistants, chạy completions, quản lý knowledge bases.
+- **`chatAi` / `chat_ai`** — tạo và quản lý AI agents, chạy completions, quản lý knowledge bases.
 - **`aiAgent` / `ai_agent`** — streaming chat (SSE), embedding management, Parquet data, distributed tracing, và Chat Client sub-API.
 
 AI Agent resource kết nối đến service chuyên biệt chạy trên base URL riêng biệt so với API gateway chính.
 
-Để xem ví dụ end-to-end kết nối hai phần này, xem [Hướng Dẫn Luồng Đầy Đủ §1](/vi/sdk/full-flow-guide/#1-tạo-ai-assistant-và-bắt-đầu-chat).
+Để xem ví dụ end-to-end kết nối hai phần này, xem [Hướng Dẫn Luồng Đầy Đủ §1](/vi/sdk/full-flow-guide/#1-tạo-ai-agent-và-bắt-đầu-chat).
 
 <AuthOnly mode="access-token">
 <Tabs syncKey="lang">
@@ -63,11 +63,11 @@ Cả sync (`ImbraceClient`) và async (`AsyncImbraceClient`) đều expose cùng
 
 ---
 
-## Assistants — `chatAi` / `chat_ai`
+## AI Agents — `chatAi` / `chat_ai`
 
-Quản lý AI assistants (CRUD), chạy OpenAI-compatible completions và xử lý document/file. Namespace này cũng bao gồm Knowledge Hub folders và knowledge bases.
+Quản lý AI agents (CRUD), chạy OpenAI-compatible completions và xử lý document/file. Namespace này cũng bao gồm Knowledge Hub folders và knowledge bases.
 
-### Assistant CRUD
+### AI Agent CRUD
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -245,7 +245,7 @@ Legacy REST chat endpoints lưu lịch sử hội thoại. Có sẵn trên `clie
 
 ### Knowledge Hub — folders & knowledge bases
 
-Folders và knowledge bases được quản lý qua `client.boards` (TypeScript) / `client.folders` và `client.boards` (Python). Truyền folder IDs vào `folder_ids` khi tạo assistant — xem [Hướng Dẫn Luồng Đầy Đủ §3](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-assistant).
+Folders và knowledge bases được quản lý qua `client.boards` (TypeScript) / `client.folders` và `client.boards` (Python). Truyền folder IDs vào `folder_ids` khi tạo AI agent — xem [Hướng Dẫn Luồng Đầy Đủ §3](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-ai-agent).
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -453,7 +453,7 @@ history = client.ai_agent.get_sub_agent_history(
 
 ## Prompt Suggestions
 
-Lấy danh sách prompt gợi ý cho một assistant.
+Lấy danh sách prompt gợi ý cho một AI agent.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -472,7 +472,7 @@ suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
 
 ## Embeddings & Knowledge Base
 
-Quản lý các file được dùng cho Retrieval-Augmented Generation (RAG). Upload files trước qua [`client.boards.uploadFile`](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-assistant), rồi trigger embedding processing.
+Quản lý các file được dùng cho Retrieval-Augmented Generation (RAG). Upload files trước qua [`client.boards.uploadFile`](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-ai-agent), rồi trigger embedding processing.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">

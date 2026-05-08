@@ -1,6 +1,6 @@
 ---
-title: AI Agent & Assistants
-description: Reference for chatAi / chat_ai (assistant management), aiAgent / ai_agent (streaming chat, embeddings, parquet, tracing), and the OpenAI-compatible client.ai service.
+title: AI Agent
+description: Reference for chatAi / chat_ai (AI agent management), aiAgent / ai_agent (streaming chat, embeddings, parquet, tracing), and the OpenAI-compatible client.ai service.
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
@@ -8,12 +8,12 @@ import AuthOnly from "../../../components/AuthOnly.astro";
 
 This page covers two related AI namespaces:
 
-- **`chatAi` / `chat_ai`** — create and manage AI assistants, run completions, manage knowledge bases.
+- **`chatAi` / `chat_ai`** — create and manage AI agents, run completions, manage knowledge bases.
 - **`aiAgent` / `ai_agent`** — streaming chat (SSE), embedding management, Parquet data, distributed tracing, and the Chat Client sub-API.
 
 The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway.
 
-For an end-to-end example that ties these together, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
+For an end-to-end example that ties these together, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-agent-and-start-chatting).
 
 <AuthOnly mode="access-token">
 <Tabs syncKey="lang">
@@ -63,11 +63,11 @@ Both sync (`ImbraceClient`) and async (`AsyncImbraceClient`) clients expose the 
 
 ---
 
-## Assistants — `chatAi` / `chat_ai`
+## AI Agents — `chatAi` / `chat_ai`
 
-Manages AI assistants (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
+Manages AI agents (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
 
-### Assistant CRUD
+### AI Agent CRUD
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -246,7 +246,7 @@ Legacy REST chat endpoints for persisting conversation history. Available on `cl
 
 ### Knowledge Hub — folders & knowledge bases
 
-Folders and knowledge bases are managed via `client.boards` (TypeScript) / `client.folders` and `client.boards` (Python). Folders organize knowledge bases — a knowledge base is a set of files an assistant can retrieve from. Pass folder IDs as `folder_ids` when creating an assistant — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant).
+Folders and knowledge bases are managed via `client.boards` (TypeScript) / `client.folders` and `client.boards` (Python). Folders organize knowledge bases — a knowledge base is a set of files an AI agent can retrieve from. Pass folder IDs as `folder_ids` when creating an AI agent — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent).
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -454,7 +454,7 @@ history = client.ai_agent.get_sub_agent_history(
 
 ## Prompt Suggestions
 
-Fetch pre-built prompt suggestions for a given assistant.
+Fetch pre-built prompt suggestions for a given AI agent.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -473,7 +473,7 @@ suggestions = client.ai_agent.get_agent_prompt_suggestion("asst_abc")
 
 ## Embeddings & Knowledge Base
 
-Manage files used for Retrieval-Augmented Generation (RAG). Upload files first via [`client.boards.uploadFile`](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant) (TypeScript) / `client.boards.upload_file` (Python), then trigger embedding processing.
+Manage files used for Retrieval-Augmented Generation (RAG). Upload files first via [`client.boards.uploadFile`](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) (TypeScript) / `client.boards.upload_file` (Python), then trigger embedding processing.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">

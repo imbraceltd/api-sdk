@@ -69,3 +69,70 @@
     - `AuthError` (401/403): Invalid credentials. **No retry.**
     - `ApiError` (4xx/5xx): Has `statusCode`.
     - `NetworkError`: Connection/Timeout. **Auto retry.**
+
+---
+
+# Imbrace CLI — Reference for LLMs
+
+> CLI tool for interacting with the Imbrace platform from the terminal. Designed for coding agents (Claude, Cursor, Copilot). Uses a local API proxy on `http://localhost:3456` — start with `cd api && bun run dev`.
+
+## Authentication
+
+- `imbrace login --api-key api_xxx...` — Login with API key (recommended for CI/CD)
+- `imbrace login --email user@example.com --password mypass` — Login with email + password
+- `imbrace logout` — Clear credentials
+- `imbrace whoami --json` — Verify login status
+
+Credentials stored via `conf` package: macOS `~/Library/Preferences/imbrace-nodejs/config.json`, Linux `~/.config/imbrace-nodejs/config.json`, Windows `%APPDATA%\imbrace-nodejs\Config\config.json`.
+
+If a command returns 401, run `imbrace login --api-key api_xxx...` again. All commands support `--json` flag for machine-readable output — always use it when scripting.
+
+## Data Board
+
+- `imbrace data-board list --json` — List boards (`brd_...` IDs)
+- `imbrace data-board create --name "X" --json` — Create board
+- `imbrace data-board create-field <boardId> --name "X" --type <type> --json` — Add field (types: ShortText, LongText, Number, Date, Email, Phone, Currency, SingleSelection, MultipleSelection, Checkbox, Assignee, MultipleAssignee, Link, Notes, Origin, Priority. **Do NOT use Dropdown** — use SingleSelection.)
+- `imbrace data-board create-item <boardId> --fields '...' --json` — Create item (fields: `[{board_field_id, value}]`)
+- `imbrace data-board list-items --board-id <id> [--limit 20] [--skip 0] [--q <search>] --json` — List/search items
+- `imbrace data-board update-item <boardId> <itemId> --data '...' --json` — Update (data: `[{key, value}]`)
+- `imbrace data-board delete-item <boardId> <itemId> --yes --json`
+- `imbrace data-board export-csv --board-id <id> [--out ./board.csv]`
+
+## AI Agent
+
+- `imbrace ai-agent list|get|delete <id>|create|update <id> --json`
+- `imbrace ai-agent list-providers --json` — LLM providers (UUID `provider_id`, NOT Mongo `_id`)
+- `imbrace ai-agent list-models --provider-id <id> --json` — Models per provider. System provider only has `Default`.
+- `imbrace ai-agent list-folders [--search <q>] --json` — Knowledge Hub folders
+- `imbrace ai-agent list-files --folder-id <id> --json` — Files in a KH folder
+
+Create/update flags (same set; update is PUT-merge): `--name/-n`, `--description/-d`, `--instructions/-i`, `--model`, `--provider-id`, `--mode` (standard|advanced), `--temperature` (0-2), `--personality`, `--core-task`, `--tone`, `--response-length` (short|medium|long), `--banned-words`, `--category` (Support|Sales|Marketing|Team|Other), `--guardrail-id`, `--preload-information`, `--folder-ids`, `--default-folder-id`, `--knowledge-hubs`, `--board-ids`, `--file-ids`, `--show-thinking`/`--no-show-thinking`, `--streaming`/`--no-streaming`, `--use-memory`/`--no-use-memory`, `--yes`, `--json`, `--id-only`.
+
+**All agent content must be in English** — diacritics produce unreadable slugs. Agent create atomically provisions assistant + web channel + template via `createUseCase()`.
+
+## Workflow
+
+A workflow (Activepieces) = nodes: trigger → actions. 6 layers: Flow → Version → Nodes → Connections → Runs → Pieces.
+
+**CRUD:** `imbrace workflow list/get/create --name/delete/move <flowId> --folder-id <id|NULL>`.
+**Nodes:** `node list|add --type trigger|action --piece --trigger-name|action-name [--after] [--input '<json>']|update|delete|add-raw`.
+**Pieces:** `piece list [--search]|detail <name>`.
+**Connections:** `conn list|get|create --piece --type SECRET_TEXT|OAUTH2|CLOUD_OAUTH2|BASIC_AUTH|CUSTOM_AUTH --value|delete`.
+**Folders:** `folder list|get|create --name|update --name|delete`. 4 system folders: Channel Workflow, Board Automation, AI Agent Capabilities, Others.
+**MCP:** `mcp list|get|create --name|delete|rotate-token`.
+**Lifecycle:** `publish|enable|disable <flowId>`. **Order: create → add nodes → publish → enable → run.**
+**Runs:** `runs [--limit]|run-detail <runId>|run <flowId> [--payload '<json>'] [--sync]`.
+
+**Known issues:** `--sync` may timeout ~30s — use `runs` + `run-detail` instead. Always `publish` before `enable`. `prompt` field for AI Connector must be `{ prompt: { prompt: "text" } }`. If flow is open in browser, CLI updates may be rejected.
+
+**Variable syntax:** `{{trigger.body.X}}`, `{{trigger.X}}`, `{{step_N.output.Y}}`, `{{connections.<id>.access_token}}`.
+
+## Installation
+
+```bash
+cd api && bun install && bun run dev     # terminal 1: API server
+npm install -g @imbrace/cli                # terminal 2: CLI
+imbrace login --api-key api_xxx...
+```
+
+For full command reference: [developer.imbrace.co/cli/commands/](https://developer.imbrace.co/cli/commands/)
