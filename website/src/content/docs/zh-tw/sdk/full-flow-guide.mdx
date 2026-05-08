@@ -9,7 +9,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
 ---
 
-## 1. 建立 AI 助手並開始聊天
+## 1. 建立 AI Agent 並開始聊天
 
 <Steps>
 
@@ -40,7 +40,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
    參見[身份驗證 → 選哪種憑證](/zh-tw/sdk/authentication/#我該選哪種憑證)了解完整決策樹。
 
-2. **建立助手**
+2. **建立 AI Agent**
 
    `workflow_name` 在組織內必須唯一。
 
@@ -79,7 +79,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
    `provider_id` 與 `model_id` 為必填。傳入 `provider_id: "system"` 使用組織預設的 LLM 供應商，或傳入自訂供應商的 UUID。當 `provider_id: "system"` 時，`model_id` 可填模型名稱（例如 `"gpt-4o"`）或字串 `"Default"` 以使用系統預設模型。
 
-3. **從助手串流取得聊天回應**
+3. **從 AI Agent 串流取得聊天回應**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -197,7 +197,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
 ---
 
-## 2. 使用 Activepieces 建立工作流並與助手關聯
+## 2. 建立工作流並與 AI Agent 關聯
 
 <Steps>
 
@@ -206,14 +206,14 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
+       const { data: flows } = await client.workflows.listFlows({ limit: 5 })
        const projectId = flows[0]?.projectId
        console.log("Project ID:", projectId)
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_flows(limit=5)
+       res = client.workflows.list_flows(limit=5)
        flows = res.get("data", [])
        project_id = flows[0]["projectId"] if flows else None
        print("Project ID:", project_id)
@@ -226,7 +226,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const flow = await client.activepieces.createFlow({
+       const flow = await client.workflows.createFlow({
          displayName: "新 Lead 時更新 CRM",
          projectId,
        })
@@ -235,7 +235,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      </TabItem>
      <TabItem label="Python">
        ```python
-       flow = client.activepieces.create_flow(
+       flow = client.workflows.create_flow(
            display_name="新 Lead 時更新 CRM",
            project_id=project_id,
        )
@@ -252,7 +252,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      <TabItem label="TypeScript">
        ```typescript
        // 將 Webhook piece 設為 flow 的觸發器
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
            name: "trigger",
@@ -270,7 +270,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
        })
 
        // 發布 — 狀態從 DISABLED → ENABLED，webhook URL 開始可用
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
        })
@@ -279,7 +279,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      <TabItem label="Python">
        ```python
        # 將 Webhook piece 設為 flow 的觸發器
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
                "name": "trigger",
@@ -297,7 +297,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
        })
 
        # 發布 — DISABLED → ENABLED，webhook URL 開始可用
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
        })
@@ -311,14 +311,14 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      <TabItem label="TypeScript">
        ```typescript
        // 非同步（fire and forget）
-       await client.activepieces.triggerFlow(flow.id, {
+       await client.workflows.triggerFlow(flow.id, {
          contact_name: "張三",
          email: "zhangsan@example.com",
        })
 
        // 同步觸發 — 若要實際取得回傳值而非逾時，flow 需透過
        // applyFlowOperation ADD_ACTION 加入「Return Response」動作
-       const result = await client.activepieces.triggerFlowSync(flow.id, {
+       const result = await client.workflows.triggerFlowSync(flow.id, {
          contact_name: "張三",
          email: "zhangsan@example.com",
        })
@@ -328,14 +328,14 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      <TabItem label="Python">
        ```python
        # 非同步（fire and forget）
-       client.activepieces.trigger_flow(flow["id"], {
+       client.workflows.trigger_flow(flow["id"], {
            "contact_name": "張三",
            "email": "zhangsan@example.com",
        })
 
        # 同步觸發 — 若要實際取得回傳值而非逾時，flow 需透過
        # apply_flow_operation ADD_ACTION 加入「Return Response」動作
-       result = client.activepieces.trigger_flow_sync(flow["id"], {
+       result = client.workflows.trigger_flow_sync(flow["id"], {
            "contact_name": "張三",
            "email": "zhangsan@example.com",
        })
@@ -344,11 +344,11 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      </TabItem>
    </Tabs>
 
-5. **將 flow 與助手關聯**
+5. **將 flow 與 AI Agent 關聯**
 
-   在 Imbrace dashboard 中開啟助手，進入 **Tools → Workflows** 並綁定 flow。助手在對話中將能夠在適當時機觸發 flow。
+   在 Imbrace dashboard 中開啟 AI Agent，進入 **Tools → Workflows** 並綁定 flow。AI Agent 在對話中將能夠在適當時機觸發 flow。
 
-   或更新助手以按名稱引用工作流程：
+   或更新 AI Agent 以按名稱引用工作流程：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -378,7 +378,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: runs } = await client.activepieces.listRuns({
+       const { data: runs } = await client.workflows.listRuns({
          flowId: flow.id,
          limit: 10,
        })
@@ -389,7 +389,7 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
+       res = client.workflows.list_runs(flow_id=flow["id"], limit=10)
        for run in res.get("data", []):
            print(run["id"], run.get("status"), run.get("startTime"))
        ```
@@ -400,9 +400,9 @@ import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
 ---
 
-## 3. 管理 Knowledge Hub 並綁定到助手
+## 3. 管理 Knowledge Hub 並綁定到 AI Agent
 
-Knowledge Hub 在 **data-board** 服務（`client.boards`）中儲存檔案和資料夾。資料夾的 `_id` 是您傳給助手作為知識來源的值。
+Knowledge Hub 在 **data-board** 服務（`client.boards`）中儲存檔案和資料夾。資料夾的 `_id` 是您傳給 AI Agent 作為知識來源的值。
 
 <Steps>
 
@@ -466,9 +466,9 @@ Knowledge Hub 在 **data-board** 服務（`client.boards`）中儲存檔案和�
      </TabItem>
    </Tabs>
 
-3. **將資料夾綁定到助手**
+3. **將資料夾綁定到 AI Agent**
 
-   將資料夾的 `_id` 傳入 `folder_ids` — 助手將從該資料夾的所有檔案中檢索。使用 `board_ids` 可額外附加 CRM data-board。舊的 `knowledge_hubs` 欄位已停用。
+   將資料夾的 `_id` 傳入 `folder_ids` — AI Agent 將從該資料夾的所有檔案中檢索。使用 `board_ids` 可額外附加 CRM data-board。舊的 `knowledge_hubs` 欄位已停用。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">

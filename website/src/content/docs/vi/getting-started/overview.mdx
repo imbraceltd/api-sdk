@@ -1,65 +1,61 @@
 ---
-title: Tổng Quan Kiến Trúc
-description: Phạm vi, cấu trúc SDK và sự khác biệt giữa các gateway của Imbrace SDK.
+title: Tổng Quan
+description: Imbrace là gì và bạn có thể xây dựng những gì với SDK.
 ---
 
-### Phạm Vi
+Imbrace là nền tảng tương tác khách hàng — nó xử lý các kênh chat, CRM pipeline, AI agent, quy trình tự động hóa và xử lý tài liệu tại một nơi. SDK cho phép bạn nhúng các tính năng đó trực tiếp vào ứng dụng của mình mà không cần tự xây dựng hạ tầng.
 
-- SDK bao gồm **App Gateway + Server Gateway**.
-- **Journey API** và **các HTTP path dành riêng cho n8n** nằm ngoài phạm vi của repo này.
+### Bạn Có Thể Xây Dựng
 
-### Cấu Trúc SDK
+- **AI Agents** — stream phản hồi trực tiếp từ AI agent được huấn luyện trên kiến thức của bạn
+- **Quy trình tự động** — kích hoạt và quản lý các quy trình tự động hóa nhiều bước qua workflow engine
+- **CRM pipelines** — tạo board, quản lý lead, tìm kiếm và xuất dữ liệu deal
+- **Xử lý tài liệu** — trích xuất dữ liệu có cấu trúc từ PDF và hóa đơn, tạo embeddings
 
-```
-api-sdk/
-├── py/src/imbrace/
-│   ├── client.py              ← ImbraceClient (sync entry point)
-│   ├── async_client.py        ← AsyncImbraceClient
-│   ├── http.py                ← transport, auth headers, retry
-│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
-│   ├── environments.py        ← URL presets (develop/sandbox/stable)
-│   ├── service_registry.py    ← resolve base URL từng service
-│   ├── auth/token_manager.py  ← lưu token thread-safe
-│   ├── resources/             ← mỗi file = một resource namespace
-│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
-│   │   ├── platform.py
-│   │   ├── channel.py
-│   │   └── ...                (tổng cộng 29 resources)
-│   └── types/                 ← Pydantic models chung
-│
-└── ts/src/
-    ├── client.ts              ← ImbraceClient (entry point)
-    ├── http.ts                ← transport, auth headers, retry
-    ├── errors.ts              ← AuthError, ApiError, NetworkError
-    ├── environments.ts        ← URL presets
-    ├── service-registry.ts    ← resolve base URL từng service
-    ├── auth/token-manager.ts  ← lưu token
-    ├── resources/             ← mỗi file = một resource namespace
-    │   ├── ai-agent.ts        (AiAgentResource)
-    │   ├── platform.ts
-    │   ├── channel.ts
-    │   └── ...                (tổng cộng 29 resources)
-    └── types/                 ← TypeScript interfaces chung
-```
+### CLI Tool
 
-### Sự Khác Biệt Giữa Các Gateway
+Imbrace cũng cung cấp giao diện dòng lệnh (`@imbrace/cli`) để tương tác với nền tảng từ terminal. Nó được thiết kế cho nhà phát triển và coding agent — cài đặt cùng SDK để tạo mẫu nhanh, gỡ lỗi và tự động hóa.
 
-| Gateway        | Auth Header                     | Pattern Path              |
-| -------------- | ------------------------------- | ------------------------- |
-| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
-| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
+Xem [CLI Overview](/cli/overview/) để biết chi tiết.
 
-### Các Tầng Test
+### SDK Khả Dụng
+
+| SDK | Package | Runtime |
+|---|---|---|
+| TypeScript / JavaScript | `@imbrace/sdk` | Node.js 18+, trình duyệt |
+| Python | `imbrace` | Python 3.9+ |
+
+### Xác Thực
+
+Có hai cách xác thực:
+
+- **Access token** — cho ứng dụng có người dùng. Lấy được sau khi người dùng đăng nhập qua OTP hoặc OAuth. Truyền dưới dạng `accessToken` khi khởi tạo client.
+- **API key** — cho tích hợp server-to-server. Tạo từ bảng điều khiển Imbrace. Truyền dưới dạng `apiKey`.
+
+### Gateway
+
+Tất cả request SDK đều đi qua:
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  UNIT TESTS  (Không cần server, không cần API key)       │
-│  → Mock toàn bộ HTTP: pytest-httpx (Python) / vitest (TS)│
-│  → Chạy offline, phù hợp cho CI/CD                       │
-│  → Kiểm tra: SDK logic, headers, URL, params, errors     │
-├──────────────────────────────────────────────────────────┤
-│  INTEGRATION TESTS (Cần server thật + API key hợp lệ)    │
-│  → Gọi thật tới app-gatewayv2.imbrace.co                 │
-│  → Tự động bỏ qua nếu IMBRACE_API_KEY không được set     │
-└──────────────────────────────────────────────────────────┘
+https://app-gatewayv2.imbrace.co
 ```
+
+Gateway được đặt mặc định — bạn không cần cấu hình trừ khi nhắm đến môi trường khác.
+
+### Ví Dụ Nhanh
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+
+const stream = await client.aiAgent.streamChat({
+  assistant_id: "asst_xxx",
+  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+})
+```
+
+---

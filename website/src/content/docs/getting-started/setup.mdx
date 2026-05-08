@@ -227,7 +227,28 @@ async def main():
 
 ---
 
-### Quick Usage Examples
+### CLI Installation
+
+The Imbrace CLI is a terminal tool that uses a local API proxy to communicate with the platform.
+
+```bash
+# Install globally
+npm install -g @imbrace/cli
+
+# Start the local API server (keep running)
+cd api
+bun install
+bun run dev    # http://localhost:3456
+
+# Login to get started
+imbrace login --api-key api_xxx...
+```
+
+See [CLI Installation](/cli/installation/) for alternative install methods and [CLI Commands](/cli/commands/) for the full command reference.
+
+---
+
+## Quick Usage Examples
 
 <Tabs>
   <TabItem label="TypeScript">
@@ -352,7 +373,7 @@ All valid service keys:
 | `file_service`       | `fileService`       | File service                        |
 | `message_suggestion` | `messageSuggestion` | Message Suggestion service          |
 | `predict`            | `predict`           | Predict service                     |
-| `activepieces`       | `activepieces`      | ActivePieces                        |
+| `activepieces`       | `activepieces`      | Workflows                           |
 | `ai_agent`           | `aiAgent`           | AI Agent service                    |
 
 ---

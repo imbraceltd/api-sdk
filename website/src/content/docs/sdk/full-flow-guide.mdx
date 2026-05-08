@@ -10,7 +10,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 1. Create an AI Assistant and Start Chatting
+## 1. Create an AI Agent and Start Chatting
 
 <Steps>
 
@@ -68,7 +68,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
    The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
 
-2. **Create an assistant**
+2. **Create an AI agent**
 
    `workflow_name` must be unique within your organization.
 
@@ -107,7 +107,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
    `provider_id` and `model_id` are required. Pass `provider_id: "system"` to delegate to the org's default LLM provider, or pass a custom provider's UUID. With `provider_id: "system"`, `model_id` accepts a model name like `"gpt-4o"`, or the literal `"Default"` to fall back to the system default model.
 
-3. **Stream a chat response using the assistant**
+3. **Stream a chat response using the AI agent**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -225,7 +225,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 2. Create a Workflow with Activepieces and Bind it to an Assistant
+## 2. Create a Workflow and Bind it to an Assistant
 
 <Steps>
 
@@ -234,14 +234,14 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
+       const { data: flows } = await client.workflows.listFlows({ limit: 5 })
        const projectId = flows[0]?.projectId
        console.log("Project ID:", projectId)
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_flows(limit=5)
+       res = client.workflows.list_flows(limit=5)
        flows = res.get("data", [])
        project_id = flows[0]["projectId"] if flows else None
        print("Project ID:", project_id)
@@ -254,7 +254,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const flow = await client.activepieces.createFlow({
+       const flow = await client.workflows.createFlow({
          displayName: "CRM Update on New Lead",
          projectId,
        })
@@ -263,7 +263,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      </TabItem>
      <TabItem label="Python">
        ```python
-       flow = client.activepieces.create_flow(
+       flow = client.workflows.create_flow(
            display_name="CRM Update on New Lead",
            project_id=project_id,
        )
@@ -280,7 +280,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="TypeScript">
        ```typescript
        // Set the Webhook piece as the flow's trigger
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
            name: "trigger",
@@ -298,7 +298,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
 
        // Publish — flow status flips DISABLED → ENABLED and webhook URL becomes live
-       await client.activepieces.applyFlowOperation(flow.id, {
+       await client.workflows.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
        })
@@ -307,7 +307,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="Python">
        ```python
        # Set the Webhook piece as the flow's trigger
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
                "name": "trigger",
@@ -325,7 +325,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
 
        # Publish — DISABLED → ENABLED, webhook URL becomes live
-       client.activepieces.apply_flow_operation(flow["id"], {
+       client.workflows.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
        })
@@ -339,7 +339,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="TypeScript">
        ```typescript
        // Fire and forget (async)
-       await client.activepieces.triggerFlow(flow.id, {
+       await client.workflows.triggerFlow(flow.id, {
          contact_name: "Jane Smith",
          email: "jane@example.com",
        })
@@ -347,7 +347,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        // Sync trigger — for this to actually return data instead of timing out,
        // the flow needs a "Return Response" action added via applyFlowOperation
        // ADD_ACTION (otherwise the gateway waits 30s for a response and gives up).
-       const result = await client.activepieces.triggerFlowSync(flow.id, {
+       const result = await client.workflows.triggerFlowSync(flow.id, {
          contact_name: "Jane Smith",
          email: "jane@example.com",
        })
@@ -357,7 +357,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="Python">
        ```python
        # Fire and forget (async)
-       client.activepieces.trigger_flow(flow["id"], {
+       client.workflows.trigger_flow(flow["id"], {
            "contact_name": "Jane Smith",
            "email": "jane@example.com",
        })
@@ -365,7 +365,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        # Sync trigger — for this to actually return data instead of timing out,
        # the flow needs a "Return Response" action added via apply_flow_operation
        # ADD_ACTION (otherwise the gateway waits 30s and gives up).
-       result = client.activepieces.trigger_flow_sync(flow["id"], {
+       result = client.workflows.trigger_flow_sync(flow["id"], {
            "contact_name": "Jane Smith",
            "email": "jane@example.com",
        })
@@ -374,11 +374,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      </TabItem>
    </Tabs>
 
-5. **Bind the flow to your assistant**
+5. **Bind the flow to your AI agent**
 
-   Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
+   Open your AI agent in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The AI agent will be able to trigger it during a conversation when appropriate.
 
-   Alternatively, update the assistant to reference the workflow by name:
+   Alternatively, update the AI agent to reference the workflow by name:
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -408,7 +408,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: runs } = await client.activepieces.listRuns({
+       const { data: runs } = await client.workflows.listRuns({
          flowId: flow.id,
          limit: 10,
        })
@@ -419,7 +419,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
+       res = client.workflows.list_runs(flow_id=flow["id"], limit=10)
        for run in res.get("data", []):
            print(run["id"], run.get("status"), run.get("startTime"))
        ```
@@ -430,9 +430,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 3. Manage Knowledge Hubs and Attach to an Assistant
+## 3. Manage Knowledge Hubs and Attach to an AI Agent
 
-Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an assistant as its knowledge source.
+Knowledge Hub files and folders live in the **data-board** service (`client.boards`). The folder's `_id` is what you pass to an AI agent as its knowledge source.
 
 <Steps>
 
@@ -496,9 +496,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      </TabItem>
    </Tabs>
 
-3. **Attach the folder to the assistant**
+3. **Attach the folder to the AI agent**
 
-   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
+   Pass the folder `_id` in `folder_ids` — the AI agent retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">

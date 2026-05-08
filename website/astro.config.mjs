@@ -93,6 +93,16 @@ export default defineConfig({
           ],
         },
         {
+          label: 'CLI',
+          translations: { vi: 'CLI' },
+          items: [
+            { label: 'Overview',        link: '/cli/overview/' },
+            { label: 'Installation',    link: '/cli/installation/' },
+            { label: 'Commands',        link: '/cli/commands/' },
+            { label: 'API Reference',   link: '/cli/api-reference/' },
+          ],
+        },
+        {
           label: 'Guides',
           translations: { vi: 'Hướng Dẫn', 'zh-CN': '指南', 'zh-TW': '指南' },
           items: [

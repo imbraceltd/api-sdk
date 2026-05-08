@@ -1,35 +1,35 @@
 ---
 title: Workflows
-description: Activepieces visual workflow builder and channel automation — create, trigger, and manage flows via the SDK.
+description: Workflows — visual workflow builder and channel automation — create, trigger, and manage flows via the SDK.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-The SDK exposes two workflow systems: **Activepieces** (`client.activepieces` / `client.workflows`) for visual workflow automation, and **channel automation** (`client.workflows`) for messaging channel flows such as WhatsApp.
+The SDK exposes two workflow systems: **Workflows** (`client.workflows`) for visual workflow automation, and **channel automation** (`client.workflows`) for messaging channel flows such as WhatsApp.
 
-Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an assistant, see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant).
+Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an assistant, see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-assistant).
 
 ---
 
-## Activepieces — `client.activepieces` / `client.workflows`
+## Workflows — `client.workflows`
 
-Activepieces is the visual workflow builder. Available for both TypeScript and Python.
+The visual workflow builder. Available for both TypeScript and Python.
 
 ### Flows
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: flows } = await client.activepieces.listFlows();
+const { data: flows } = await client.workflows.listFlows();
 
-const flow = await client.activepieces.getFlow("flow_id");
+const flow = await client.workflows.getFlow("flow_id");
 
-const newFlow = await client.activepieces.createFlow({
+const newFlow = await client.workflows.createFlow({
   displayName: "New Lead Notification",
   projectId: "project_id",
 });
 
-await client.activepieces.deleteFlow("flow_id");
+await client.workflows.deleteFlow("flow_id");
 ```
 </TabItem>
 <TabItem label="Python">
@@ -54,13 +54,13 @@ client.workflows.delete_flow("flow_id")
 <TabItem label="TypeScript">
 ```typescript
 // Fire and forget
-await client.activepieces.triggerFlow("flow_id", {
+await client.workflows.triggerFlow("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 
 // Wait for result
-const result = await client.activepieces.triggerFlowSync("flow_id", {
+const result = await client.workflows.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
@@ -82,21 +82,21 @@ result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xx
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
-const run                = await client.activepieces.getRun("run_id");
+const { data: runs }     = await client.workflows.listRuns({ flowId: "flow_id", limit: 20 });
+const run                = await client.workflows.getRun("run_id");
 
-const { data: folders }  = await client.activepieces.listFolders();
-const folder             = await client.activepieces.createFolder({ displayName: "CRM Automations", projectId: "project_id" });
+const { data: folders }  = await client.workflows.listFolders();
+const folder             = await client.workflows.createFolder({ displayName: "CRM Automations", projectId: "project_id" });
 
-const { data: connections } = await client.activepieces.listConnections();
-await client.activepieces.upsertConnection({
+const { data: connections } = await client.workflows.listConnections();
+await client.workflows.upsertConnection({
   name: "slack-integration",
   type: "OAUTH2",
   value: { access_token: "xoxb-xxx" },
 });
 
-const { data: tables }   = await client.activepieces.listTables();
-const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
+const { data: tables }   = await client.workflows.listTables();
+const { data: records }  = await client.workflows.listRecords({ tableId: "table_id" });
 ```
 </TabItem>
 <TabItem label="Python">
