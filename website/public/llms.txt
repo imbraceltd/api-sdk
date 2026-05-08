@@ -6,6 +6,7 @@
 
 ### Getting Started
 - [Overview](https://developer.imbrace.co/sdk/overview/) - Key features and architecture.
+- [Setup Guide](https://developer.imbrace.co/getting-started/setup/) - Install, credentials, environment, and client init for TS and Python.
 - [Installation](https://developer.imbrace.co/sdk/installation/) - Step-by-step package setup for TS and Python.
 - [Quick Start](https://developer.imbrace.co/sdk/quick-start/) - Make your first API call in 60 seconds.
 
@@ -14,12 +15,14 @@
 - [Full Flow Guide (E2E)](https://developer.imbrace.co/sdk/full-flow-guide/) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
 - [Framework Integrations](https://developer.imbrace.co/sdk/integrations/) - Patterns for React, Next.js, FastAPI, Django, and Celery.
 - [Testing Guide](https://developer.imbrace.co/guides/testing/) - Unit testing, mocking, and integration patterns.
+- [Local Testing](https://developer.imbrace.co/sdk/local-testing/) - Test the built SDK package locally before publishing (TS + Python).
 - [Troubleshooting](https://developer.imbrace.co/guides/troubleshooting/) - Common errors, 401s, and double-path issues.
 - [Vibe Coding](https://developer.imbrace.co/guides/vibe-coding/) - Use llms.txt with Claude, Cursor, Copilot to code faster.
 
 ### API Reference
 - [Namespace Resource Reference](https://developer.imbrace.co/sdk/resources/) - Detailed signatures for all 30+ namespaces.
 - [AI Agent Deep Dive](https://developer.imbrace.co/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
+- [Error Handling](https://developer.imbrace.co/sdk/error-handling/) - Full error class hierarchy, retry behavior, and 401/403 handling.
 
 ## Core Technical Specs
 - **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
@@ -44,7 +47,6 @@
 - **`chatAi`**: Assistant CRUD, LLM completions, Knowledge Hub, File Extraction. Includes `processDocument(body)` → `POST /ai/v3/document/` — low-level one-shot URL-to-structured-data extraction with an LLM vision model.
 - **`aiAgent`**: Streaming Chat (SSE), Sub-agent, Embeddings/RAG, Parquet, Tracing.
 - **`documentAi`**: high-level wrapper for the iMBRACE Document AI Agent feature (Receipt Extractor, BC Form, Business Card, Information Parser, etc.). Methods: `createAgent({name, instructions, model_id, schema})`, `listAgents()`, `getAgent(id)`, `updateAgent(id, body)`, `deleteAgent(id)`, `process({agentId|modelName, url, organizationId})`, `suggestSchema({url, organizationId})`. Wraps AI Assistant CRUD (`/v3/ai/assistant_apps/*`) with `agent_type=document_ai` filter + processing endpoint `/v3/ai/document/`.
-- **`financialDocuments`**: multi-step review/correction workflow for documents extracted via `documentAi.process` or `chatAi.processDocument`. 10 methods: `getFile`, `getReport`, `listErrors`, `suggest`, `fix`, `reset`, `updateFile`, `updateReport`, `deleteFile`, `deleteReport` → `/v2/ai/financial_documents/*`. **@experimental**: throws `FinancialDocumentsNotDeployedError` if backend module not deployed on the gateway. Distinguishable from "id not found" by FastAPI default `{"detail":"Not Found"}` response.
 
 ### CRM & Automation
 - **`boards`**: CRM pipelines. CRUD for `items`, `fields`, and `segments`.
