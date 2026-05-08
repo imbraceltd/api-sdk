@@ -235,10 +235,7 @@ const controller = new AbortController();
 setTimeout(() => controller.abort(), 5000);
 
 try {
-  const result = await client.marketplace.listProducts(
-    { page: 1 },
-    { signal: controller.signal },
-  );
+  const result = await client.marketplace.listProducts({ page: 1 });
 } catch (e) {
   if (e instanceof NetworkError && e.message.includes("aborted")) {
     console.log("Request cancelled");
@@ -303,10 +300,10 @@ def safe_get_me(client):
 
 # 3. Branch on status_code for ApiError
 try:
-    client.marketplace.create_product(data)
+    client.marketplace.create_order(data)
 except ApiError as e:
     if e.status_code == 409:
-        print("Product already exists")
+        print("Order already exists")
     elif e.status_code == 400:
         print(f"Invalid data: {e}")
 ```

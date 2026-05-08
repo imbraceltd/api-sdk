@@ -1,45 +1,45 @@
 ---
 title: 本地測試
-description: 在本地測試已建置的 Imbrace SDK 套件，模擬真實消費者安裝的方式。
+description: 針對真實或模擬 Gateway 測試已建置的 Imbrace SDK 套件。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-本指南允許測試**已建置的套件**，方式與消費者從 npm 或 pip 安裝完全相同 — 而非原始原始碼。在發布新版本前，或重現消費者回報的 bug 時使用。
+本指南協助你測試**已建置的套件**，完全如同消費者安裝時的方式 — 而非原始原始碼。在發布新版本或重現消費者回報的錯誤時使用。
 
-## 前提條件
+## 前置需求
 
 - TypeScript：Node 18+
-- Python：Python 3.10+ 和 `pip`
-- 如需從 Ansible 解密環境變數，需設定 AWS credentials（profile `imbrace`）
+- Python：Python 3.10+ 與 `pip`
+- 已設定的 AWS 憑證（`imbrace` 設定檔），如需從 Ansible 解密環境變數
 
 ## 環境 URL
 
-相同的 gateway base URL 適用於兩個 SDK。在測試環境中設定一次：
+兩套 SDK 共用同一組 Gateway 基礎 URL。在你的測試環境中設定一次即可：
 
-| 環境       | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
-| ---------- | ------------------------------------------ |
-| develop    | `https://app-gateway.dev.imbrace.co`       |
-| sandbox    | `https://app-gateway.sandbox.imbrace.co`   |
-| stable     | `https://app-gatewayv2.imbrace.co`         |
+| 環境 | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| ----------- | ------------------------------------------ |
+| develop     | `https://app-gateway.dev.imbrace.co`       |
+| sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
+| stable      | `https://app-gatewayv2.imbrace.co`         |
 
 ## 憑證
 
-從 Ansible 拉取實際憑證（或從 portal 貼上）：
+從 Ansible 提取即時憑證（或從入口網站貼上）：
 
 ```bash
-# 從 SDK repo 根目錄
+# 從 SDK 儲存庫根目錄
 AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/imbrace.env
 ```
 
-實際呼叫所需的最低設定：
+即時呼叫所需的最低要求：
 
-| 變數              | 取得方式                                                                               |
+| 變數 | 取得方式 |
 | ----------------- | --------------------------------------------------------------------------------------------- |
-| `IMBRACE_API_KEY` | Imbrace Portal，或使用現有 access token 呼叫 `POST /private/backend/v1/third_party_token` |
-| `IMBRACE_BASE_URL` | 上表中的某個 URL（未設定時預設 dev）                              |
+| `IMBRACE_API_KEY` | Imbrace 入口網站，或使用現有 Access Token 呼叫 `POST /private/backend/v1/third_party_token` |
+| `IMBRACE_BASE_URL` | 上表 URL 之一（未設定時預設為 dev） |
 
-Org context 已編碼在 API key 中 — 不需要傳遞 organization id。
+組織上下文已編碼於 API Key 內部 — 你無需傳遞組織 ID。
 
 ---
 
@@ -51,16 +51,16 @@ Org context 已編碼在 API key 中 — 不需要傳遞 organization id。
 cd ts
 npm install
 npm run build
-npm link        # 全域公開 @imbrace/sdk
+npm link        # 全域暴露 @imbrace/sdk
 ```
 
-然後在測試目錄：
+然後在測試資料夾中：
 
 ```bash
 cd ts/tests/local
 npm link @imbrace/sdk
 cp .env.example .env
-# 填寫 .env
+# 填入 .env
 ```
 
 ### 執行測試
@@ -70,12 +70,12 @@ cd ts/tests/local
 node test-local.mjs
 ```
 
-- **未提供憑證** — 僅執行實例化 + 資源介面檢查（無網路請求）。
-- **設定了 `IMBRACE_API_KEY`** — 對 `IMBRACE_BASE_URL` 中的 gateway 執行完整實際 API 檢查。
+- **沒有憑證** — 僅執行實例化 + 資源表面檢查（無網路連線）。
+- **設定 `IMBRACE_API_KEY`** — 針對 `IMBRACE_BASE_URL` 中的 Gateway 執行所有即時 API 檢查。
 
-### SDK 更改的迭代流程
+### 迭代 SDK 變更
 
-每次編輯都需要重新建置，連結才會使用新的 dist：
+每次編輯都需要重新建置，連結才能取用最新變更：
 
 ```bash
 # 終端機 1 — ts/
@@ -89,18 +89,18 @@ node test-local.mjs  # 隨時重新執行
 
 ## Python — 從 wheel 或 editable 安裝
 
-### Editable 安裝（最快迭代）
+### Editable 安裝（最快的迭代方式）
 
-從 `py/` 目錄：
+從 `py/` 資料夾：
 
 ```bash
 cd py
 pip install -e .
 ```
 
-程式碼編輯無需重新安裝即可生效。
+程式碼編輯後無需重新安裝即可生效。
 
-### Wheel 安裝（驗證發布形狀）
+### Wheel 安裝（驗證發布的結構）
 
 ```bash
 cd py
@@ -108,7 +108,7 @@ python -m build               # 產生 dist/imbrace-*.whl
 pip install dist/imbrace-*.whl --force-reinstall
 ```
 
-這可以發現 editable 安裝隱藏的缺失檔案、打包 bug 和匯入路徑問題。
+這能捕捉到 editable 安裝所隱藏的遺漏檔案、打包錯誤與匯入路徑問題。
 
 ### 執行測試
 
@@ -118,7 +118,7 @@ pip install -r tests/requirements.txt
 python -m pytest tests/
 ```
 
-鏡像[完整流程指南](/zh-tw/sdk/full-flow-guide/)的全流程回歸測試：
+對應[完整流程指南](/sdk/full-flow-guide/)的回歸測試：
 
 ```bash
 cd test-pip-pkg/py
@@ -128,7 +128,7 @@ pip install -r requirements.txt
 python -m pytest tests/test_guide_flow.py -v
 ```
 
-該測試同時使用 `IMBRACE_API_KEY` 和 `IMBRACE_ACCESS_TOKEN` 執行，以涵蓋兩種 auth 模式。
+同一測試會以 `IMBRACE_API_KEY` 和 `IMBRACE_ACCESS_TOKEN` 兩種驗證模式執行。
 
 ---
 
@@ -149,19 +149,19 @@ IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 
 ---
 
-## 故障排除
+## 疑難排解
 
-**`Cannot find package '@imbrace/sdk'`**（TypeScript）
-在測試目錄內重新執行 `npm link @imbrace/sdk`。如果刪除並重新安裝 `ts/` 中的 `node_modules`，連結可能會中斷。
+**`Cannot find package '@imbrace/sdk'`** (TypeScript)
+再次從測試資料夾內執行 `npm link @imbrace/sdk`。如果你刪除並重新安裝 `ts/` 中的 `node_modules`，連結可能會中斷。
 
-**`ERR_MODULE_NOT_FOUND`（dist 檔案）**（TypeScript）
-套件尚未建置，或新增了新的原始碼檔案但未重新建置。在 `ts/` 中執行 `npm run build`。
+**`ERR_MODULE_NOT_FOUND` 指向某個 dist 檔案** (TypeScript)
+尚未執行建置，或在未重新建置的情況下新增了原始檔。在 `ts/` 中執行 `npm run build`。
 
-**`ModuleNotFoundError: No module named 'imbrace'`**（Python）
-套件未安裝在目前 venv 中。重新執行 `pip install -e .`（editable）或 `pip install dist/imbrace-*.whl`。
+**`ModuleNotFoundError: No module named 'imbrace'`** (Python)
+套件未安裝在啟用的虛擬環境中。重新執行 `pip install -e .`（editable）或 `pip install dist/imbrace-*.whl`。
 
-**實際呼叫回傳 401 / 403**
-憑證已過期、被撤銷或錯誤。產生新的 API key：
+**即時呼叫出現 401 / 403**
+你的憑證已過期、被撤銷或不正確。若是 API Key，請產生一組新的：
 
 ```bash
 curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
@@ -170,4 +170,4 @@ curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_t
   -d '{"expirationDays": 30}'
 ```
 
-其他執行時錯誤，參閱[錯誤處理](/zh-tw/sdk/error-handling/)和[問題排查](/zh-tw/guides/troubleshooting/)。
+其他執行時期錯誤請參閱[錯誤處理](/sdk/error-handling/)與[疑難排解](/guides/troubleshooting/)。

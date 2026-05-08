@@ -26,26 +26,44 @@ pip install imbrace
 </TabItem>
 </Tabs>
 
-**2. 設定憑證**
+**2. 儲存憑證**
+
+在專案根目錄建立 `.env` 檔案。SDK **不會**自動讀取環境變數——你需要在第 3 步將其傳入建構子。
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+```
+
+如需瞭解何時使用 API Key 或 Access Token，請參閱 [Authentication](/sdk/authentication/)；如需瞭解如何取得 API Key，請參閱 [Setup 指南](/getting-started/setup/#get-an-api-key)。
+
+**3. 初始化客戶端**
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey:         process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+});
 ```
 </TabItem>
 <TabItem label="Python">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+)
 ```
 </TabItem>
 </Tabs>
 
-如需瞭解如何取得 API Key，請參閱 [Authentication](/sdk/authentication/)。
-
-**3. 取得 `llms.txt`**
+**4. 取得 `llms.txt`**
 
 下載或複製 [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) 的檔案內容，並匯入你的 AI 工具（見下方[如何使用](#如何使用)）。
 

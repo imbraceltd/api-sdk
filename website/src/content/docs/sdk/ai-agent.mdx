@@ -72,16 +72,19 @@ Manages AI agents (CRUD), runs OpenAI-compatible completions, and handles docume
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// List all assistants in your account
-const assistants = await client.chatAi.listAssistants();
-// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId).
+// List all AI agents in your account
+const agents = await client.chatAi.listAiAgents();
+// Each AI agent has an `id` (UUID) and `_id` (MongoDB ObjectId).
 // Use the `id` field for all subsequent calls.
 
-// Get a single assistant
-const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
+// List sub-agents (agents that can be delegated to by an orchestrator)
+const subAgents = await client.chatAi.listAiAgentSubAgents();
+
+// Get a single AI agent
+const agent = await client.chatAi.getAiAgent("9f77692f-33d0-436a-8138-2efb268838e6");
 
 // Create — provider_id and model_id are required
-const created = await client.chatAi.createAssistant({
+const created = await client.chatAi.createAiAgent({
   name: "Support Bot",
   workflow_name: "support_bot_v1",
   provider_id: "system",
@@ -90,30 +93,33 @@ const created = await client.chatAi.createAssistant({
 });
 
 // Update — workflow_name is required on update too
-const updated = await client.chatAi.updateAssistant(created.id, {
+const updated = await client.chatAi.updateAiAgent(created.id, {
   name: "Support Bot v2",
   workflow_name: "support_bot_v1",
 });
 
 // Update only the system instructions
-await client.chatAi.updateAssistantInstructions(
+await client.chatAi.updateAiAgentInstructions(
   created.id,
   "You are a helpful support agent.",
 );
 
-await client.chatAi.deleteAssistant(created.id);
+await client.chatAi.deleteAiAgent(created.id);
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# List all assistants
-assistants = client.chat_ai.list_assistants()
+# List all AI agents
+agents = client.chat_ai.list_ai_agents()
 
-# Get a single assistant
-assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
+# List sub-agents (agents that can be delegated to by an orchestrator)
+sub_agents = client.chat_ai.list_ai_agent_sub_agents()
+
+# Get a single AI agent
+agent = client.chat_ai.get_ai_agent("9f77692f-33d0-436a-8138-2efb268838e6")
 
 # Create — provider_id and model_id are required
-created = client.chat_ai.create_assistant({
+created = client.chat_ai.create_ai_agent({
     "name":          "Support Bot",
     "workflow_name": "support_bot_v1",
     "provider_id":   "system",
@@ -122,18 +128,18 @@ created = client.chat_ai.create_assistant({
 })
 
 # Update
-updated = client.chat_ai.update_assistant(created["id"], {
+updated = client.chat_ai.update_ai_agent(created["id"], {
     "name":          "Support Bot v2",
     "workflow_name": "support_bot_v1",
 })
 
 # Update only the system instructions
-client.chat_ai.update_assistant_instructions(
+client.chat_ai.update_ai_agent_instructions(
     created["id"],
     "You are a helpful support agent.",
 )
 
-client.chat_ai.delete_assistant(created["id"])
+client.chat_ai.delete_ai_agent(created["id"])
 ```
 </TabItem>
 </Tabs>
@@ -157,14 +163,16 @@ console.log(response.choices[0].message.content);
 </TabItem>
 <TabItem label="Python">
 ```python
-response = client.ai.complete(
+from imbrace.types.ai import CompletionInput, CompletionMessage
+
+response = client.ai.complete(CompletionInput(
     model="gpt-4o",
     messages=[
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        CompletionMessage(role="system", content="You are a helpful CRM assistant."),
+        CompletionMessage(role="user", content="Summarize this customer note: ..."),
     ],
-)
-print(response["choices"][0]["message"]["content"])
+))
+print(response.choices[0].message.content)
 ```
 </TabItem>
 </Tabs>
@@ -184,34 +192,9 @@ models = client.chat_ai.list_document_models()
 </TabItem>
 </Tabs>
 
-### Document processing (vision model)
+### Document AI
 
-Extract structured data from PDFs and images using a vision model.
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const result = await client.chatAi.processDocument({
-  modelName: "gpt-4o",
-  url: "https://example.com/invoice.pdf",
-  organizationId: "org_xxx",
-});
-console.log(result.data);
-// { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
-```
-</TabItem>
-<TabItem label="Python">
-```python
-result = client.chat_ai.process_document(
-    model_name="gpt-4o",
-    url="https://example.com/invoice.pdf",
-    organization_id="org_xxx",
-)
-print(result["data"])
-# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
-```
-</TabItem>
-</Tabs>
+Extract structured data from PDFs and images using a vision model. See the [Document AI reference](/sdk/document-ai/) for the full parameter reference, PDF form filling, and async usage.
 
 ### File extraction (agent file upload)
 
@@ -286,7 +269,7 @@ files = client.boards.search_files(folder_id=folder["_id"])
 
 ## OpenAI-compatible AI service — `client.ai`
 
-Raw OpenAI-style completions, streaming, and embeddings against the `aiv2` service. Available for both TypeScript and Python.
+OpenAI-style completions, streaming, and embeddings. Also exposes management APIs for LLM models, providers, guardrails, RAG files, and AI agents. Available for both TypeScript and Python.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -320,29 +303,363 @@ const result = await client.ai.embed({
 </TabItem>
 <TabItem label="Python">
 ```python
+from imbrace.types.ai import CompletionInput, CompletionMessage, EmbeddingInput
+
 # Single completion
-response = client.ai.complete(
+response = client.ai.complete(CompletionInput(
     model="gpt-4o",
     messages=[
-        {"role": "system", "content": "You are a helpful CRM assistant."},
-        {"role": "user",   "content": "Summarize this customer note: ..."},
+        CompletionMessage(role="system", content="You are a helpful CRM assistant."),
+        CompletionMessage(role="user", content="Summarize this customer note: ..."),
     ],
     temperature=0.7,
-)
-print(response["choices"][0]["message"]["content"])
+))
+print(response.choices[0].message.content)
 
 # Streaming
-for chunk in client.ai.stream(
+for chunk in client.ai.stream(CompletionInput(
     model="gpt-4o",
-    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
-):
-    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
+    messages=[CompletionMessage(role="user", content="Draft a follow-up email for this lead.")],
+)):
+    print(chunk.choices[0].delta.content or "", end="", flush=True)
 
 # Embeddings
-result = client.ai.embed(
+result = client.ai.embed(EmbeddingInput(
     model="text-embedding-ada-002",
     input=["customer complained about billing", "billing issue escalated"],
-)
+))
+```
+</TabItem>
+</Tabs>
+
+### LLM Models
+
+List models available for AI agents and workflow agents.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const result = await client.ai.getLlmModels();
+// result.data → [{name, is_toolCall_available, is_vision_available, is_support_thinking}]
+for (const model of result.data) {
+  console.log(model.name, model.is_toolCall_available);
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.ai.get_llm_models()
+# result["data"] → [{name, is_toolCall_available, is_vision_available, is_support_thinking}]
+for model in result["data"]:
+    print(model["name"], model.get("is_toolCall_available"))
+```
+</TabItem>
+</Tabs>
+
+### Providers
+
+Manage custom LLM providers. `listProviders` includes a synthetic `"system"` entry (`provider_id: "system"`) representing the built-in models from `getLlmModels`.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// List all providers (includes system default as first entry)
+const providers = await client.ai.listProviders();
+// Custom providers only
+const custom = await client.ai.listProviders({ includeSystem: false });
+
+// Add a custom provider
+const provider = await client.ai.createProvider({
+  name: "My Azure OpenAI",
+  type: "azure",
+  api_key: "sk-...",
+  base_url: "https://my-instance.openai.azure.com/",
+});
+
+// Update, refresh models, delete
+await client.ai.updateProvider(provider._id, { name: "Azure OpenAI (prod)" });
+await client.ai.refreshProviderModels(provider._id);
+await client.ai.deleteProvider(provider._id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List all providers (includes system default as first entry)
+providers = client.ai.list_providers()
+# Custom providers only
+custom = client.ai.list_providers(include_system=False)
+
+# Add a custom provider
+provider = client.ai.create_provider({
+    "name": "My Azure OpenAI",
+    "type": "azure",
+    "api_key": "sk-...",
+    "base_url": "https://my-instance.openai.azure.com/",
+})
+
+# Update, refresh models, delete
+client.ai.update_provider(provider["_id"], {"name": "Azure OpenAI (prod)"})
+client.ai.refresh_provider_models(provider["_id"])
+client.ai.delete_provider(provider["_id"])
+```
+</TabItem>
+</Tabs>
+
+### Guardrails
+
+Filter AI agent output for safety, policy compliance, or brand guidelines.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// List and get
+const guardrails = await client.ai.listGuardrails();
+const guardrail  = await client.ai.getGuardrail("guardrail_id");
+
+// Create
+const created = await client.ai.createGuardrail({
+  name: "Brand Safety",
+  model: "gpt-4o",
+  instructions: "Block responses that mention competitor names.",
+  unsafe_categories: ["violence", "hate_speech"],
+  competitor_keywords: ["CompetitorA", "CompetitorB"],
+});
+
+// Update and delete
+await client.ai.updateGuardrail(created._id, {
+  name: "Brand Safety v2",
+  model: "gpt-4o",
+  instructions: "Updated instructions.",
+});
+await client.ai.deleteGuardrail(created._id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List and get
+guardrails = client.ai.list_guardrails()
+guardrail  = client.ai.get_guardrail("guardrail_id")
+
+# Create
+created = client.ai.create_guardrail({
+    "name": "Brand Safety",
+    "model": "gpt-4o",
+    "instructions": "Block responses that mention competitor names.",
+    "unsafe_categories": ["violence", "hate_speech"],
+    "competitor_keywords": ["CompetitorA", "CompetitorB"],
+})
+
+# Update and delete
+client.ai.update_guardrail(created["_id"], {
+    "name": "Brand Safety v2",
+    "model": "gpt-4o",
+    "instructions": "Updated instructions.",
+})
+client.ai.delete_guardrail(created["_id"])
+```
+</TabItem>
+</Tabs>
+
+### Guardrail Providers
+
+Manage LLM providers that power guardrail evaluation.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// List and get
+const providers = await client.ai.listGuardrailProviders();
+const provider  = await client.ai.getGuardrailProvider("provider_id");
+
+// Create
+const gp = await client.ai.createGuardrailProvider({
+  name: "OpenAI Moderation",
+  type: "openai",
+  config: { api_key: "sk-..." },
+});
+
+// Test connectivity and list available models
+const testResult = await client.ai.testGuardrailProvider(gp._id, { prompt: "test prompt" });
+const models     = await client.ai.getGuardrailProviderModels(gp._id);
+
+// Update and delete
+await client.ai.updateGuardrailProvider(gp._id, { name: "OpenAI Moderation v2" });
+await client.ai.deleteGuardrailProvider(gp._id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List and get
+providers = client.ai.list_guardrail_providers()
+provider  = client.ai.get_guardrail_provider("provider_id")
+
+# Create
+gp = client.ai.create_guardrail_provider({
+    "name": "OpenAI Moderation",
+    "type": "openai",
+    "config": {"api_key": "sk-..."},
+})
+
+# Test connectivity and list available models
+test_result = client.ai.test_guardrail_provider(gp["_id"], {"prompt": "test prompt"})
+models      = client.ai.get_guardrail_provider_models(gp["_id"])
+
+# Update and delete
+client.ai.update_guardrail_provider(gp["_id"], {"name": "OpenAI Moderation v2"})
+client.ai.delete_guardrail_provider(gp["_id"])
+```
+</TabItem>
+</Tabs>
+
+### RAG Files
+
+Upload and manage files for Retrieval-Augmented Generation via the AI service.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const files = await client.ai.listRagFiles();
+const file  = await client.ai.getRagFile("file_id");
+
+// Upload
+const formData = new FormData();
+formData.append("file", fileBuffer, "knowledge.pdf");
+const uploaded = await client.ai.uploadRagFile(formData);
+
+await client.ai.deleteRagFile(uploaded._id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+files = client.ai.list_rag_files()
+file  = client.ai.get_rag_file("file_id")
+
+# Upload
+uploaded = client.ai.upload_rag_file(files={"file": open("knowledge.pdf", "rb")})
+
+client.ai.delete_rag_file(uploaded["_id"])
+```
+</TabItem>
+</Tabs>
+
+### AI Agents (via `client.ai`)
+
+Additional AI agent read/update endpoints on the `client.ai` namespace. For full create/delete CRUD, use [`client.chatAi`](#ai-agents--chatai--chat_ai) above.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// List agents from the accounts endpoint
+const accountAgents = await client.ai.listAiAgents();
+// List agents (agents endpoint)
+const agents = await client.ai.listAgents();
+
+// Get a single agent
+const agent = await client.ai.getAiAgent("asst_abc");
+
+// Check if a name is available before creating
+const check = await client.ai.checkAiAgentName("Support Bot");
+// check.available → true / false
+
+// Patch only the instructions field
+await client.ai.patchInstructions("asst_abc", {
+  instructions: "You are a concise, helpful assistant.",
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List agents from the accounts endpoint
+account_agents = client.ai.list_ai_agents()
+# List agents (agents endpoint)
+agents = client.ai.list_agents()
+
+# Get a single agent
+agent = client.ai.get_ai_agent("asst_abc")
+
+# Check if a name is available before creating
+check = client.ai.check_ai_agent_name("Support Bot")
+# check["available"] → True / False
+
+# Patch only the instructions field
+client.ai.patch_instructions("asst_abc", {
+    "instructions": "You are a concise, helpful assistant.",
+})
+```
+</TabItem>
+</Tabs>
+
+### AI Agent Apps (via `client.ai`)
+
+AI Agent Apps link an AI agent to a workflow or app configuration.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// Create
+const app = await client.ai.createAiAgentApp({
+  name: "Support App",
+  workflow_name: "support_workflow_v1",
+  assistant_id: "asst_abc",
+  model_id: "gpt-4o",
+  provider_id: "system",
+});
+
+// Update and delete
+await client.ai.updateAiAgentApp(app._id, { name: "Support App v2" });
+await client.ai.deleteAiAgentApp(app._id);
+
+// Update only the workflow definition
+await client.ai.updateAiAgentWorkflow(app._id, {
+  workflow: { steps: [{ id: "step1", type: "llm" }] },
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List and get (Python only)
+apps = client.ai.list_ai_agent_apps()
+app  = client.ai.get_ai_agent_app("app_id")
+
+# Create
+app = client.ai.create_ai_agent_app({
+    "name": "Support App",
+    "workflow_name": "support_workflow_v1",
+    "assistant_id": "asst_abc",
+    "model_id": "gpt-4o",
+    "provider_id": "system",
+})
+
+# Update and delete
+client.ai.update_ai_agent_app(app["_id"], {"name": "Support App v2"})
+client.ai.delete_ai_agent_app(app["_id"])
+
+# Update only the workflow definition
+client.ai.update_ai_agent_workflow(app["_id"], {
+    "workflow": {"steps": [{"id": "step1", "type": "llm"}]},
+})
+```
+</TabItem>
+</Tabs>
+
+### Tool Server
+
+Verify that a custom tool server URL is reachable and returns a valid tool schema.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const result = await client.ai.verifyToolServer({ url: "https://my-tools.example.com/mcp" });
+if (result.success) {
+  console.log("Available tools:", result.tools);
+}
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.ai.verify_tool_server({"url": "https://my-tools.example.com/mcp"})
+if result["success"]:
+    print("Available tools:", result.get("tools"))
 ```
 </TabItem>
 </Tabs>
@@ -359,7 +676,6 @@ Returns a raw response. Consume the body as a Server-Sent Events stream.
 const response = await client.aiAgent.streamChat({
   id: "chat_id",
   assistant_id: "asst_abc",
-  organization_id: "org_abc",
   messages: [{ role: "user", content: "What can you do?" }],
 });
 
@@ -377,7 +693,6 @@ while (true) {
 response = client.ai_agent.stream_chat({
     "id": "chat_id",
     "assistant_id": "asst_abc",
-    "organization_id": "org_abc",
     "messages": [{"role": "user", "content": "What can you do?"}],
 })
 
@@ -397,7 +712,6 @@ async def main():
         response = await client.ai_agent.stream_chat({
             "id": "chat_id",
             "assistant_id": "asst_abc",
-            "organization_id": "org_abc",
             "messages": [{"role": "user", "content": "Hello"}],
         })
         async for line in response.aiter_lines():
@@ -420,7 +734,6 @@ Stream responses from a sub-agent and retrieve its conversation history.
 ```typescript
 const res = await client.aiAgent.streamSubAgentChat({
   assistant_id: "asst_sub",
-  organization_id: "org_abc",
   session_id: "sess_xyz",
   chat_id: "chat_id",
   messages: [{ role: "user", content: "Explain the data." }],
@@ -436,7 +749,6 @@ const history = await client.aiAgent.getSubAgentHistory({
 ```python
 res = client.ai_agent.stream_sub_agent_chat({
     "assistant_id": "asst_sub",
-    "organization_id": "org_abc",
     "session_id": "sess_xyz",
     "chat_id": "chat_id",
     "messages": [{"role": "user", "content": "Explain the data."}],
@@ -793,6 +1105,31 @@ by_kind    = client.ai_agent.get_document_latest_by_kind(kind="text")
 suggestion = client.ai_agent.get_document_suggestions("doc_id")
 
 client.ai_agent.delete_document("doc_id")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Service info
+
+Utility endpoints to check the AI Agent service status and version.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const config  = await client.aiAgent.getConfig();
+const health  = await client.aiAgent.getHealth();          // summary
+const details = await client.aiAgent.getHealth(true);      // detailed
+const version = await client.aiAgent.getVersion();
+```
+</TabItem>
+<TabItem label="Python">
+```python
+config  = client.ai_agent.get_config()
+health  = client.ai_agent.get_health()           # summary
+details = client.ai_agent.get_health(detailed=True)  # detailed
+version = client.ai_agent.get_version()
 ```
 </TabItem>
 </Tabs>

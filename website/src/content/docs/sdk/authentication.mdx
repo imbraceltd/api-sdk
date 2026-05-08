@@ -13,7 +13,7 @@ The choice depends on **what role Imbrace plays in your product**:
 
 #### Build on Imbrace → use Access Token
 
-Imbrace is your backend. Your end-users log into Imbrace (via OTP or password); their `acc_...` access token is the credential the SDK uses for every request. Imbrace's auth, database, and business logic (assistants, knowledge hubs, workflows, AI agents) all run on behalf of the actual logged-in user.
+Imbrace is your backend. Your end-users log into Imbrace (via OTP or password); their `acc_...` access token is the credential the SDK uses for every request. Imbrace's auth, database, and business logic (AI agents, knowledge hubs, workflows) all run on behalf of the actual logged-in user.
 
 Typical product: a chat widget, dashboard, or mobile app where each user's identity is an Imbrace user. Imbrace records per-user history, permissions, and audit trail.
 

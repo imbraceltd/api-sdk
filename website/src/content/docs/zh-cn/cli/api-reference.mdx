@@ -1,171 +1,77 @@
 ---
-title: CLI API Reference
-description: Complete reference for all local API proxy endpoints.
+title: SDK Methods Reference
+description: SDK methods used by each CLI command group.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+The CLI communicates with the Imbrace platform directly via `@imbrace/sdk`. This page maps each command group to the underlying SDK methods.
 
-The local API server (Hono, Bun, port `3456`) acts as a proxy to the Imbrace platform (`https://app-gatewayv2.imbrace.co`).
+For the full SDK reference see [SDK Overview](/sdk/overview/).
 
-**Base URL:** `http://localhost:3456`
+---
 
-## Authentication
+## Data Board — `client.boards`
 
-All endpoints under `/data-board/*`, `/ai-agent/*`, and `/workflow/*` require:
-
-**Header:** `Authorization: Bearer <credential>`
-
-Where `credential` is either an API key (`sk-` or `api_`) or a JWT token (from email+password login). The middleware verifies every request by calling `client.boards.list()`.
-
-<Aside type="tip">
-  Public endpoints: `GET /` and `POST /auth/login`.
-</Aside>
-
-## Health
-
-### `GET /`
-
-```
-Response: { "name": "Imbrace API", "version": "1.0.0", "status": "running", "docs": "imbrace --help" }
-```
-
-## Auth
-
-### `POST /auth/login`
-
-**Body (choose one):**
-```json
-{ "apiKey": "api_xxx..." }
-{ "email": "user@example.com", "password": "mypass" }
-```
-
-**Response (200):**
-```json
-{ "ok": true, "method": "api-key", "message": "Authenticated with API key", "credential": "api_xxx..." }
-{ "ok": true, "method": "password", "message": "Logged in as ...", "credential": "<jwt>", "email": "..." }
-```
-
-**Errors:** `400` (missing fields), `401` (invalid credentials).
-
-## Data Board
-
-All endpoints require auth.
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/data-board/list` | List all boards |
-| `GET` | `/data-board/:id` | Get board by ID |
-| `POST` | `/data-board/create` | Create board `{ "name": "..." }` |
-| `GET` | `/data-board/:id/fields` | List fields of a board |
-| `POST` | `/data-board/:id/fields` | Create field `{ "name": "...", "type": "..." }` |
-| `GET` | `/data-board/:id/items?limit=&skip=&q=` | List/search items |
-| `POST` | `/data-board/:id/items` | Create item `{ "fields": [...] }` |
-| `PUT` | `/data-board/:id/items/:itemId` | Update item `{ "data": [...] }` |
-| `DELETE` | `/data-board/:id/items/:itemId` | Delete item |
-| `GET` | `/data-board/:id/search?q=&limit=` | Search items (Meilisearch) |
-| `GET` | `/data-board/:id/export-csv` | Export board as CSV (text) |
-
-## AI Agent
-
-All endpoints require auth.
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/ai-agent/list` | List all agents |
-| `GET` | `/ai-agent/providers` | List LLM providers (system + custom) |
-| `GET` | `/ai-agent/folders?q=` | Search Knowledge Hub folders |
-| `GET` | `/ai-agent/folders/:folderId/files` | List files in a KH folder |
-| `GET` | `/ai-agent/providers/:providerId/models` | List models for a provider |
-| `GET` | `/ai-agent/:id` | Get agent details |
-| `POST` | `/ai-agent/create` | Create agent (atomic) |
-| `PUT` | `/ai-agent/:id` | Update agent (partial, PUT-merge) |
-| `DELETE` | `/ai-agent/:id` | Delete agent |
-
-## Workflow
-
-All endpoints require auth.
-
-### Flow CRUD
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/list?folderId=` | List flows (optional folder filter) |
-| `GET` | `/workflow/:id` | Get flow details |
-| `POST` | `/workflow/create` | Create flow |
-| `POST` | `/workflow/:id/move` | Move to folder |
-| `DELETE` | `/workflow/:id` | Delete flow |
-
-### Pieces
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/piece/list?search=` | List pieces |
-| `GET` | `/workflow/piece/detail?name=` | Get piece schema (raw) |
-
-### Nodes
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/:flowId/nodes` | List nodes (flattened) |
-| `POST` | `/workflow/:flowId/nodes` | Add trigger or action node |
-| `PUT` | `/workflow/:flowId/nodes/:nodeName` | Update node |
-| `DELETE` | `/workflow/:flowId/nodes/:nodeName` | Delete action node |
-| `POST` | `/workflow/:flowId/nodes/raw` | Raw operation |
-
-### Connections
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/conn/list` | List connections |
-| `GET` | `/workflow/conn/:connId` | Get connection |
-| `POST` | `/workflow/conn/create` | Create connection |
-| `DELETE` | `/workflow/conn/:connId` | Delete connection |
-
-### Folders
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/folder/list` | List folders |
-| `GET` | `/workflow/folder/:folderId` | Get folder |
-| `POST` | `/workflow/folder/create` | Create folder |
-| `PUT` | `/workflow/folder/:folderId` | Rename folder |
-| `DELETE` | `/workflow/folder/:folderId` | Delete folder |
-
-### MCP Servers
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/mcp/list` | List MCP servers |
-| `GET` | `/workflow/mcp/:mcpId` | Get MCP server |
-| `POST` | `/workflow/mcp/create` | Create MCP server |
-| `POST` | `/workflow/mcp/:mcpId/rotate-token` | Rotate MCP token |
-| `DELETE` | `/workflow/mcp/:mcpId` | Delete MCP server |
-
-### Lifecycle
-
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/workflow/:flowId/publish` | Lock and publish |
-| `POST` | `/workflow/:flowId/enable` | Enable auto-trigger |
-| `POST` | `/workflow/:flowId/disable` | Disable auto-trigger |
-
-### Runs
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/workflow/runs?limit=` | List recent runs |
-| `GET` | `/workflow/runs/:runId` | Get run details |
-| `POST` | `/workflow/:flowId/run?sync=true` | Trigger flow with payload |
-
-## Error Responses
-
-```json
-{ "ok": false, "message": "<error description>" }
-```
-
-| Status | Meaning |
+| CLI Command | SDK Method |
 |---|---|
-| `400` | Bad request |
-| `401` | Authentication failed |
-| `404` | Route or resource not found |
-| `500` | Internal server error |
+| `data-board list` | `client.boards.list()` |
+| `data-board get <id>` | `client.boards.get(id)` |
+| `data-board create` | `client.boards.create(body)` |
+| `data-board delete <id>` | `client.boards.delete(id)` |
+| `data-board create-field <boardId>` | `client.boards.createField(boardId, body)` |
+| `data-board list-items` | `client.boards.listItems(boardId, params)` |
+| `data-board create-item <boardId>` | `client.boards.createItem(boardId, body)` |
+| `data-board update-item <boardId> <itemId>` | `client.boards.updateItem(boardId, itemId, body)` |
+| `data-board delete-item <boardId> <itemId>` | `client.boards.deleteItem(boardId, itemId)` |
+| `data-board export-csv` | `client.boards.exportCsv(boardId)` |
+
+---
+
+## AI Agent — `client.chatAi`, `client.ai`
+
+| CLI Command | SDK Method |
+|---|---|
+| `ai-agent list` | `client.chatAi.listAiAgents()` |
+| `ai-agent get <id>` | `client.chatAi.getAiAgent(id)` |
+| `ai-agent create` | `client.chatAi.createAiAgent(body)` |
+| `ai-agent update <id>` | `client.chatAi.updateAiAgent(id, body)` |
+| `ai-agent delete <id>` | `client.chatAi.deleteAiAgent(id)` |
+| `ai-agent list-providers` | `client.ai.listProviders()` |
+| `ai-agent list-models --provider-id <id>` | `client.ai.listProviders()` (filtered by provider) |
+| `ai-agent list-folders` | `client.boards.searchFolders(query)` |
+| `ai-agent list-files --folder-id <id>` | `client.boards.searchFiles({ folderId })` |
+
+---
+
+## Workflow — `client.workflows`
+
+| CLI Command | SDK Method |
+|---|---|
+| `workflow list` | `client.workflows.listFlows(params)` |
+| `workflow get <id>` | `client.workflows.getFlow(id)` |
+| `workflow create` | `client.workflows.createFlow(body)` |
+| `workflow delete <id>` | `client.workflows.deleteFlow(id)` |
+| `workflow move <id>` | `client.workflows.applyFlowOperation(id, CHANGE_FOLDER)` |
+| `workflow publish <id>` | `client.workflows.applyFlowOperation(id, LOCK_AND_PUBLISH)` |
+| `workflow enable <id>` | `client.workflows.applyFlowOperation(id, CHANGE_STATUS enabled)` |
+| `workflow disable <id>` | `client.workflows.applyFlowOperation(id, CHANGE_STATUS disabled)` |
+| `workflow run <id>` | `client.workflows.triggerFlow(id, payload)` |
+| `workflow runs` | `client.workflows.listRuns()` |
+| `workflow run-detail <runId>` | `client.workflows.getRun(runId)` |
+| `workflow node list <id>` | `client.workflows.getFlow(id)` (parsed) |
+| `workflow node add <id>` | `client.workflows.applyFlowOperation(id, ADD_ACTION / UPDATE_TRIGGER)` |
+| `workflow node update <id> <node>` | `client.workflows.applyFlowOperation(id, UPDATE_ACTION)` |
+| `workflow node delete <id> <node>` | `client.workflows.applyFlowOperation(id, DELETE_ACTION)` |
+| `workflow piece list` | `client.workflows.listPieces()` |
+| `workflow conn list` | `client.workflows.listConnections()` |
+| `workflow conn get <connId>` | `client.workflows.getConnection(connId)` |
+| `workflow conn create` | `client.workflows.upsertConnection(body)` |
+| `workflow conn delete <id>` | `client.workflows.deleteConnection(id)` |
+| `workflow folder list` | `client.workflows.listFolders()` |
+| `workflow folder create` | `client.workflows.createFolder(body)` |
+| `workflow folder update <id>` | `client.workflows.updateFolder(id, body)` |
+| `workflow folder delete <id>` | `client.workflows.deleteFolder(id)` |
+| `workflow mcp list` | `client.workflows.listMcpServers()` |
+| `workflow mcp get <id>` | `client.workflows.getMcpServer(id)` |
+| `workflow mcp create` | `client.workflows.createMcpServer(body)` |
+| `workflow mcp delete <id>` | `client.workflows.deleteMcpServer(id)` |
+| `workflow mcp rotate-token <id>` | `client.workflows.rotateMcpToken(id)` |

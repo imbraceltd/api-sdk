@@ -75,7 +75,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const assistant = await client.chatAi.createAssistant({
+       const agent = await client.chatAi.createAiAgent({
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          description: "Handles tier-1 customer support queries",
@@ -84,13 +84,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          model_id: "gpt-4o",      // any model name the system provider exposes
        })
 
-       const assistantId = assistant.id  // UUID — use this for all subsequent calls
-       console.log("Assistant created:", assistantId)
+       const aiAgentId = agent.id  // UUID — use this for all subsequent calls
+       console.log("AI agent created:", aiAgentId)
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       assistant = client.chat_ai.create_assistant({
+       agent = client.chat_ai.create_ai_agent({
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "description": "Handles tier-1 customer support queries",
@@ -99,8 +99,8 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "model_id": "gpt-4o",      # any model name the system provider exposes
        })
 
-       assistant_id = assistant["id"]
-       print("Assistant created:", assistant_id)
+       ai_agent_id = agent["id"]
+        print("AI agent created:", ai_agent_id)
        ```
      </TabItem>
    </Tabs>
@@ -113,8 +113,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="TypeScript">
        ```typescript
        const response = await client.aiAgent.streamChat({
-         assistant_id: assistantId,
-         organization_id: "org_your_org_id",
+         assistant_id: aiAgentId,
          messages: [{ role: "user", content: "How do I reset my password?" }],
          // id is the session UUID — reuse it to maintain conversation history
          // If omitted, a new UUID is auto-generated each call
@@ -144,8 +143,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      <TabItem label="Python">
        ```python
        response = client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
-           "organization_id": "org_your_org_id",
+           "assistant_id": ai_agent_id,
            "messages": [{"role": "user", "content": "How do I reset my password?"}],
            # id is the session UUID — reuse it to maintain conversation history.
            # If omitted, a new UUID is auto-generated each call.
@@ -181,39 +179,35 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
        // First message
        await client.aiAgent.streamChat({
-         assistant_id: assistantId,
-         organization_id: "org_your_org_id",
+         assistant_id: aiAgentId,
          id: sessionId,
          messages: [{ role: "user", content: "What's your refund policy?" }],
        })
 
-       // Follow-up — same session, assistant remembers context
-       await client.aiAgent.streamChat({
-         assistant_id: assistantId,
-         organization_id: "org_your_org_id",
-         id: sessionId,
-         messages: [{ role: "user", content: "How long does it take?" }],
-       })
-       ```
-     </TabItem>
-     <TabItem label="Python">
-       ```python
-       import uuid
+        // Follow-up — same session, AI agent remembers context
+        await client.aiAgent.streamChat({
+          assistant_id: aiAgentId,
+          id: sessionId,
+          messages: [{ role: "user", content: "How long does it take?" }],
+        })
+        ```
+      </TabItem>
+      <TabItem label="Python">
+        ```python
+        import uuid
 
-       session_id = str(uuid.uuid4())
+        session_id = str(uuid.uuid4())
 
-       # First message
+        # First message
+        client.ai_agent.stream_chat({
+            "assistant_id": ai_agent_id,
+            "id": session_id,
+            "messages": [{"role": "user", "content": "What's your refund policy?"}],
+        })
+
+        # Follow-up — same session, AI agent remembers context
        client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
-           "organization_id": "org_your_org_id",
-           "id": session_id,
-           "messages": [{"role": "user", "content": "What's your refund policy?"}],
-       })
-
-       # Follow-up — same session, assistant remembers context
-       client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
-           "organization_id": "org_your_org_id",
+           "assistant_id": ai_agent_id,
            "id": session_id,
            "messages": [{"role": "user", "content": "How long does it take?"}],
        })
@@ -225,7 +219,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 ---
 
-## 2. Create a Workflow and Bind it to an Assistant
+## 2. Create a Workflow and Bind it to an AI Agent
 
 <Steps>
 
@@ -383,7 +377,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       await client.chatAi.updateAssistant(assistantId, {
+       await client.chatAi.updateAiAgent(aiAgentId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
@@ -392,7 +386,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
      </TabItem>
      <TabItem label="Python">
        ```python
-       client.chat_ai.update_assistant(assistant_id, {
+       client.chat_ai.update_ai_agent(ai_agent_id, {
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "workflow_function_call": [
@@ -444,8 +438,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        const folder = await client.boards.createFolder({
          name: "Product Documentation",
          organization_id: "org_your_org_id",
-         parent_folder_id: "root",
-         source_type: "upload",
+         parent_id: "root",
        })
        console.log("Folder ID:", folder._id)
        ```
@@ -455,8 +448,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        folder = client.boards.create_folder({
            "name": "Product Documentation",
            "organization_id": "org_your_org_id",
-           "parent_folder_id": "root",
-           "source_type": "upload",
+           "parent_id": "root",
        })
        print("Folder ID:", folder["_id"])
        ```
@@ -503,7 +495,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       await client.chatAi.updateAssistant(assistantId, {
+       await client.chatAi.updateAiAgent(aiAgentId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          folder_ids: [folder._id],
@@ -513,7 +505,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      </TabItem>
      <TabItem label="Python">
        ```python
-       client.chat_ai.update_assistant(assistant_id, {
+       client.chat_ai.update_ai_agent(ai_agent_id, {
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "folder_ids": [folder["_id"]],

@@ -1,24 +1,24 @@
 ---
-title: 概览
-description: Imbrace SDK 是什么、如何工作，以及何时使用。
+title: 概述
+description: Imbrace SDK 是什么、如何工作以及何时使用它。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 **Python** 两种版本。两个 SDK 封装了相同的 Gateway API，具有相同的资源命名空间、相同的身份验证模型以及相同的重试/错误语义 — 选择适合你技术栈的语言即可。
+Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 **Python** 版本。两个 SDK 封装了相同的 Gateway API，具有相同的资源命名空间、相同的认证模型和相同的重试/错误语义——选择适合你技术栈的语言即可。
 
-> 在本站任意位置切换一次语言 Tab，其余文档将记住你的选择。
+> 在此站点任意位置切换一次语言选项卡，其余文档会记住你的选择。
 
-### 核心特性
+### 主要特性
 
 | 特性 | 说明 |
 |---|---|
-| **类型安全** | TypeScript 类型和 Python 类型提示覆盖每个资源 |
-| **两种凭证类型** | `apiKey` 或 `accessToken` — 参见[身份验证](/zh-cn/sdk/authentication/) |
-| **自动重试** | 429 和 5xx 使用指数退避自动重试，无需配置 |
-| **AI 流式传输** | SSE / async iterator 用于 `streamChat` 和 AI completions |
-| **Async & sync (Py)** | `ImbraceClient`（同步）和 `AsyncImbraceClient`（异步） |
-| **取消请求 (TS)** | `AbortSignal` 传播，用于取消进行中的请求 |
+| **类型安全** | 每个资源都带有 TypeScript 类型和 Python 类型提示 |
+| **两种凭证类型** | `apiKey` 或 `accessToken`——参见[认证](/sdk/authentication/) |
+| **自动重试** | 429 和 5xx 重试，指数退避，无需配置 |
+| **流式 AI** | SSE / 异步迭代器，用于 `streamChat` 和 AI 补全 |
+| **异步与同步 (Py)** | `ImbraceClient`（同步）和 `AsyncImbraceClient`（异步） |
+| **取消 (TS)** | 通过 `AbortSignal` 传播以取消正在进行的请求 |
 
 ### 安装
 
@@ -58,32 +58,32 @@ Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 *
 
 ### 可用资源
 
-每个命名空间在两个 SDK 上均可用。方法遵循语言约定 — TypeScript 中为 `client.aiAgent.streamChat()`，Python 中为 `client.ai_agent.stream_chat()`。
+每个命名空间在两个 SDK 中均可用。方法遵循语言惯例——TS 中使用 `client.aiAgent.streamChat()`，Python 中使用 `client.ai_agent.stream_chat()`。
 
 | 命名空间 | 用途 |
 |---|---|
-| `client.aiAgent` / `client.ai_agent` | 流式 AI 聊天、嵌入、parquet、chat-client 子 API |
+| `client.aiAgent` / `client.ai_agent` | 流式 AI 聊天、嵌入向量、parquet、聊天客户端子 API |
 | `client.chatAi` / `client.chat_ai` | 助手 CRUD（创建/更新/删除/列出助手） |
-| `client.workflows` | 工作流自动化 — flows、triggers、runs |
-| `client.boards` | CRM 看板 — CRUD、条目、字段、搜索、段、CSV；KH 文件夹和文件 |
+| `client.workflows` | 工作流自动化——流程、触发器、运行 |
+| `client.boards` | CRM 看板——CRUD、条目、字段、搜索、分类、CSV；知识库文件夹与文件 |
 | `client.platform` | 用户、组织、权限 |
-| `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | 联系人 / 渠道层 |
-| `client.ai` | OpenAI 兼容的 completions 和 embeddings |
+| `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | 联系人/渠道层 |
+| `client.ai` | OpenAI 兼容的补全和嵌入向量 |
 
-完整列表和方法参考，请参阅[资源参考](/zh-cn/sdk/resources/)。
+完整列表及方法参考，参见[资源](/sdk/resources/)。
 
-### 选择哪种凭证
+### 何时选择哪种凭证
 
 | | API Key | Access Token |
 |---|---|---|
-| **Imbrace 的角色？** | 你的后端中的某项功能 | *Imbrace 就是*你的后端 |
-| **谁的用户？** | 你的 | Imbrace 的 |
-| **最适合** | 服务端对服务端、内部脚本、CRM 集成 | 每个终端用户登录的面向用户应用 |
+| **Imbrace 的角色？** | 嵌入*你的*后端的功能 | *Imbrace 就是*你的后端 |
+| **用户是谁？** | 你的用户 | Imbrace 的用户 |
+| **最佳用途** | 服务端到服务端、内部脚本、CRM 集成 | 面向用户的应用，每个终端用户登录使用 |
 
-完整决策树：[身份验证 →](/zh-cn/sdk/authentication/)。
+完整决策树：[认证 →](/sdk/authentication/)。
 
-### 后续步骤
+### 下一步
 
-- [安装 →](/zh-cn/sdk/installation/) — 设置 package 和凭证
-- [快速入门 →](/zh-cn/sdk/quick-start/) — 60 秒内完成第一次调用
-- [完整流程指南 →](/zh-cn/sdk/full-flow-guide/) — 四个主要工作流的端到端演练（assistants、workflows、knowledge hub、boards）
+- [安装 →](/sdk/installation/)——设置包和凭证
+- [快速入门 →](/sdk/quick-start/)——60 秒内发起首次调用
+- [完整流程指南 →](/sdk/full-flow-guide/)——四大工作流（助手、工作流、知识库、看板）的端到端演示

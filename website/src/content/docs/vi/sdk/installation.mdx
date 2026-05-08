@@ -1,37 +1,42 @@
 ---
-title: Cài Đặt
+title: Cài đặt
 description: Cài đặt Imbrace SDK cho TypeScript hoặc Python.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
+import AuthOnly from "../../../../components/AuthOnly.astro";
+import VersionOnly from "../../../../components/VersionOnly.astro";
 
-### Cài Đặt
+### Cài đặt
 
+<VersionOnly version="1.0.2">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```bash
-    npm install @imbrace/sdk
-    # hoặc
-    yarn add @imbrace/sdk
-    # hoặc
-    pnpm add @imbrace/sdk
+    npm install @imbrace/sdk@1.0.2
+    # or
+    yarn add @imbrace/sdk@1.0.2
+    # or
+    pnpm add @imbrace/sdk@1.0.2
     ```
 
-    Yêu cầu Node.js 18+ (hoặc bất kỳ trình duyệt nào hỗ trợ native `fetch` và `ReadableStream`).
+    Yêu cầu Node.js 18+ (hoặc trình duyệt hỗ trợ `fetch` và `ReadableStream` gốc).
   </TabItem>
   <TabItem label="Python">
     ```bash
-    pip install imbrace
-    # hoặc
-    uv add imbrace
+    pip install imbrace==1.0.2
+    # or
+    uv add imbrace==1.0.2
     ```
 
     Yêu cầu Python 3.9+.
   </TabItem>
 </Tabs>
+</VersionOnly>
 
-### Khởi Tạo Client
+### Khởi tạo client
 
+<AuthOnly mode="access-token">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
@@ -44,7 +49,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
     })
     ```
 
-    Client có trạng thái — tạo một lần và tái sử dụng trong toàn bộ ứng dụng.
+    Client có trạng thái — hãy tạo một lần và tái sử dụng trong toàn bộ ứng dụng.
   </TabItem>
   <TabItem label="Python">
     ```python
@@ -55,15 +60,47 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
         ...
     ```
 
-    Python cũng export `AsyncImbraceClient` (`async with ...`) cho các stack async như FastAPI.
+    Python cũng xuất `AsyncImbraceClient` (`async with ...`) cho các hệ thống async như FastAPI.
 
-    Context manager tự đóng HTTP connection pool bên dưới.
+    Trình quản lý ngữ cảnh (context manager) tự động đóng kết nối HTTP bên dưới.
   </TabItem>
 </Tabs>
+</AuthOnly>
 
-Để biết khi nào dùng loại credential nào, xem [Xác Thực](/vi/sdk/authentication/). Để thiết lập credentials từng bước (env vars, dotenv, secrets), xem [Hướng Dẫn Cài Đặt](/vi/getting-started/setup/#configure-credentials).
+<AuthOnly mode="api-key">
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
 
-### Kiểm Tra
+    // Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    const client = new ImbraceClient({
+      apiKey: "api_xxx...",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
+    ```
+
+    Client có trạng thái — hãy tạo một lần và tái sử dụng trong toàn bộ ứng dụng.
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    from imbrace import ImbraceClient
+
+    # Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    with ImbraceClient(api_key="api_xxx...") as client:
+        ...
+    ```
+
+    Python cũng xuất `AsyncImbraceClient` (`async with ...`) cho các hệ thống async như FastAPI.
+
+    Trình quản lý ngữ cảnh tự động đóng kết nối HTTP bên dưới.
+  </TabItem>
+</Tabs>
+</AuthOnly>
+
+Để biết khi nào nên dùng mỗi loại thông tin xác thực, xem [Xác thực](/sdk/authentication/). Để biết hướng dẫn thiết lập thông tin xác thực từng bước (biến môi trường, dotenv, secrets), xem [Hướng dẫn thiết lập](/getting-started/setup/#configure-credentials).
+
+### Xác minh
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -80,14 +117,14 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
   </TabItem>
 </Tabs>
 
-### Biến Môi Trường
+### Biến môi trường
 
-SDK **không** tự đọc biến môi trường. Truyền credentials trực tiếp vào constructor và dùng loader (`dotenv` / cách xử lý env của framework) nếu bạn lưu chúng trong `.env`.
+SDK **không** tự động đọc biến môi trường. Hãy truyền trực tiếp thông tin xác thực vào hàm tạo (constructor) và sử dụng bộ nạp (`dotenv` / xử lý biến môi trường của framework) nếu bạn lưu chúng trong `.env`.
 
 | Biến | Mục đích |
 |---|---|
-| `IMBRACE_API_KEY` | API key của bạn (org-level credential) |
-| `IMBRACE_ACCESS_TOKEN` | Access token của user (per-session credential) |
-| `IMBRACE_BASE_URL` | Override gateway URL (mặc định: `https://app-gatewayv2.imbrace.co`) |
+| `IMBRACE_API_KEY` | Khóa API của bạn (thông tin xác thực cấp tổ chức) |
+| `IMBRACE_ACCESS_TOKEN` | Token truy cập của người dùng (thông tin xác thực theo phiên) |
+| `IMBRACE_BASE_URL` | Ghi đè URL gateway (mặc định: `https://app-gatewayv2.imbrace.co`) |
 
-Org id được mã hoá trong cả API keys và access tokens — bạn không bao giờ cần truyền `organizationId`/`organization_id` cho SDK. Xem [Xác Thực](/vi/sdk/authentication/) để biết thêm chi tiết.
+Org ID được mã hóa bên trong cả khóa API và token truy cập — bạn không bao giờ cần truyền `organizationId`/`organization_id` cho SDK. Xem [Xác thực](/sdk/authentication/) để biết chi tiết.

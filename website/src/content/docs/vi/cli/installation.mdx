@@ -34,16 +34,6 @@ npm run build
 npm link
 ```
 
-### Start the API Server
-
-The CLI requires the local API proxy server to be running:
-
-```bash
-cd api
-bun install
-bun run dev    # runs on http://localhost:3456
-```
-
 ## Authentication
 
 All commands (except `login`) auto-prompt login if not authenticated.
@@ -60,12 +50,6 @@ imbrace login --api-key api_xxx...
 
 ```bash
 imbrace login --email user@example.com --password mypass
-```
-
-### Custom API URL
-
-```bash
-imbrace login --api-url http://localhost:3456 --api-key api_xxx...
 ```
 
 ### Check Current Login

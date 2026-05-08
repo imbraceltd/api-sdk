@@ -8,23 +8,26 @@
 
 - Node.js 18+
 - npm 8+
-- Bun (for running the API server)
 
-### Quick Install
+### Install from npm
 
 ```bash
-# 1. Start the API server (in one terminal, keep running)
-cd api
-bun install
-bun run dev    # runs on http://localhost:3456
+npm install -g @imbrace/cli
+```
 
-# 2. Install the CLI (in another terminal)
+### From Source
+
+Clone the repository and run the install script:
+
+```bash
+git clone https://github.com/imbraceltd/imbrace-cli.git
+cd imbrace-cli
 ./install.sh
 ```
 
 `install.sh` runs `npm install`, `npm run build`, `npm link`, then symlinks `imbrace` into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel).
 
-### Manual Install
+### Manual Build
 
 ```bash
 cd cli
@@ -32,16 +35,6 @@ npm install
 npm run build
 npm link
 ```
-
-### Local Development
-
-```bash
-cd api && bun install && bun run dev     # terminal 1: API server
-cd cli && npm install && npm run build    # terminal 2: build CLI
-npm link                                  # make imbrace available globally
-```
-
-### Public npm Package
 
 ```bash
 npm install -g @imbrace/cli
@@ -59,9 +52,6 @@ imbrace login --api-key api_xxx...
 
 # Login with email + password
 imbrace login --email user@example.com --password mypass
-
-# Custom API URL (default: http://localhost:3456)
-imbrace login --api-url http://localhost:3456 --api-key api_xxx...
 
 # Check current login
 imbrace whoami [--json]
