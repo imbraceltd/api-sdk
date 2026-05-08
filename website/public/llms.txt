@@ -86,7 +86,7 @@
 
 # Imbrace CLI — Reference for LLMs
 
-> CLI tool for interacting with the Imbrace platform from the terminal. Designed for coding agents (Claude, Cursor, Copilot). Uses a local API proxy on `http://localhost:3456` — start with `cd api && bun run dev`.
+> CLI tool for interacting with the Imbrace platform from the terminal. Designed for coding agents (Claude, Cursor, Copilot).
 
 ## Authentication
 
@@ -142,8 +142,7 @@ A workflow (Activepieces) = nodes: trigger → actions. 6 layers: Flow → Versi
 ## Installation
 
 ```bash
-cd api && bun install && bun run dev     # terminal 1: API server
-npm install -g @imbrace/cli                # terminal 2: CLI
+npm install -g @imbrace/cli
 imbrace login --api-key api_xxx...
 ```
 

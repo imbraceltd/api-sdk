@@ -1,42 +1,42 @@
 ---
 title: 錯誤處理
-description: 錯誤類型、自動重試行為，以及使用 Imbrace SDKs 處理錯誤的最佳實踐。
+description: 錯誤類型、自動重試行為，以及使用 Imbrace SDK 處理失敗的最佳實踐。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK 拋出的所有錯誤都繼承自一個公共基底類型，因此可以在一處捕獲所有 SDK 錯誤，或在需要不同處理時按具體子類別分支。TypeScript 和 Python SDK 的錯誤層級完全相同。
+SDK 拋出的所有錯誤都繼承自單一基底類型，因此你可以在一個地方捕獲任何 SDK 錯誤，或在需要不同反應時分支到特定的子類別。TypeScript 與 Python SDK 的階層結構完全相同。
 
-## 錯誤層級
+## 錯誤階層
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```
 Error
 └── ImbraceError          （基底 — 捕獲所有 SDK 錯誤）
-    ├── AuthError          （401、403 — 無效或過期的憑證）
-    ├── ApiError           （4xx/5xx — 伺服器拒絕請求）
-    └── NetworkError       （逾時、連線被拒絕、DNS 失敗）
+    ├── AuthError          （401, 403 — 憑證無效或過期）
+    ├── ApiError           （4xx/5xx — 請求被伺服器拒絕）
+    └── NetworkError       （超時、連線被拒、DNS 失敗）
 ```
 </TabItem>
 <TabItem label="Python">
 ```
 Exception
 └── ImbraceError          （基底 — 捕獲所有 SDK 錯誤）
-    ├── AuthError          （401、403 — 無效或過期的憑證）
-    ├── ApiError           （4xx/5xx — 伺服器拒絕請求）
-    └── NetworkError       （逾時、連線被拒絕、DNS 失敗）
+    ├── AuthError          （401, 403 — 憑證無效或過期）
+    ├── ApiError           （4xx/5xx — 請求被伺服器拒絕）
+    └── NetworkError       （超時、連線被拒、DNS 失敗）
 ```
 </TabItem>
 </Tabs>
 
-如需查看特定錯誤訊息和已知修復方法，參閱[問題排查](/zh-tw/guides/troubleshooting/)。
+特定錯誤訊息與已知修復方式請參閱[疑難排解](/guides/troubleshooting/)。
 
 ---
 
 ## AuthError
 
-當伺服器回傳 **401** 或 **403** 時拋出 — 憑證無效、過期或已被撤銷。
+當伺服器回傳 **401** 或 **403** 時拋出 — 憑證無效、過期或被撤銷。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -47,7 +47,7 @@ try {
   const me = await client.platform.getMe();
 } catch (e) {
   if (e instanceof AuthError) {
-    console.error("需要重新驗證：", e.message);
+    console.error("請重新驗證：", e.message);
   }
 }
 ```
@@ -59,21 +59,21 @@ from imbrace import AuthError
 try:
     me = client.platform.get_me()
 except AuthError as e:
-    print(f"驗證失敗: {e}")
-    # 需要重新驗證後再試
+    print(f"驗證失敗：{e}")
+    # 重新驗證後再重試
 ```
 </TabItem>
 </Tabs>
 
 :::caution
-`AuthError` **永遠不會被重試**。SDK 在收到 401/403 時立即拋出 — 需要先修復憑證再重試。憑證策略參閱[身份驗證](/zh-tw/sdk/authentication/)。
+`AuthError` **絕不會重試**。SDK 在收到 401/403 時會立即拋出 — 請先修正憑證再重試。關於憑證策略，請參閱[驗證](/sdk/authentication/)。
 :::
 
 ---
 
 ## ApiError
 
-對所有其他 **4xx 和 5xx**（429/5xx 重試耗盡後）拋出。
+所有其他 **4xx 與 5xx** 回應時拋出（429/5xx 的重試耗盡後）。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -85,15 +85,15 @@ try {
 } catch (e) {
   if (e instanceof ApiError) {
     console.error(`HTTP ${e.statusCode}: ${e.message}`);
-    // 例如："HTTP 404: Product not found"
+    // 例如 "HTTP 404: 找不到產品"
   }
 }
 ```
 
-| 屬性         | 類型     | 說明                     |
-| ------------ | -------- | ------------------------ |
-| `statusCode` | `number` | HTTP 狀態碼              |
-| `message`    | `string` | 伺服器回應中的錯誤訊息   |
+| 屬性 | 型別 | 說明 |
+| ------------ | -------- | ---------------------------------- |
+| `statusCode` | `number` | HTTP 狀態碼 |
+| `message` | `string` | 伺服器回應中的錯誤訊息 |
 </TabItem>
 <TabItem label="Python">
 ```python
@@ -103,13 +103,13 @@ try:
     client.marketplace.get_product("nonexistent_id")
 except ApiError as e:
     print(f"HTTP {e.status_code}: {e}")
-    # 例如："HTTP 404: Product not found"
+    # 例如 "HTTP 404: 找不到產品"
 ```
 
-| 屬性          | 類型  | 說明                     |
-| ------------- | ----- | ------------------------ |
-| `status_code` | `int` | HTTP 狀態碼              |
-| `message`    | `str` | 伺服器回應中的錯誤訊息   |
+| 屬性 | 型別 | 說明 |
+| ------------- | ----- | ---------------------------------- |
+| `status_code` | `int` | HTTP 狀態碼 |
+| `message` | `str` | 伺服器回應中的錯誤訊息 |
 </TabItem>
 </Tabs>
 
@@ -117,7 +117,7 @@ except ApiError as e:
 
 ## NetworkError
 
-請求未能到達伺服器時拋出 — 逾時、DNS 失敗或連線被拒絕。
+當請求從未到達伺服器時拋出 — 超時、DNS 失敗或連線重置。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -128,8 +128,8 @@ try {
   await client.platform.getMe();
 } catch (e) {
   if (e instanceof NetworkError) {
-    console.error("無法連線 baseUrl：", e.message);
-    // 例如："Request timed out after 30000ms"
+    console.error("無法連線至 baseUrl：", e.message);
+    // 例如 "請求在 30000ms 後超時"
   }
 }
 ```
@@ -141,8 +141,8 @@ from imbrace import NetworkError
 try:
     client.platform.get_me()
 except NetworkError as e:
-    print(f"網路錯誤: {e}")
-    # 例如："Request timed out after 30s"
+    print(f"網路錯誤：{e}")
+    # 例如 "請求在 30s 後超時"
 ```
 </TabItem>
 </Tabs>
@@ -151,7 +151,7 @@ except NetworkError as e:
 
 ## 捕獲所有 SDK 錯誤
 
-匯入基底類型以在單一區塊中處理任何 SDK 產生的錯誤：
+匯入基底類型，在單一區塊中處理任何 SDK 引發的錯誤：
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -197,58 +197,55 @@ except ImbraceError as e:
 
 ## 自動重試行為
 
-兩個 SDK 的 HTTP transport 均以指數退避自動重試暫時性故障。重試次數在不同語言間略有差異，但條件相同。
+兩個 SDK 的 HTTP 傳輸層都會以指數退避重試暫時性失敗。重試次數在語言之間略有不同，但條件完全相同。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-| 條件                        | 行為                                     |
+| 條件 | 行為 |
 | --------------------------- | ---------------------------------------- |
-| HTTP **429**（速率限制）    | 最多重試 2 次                            |
-| HTTP **5xx**（伺服器錯誤）  | 最多重試 2 次                            |
-| 網路錯誤 / 逾時             | 最多重試 2 次                            |
-| HTTP **401 / 403**          | 不重試 — 立即拋出 `AuthError`            |
-| HTTP **4xx**（其他）        | 不重試 — 立即拋出 `ApiError`             |
+| HTTP **429**（速率限制） | 最多重試 2 次 |
+| HTTP **5xx**（伺服器錯誤） | 最多重試 2 次 |
+| 網路錯誤 / 超時 | 最多重試 2 次 |
+| HTTP **401 / 403** | 不重試 — 立即拋出 `AuthError` |
+| HTTP **4xx**（其他） | 不重試 — 立即拋出 `ApiError` |
 
-**退避：** 重試間隔 `2^retryCount` 秒（2s → 4s）。最壞情況：3 次嘗試。
+**退避：** `2^重試次數` 秒（2s → 4s）。最壞情況總計：3 次嘗試。
 </TabItem>
 <TabItem label="Python">
-| 條件                        | 行為                                     |
+| 條件 | 行為 |
 | --------------------------- | ---------------------------------------- |
-| HTTP **429**（速率限制）    | 最多重試 3 次                            |
-| HTTP **5xx**（伺服器錯誤）  | 最多重試 3 次                            |
-| 網路錯誤 / 逾時             | 最多重試 3 次                            |
-| HTTP **401 / 403**          | 不重試 — 立即引發 `AuthError`            |
-| HTTP **4xx**（其他）        | 不重試 — 立即引發 `ApiError`             |
+| HTTP **429**（速率限制） | 最多重試 3 次 |
+| HTTP **5xx**（伺服器錯誤） | 最多重試 3 次 |
+| 網路錯誤 / 超時 | 最多重試 3 次 |
+| HTTP **401 / 403** | 不重試 — 立即拋出 `AuthError` |
+| HTTP **4xx**（其他） | 不重試 — 立即拋出 `ApiError` |
 
-**退避：** 重試間隔 `2^retryCount` 秒（2s → 4s → 8s）。最壞情況：4 次嘗試。
+**退避：** `2^重試次數` 秒（2s → 4s → 8s）。最壞情況總計：4 次嘗試。
 </TabItem>
 </Tabs>
 
 ---
 
-## 取消請求（TypeScript）
+## 請求取消 (TypeScript)
 
-傳入 `AbortSignal` 取消進行中的請求：
+傳遞 `AbortSignal` 以取消進行中的請求：
 
 ```typescript
 const controller = new AbortController();
 setTimeout(() => controller.abort(), 5000);
 
 try {
-  const result = await client.marketplace.listProducts(
-    { page: 1 },
-    { signal: controller.signal },
-  );
+  const result = await client.marketplace.listProducts({ page: 1 });
 } catch (e) {
   if (e instanceof NetworkError && e.message.includes("aborted")) {
-    console.log("請求已被取消");
+    console.log("請求已取消");
   }
 }
 ```
 
-## 非同步錯誤處理（Python）
+## 非同步錯誤處理 (Python)
 
-async 客戶端拋出相同的例外類型：
+非同步客戶端會拋出相同的例外類型：
 
 ```python
 from imbrace import AsyncImbraceClient, AuthError, ApiError
@@ -257,7 +254,7 @@ async with AsyncImbraceClient() as client:
     try:
         me = await client.platform.get_me()
     except AuthError:
-        print("需要重新驗證")
+        print("請重新驗證")
     except ApiError as e:
         print(f"[{e.status_code}] {e}")
 ```
@@ -269,10 +266,10 @@ async with AsyncImbraceClient() as client:
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 1. 單獨處理 AuthError — 憑證需要刷新
-// 2. 記錄 ApiError.statusCode — 400=參數錯誤，404=未找到，409=衝突
-// 3. 在頂層入口點用 try/catch 包裝
-// 4. AuthError 時不要重試 — 在修復憑證之前重試無效
+// 1. 始終單獨處理 AuthError — 需要重新整理憑證
+// 2. 記錄 ApiError.statusCode — 400 = 參數錯誤，404 = 找不到，409 = 衝突
+// 3. 將頂層入口點包裝在 try/catch 中
+// 4. 不要對 AuthError 進行重試 — 在憑證修正前沒有幫助
 
 async function safeGetMe(client: ImbraceClient) {
   try {
@@ -289,11 +286,11 @@ async function safeGetMe(client: ImbraceClient) {
 </TabItem>
 <TabItem label="Python">
 ```python
-# 1. 使用 context manager 確保連線確定性關閉
+# 1. 使用情境管理器以確保連線確定性地關閉
 with ImbraceClient() as client:
     ...
 
-# 2. 單獨處理 AuthError — 憑證需要刷新後再重試
+# 2. 單獨處理 AuthError — 在重試前需要重新整理憑證
 def safe_get_me(client):
     try:
         return client.platform.get_me()
@@ -301,14 +298,14 @@ def safe_get_me(client):
         refresh_credentials(client)
         return client.platform.get_me()
 
-# 3. 根據 status_code 處理 ApiError
+# 3. 根據 status_code 分支處理 ApiError
 try:
-    client.marketplace.create_product(data)
+    client.marketplace.create_order(data)
 except ApiError as e:
     if e.status_code == 409:
-        print("產品已存在")
+        print("訂單已存在")
     elif e.status_code == 400:
-        print(f"資料無效: {e}")
+        print(f"資料無效：{e}")
 ```
 </TabItem>
 </Tabs>

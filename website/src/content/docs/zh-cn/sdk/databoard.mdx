@@ -1,13 +1,13 @@
 ---
 title: 数据看板
-description: client.boards 的 SDK 参考 — CRM 管道、条目、字段、段和导出。
+description: 客户端看板的 SDK 参考——CRM 管道、条目、字段、分类、知识库、导入/导出和外部驱动器集成。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-看板是 CRM 管道的核心数据存储 — leads、deals、tasks 或任何结构化数据。创建 assistant 时在 `board_ids` 中传入 board ids 以授予访问权限 — 参阅[完整流程指南 §4](/zh-cn/sdk/full-flow-guide/#4-管理数据看板和条目crm-pipelines)。
+看板是 CRM 管道的核心数据存储——线索、交易、任务或任何结构化数据。在创建 AI agent 时传入 `board_ids` 以赋予其访问该数据的权限——参见[完整流程指南 §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)。
 
-首先初始化 client（参阅[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。
+首先初始化客户端（参见[安装](/sdk/installation/)或[快速入门](/sdk/quick-start/)）。
 
 ---
 
@@ -19,17 +19,83 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 const { data: boards } = await client.boards.list();
 const board = await client.boards.get("board_id");
 
-const newBoard = await client.boards.create({ name: "企业 Leads" });
-await client.boards.update("board_id", { name: "企业 Leads 2025" });
+const newBoard = await client.boards.create({ name: "企业线索" });
+await client.boards.update("board_id", { name: "企业线索 2025" });
 await client.boards.delete("board_id");
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 boards = client.boards.list().get("data", [])
+board = client.boards.get("board_id")
+
+new_board = client.boards.create("企业线索")
+client.boards.update("board_id", {"name": "企业线索 2025"})
+client.boards.delete("board_id")
 ```
 </TabItem>
 </Tabs>
+
+### 重新排序
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+await client.boards.reorder({ order: ["board_id_1", "board_id_2", "board_id_3"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+client.boards.reorder({"order": ["board_id_1", "board_id_2", "board_id_3"]})
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 导入 / 导出
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// CSV 导入（multipart/form-data）
+const formData = new FormData();
+formData.append("file", csvFile);
+const result = await client.boards.importCsv("board_id", formData);
+
+// Excel 导入
+const excelForm = new FormData();
+excelForm.append("file", excelFile);
+await client.boards.importExcel("board_id", excelForm);
+
+// 导入进度
+const progress = await client.boards.getImportProgress("board_id");
+
+// CSV 导出
+const csv = await client.boards.exportCsv("board_id");
+
+// 通过邮件导出 CSV
+await client.boards.exportCsvViaMail("board_id", { email: "user@example.com" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# CSV 导入（multipart/form-data）
+result = client.boards.import_csv("board_id", files={"file": open("data.csv", "rb")})
+
+# Excel 导入
+client.boards.import_excel("board_id", files={"file": open("data.xlsx", "rb")})
+
+# 导入进度
+progress = client.boards.get_import_progress("board_id")
+
+# CSV 导出
+csv = client.boards.export_csv("board_id")
+```
+</TabItem>
+</Tabs>
+
+注意：`exportCsvViaMail` 仅 TypeScript 可用。
 
 ---
 
@@ -71,6 +137,52 @@ client.boards.bulk_delete_items("board_id", {"ids": ["item_1", "item_2", "item_3
 </TabItem>
 </Tabs>
 
+### 冲突检测
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { is_conflicted } = await client.boards.checkConflict("board_id", "item_id", { version: 2 });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.boards.check_conflict("board_id", "item_id", {"version": 2})
+```
+</TabItem>
+</Tabs>
+
+### 关联条目（相关看板）
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 从其他看板获取相关条目
+const related = await client.boards.getRelatedItems("board_id", "item_id", "related_board_id");
+
+// 按类型获取关联看板条目（Opportunities / Tasks）
+const linked = await client.boards.getLinkedBoardItems("contact_board_id", "item_id", "Opportunities");
+
+// 关联和取消关联
+await client.boards.linkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
+await client.boards.unlinkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 从其他看板获取相关条目
+related = client.boards.get_related_items("board_id", "item_id", "related_board_id")
+
+# 按类型获取关联看板条目（Opportunities / Tasks）
+linked = client.boards.get_linked_board_items("contact_board_id", "item_id", "Opportunities")
+
+# 关联和取消关联
+client.boards.link_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
+client.boards.unlink_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
+```
+</TabItem>
+</Tabs>
+
 ---
 
 ## 搜索
@@ -90,46 +202,226 @@ results = client.boards.search("board_id", q="enterprise")
 
 ---
 
-## 字段、段和导出
+## 字段
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 字段
 const field = await client.boards.createField("board_id", {
-  name: "交易价值",
+  name: "交易金额",
   type: "number",
 });
-await client.boards.updateField("board_id", field._id, { name: "合同价值" });
+await client.boards.updateField("board_id", field._id, { name: "合同金额" });
 await client.boards.deleteField("board_id", field._id);
 
-// 段
-const { data: segments } = await client.boards.listSegments("board_id");
-const segment = await client.boards.createSegment("board_id", {
-  name: "高价值 Leads",
-  filters: [{ field: "value", op: "gt", value: 10000 }],
-});
-
-// 导出 CSV
-const csv = await client.boards.exportCsv("board_id");
+// 重新排序和批量更新
+await client.boards.reorderFields("board_id", { fields: ["field_id_1", "field_id_2"] });
+await client.boards.bulkUpdateFields("board_id", { fields: [{ _id: "field_1", name: "已更新" }] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# 字段
-field = client.boards.create_field("board_id", {"name": "交易价值", "type": "number"})
-client.boards.update_field("board_id", field["_id"], {"name": "合同价值"})
+field = client.boards.create_field("board_id", {"name": "交易金额", "type": "number"})
+client.boards.update_field("board_id", field["_id"], {"name": "合同金额"})
 client.boards.delete_field("board_id", field["_id"])
 
-# 段
+# 重新排序和批量更新
+client.boards.reorder_fields("board_id", {"fields": ["field_id_1", "field_id_2"]})
+client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "name": "已更新"}]})
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 分类
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: segments } = await client.boards.listSegments("board_id");
+const segment = await client.boards.createSegment("board_id", {
+  name: "高价值线索",
+  filter: { field: "value", op: "gt", value: 10000 },
+});
+await client.boards.updateSegment("board_id", segment._id, { name: "VIP 线索" });
+await client.boards.deleteSegment("board_id", segment._id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
 segments = client.boards.list_segments("board_id")
 segment = client.boards.create_segment("board_id", {
-    "name": "高价值 Leads",
+    "name": "高价值线索",
     "filter": {"field": "value", "op": "gt", "value": 10000},
 })
+client.boards.update_segment("board_id", segment["_id"], {"name": "VIP 线索"})
+client.boards.delete_segment("board_id", segment["_id"])
+```
+</TabItem>
+</Tabs>
 
-# 导出 CSV
-csv = client.boards.export_csv("board_id")
+---
+
+## 知识库 — 文件夹
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 搜索
+const folders = await client.boards.searchFolders({ q: "contracts" });
+
+// CRUD
+const folder = await client.boards.getFolder("folder_id", { recursive: true });
+const newFolder = await client.boards.createFolder({ name: "合同", parent_id: "parent_id" });
+await client.boards.updateFolder("folder_id", { name: "已重命名" });
+await client.boards.deleteFolders({ ids: ["folder_id_1", "folder_id_2"] });
+
+// 内容（文件夹元数据 + 子文件夹 + 文件）
+const contents = await client.boards.getFolderContents("folder_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 搜索
+folders = client.boards.search_folders(q="contracts")
+
+# CRUD
+folder = client.boards.get_folder("folder_id", recursive=True)
+new_folder = client.boards.create_folder({"name": "合同", "parent_id": "parent_id"})
+client.boards.update_folder("folder_id", {"name": "已重命名"})
+client.boards.delete_folders(["folder_id_1", "folder_id_2"])
+
+# 内容（文件夹元数据 + 子文件夹 + 文件）
+contents = client.boards.get_folder_contents("folder_id")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 知识库 — 文件
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 搜索和 CRUD
+const files = await client.boards.searchFiles({ folderId: "folder_id" });
+const file = await client.boards.getFile("file_id");
+const newFile = await client.boards.createFile({ name: "report.pdf", folder_id: "folder_id" });
+await client.boards.updateFile("file_id", { name: "renamed.pdf" });
+await client.boards.deleteFiles({ ids: ["file_id_1", "file_id_2"] });
+
+// 上传和下载
+const uploaded = await client.boards.uploadFile(formData);
+const response = await client.boards.downloadFile("file_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 搜索和 CRUD
+files = client.boards.search_files(folder_id="folder_id")
+file = client.boards.get_file("file_id")
+new_file = client.boards.create_file({"name": "report.pdf", "folder_id": "folder_id"})
+client.boards.update_file("file_id", {"name": "renamed.pdf"})
+client.boards.delete_files(["file_id_1", "file_id_2"])
+
+# 上传和下载
+uploaded = client.boards.upload_file(files={"file": open("report.pdf", "rb")})
+response = client.boards.download_file("file_id")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 看板文件
+
+上传附加到看板记录的文件（非知识库）。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const formData = new FormData();
+formData.append("file", file);
+const { url } = await client.boards.uploadBoardFile(formData);
+
+// 替代端点
+const { url: url2 } = await client.boards.uploadBoardFileV2(formData);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.boards.upload_board_file(files={"file": open("photo.jpg", "rb")})
+
+# 替代端点
+result = client.boards.upload_board_file_v2(files={"file": open("photo.jpg", "rb")})
+```
+</TabItem>
+</Tabs>
+
+---
+
+## AI 功能
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// AI 生成的标签
+const { tags } = await client.boards.generateAiTags({ text: "与 Acme Corp 的企业交易" });
+
+// 链接预览
+const preview = await client.boards.getLinkPreview("https://example.com");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# AI 生成的标签
+tags = client.boards.generate_ai_tags({"text": "与 Acme Corp 的企业交易"})
+
+# 链接预览
+preview = client.boards.get_link_preview("https://example.com")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 外部驱动器
+
+知识库的 OneDrive / Google Drive 集成。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 发起 OAuth 流程
+const { auth_url } = await client.boards.initiateDriveAuth("onedrive");
+
+// 列出远程文件夹和文件
+const folders = await client.boards.listDriveFolders("onedrive");
+const files = await client.boards.listDriveFiles("onedrive", { folder_id: "remote_folder_id" });
+
+// 下载远程文件
+const response = await client.boards.downloadDriveFile("onedrive", { file_id: "remote_file_id" });
+
+// 会话状态（仅 OneDrive）
+const { status } = await client.boards.getOneDriveSessionStatus();
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 发起 OAuth 流程
+auth = client.boards.initiate_drive_auth("onedrive")
+
+# 列出远程文件夹和文件
+folders = client.boards.list_drive_folders("onedrive")
+files = client.boards.list_drive_files("onedrive", {"folder_id": "remote_folder_id"})
+
+# 下载远程文件
+response = client.boards.download_drive_file("onedrive", {"file_id": "remote_file_id"})
+
+# 会话状态（仅 OneDrive）
+status = client.boards.get_onedrive_session_status()
 ```
 </TabItem>
 </Tabs>

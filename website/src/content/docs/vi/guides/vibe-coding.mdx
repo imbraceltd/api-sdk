@@ -26,26 +26,44 @@ pip install imbrace
 </TabItem>
 </Tabs>
 
-**2. Cấu hình credentials**
+**2. Lưu credentials**
+
+Tạo file `.env` ở thư mục gốc project. SDK **không** tự đọc biến môi trường — bạn truyền chúng vào constructor ở bước 3.
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+```
+
+Xem [Authentication](/sdk/authentication/) để biết nên dùng API Key hay Access Token, và [Hướng dẫn Setup](/getting-started/setup/#get-an-api-key) để biết cách lấy API key.
+
+**3. Khởi tạo client**
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey:         process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+});
 ```
 </TabItem>
 <TabItem label="Python">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+)
 ```
 </TabItem>
 </Tabs>
 
-Xem [Authentication](/sdk/authentication/) để biết cách lấy API key.
-
-**3. Lấy file `llms.txt`**
+**4. Lấy file `llms.txt`**
 
 Tải hoặc copy file tại [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
 

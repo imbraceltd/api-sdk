@@ -5,20 +5,11 @@ description: Architecture and authentication flow of the Imbrace CLI.
 
 import { Aside } from "@astrojs/starlight/components";
 
-The Imbrace CLI (`@imbrace/cli`) is a terminal tool for interacting with the Imbrace platform. It uses a **two-layer proxy architecture**:
+The Imbrace CLI (`@imbrace/cli`) is a terminal tool for interacting with the Imbrace platform. Commands call the Imbrace platform directly via the `@imbrace/sdk` package. Source: [imbraceltd/imbrace-cli](https://github.com/imbraceltd/imbrace-cli).
 
 ```
-imbrace (CLI) → http://localhost:3456 (API proxy) → https://app-gatewayv2.imbrace.co (Imbrace Platform)
+imbrace (CLI) → https://app-gatewayv2.imbrace.co (Imbrace Platform)
 ```
-
-The CLI never calls the Imbrace platform directly. All commands route through a local Hono REST API server that proxies requests using the `@imbrace/sdk` package.
-
-| Component | Directory | Tech | Role |
-|---|---|---|---|
-| **CLI** | `cli/` | oclif (TypeScript) | Terminal commands |
-| **API** | `api/` | Hono (TypeScript, Bun) | Local proxy server on port 3456 |
-
-The API server mounts routes under 3 protected groups (`/data-board/*`, `/ai-agent/*`, `/workflow/*`) and exposes 2 public endpoints (`GET /` health check, `POST /auth/login`).
 
 ## Authentication Flow
 
@@ -29,19 +20,10 @@ The CLI supports two authentication methods:
 - Stored as-is in local config
 
 **2. Email + Password** (returns JWT token):
-- SDK: `client.login(email, password)` → internally calls `client.tokenManager.getToken()`
+- SDK: `client.login(email, password)` → token stored locally
 - JWT token stored as credential
 
-### Auth Middleware (API side)
-
-1. Extract `Authorization: Bearer <credential>` header
-2. Create `ImbraceClient` instance:
-   - API key → `new ImbraceClient({ apiKey: credential, baseUrl })`
-   - Token → `new ImbraceClient({ baseUrl })` + `client.setAccessToken(credential)`
-3. Verify credential via lightweight call: `client.boards.list()`
-4. Attach client to Hono context for downstream routes
-
-### Credential Storage (CLI side)
+### Credential Storage
 
 Credentials are stored via the `conf` npm package with `projectName: "imbrace"`.
 
@@ -65,38 +47,16 @@ Every CLI command (except `login`) extends `BaseCommand`, which calls `ensureLog
 
 ```
 imbrace-cli/
-├── api/                     ← Hono REST API (proxy)
-│   └── src/
-│       ├── index.ts              ← Entry, port 3456
-│       ├── middleware/auth.ts    ← Auth via @imbrace/sdk
-│       └── routes/
-│           ├── auth.ts           ← POST /auth/login
-│           ├── data-board.ts     ← CRUD /data-board/*
-│           ├── ai-agent.ts       ← CRUD /ai-agent/*
-│           └── workflow.ts       ← CRUD /workflow/*
-│
 └── cli/                     ← oclif CLI
     └── src/
         ├── base-command.ts       ← Auto-login
         ├── config.ts             ← Credential store (conf)
-        ├── http.ts               ← HTTP client → API server
-        ├── select-board.ts       ← Interactive board selector
         └── commands/
             ├── login.ts / logout.ts / whoami.ts
             ├── data-board/   (8 commands)
             ├── ai-agent/     (9 commands)
             └── workflow/     (20 commands)
 ```
-
-## AI Agent Create Flow
-
-`POST /ai-agent/create` calls `client.agent.createUseCase({ usecase, assistant })` which atomically creates:
-
-1. **AI Assistant** — model, instructions, prompt configuration
-2. **Web channel** — for the chat widget
-3. **Use-case template** — the card shown in the UI
-
-The `workflow_name` is auto-generated as `<slug>_v<timestamp>` to ensure backend uniqueness.
 
 ## Workflow Node Architecture
 
@@ -117,4 +77,4 @@ Workflows use a **linked list** structure via `nextAction` pointers:
 }
 ```
 
-All node operations use Activepieces' `applyFlowOperation()` with types: `UPDATE_TRIGGER`, `ADD_ACTION`, `UPDATE_ACTION`, `DELETE_ACTION`, `LOCK_AND_PUBLISH`, `CHANGE_STATUS`, `CHANGE_FOLDER`.
+All node operations use `applyFlowOperation()` with types: `UPDATE_TRIGGER`, `ADD_ACTION`, `UPDATE_ACTION`, `DELETE_ACTION`, `LOCK_AND_PUBLISH`, `CHANGE_STATUS`, `CHANGE_FOLDER`.

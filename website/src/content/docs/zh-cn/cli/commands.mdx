@@ -169,7 +169,7 @@ imbrace ai-agent create \
 
 ## Workflow
 
-A workflow (Activepieces) is a chain of nodes: a trigger fires, then actions run in sequence.
+A workflow is a chain of nodes: a trigger fires, then actions run in sequence.
 
 ### Node Types
 
@@ -277,6 +277,28 @@ imbrace workflow run-detail <runId> [--json]
 | `{{trigger.X}}` | Top-level trigger field |
 | `{{step_1.output.Y}}` | Output field Y from step_1 |
 | `{{connections.<id>.access_token}}` | Connection field |
+
+---
+
+## 实用工具
+
+### 打印 LLM 参考文档
+
+```bash
+imbrace docs [--path] [--json]
+```
+
+打印内置的 `llms.txt` — 完整的命令参考文档，专为提供给编程 AI 代理（Claude、Cursor 等）使用而设计。
+
+| 参数 | 行为 |
+|---|---|
+| _(无)_ | 将完整内容打印到标准输出 |
+| `--path` | 仅打印 `llms.txt` 的绝对路径 |
+| `--json` | 以 JSON 格式输出 `{ path, content }` |
+
+```bash
+imbrace docs > /tmp/imbrace-llms.txt   # 保存供 AI 代理使用
+```
 
 ---
 

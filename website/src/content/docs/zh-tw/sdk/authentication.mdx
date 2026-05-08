@@ -1,50 +1,50 @@
 ---
-title: 身份驗證
-description: API Key 與 Access Token — 何時使用哪種，以及如何傳遞給 SDK。
+title: 驗證
+description: API Key 與 Access Token — 何時使用哪一種，以及如何將其傳遞給 SDK。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK 支援兩種憑證類型。將 `apiKey` / `api_key` 或 `accessToken` / `access_token` 傳給客戶端建構函式 — 傳輸層自動處理請求標頭。
+SDK 支援兩種憑證類型。將 `apiKey` / `api_key` 或 `accessToken` / `access_token` 傳遞給客戶端建構函式即可 — 傳輸層會自動處理標頭。
 
-### 我該選哪種憑證？
+### 我該使用哪種憑證？
 
-選擇取決於**Imbrace 在你的產品中扮演什麼角色**：
+選擇取決於 **Imbrace 在你的產品中扮演的角色**：
 
-#### 在 Imbrace 之上開發 → 使用 Access Token
+#### 建立在 Imbrace 上 → 使用 Access Token
 
-Imbrace **就是**你的後端。你的終端使用者登入 Imbrace（透過 OTP 或密碼），他們的 `acc_...` access token 就是 SDK 在每個請求送出的憑證。Imbrace 的身份驗證、資料庫、業務邏輯（assistants、knowledge hubs、workflows、AI agents）全都以該登入使用者的身份執行。
+Imbrace 就是你的後端。你的終端使用者登入 Imbrace（透過 OTP 或密碼）；他們的 `acc_...` 存取權杖即為 SDK 每次請求所使用的憑證。Imbrace 的驗證、資料庫與商業邏輯（助理、知識庫、工作流程、AI 代理）皆以實際登入使用者的身份執行。
 
-典型產品：chat widget、dashboard 或 mobile app，每位使用者就是 Imbrace 的使用者。Imbrace 自動以該 user 為單位記錄 history、permissions 與審計記錄。
+典型產品：聊天元件、儀表板或行動應用程式，其中每個使用者的身份即為 Imbrace 使用者。Imbrace 會記錄每位使用者的歷史記錄、權限與稽核軌跡。
 
 #### 包裝 Imbrace → 使用 API Key
 
-你有自己的後端、自己的使用者、自己的資料庫。Imbrace 只是你服務呼叫的**其中一項能力** —「用 Imbrace 的 AI 回答這個」 — 與你正在做的其他事並列。你的終端使用者完全不知道 Imbrace 存在；你的服務以一組由 Imbrace org 管理員核發的 org 級 `api_...` key 呼叫 Imbrace。Imbrace 只看到一個身份（API key 對應的 service account），per-user attribution 由你自己負責。
+你有自己的後端、自己的使用者、自己的資料庫。Imbrace 是你的服務所調用的一個功能 — 「使用 Imbrace 的 AI 來回答這個問題」— 與你執行其他所有操作並行。你的終端使用者永遠不會看到 Imbrace；你的服務使用單一組織層級的 `api_...` 金鑰（由 Imbrace 組織管理員核發）來呼叫 Imbrace。Imbrace 只會看到一個身份（API Key 的服務使用者），而你需要自行處理使用者層級的歸因。
 
-典型產品：既有的 CRM、客服系統或內部工具，把 Imbrace 嵌入為一個功能。一組憑證放在 env file 裡服務所有請求。
+典型產品：現有的 CRM、工單系統或內部工具，將 Imbrace 嵌入為一項功能。一個憑證存放在你的環境變數檔案中，為每個請求提供服務。
 
-| | 在 Imbrace 之上開發（Access Token） | 包裝 Imbrace（API Key） |
+| | 建立在 Imbrace 上 (Access Token) | 包裝 Imbrace (API Key) |
 | --- | --- | --- |
-| **由誰執行 auth？** | Imbrace（OTP／密碼登入） | 你（你自己的 auth） |
-| **誰的使用者？** | Imbrace 的 user | 你的 user |
-| **以誰的 DB 為主？** | Imbrace 的 | 你的 |
-| **Imbrace 看到的身份** | 真正的終端使用者 | 一個 service account |
-| **上游 per-user 審計** | 內建 | 由你處理 |
-| **憑證存活時間** | session 內；按需刷新 | 長期；不會自行過期 |
-| **發送的請求標頭** | `x-access-token: acc_...` | `x-api-key: api_...` |
+| **誰負責驗證？** | Imbrace（OTP / 密碼登入） | 你（你自己的驗證） |
+| **使用者是誰的？** | Imbrace 使用者 | 你的使用者 |
+| **誰的資料庫是權威來源？** | Imbrace 的 | 你的 |
+| **Imbrace 看到的身份** | 實際的終端使用者 | 一個服務帳號 |
+| **每個使用者的歸因** | 內建 | 由你自行處理 |
+| **憑證有效期** | 工作階段範圍；可按需重新整理 | 長效；不會自行過期 |
+| **傳送的標頭** | `x-access-token: acc_...` | `x-api-key: api_...` |
 
-> 兩種憑證皆為一級支援。大部分資源接受兩者。少數依賴使用者上下文的功能（document artifacts、各 user 自己的 chat history）只在 access token 模式下有意義。
+> 兩種憑證類型都是一級支援。大多數資源接受任一類型。少數依賴使用者上下文的功能（文件產物、每個使用者的聊天歷史）只有在使用 Access Token 時才有意義。
 
-### 標頭對照
+### 標頭參考
 
-| 憑證 | 發送的請求標頭 |
+| 憑證 | 傳送的標頭 |
 | --- | --- |
 | `apiKey` / `api_key` | `x-api-key: api_xxx...` |
 | `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
 
-Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 都綁定到唯一一個 org。Gateway 從你送出的憑證即可解析 org，**完全不需要**傳 `organizationId` / `organization_id` 給 SDK。
+組織上下文已**編碼在憑證本身內部** — 每個 API Key 和每個 Access Token 都只綁定一個組織。Gateway 會根據你傳送的憑證在每次請求時解析組織。你無需將 `organizationId` / `organization_id` 傳遞給 SDK。
 
-分步驟設定憑證（env vars、dotenv、secrets），參閱[安裝指南](/zh-tw/getting-started/setup/#configure-credentials)。
+關於憑設設定的逐步說明（環境變數、dotenv、密鑰），請參閱[設定指南](/getting-started/setup/#configure-credentials)。
 
 ---
 
@@ -77,7 +77,7 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
 ### Access Token
 
-如果你已有 `acc_...` token，直接傳入：
+如果你已經有 `acc_...` 權杖，直接傳遞即可：
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -101,7 +101,7 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
 ### OTP 登入流程
 
-使用此流程透過信箱 OTP 驗證使用者並取得 session token。SDK 在登入成功後自動儲存 token。
+使用此流程透過電子郵件 OTP 驗證使用者並取得工作階段權杖。登入後 SDK 會自動儲存權杖。
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -112,19 +112,20 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
 
-    // 步驟 1：向使用者信箱發送 OTP
+    // 步驟 1：發送 OTP 至使用者的電子郵件
     await client.requestOtp("user@example.com")
 
     // 步驟 2：使用者提交收到的 OTP
     const loginRes = await client.loginWithOtp("user@example.com", "ABC123")
+    // loginRes 包含一個短期有效的 login_acc_... 權杖（內部儲存）
 
-    // 步驟 3：換取長期有效的 access token
+    // 步驟 3：兌換成長期有效的存取權杖
     const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id")
 
-    // 步驟 4：啟用 token 用於後續所有呼叫
+    // 步驟 4：啟用權杖供後續所有呼叫使用
     client.setAccessToken(token)
 
-    // 現在使用任何資源
+    // 現在可以使用任何資源
     const { data: boards } = await client.boards.list()
     ```
   </TabItem>
@@ -134,17 +135,17 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
     client = ImbraceClient()
 
-    # 步驟 1：向使用者信箱發送 OTP
+    # 步驟 1：發送 OTP 至使用者的電子郵件
     client.request_otp("user@example.com")
 
-    # 步驟 2：使用者輸入 OTP — token 自動儲存
+    # 步驟 2：使用者輸入 OTP — 權杖自動儲存
     client.login_with_otp("user@example.com", "123456")
 
-    # 步驟 3：後續所有呼叫已完成認證
+    # 步驟 3：後續所有呼叫皆已驗證
     me = client.platform.get_me()
     ```
 
-    非同步變體：
+    非同步版本：
 
     ```python
     from imbrace import AsyncImbraceClient
@@ -170,7 +171,7 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
     await client.login("user@example.com", "password")
 
-    // Token 自動儲存 — 使用任何資源
+    // 權杖自動儲存 — 後續可直接使用任何資源
     const { data: boards } = await client.boards.list()
     ```
   </TabItem>
@@ -179,7 +180,7 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
     client = ImbraceClient()
     client.login("user@example.com", "password123")
 
-    # Token 自動儲存
+    # 權杖自動儲存
     boards = client.boards.list()
     ```
   </TabItem>
@@ -187,24 +188,24 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
 ---
 
-### Token 管理
+### 權杖管理
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
-    // 替換 token（例如刷新後）
+    // 更換權杖（例如重新整理後）
     client.setAccessToken("acc_new_token...")
 
-    // 清除 token（例如登出時）
+    // 清除權杖（例如登出時）
     client.clearAccessToken()
     ```
   </TabItem>
   <TabItem label="Python">
     ```python
-    # 替換 token（例如刷新後）
+    # 更換權杖（例如重新整理後）
     client.set_access_token("acc_new_token...")
 
-    # 清除 token（例如登出時）
+    # 清除權杖（例如登出時）
     client.clear_access_token()
     ```
   </TabItem>
@@ -212,9 +213,9 @@ Org context **內嵌在憑證本身** — 每個 API key 與每個 access token 
 
 ---
 
-### 上下文管理器（僅 Python）
+### 情境管理器（僅限 Python）
 
-始終將 Python 客戶端包裝在上下文管理器中，以確保底層 `httpx` 連接池被正確關閉：
+始終將 Python 客戶端包裝在情境管理器中，以便底層的 `httpx` 連線池能被正確關閉：
 
 ```python
 # 同步

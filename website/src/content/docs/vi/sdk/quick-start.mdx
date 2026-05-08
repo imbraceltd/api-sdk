@@ -1,12 +1,14 @@
 ---
-title: Bắt Đầu Nhanh
-description: Thực hiện API call đầu tiên với Imbrace trong dưới một phút.
+title: Bắt đầu nhanh
+description: Thực hiện lệnh gọi API Imbrace đầu tiên trong vòng chưa đầy một phút.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
+import AuthOnly from "../../../../components/AuthOnly.astro";
 
-### 1. Khởi Tạo Client
+### 1. Khởi tạo client
 
+<AuthOnly mode="access-token">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
@@ -33,14 +35,44 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
     ```
   </TabItem>
 </Tabs>
+</AuthOnly>
 
-> Chuyển dropdown **Auth** trong header để chuyển đổi giữa API Key và Access Token trên toàn trang. Xem [Xác Thực](/vi/sdk/authentication/) để biết nên chọn loại nào.
+<AuthOnly mode="api-key">
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk"
+
+    const client = new ImbraceClient({
+      apiKey: "your-api-key",
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    })
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+    from dotenv import load_dotenv
+    from imbrace import ImbraceClient
+
+    load_dotenv()
+
+    client = ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        base_url="https://app-gatewayv2.imbrace.co",
+    )
+    ```
+  </TabItem>
+</Tabs>
+</AuthOnly>
+
+> Chuyển đổi **Auth** dropdown trong tiêu đề để chuyển qua lại giữa các ví dụ API Key và Access Token trên toàn bộ trang web. Xem [Xác thực](/sdk/authentication/) để biết nên chọn loại nào.
 
 ---
 
-### 2. Lấy Danh Sách Boards
+### 2. Lấy danh sách boards của bạn
 
-Boards là CRM pipelines — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào. Call này chỉ cần credential của bạn.
+Boards là các pipeline CRM — khách hàng tiềm năng, thỏa thuận, nhiệm vụ hoặc bất kỳ dữ liệu có cấu trúc nào. Lệnh gọi này chỉ yêu cầu thông tin xác thực của bạn.
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -62,17 +94,17 @@ Boards là CRM pipelines — leads, deals, tasks, hoặc bất kỳ dữ liệu 
   </TabItem>
 </Tabs>
 
-Nếu bạn thấy danh sách boards, SDK đã kết nối và xác thực thành công.
+Nếu bạn thấy danh sách boards của mình, SDK đã được kết nối và xác thực.
 
 ---
 
-### 3. Bước Tiếp Theo
+### 3. Các bước tiếp theo
 
-[Hướng Dẫn Luồng Đầy Đủ](/vi/sdk/full-flow-guide/) đi qua bốn luồng chính từ đầu đến cuối. Nhảy thẳng đến phần cần dùng:
+[Hướng dẫn toàn luồng](/sdk/full-flow-guide/) hướng dẫn bốn quy trình chính từ đầu đến cuối. Chuyển thẳng đến một phần:
 
-- **AI Agent + streamChat** → [Hướng Dẫn Luồng Đầy Đủ §1](/vi/sdk/full-flow-guide/#1-tạo-ai-agent-và-bắt-đầu-chat)
-- **Workflows** → [Hướng Dẫn Luồng Đầy Đủ §2](/vi/sdk/full-flow-guide/#2-tạo-workflow-và-liên-kết-với-ai-agent)
-- **Knowledge Hub (folders, RAG)** → [Hướng Dẫn Luồng Đầy Đủ §3](/vi/sdk/full-flow-guide/#3-quản-lý-knowledge-hub-và-gắn-vào-ai-agent)
-- **Boards & Items (CRM)** → [Hướng Dẫn Luồng Đầy Đủ §4](/vi/sdk/full-flow-guide/#4-quản-lý-data-boards-và-items-crm-pipeline)
+- **AI Agent + streamChat** → [Hướng dẫn toàn luồng §1](/sdk/full-flow-guide/#1-create-an-ai-agent-and-start-chatting)
+- **Workflows** → [Hướng dẫn toàn luồng §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent)
+- **Knowledge Hub (thư mục, RAG)** → [Hướng dẫn toàn luồng §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent)
+- **Boards & Items (CRM)** → [Hướng dẫn toàn luồng §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
 
-Để xem tham chiếu API theo namespace, xem [Resources](/vi/sdk/resources/).
+Để tham khảo API theo từng không gian tên, xem [Tài nguyên](/sdk/resources/).
