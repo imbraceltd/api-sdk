@@ -4,17 +4,28 @@ description: How to obtain an Imbrace API key — via the Portal UI or programma
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import step1 from "../../../assets/get_api_key_from_ui_step_1.png";
+import step2 from "../../../assets/get_api_key_from_ui_step_2.png";
+import step3 from "../../../assets/get_api_key_from_ui_step_3.png";
 
 An API key (`api_...`) lets your backend call Imbrace without user sessions. For when to use an API key versus an access token, see [Authentication](/sdk/authentication/).
 
 ---
 
-## Option 1 — Imbrace Portal (recommended)
+## Get API Key from UI
 
-1. Log in to the Imbrace Portal.
-2. Go to **Settings → API Keys**.
-3. Click **Create** and give the key a name.
-4. Copy the `api_...` value — it is only shown once.
+**Step 1** — Log in to the Imbrace Portal, then navigate to **GovernCore → Generate External Token**.
+
+<Image src={step1} alt="Imbrace Portal — sidebar showing GovernCore menu with Generate External Token option" />
+
+**Step 2** — Click **Generate Token** to issue a new API key.
+
+<Image src={step2} alt="GovernCore Generate External Token page — Generate Token button highlighted" />
+
+**Step 3** — Copy the generated key. It starts with `api_` and is only shown once.
+
+<Image src={step3} alt="Generated API key displayed in full — copy icon next to the api_... value" />
 
 ---
 
@@ -68,6 +79,7 @@ Pass the key to the client constructor:
       baseUrl: "https://app-gatewayv2.imbrace.co",
     });
     ```
+
   </TabItem>
   <TabItem label="Python">
     ```python
@@ -76,5 +88,6 @@ Pass the key to the client constructor:
 
     client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
     ```
+
   </TabItem>
 </Tabs>
