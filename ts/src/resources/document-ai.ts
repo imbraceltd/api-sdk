@@ -237,11 +237,41 @@ export class DocumentAIResource {
     }).then(r => r.json())
   }
 
-  /** Partial update — wraps `PUT /v3/ai/assistant_apps/{id}`. */
-  async updateAgent(agentId: string, input: UpdateDocumentAIAgentInput): Promise<DocumentAIAgent> {
+  /**
+   * Update an agent with partial fields.
+   *
+   * Wraps `PUT /v3/ai/assistant_apps/{id}`. Backend treats this as a
+   * **full replacement** (rejecting partial bodies missing required fields like
+   * `name` or `workflow_name`), so this method auto-fetches the current agent
+   * and merges the input on top before sending. This gives a true partial-update
+   * UX from the caller's side.
+   *
+   * Pass `mergeMode: 'replace'` to skip the auto-fetch and send `input` as-is
+   * (useful if you already have the full body and want to save a round-trip).
+   */
+  async updateAgent(
+    agentId: string,
+    input: UpdateDocumentAIAgentInput,
+    opts?: { mergeMode?: "merge" | "replace" },
+  ): Promise<DocumentAIAgent> {
+    const mode = opts?.mergeMode ?? "merge"
     const { schema, ...rest } = input
-    const body: Record<string, unknown> = { ...rest }
+    let body: Record<string, unknown> = { ...rest }
     if (schema !== undefined) body.data_schema = schema
+
+    if (mode === "merge") {
+      const existing = await this.getAgent(agentId) as Record<string, unknown>
+      // Strip server-managed fields that backend rejects on PUT
+      const merged = { ...existing, ...body }
+      delete merged._id
+      delete merged.id
+      delete merged.assistant_id
+      delete merged.created_at
+      delete merged.updated_at
+      delete merged.organization_id
+      body = merged
+    }
+
     return this.http.getFetch()(`${this.base}/assistant_apps/${agentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -333,8 +363,11 @@ export class DocumentAIResource {
    * End-to-end Document AI agent creation.
    *
    * Wraps the 2-step flow the iMBRACE webapp performs:
-   * 1. Create a board with `type: "DocumentAI"` and `schemaFields` embedded
-   *    (the extraction schema container).
+   * 1. Create a `General` board (the extraction-schema container — backend
+   *    enum doesn't accept `DocumentAI`, so we use `General` and identify
+   *    Document-AI boards via the agent's `document_ai.board_id` link).
+   *    Then add each `schemaFields` entry as a separate field via
+   *    {@link BoardsResource.createField}.
    * 2. Create a UseCase + AI Agent via {@link TemplatesResource.createCustom},
    *    linking the new board through `assistant.document_ai.board_id` (wire
    *    body key kept as `assistant` for backend compatibility).
@@ -359,17 +392,25 @@ export class DocumentAIResource {
       )
     }
 
+    // Step 1a — create General board (backend enum doesn't include "DocumentAI").
+    // Backend auto-creates a Name field with is_identifier:true on creation;
+    // adding schemaFields at create-time conflicts with that ("Only one field
+    // can be identifier"), so we add them one-by-one after creation.
     const board = await boards.create({
       name: input.name,
       description: input.description,
-      type: "DocumentAI",
-      fields: input.schemaFields,
+      type: "General",
       team_ids: input.teamIds ?? [],
       show_id: false,
     })
     const boardId = (board as any)._id ?? (board as any).id
     if (!boardId) {
       throw new Error(`boards.create did not return an _id (got ${JSON.stringify(board)})`)
+    }
+
+    // Step 1b — append schema fields as separate field-creates.
+    for (const field of input.schemaFields) {
+      await boards.createField(boardId, field as any)
     }
 
     const usecase: Record<string, unknown> = {
@@ -387,6 +428,9 @@ export class DocumentAIResource {
       provider_id: input.providerId,
       core_task: input.instructions,
       agent_type: "document_ai",
+      // Required by backend templates/v2/custom — without this it returns 400.
+      // The Python SDK already had this default; TS was missing it.
+      workflow_name: "document_extraction",
       channel: "web",
       temperature: input.temperature ?? 0.1,
       version: 2,

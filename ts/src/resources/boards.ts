@@ -166,6 +166,10 @@ export interface CreateFolderInput {
   name: string
   organization_id?: string
   parent_id?: string
+  /** Defaults to `"upload"` (the only enum value the backend currently accepts). */
+  source_type?: string
+  /** Defaults to `"root"` for top-level folders. Backend rejects null. */
+  parent_folder_id?: string
   [key: string]: unknown
 }
 
@@ -349,12 +353,25 @@ export class BoardsResource {
     return this.http.getFetch()(`${this.backend}/board/${boardId}/import_progress`, { method: "GET" }).then(r => r.json())
   }
 
+  /**
+   * Add a field to a board.
+   *
+   * Wire note: backend's `POST /board/{id}/board_fields` returns the **full Board
+   * object** (not just the new field). This wrapper extracts the newly-added
+   * field by name from `board.fields[]` so the return matches the documented
+   * `BoardField` type. If the field can't be located in the response (rare),
+   * the full board is returned cast as BoardField for forward-compat.
+   */
   async createField(boardId: string, body: CreateFieldInput): Promise<BoardField> {
-    return this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields`, {
+    const res = await this.http.getFetch()(`${this.backend}/board/${boardId}/board_fields`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json())
+    }).then(r => r.json()) as any
+    // Backend returns the whole Board; pick out the newly-added field.
+    const fields = (res?.fields ?? []) as BoardField[]
+    const matched = fields.find(f => (f as any).name === body.name)
+    return (matched ?? fields[fields.length - 1] ?? res) as BoardField
   }
 
   async updateField(boardId: string, fieldId: string, body: UpdateFieldInput): Promise<BoardField> {
@@ -404,12 +421,42 @@ export class BoardsResource {
     }).then(r => r.json())
   }
 
+  /**
+   * Update a board item.
+   *
+   * Wire note: backend expects an asymmetric shape vs `createItem`:
+   * - create: `{ fields: [{ board_field_id, value }] }`
+   * - update: `{ fields: [], data: [{ key, value }] }`
+   *
+   * For ergonomics, this method accepts the same `{ fields: [...] }` shape as
+   * `createItem` and auto-translates to the wire shape. If the caller already
+   * sends the raw wire shape (with `data: [...]`), it's passed through.
+   */
   async updateItem(boardId: string, itemId: string, body: UpdateItemInput): Promise<BoardItem> {
+    const wire = this.normalizeUpdateItemBody(body)
     return this.http.getFetch()(`${this.backend}/board/${boardId}/board_items/${itemId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(wire),
     }).then(r => r.json())
+  }
+
+  private normalizeUpdateItemBody(body: UpdateItemInput): Record<string, unknown> {
+    const b = body as Record<string, unknown>
+    // Caller already sent raw wire shape — pass through.
+    if (Array.isArray(b.data)) return b
+
+    const fields = Array.isArray(b.fields) ? (b.fields as any[]) : []
+    if (fields.length === 0) return b
+
+    // Translate `fields:[{board_field_id, value}]` → `fields:[], data:[{key, value}]`.
+    const data = fields.map(f => ({
+      key:   f.board_field_id ?? f.key ?? f.field_id ?? f._id,
+      value: f.value,
+    }))
+    const rest = { ...b }
+    delete rest.fields
+    return { ...rest, fields: [], data }
   }
 
   async deleteItem(boardId: string, itemId: string): Promise<void> {
@@ -513,11 +560,23 @@ export class BoardsResource {
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json()).then(r => r.data?.folder ?? r.data ?? r)
   }
 
+  /**
+   * Create a Knowledge Hub folder.
+   *
+   * Backend requires `source_type` (only valid: `"upload"`) and `parent_folder_id`
+   * (use `"root"` for top-level). This wrapper auto-fills both with sane defaults
+   * if the caller omits them.
+   */
   async createFolder(body: CreateFolderInput): Promise<KnowledgeFolder> {
+    const wire: Record<string, unknown> = {
+      source_type: "upload",
+      parent_folder_id: "root",
+      ...body,
+    }
     return this.http.getFetch()(`${this.base}/folders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(wire),
     }).then(r => r.json()).then(r => r.data ?? r)
   }
 

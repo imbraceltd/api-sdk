@@ -87,7 +87,20 @@ class BoardsResource:
 
     # --- Fields ---
     def create_field(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._backend}/board/{board_id}/board_fields", json=body).json()
+        """Add a field to a board.
+
+        Wire note: backend's ``POST /board/{id}/board_fields`` returns the **full Board**
+        (not just the new field). This wrapper extracts the newly-added field by name
+        from ``board.fields[]`` so the return is the field, not the whole board.
+        """
+        res = self._http.request(
+            "POST", f"{self._backend}/board/{board_id}/board_fields", json=body,
+        ).json()
+        fields = res.get("fields", []) if isinstance(res, dict) else []
+        for f in fields:
+            if f.get("name") == body.get("name"):
+                return f
+        return fields[-1] if fields else res
 
     def update_field(self, board_id: str, field_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         return self._http.request("PUT", f"{self._backend}/board/{board_id}/board_fields/{field_id}", json=body).json()
@@ -113,7 +126,36 @@ class BoardsResource:
         return self._http.request("POST", f"{self._backend}/board/{board_id}/board_items", json=body).json()
 
     def update_item(self, board_id: str, item_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        return self._http.request("PUT", f"{self._backend}/board/{board_id}/board_items/{item_id}", json=body).json()
+        """Update a board item.
+
+        Wire note: backend expects asymmetric shape vs ``create_item``:
+          - create: ``{"fields": [{"board_field_id", "value"}]}``
+          - update: ``{"fields": [], "data": [{"key", "value"}]}``
+
+        For ergonomics, this method accepts the same ``{"fields": [...]}`` shape as
+        ``create_item`` and auto-translates to the wire shape. If the caller
+        already sends the raw wire shape (with ``data: [...]``), it's passed through.
+        """
+        wire = self._normalize_update_item_body(body)
+        return self._http.request(
+            "PUT", f"{self._backend}/board/{board_id}/board_items/{item_id}", json=wire,
+        ).json()
+
+    @staticmethod
+    def _normalize_update_item_body(body: Dict[str, Any]) -> Dict[str, Any]:
+        # Caller already sent raw wire shape — pass through.
+        if isinstance(body.get("data"), list):
+            return body
+        fields = body.get("fields") or []
+        if not isinstance(fields, list) or not fields:
+            return body
+        data = [
+            {"key": f.get("board_field_id") or f.get("key") or f.get("field_id") or f.get("_id"),
+             "value": f.get("value")}
+            for f in fields
+        ]
+        rest = {k: v for k, v in body.items() if k != "fields"}
+        return {**rest, "fields": [], "data": data}
 
     def delete_item(self, board_id: str, item_id: str) -> None:
         self._http.request("DELETE", f"{self._backend}/board/{board_id}/board_items/{item_id}")
@@ -177,7 +219,18 @@ class BoardsResource:
         return data.get("folder", data) if isinstance(data, dict) else data
 
     def create_folder(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        r = self._http.request("POST", f"{self._base}/folders", json=body).json()
+        """Create a Knowledge Hub folder.
+
+        Backend requires ``source_type`` (only valid: ``"upload"``) and
+        ``parent_folder_id`` (use ``"root"`` for top-level). This wrapper
+        auto-fills both with sane defaults if the caller omits them.
+        """
+        wire: Dict[str, Any] = {
+            "source_type": "upload",
+            "parent_folder_id": "root",
+            **body,
+        }
+        r = self._http.request("POST", f"{self._base}/folders", json=wire).json()
         return r.get("data", r)
 
     def update_folder(self, folder_id: str, body: Dict[str, Any]) -> Dict[str, Any]:

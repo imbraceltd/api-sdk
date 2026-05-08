@@ -192,6 +192,30 @@ export class WorkflowsResource {
     this.apBase = apBase.replace(/\/$/, '')
   }
 
+  /** Cache of resolved ActivePieces project id (per-org, fetched lazily). */
+  private _cachedProjectId?: string
+
+  /**
+   * Resolve the ActivePieces project id for the current org by listing the
+   * first flow and reading its `projectId`. Caches the result so repeated
+   * calls don't refetch. Throws if the org has no flows yet (caller must
+   * pass `projectId` explicitly in that case).
+   */
+  async resolveProjectId(): Promise<string> {
+    if (this._cachedProjectId) return this._cachedProjectId
+    const r: any = await this.listFlows({ limit: 1 } as any)
+    const flow = (r?.data ?? [])[0]
+    const pid = flow?.projectId ?? flow?.project_id
+    if (!pid) {
+      throw new Error(
+        "workflows.resolveProjectId: org has no flows yet — cannot derive projectId. " +
+        "Pass it explicitly to the calling method (e.g. listMcpServers(projectId)).",
+      )
+    }
+    this._cachedProjectId = pid
+    return pid
+  }
+
   private get v2() {
     return this.backend.replace("/v1/", "/v2/")
   }
@@ -365,8 +389,14 @@ export class WorkflowsResource {
 
   // ── MCP Servers ────────────────────────────────────────────────────────────
 
-  listMcpServers(projectId: string): Promise<ApPage<McpServer>> {
-    return this.apFetch(this.apUrl('/v1/mcp-servers', { projectId }))
+  /**
+   * List MCP servers for a project. If `projectId` is omitted, the SDK
+   * auto-resolves it via {@link resolveProjectId} (lists the first flow in
+   * the org and reads its `projectId`).
+   */
+  async listMcpServers(projectId?: string): Promise<ApPage<McpServer>> {
+    const pid = projectId ?? await this.resolveProjectId()
+    return this.apFetch(this.apUrl('/v1/mcp-servers', { projectId: pid })) as Promise<ApPage<McpServer>>
   }
 
   getMcpServer(mcpServerId: string): Promise<McpServer> {

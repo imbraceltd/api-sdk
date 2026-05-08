@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from ..http import HttpTransport, AsyncHttpTransport
 
 
@@ -151,8 +151,33 @@ class WorkflowsResource:
 
     # ── MCP Servers ────────────────────────────────────────────────────────────
 
-    def list_mcp_servers(self, project_id: str) -> Dict[str, Any]:
-        return self._ap_get("/v1/mcp-servers", {"projectId": project_id})
+    _cached_project_id: Optional[str] = None
+
+    def resolve_project_id(self) -> str:
+        """Resolve the ActivePieces project id by listing first flow.
+
+        Caches the result so repeated calls don't refetch. Raises if the org
+        has no flows yet (caller must pass ``project_id`` explicitly).
+        """
+        if self._cached_project_id:
+            return self._cached_project_id
+        r = self.list_flows(limit=1)
+        flows = r.get("data", []) if isinstance(r, dict) else []
+        flow = flows[0] if flows else {}
+        pid = flow.get("projectId") or flow.get("project_id")
+        if not pid:
+            raise RuntimeError(
+                "workflows.resolve_project_id: org has no flows yet — cannot derive project_id. "
+                "Pass it explicitly to the calling method (e.g. list_mcp_servers(project_id))."
+            )
+        self._cached_project_id = pid
+        return pid
+
+    def list_mcp_servers(self, project_id: Optional[str] = None) -> Dict[str, Any]:
+        """List MCP servers for a project. If ``project_id`` is omitted, the SDK
+        auto-resolves it via :meth:`resolve_project_id`."""
+        pid = project_id if project_id is not None else self.resolve_project_id()
+        return self._ap_get("/v1/mcp-servers", {"projectId": pid})
 
     def get_mcp_server(self, mcp_server_id: str) -> Dict[str, Any]:
         return self._ap_get(f"/v1/mcp-servers/{mcp_server_id}")
@@ -168,9 +193,14 @@ class WorkflowsResource:
 
     # ── User Invitations ───────────────────────────────────────────────────────
 
-    def list_invitations(self, type: str, limit: int = 10,
+    def list_invitations(self, type: Literal["PLATFORM", "PROJECT"], limit: int = 10,
                          cursor: Optional[str] = None,
                          project_id: Optional[str] = None) -> Dict[str, Any]:
+        """List user invitations.
+
+        :param type: must be ``"PLATFORM"`` or ``"PROJECT"`` — backend enum
+            rejects other values with 400 ``FST_ERR_VALIDATION``.
+        """
         return self._ap_get("/v1/user-invitations", {"type": type, "limit": limit,
                                                      "cursor": cursor, "projectId": project_id})
 
@@ -340,7 +370,7 @@ class AsyncWorkflowsResource:
 
     # ── User Invitations ───────────────────────────────────────────────────────
 
-    async def list_invitations(self, type: str, limit: int = 10,
+    async def list_invitations(self, type: Literal["PLATFORM", "PROJECT"], limit: int = 10,
                                 cursor: Optional[str] = None,
                                 project_id: Optional[str] = None) -> Dict[str, Any]:
         return await self._ap_get("/v1/user-invitations", {"type": type, "limit": limit,

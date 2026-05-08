@@ -134,14 +134,38 @@ class DocumentAIResource:
         body.update(extra_fields)
         return self._http.request("POST", f"{self._base}/assistant_apps", json=body).json()
 
-    def update_agent(self, agent_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        """Partial update via ``PUT /v3/ai/assistant_apps/{id}``.
+    def update_agent(
+        self,
+        agent_id: str,
+        body: Dict[str, Any],
+        *,
+        merge_mode: str = "merge",
+    ) -> Dict[str, Any]:
+        """Update an agent with partial fields.
+
+        Wraps ``PUT /v3/ai/assistant_apps/{id}``. Backend treats this as a
+        **full replacement** (rejecting partial bodies missing required fields
+        like ``name`` or ``workflow_name``), so this method auto-fetches the
+        current agent and merges ``body`` on top before sending. This gives a
+        true partial-update UX from the caller's side.
+
+        :param merge_mode: ``"merge"`` (default) auto-fetches existing agent
+            and merges. ``"replace"`` sends ``body`` as-is (use if you already
+            have the full body and want to save a round-trip).
 
         If you pass ``schema`` in body it is renamed to ``data_schema`` to match backend.
         """
         if "schema" in body and "data_schema" not in body:
             body = dict(body)
             body["data_schema"] = body.pop("schema")
+
+        if merge_mode == "merge":
+            existing = self.get_agent(agent_id)
+            merged: Dict[str, Any] = {**existing, **body}
+            for k in ("_id", "id", "assistant_id", "created_at", "updated_at", "organization_id"):
+                merged.pop(k, None)
+            body = merged
+
         return self._http.request("PUT", f"{self._base}/assistant_apps/{agent_id}", json=body).json()
 
     def delete_agent(self, agent_id: str) -> None:
@@ -232,8 +256,11 @@ class DocumentAIResource:
 
         Wraps the 2-step flow the iMBRACE webapp performs:
 
-        1. Create a board with ``type="DocumentAI"`` and ``schema_fields`` embedded
-           (this is the extraction schema container).
+        1. Create a ``General`` board (the extraction-schema container — backend
+           enum doesn't accept ``DocumentAI``, so we use ``General`` and identify
+           Document-AI boards via the agent's ``document_ai.board_id`` link).
+           Then add each ``schema_fields`` entry as a separate field via
+           :meth:`BoardsResource.create_field`.
         2. Create a UseCase + AI Agent via :meth:`TemplatesResource.create_custom`,
            linking the new board through ``assistant.document_ai.board_id`` (wire
            body key kept as ``assistant`` for backend compatibility).
@@ -264,17 +291,24 @@ class DocumentAIResource:
                 "DocumentAIResource directly, pass boards= and templates= kwargs."
             )
 
+        # Step 1a — create General board (backend enum doesn't include "DocumentAI").
+        # Backend auto-creates a Name field with is_identifier=True on creation;
+        # adding schema_fields at create-time conflicts with that ("Only one field
+        # can be identifier"), so we add them one-by-one after creation.
         board = self._boards.create(
             name,
             description=description,
-            type="DocumentAI",
-            fields=schema_fields,
+            type="General",
             team_ids=team_ids if team_ids is not None else [],
             show_id=False,
         )
         board_id = board.get("_id") or board.get("id")
         if not board_id:
             raise ValueError(f"boards.create did not return an _id (got {board!r})")
+
+        # Step 1b — append schema fields as separate field-creates.
+        for field in schema_fields:
+            self._boards.create_field(board_id, field)
 
         usecase: Dict[str, Any] = {
             "title": name,
