@@ -1,7 +1,5 @@
 # Troubleshooting
 
-> Common errors and solutions when using the Imbrace SDK.
-
 ## `AuthError: Invalid or expired access token.` (HTTP 401)
 
 API key in `.env` has expired.

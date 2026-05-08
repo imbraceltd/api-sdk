@@ -241,10 +241,10 @@ const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 const me = await client.platform.getMe()
 
 // List channels
-const channels = await client.channel.listChannels()
+const channels = await client.channel.list()
 
 // Send a message
-await client.channel.sendMessage('conv_123', { content: 'Hello!', type: 'text' })
+await client.messages.send({ type: 'text', text: 'Hello!' })
 
 // AI completion
 const result = await client.ai.complete({
@@ -261,7 +261,6 @@ for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })
 const response = await client.aiAgent.streamChat({
   id: 'chat_id',
   assistant_id: 'asst_abc',
-  organization_id: 'org_abc',
   messages: [{ role: 'user', content: 'Hello' }],
 })
 ```
@@ -271,27 +270,27 @@ const response = await client.aiAgent.streamChat({
 
 ```python
 from imbrace import ImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 with ImbraceClient(api_key="sk-...") as client:
     # Get current user
     me = client.platform.get_me()
 
     # List channels and boards
-    channels = client.channel.list_channels()
+    channels = client.channel.list()
     boards   = client.boards.list()
-    items    = client.boards.get_items(boards[0]["id"])
+    items    = client.boards.list_items(boards[0]["id"])
 
     # AI completion
-    result = client.ai.complete(
+    result = client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[{"role": "user", "content": "Hello"}],
-    )
+        messages=[CompletionMessage(role="user", content="Hello")],
+    ))
 
     # AI Agent — streaming chat
     response = client.ai_agent.stream_chat({
         "id": "chat_id",
         "assistant_id": "asst_abc",
-        "organization_id": "org_abc",
         "messages": [{"role": "user", "content": "Hello"}],
     })
     for line in response.iter_lines():

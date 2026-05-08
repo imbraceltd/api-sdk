@@ -680,13 +680,11 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 5. **Update and delete items**
 
-   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
-
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
        await client.boards.updateItem(board._id, item._id, {
-         data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
+         fields: { name: "Acme Corp — Closed Won" },
        })
 
        await client.boards.deleteItem(board._id, item._id)
@@ -695,7 +693,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
      <TabItem label="Python">
        ```python
        client.boards.update_item(board["_id"], item["_id"], {
-           "data": [{"key": identifier_field["_id"], "value": "Acme Corp — Closed Won"}],
+           "fields": {"name": "Acme Corp — Closed Won"},
        })
 
        client.boards.delete_item(board["_id"], item["_id"])

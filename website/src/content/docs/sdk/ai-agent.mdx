@@ -1,28 +1,349 @@
 ---
-title: AI Agent
-description: Reference for the aiAgent / ai_agent resource — streaming chat, embeddings, parquet, distributed tracing, and the Chat Client sub-API.
+title: AI Agent & Assistants
+description: Reference for chatAi / chat_ai (assistant management), aiAgent / ai_agent (streaming chat, embeddings, parquet, tracing), and the OpenAI-compatible client.ai service.
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
+import AuthOnly from "../../../components/AuthOnly.astro";
 
-The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway. It exposes streaming chat, knowledge-base embedding management, columnar data (Parquet), distributed tracing (Tempo), and the full Chat Client sub-API used by frontend applications.
+This page covers two related AI namespaces:
 
-For an end-to-end example of `streamChat` against a real assistant, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
+- **`chatAi` / `chat_ai`** — create and manage AI assistants, run completions, manage knowledge bases.
+- **`aiAgent` / `ai_agent`** — streaming chat (SSE), embedding management, Parquet data, distributed tracing, and the Chat Client sub-API.
 
+The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway.
+
+For an end-to-end example that ties these together, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting).
+
+<AuthOnly mode="access-token">
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-const client = new ImbraceClient();
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 from imbrace import ImbraceClient
-client = ImbraceClient()
+
+client = ImbraceClient(access_token="your-access-token")
 ```
+</TabItem>
+</Tabs>
+</AuthOnly>
+
+<AuthOnly mode="api-key">
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  apiKey: "your-api-key",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+```
+</TabItem>
+<TabItem label="Python">
+```python
+from imbrace import ImbraceClient
+
+client = ImbraceClient(api_key="your-api-key")
+```
+</TabItem>
+</Tabs>
+</AuthOnly>
 
 Both sync (`ImbraceClient`) and async (`AsyncImbraceClient`) clients expose the same surface — async methods are awaited and the client uses `AsyncAiAgentResource` under the hood.
+
+---
+
+## Assistants — `chatAi` / `chat_ai`
+
+Manages AI assistants (CRUD), runs OpenAI-compatible completions, and handles document/file processing. The same namespace also covers Knowledge Hub folders and knowledge bases.
+
+### Assistant CRUD
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// List all assistants in your account
+const assistants = await client.chatAi.listAssistants();
+// Each assistant has an `id` (UUID) and `_id` (MongoDB ObjectId).
+// Use the `id` field for all subsequent calls.
+
+// Get a single assistant
+const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
+
+// Create — provider_id and model_id are required
+const created = await client.chatAi.createAssistant({
+  name: "Support Bot",
+  workflow_name: "support_bot_v1",
+  provider_id: "system",
+  model_id: "gpt-4o",
+  description: "Handles tier-1 support queries",
+});
+
+// Update — workflow_name is required on update too
+const updated = await client.chatAi.updateAssistant(created.id, {
+  name: "Support Bot v2",
+  workflow_name: "support_bot_v1",
+});
+
+// Update only the system instructions
+await client.chatAi.updateAssistantInstructions(
+  created.id,
+  "You are a helpful support agent.",
+);
+
+await client.chatAi.deleteAssistant(created.id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# List all assistants
+assistants = client.chat_ai.list_assistants()
+
+# Get a single assistant
+assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
+
+# Create — provider_id and model_id are required
+created = client.chat_ai.create_assistant({
+    "name":          "Support Bot",
+    "workflow_name": "support_bot_v1",
+    "provider_id":   "system",
+    "model_id":      "gpt-4o",
+    "description":   "Handles tier-1 support queries",
+})
+
+# Update
+updated = client.chat_ai.update_assistant(created["id"], {
+    "name":          "Support Bot v2",
+    "workflow_name": "support_bot_v1",
+})
+
+# Update only the system instructions
+client.chat_ai.update_assistant_instructions(
+    created["id"],
+    "You are a helpful support agent.",
+)
+
+client.chat_ai.delete_assistant(created["id"])
+```
+</TabItem>
+</Tabs>
+
+### Completions (via `client.ai`)
+
+OpenAI-compatible chat completions are available on the `client.ai` namespace for both TypeScript and Python. See the [OpenAI-compatible AI service](#openai-compatible-ai-service--clientai) section below for details.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const response = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "You are a helpful CRM assistant." },
+    { role: "user", content: "Summarize this customer note: ..." },
+  ],
+});
+console.log(response.choices[0].message.content);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful CRM assistant."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
+    ],
+)
+print(response["choices"][0]["message"]["content"])
+```
+</TabItem>
+</Tabs>
+
+### Document AI models
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const models = await client.chatAi.listDocumentModels();
+```
+</TabItem>
+<TabItem label="Python">
+```python
+models = client.chat_ai.list_document_models()
+```
+</TabItem>
+</Tabs>
+
+### Document processing (vision model)
+
+Extract structured data from PDFs and images using a vision model.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const result = await client.chatAi.processDocument({
+  modelName: "gpt-4o",
+  url: "https://example.com/invoice.pdf",
+  organizationId: "org_xxx",
+});
+console.log(result.data);
+// { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.chat_ai.process_document(
+    model_name="gpt-4o",
+    url="https://example.com/invoice.pdf",
+    organization_id="org_xxx",
+)
+print(result["data"])
+# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
+```
+</TabItem>
+</Tabs>
+
+### File extraction (agent file upload)
+
+Upload a file and extract its raw content.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// Upload an agent-specific file
+const formData = new FormData();
+formData.append("file", fileBuffer, "report.pdf");
+const uploaded = await client.chatAi.uploadAgentFile(formData);
+
+// Extract content from an uploaded file
+const extracted = await client.chatAi.extractFile(formData);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Upload an agent-specific file
+uploaded = client.chat_ai.upload_agent_file(files={"file": open("report.pdf", "rb")}, agent_id="asst_abc")
+
+# Extract content from an uploaded file
+extracted = client.chat_ai.extract_file(files={"file": open("report.pdf", "rb")})
+```
+</TabItem>
+</Tabs>
+
+### Chat v1 sessions
+
+Legacy REST chat endpoints for persisting conversation history. Available on `client.ai_agent` for both TypeScript and Python. See [Legacy v1 chat](#legacy-v1-chat) below.
+
+### Knowledge Hub — folders & knowledge bases
+
+Folders and knowledge bases are managed via `client.boards` (TypeScript) / `client.folders` and `client.boards` (Python). Folders organize knowledge bases — a knowledge base is a set of files an assistant can retrieve from. Pass folder IDs as `folder_ids` when creating an assistant — see [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant).
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+import { type CreateFolderInput } from "@imbrace/sdk";
+
+// Folders
+const folders = await client.boards.searchFolders({ organizationId: "org_xxx" });
+const folder  = await client.boards.createFolder({ name: "Q1 Reports" });
+await client.boards.updateFolder(folder._id, { name: "Q1 2025 Reports" });
+await client.boards.deleteFolders({ ids: [folder._id] });
+
+// Files (knowledge base entries)
+const uploaded = await client.boards.uploadFile(formData);
+const files    = await client.boards.searchFiles({ folderId: folder._id });
+const file     = await client.boards.getFile("file_id");
+await client.boards.createFile({ name: "doc.txt", folderId: folder.id });
+await client.boards.deleteFiles({ ids: ["file_id"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Folders
+folder = client.folders.create({"name": "Q1 Reports"})
+folders = client.folders.search()
+client.folders.update(folder["_id"], {"name": "Q1 2025 Reports"})
+client.folders.delete([folder["_id"]])
+
+# Files (knowledge base entries)
+file = client.boards.upload_file(files={"file": open("doc.pdf", "rb")})
+files = client.boards.search_files(folder_id=folder["_id"])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## OpenAI-compatible AI service — `client.ai`
+
+Raw OpenAI-style completions, streaming, and embeddings against the `aiv2` service. Available for both TypeScript and Python.
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// Single completion
+const response = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "You are a helpful CRM assistant." },
+    { role: "user",   content: "Summarize this customer note: ..." },
+  ],
+  temperature: 0.7,
+});
+console.log(response.choices[0].message.content);
+
+// Streaming
+const stream = client.ai.stream({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Draft a follow-up email for this lead." }],
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0].delta.content ?? "");
+}
+
+// Embeddings
+const result = await client.ai.embed({
+  model: "text-embedding-ada-002",
+  input: ["customer complained about billing", "billing issue escalated"],
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Single completion
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful CRM assistant."},
+        {"role": "user",   "content": "Summarize this customer note: ..."},
+    ],
+    temperature=0.7,
+)
+print(response["choices"][0]["message"]["content"])
+
+# Streaming
+for chunk in client.ai.stream(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Draft a follow-up email for this lead."}],
+):
+    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
+
+# Embeddings
+result = client.ai.embed(
+    model="text-embedding-ada-002",
+    input=["customer complained about billing", "billing issue escalated"],
+)
+```
 </TabItem>
 </Tabs>
 

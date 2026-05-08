@@ -1,10 +1,7 @@
 # Quick Start
 
-> Make your first Imbrace API call in under a minute.
-
 ### 1. Initialize the client
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
@@ -13,8 +10,6 @@
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
-  
-  
     ```python
     import os
     from dotenv import load_dotenv
@@ -27,9 +22,7 @@
         base_url="https://app-gatewayv2.imbrace.co",
     )
     ```
-  
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
@@ -38,8 +31,6 @@
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
-  
-  
     ```python
     import os
     from dotenv import load_dotenv
@@ -52,17 +43,13 @@
         base_url="https://app-gatewayv2.imbrace.co",
     )
     ```
-  
-
-> Switch the **Auth** dropdown in the header to flip between API Key and Access Token examples site-wide. See [Authentication](/sdk/authentication/) for which to pick.
 
 ---
 
 ### 2. Fetch your boards
 
-Boards are CRM pipelines — leads, deals, tasks, or any structured data. This call requires only your credential.
+Boards are CRM pipelines â€” leads, deals, tasks, or any structured data. This call requires only your credential.
 
-  
     ```typescript
     const { data: boards } = await client.boards.list()
 
@@ -70,15 +57,12 @@ Boards are CRM pipelines — leads, deals, tasks, or any structured data. This c
       console.log(board._id, board.doc_name)
     }
     ```
-  
-  
     ```python
     boards = client.boards.list()
 
     for board in boards.get("data", []):
         print(board["_id"], board.get("doc_name"))
     ```
-  
 
 If you see your boards listed, the SDK is connected and authenticated.
 
@@ -88,9 +72,9 @@ If you see your boards listed, the SDK is connected and authenticated.
 
 The [Full Flow Guide](/sdk/full-flow-guide/) walks the four major workflows end-to-end. Jump straight to a section:
 
-- **AI Assistant + streamChat** → [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting)
-- **Activepieces workflows** → [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant)
-- **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)
-- **Boards & Items (CRM)** → [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
+- **AI Assistant + streamChat** â†’ [Full Flow Guide Â§1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting)
+- **Activepieces workflows** â†’ [Full Flow Guide Â§2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant)
+- **Knowledge Hub (folders, RAG)** â†’ [Full Flow Guide Â§3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)
+- **Boards & Items (CRM)** â†’ [Full Flow Guide Â§4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
 
 For the per-namespace API reference, see [Resources](/sdk/resources/).

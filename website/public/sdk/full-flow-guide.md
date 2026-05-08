@@ -1,8 +1,6 @@
 # Full Flow Guide
 
-> End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
-
-This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
+This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained â€” follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
 
 ---
 
@@ -10,9 +8,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 1. **Initialize the client**
 
-   
-   
-     
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
@@ -21,8 +16,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          accessToken: "acc_your_token",
        })
        ```
-     
-     
        ```python
        from imbrace import ImbraceClient
 
@@ -31,13 +24,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            access_token="acc_your_token",
        )
        ```
-     
-   
-   
 
-   
-   
-     
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
@@ -46,8 +33,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          apiKey: "api_your_key",
        })
        ```
-     
-     
        ```python
        from imbrace import ImbraceClient
 
@@ -56,18 +41,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            api_key="api_your_key",
        )
        ```
-     
-   
-   
 
-   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
+   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication â†’ which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
 
 2. **Create an assistant**
 
    `workflow_name` must be unique within your organization.
 
-   
-     
        ```typescript
        const assistant = await client.chatAi.createAssistant({
          name: "Support Bot",
@@ -78,11 +58,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          model_id: "gpt-4o",      // any model name the system provider exposes
        })
 
-       const assistantId = assistant.id  // UUID — use this for all subsequent calls
+       const assistantId = assistant.id  // UUID â€” use this for all subsequent calls
        console.log("Assistant created:", assistantId)
        ```
-     
-     
        ```python
        assistant = client.chat_ai.create_assistant({
            "name": "Support Bot",
@@ -96,21 +74,17 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        assistant_id = assistant["id"]
        print("Assistant created:", assistant_id)
        ```
-     
-   
 
    `provider_id` and `model_id` are required. Pass `provider_id: "system"` to delegate to the org's default LLM provider, or pass a custom provider's UUID. With `provider_id: "system"`, `model_id` accepts a model name like `"gpt-4o"`, or the literal `"Default"` to fall back to the system default model.
 
 3. **Stream a chat response using the assistant**
 
-   
-     
        ```typescript
        const response = await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
          messages: [{ role: "user", content: "How do I reset my password?" }],
-         // id is the session UUID — reuse it to maintain conversation history
+         // id is the session UUID â€” reuse it to maintain conversation history
          // If omitted, a new UUID is auto-generated each call
        })
 
@@ -134,14 +108,12 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          }
        }
        ```
-     
-     
        ```python
        response = client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
            "messages": [{"role": "user", "content": "How do I reset my password?"}],
-           # id is the session UUID — reuse it to maintain conversation history.
+           # id is the session UUID â€” reuse it to maintain conversation history.
            # If omitted, a new UUID is auto-generated each call.
        })
 
@@ -159,15 +131,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
                except Exception:
                    pass
        ```
-     
-   
 
 4. **Maintain conversation history (session ID)**
 
    Pass the same `id` (must be a UUID) across calls to keep context:
 
-   
-     
        ```typescript
        import { randomUUID } from "crypto"
 
@@ -181,7 +149,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          messages: [{ role: "user", content: "What's your refund policy?" }],
        })
 
-       // Follow-up — same session, assistant remembers context
+       // Follow-up â€” same session, assistant remembers context
        await client.aiAgent.streamChat({
          assistant_id: assistantId,
          organization_id: "org_your_org_id",
@@ -189,8 +157,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          messages: [{ role: "user", content: "How long does it take?" }],
        })
        ```
-     
-     
        ```python
        import uuid
 
@@ -204,7 +170,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "messages": [{"role": "user", "content": "What's your refund policy?"}],
        })
 
-       # Follow-up — same session, assistant remembers context
+       # Follow-up â€” same session, assistant remembers context
        client.ai_agent.stream_chat({
            "assistant_id": assistant_id,
            "organization_id": "org_your_org_id",
@@ -212,8 +178,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "messages": [{"role": "user", "content": "How long does it take?"}],
        })
        ```
-     
-   
 
 ---
 
@@ -221,28 +185,20 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 1. **List existing flows to find your project ID**
 
-   
-     
        ```typescript
        const { data: flows } = await client.activepieces.listFlows({ limit: 5 })
        const projectId = flows[0]?.projectId
        console.log("Project ID:", projectId)
        ```
-     
-     
        ```python
        res = client.activepieces.list_flows(limit=5)
        flows = res.get("data", [])
        project_id = flows[0]["projectId"] if flows else None
        print("Project ID:", project_id)
        ```
-     
-   
 
 2. **Create a new flow**
 
-   
-     
        ```typescript
        const flow = await client.activepieces.createFlow({
          displayName: "CRM Update on New Lead",
@@ -250,8 +206,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
        console.log("Flow created:", flow.id)
        ```
-     
-     
        ```python
        flow = client.activepieces.create_flow(
            display_name="CRM Update on New Lead",
@@ -259,15 +213,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        )
        print("Flow created:", flow["id"])
        ```
-     
-   
 
 3. **Add a Webhook trigger and publish the flow**
 
-   A freshly created flow is in **DRAFT** with no trigger — the webhook URL doesn't exist yet, so `triggerFlow` would 404. Add the Webhook piece as the trigger, then publish:
+   A freshly created flow is in **DRAFT** with no trigger â€” the webhook URL doesn't exist yet, so `triggerFlow` would 404. Add the Webhook piece as the trigger, then publish:
 
-   
-     
        ```typescript
        // Set the Webhook piece as the flow's trigger
        await client.activepieces.applyFlowOperation(flow.id, {
@@ -287,14 +237,12 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          },
        })
 
-       // Publish — flow status flips DISABLED → ENABLED and webhook URL becomes live
+       // Publish â€” flow status flips DISABLED â†’ ENABLED and webhook URL becomes live
        await client.activepieces.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
        })
        ```
-     
-     
        ```python
        # Set the Webhook piece as the flow's trigger
        client.activepieces.apply_flow_operation(flow["id"], {
@@ -314,19 +262,15 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            },
        })
 
-       # Publish — DISABLED → ENABLED, webhook URL becomes live
+       # Publish â€” DISABLED â†’ ENABLED, webhook URL becomes live
        client.activepieces.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
        })
        ```
-     
-   
 
 4. **Trigger the flow manually with a payload**
 
-   
-     
        ```typescript
        // Fire and forget (async)
        await client.activepieces.triggerFlow(flow.id, {
@@ -334,7 +278,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          email: "jane@example.com",
        })
 
-       // Sync trigger — for this to actually return data instead of timing out,
+       // Sync trigger â€” for this to actually return data instead of timing out,
        // the flow needs a "Return Response" action added via applyFlowOperation
        // ADD_ACTION (otherwise the gateway waits 30s for a response and gives up).
        const result = await client.activepieces.triggerFlowSync(flow.id, {
@@ -343,8 +287,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
        console.log("Flow result:", result)
        ```
-     
-     
        ```python
        # Fire and forget (async)
        client.activepieces.trigger_flow(flow["id"], {
@@ -352,7 +294,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            "email": "jane@example.com",
        })
 
-       # Sync trigger — for this to actually return data instead of timing out,
+       # Sync trigger â€” for this to actually return data instead of timing out,
        # the flow needs a "Return Response" action added via apply_flow_operation
        # ADD_ACTION (otherwise the gateway waits 30s and gives up).
        result = client.activepieces.trigger_flow_sync(flow["id"], {
@@ -361,17 +303,13 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
        print("Flow result:", result)
        ```
-     
-   
 
 5. **Bind the flow to your assistant**
 
-   Open your assistant in the Imbrace dashboard, go to **Tools → Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
+   Open your assistant in the Imbrace dashboard, go to **Tools â†’ Workflows**, and attach the flow. The assistant will be able to trigger it during a conversation when appropriate.
 
    Alternatively, update the assistant to reference the workflow by name:
 
-   
-     
        ```typescript
        await client.chatAi.updateAssistant(assistantId, {
          name: "Support Bot",
@@ -379,8 +317,6 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
        })
        ```
-     
-     
        ```python
        client.chat_ai.update_assistant(assistant_id, {
            "name": "Support Bot",
@@ -390,13 +326,9 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
            ],
        })
        ```
-     
-   
 
 6. **Check run history**
 
-   
-     
        ```typescript
        const { data: runs } = await client.activepieces.listRuns({
          flowId: flow.id,
@@ -406,15 +338,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          console.log(run.id, run.status, run.startTime)
        }
        ```
-     
-     
        ```python
        res = client.activepieces.list_runs(flow_id=flow["id"], limit=10)
        for run in res.get("data", []):
            print(run["id"], run.get("status"), run.get("startTime"))
        ```
-     
-   
 
 ---
 
@@ -424,8 +352,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 1. **Create a folder**
 
-   
-     
        ```typescript
        const folder = await client.boards.createFolder({
          name: "Product Documentation",
@@ -435,8 +361,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        console.log("Folder ID:", folder._id)
        ```
-     
-     
        ```python
        folder = client.boards.create_folder({
            "name": "Product Documentation",
@@ -446,13 +370,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        print("Folder ID:", folder["_id"])
        ```
-     
-   
 
 2. **Upload a file to the folder**
 
-   
-     
        ```typescript
        import { readFileSync } from "fs"
 
@@ -465,8 +385,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        const uploaded = await client.boards.uploadFile(formData)
        console.log("File uploaded:", uploaded.file_id)
        ```
-     
-     
        ```python
        from pathlib import Path
 
@@ -479,15 +397,11 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        uploaded = client.boards.upload_file(files)
        print("File uploaded:", uploaded.get("file_id") or uploaded.get("_id"))
        ```
-     
-   
 
 3. **Attach the folder to the assistant**
 
-   Pass the folder `_id` in `folder_ids` — the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source — see [Resources → Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
+   Pass the folder `_id` in `folder_ids` â€” the assistant retrieves from every file in that folder. Use `board_ids` to attach a CRM data-board (its items become a knowledge source â€” see [Resources â†’ Boards & items](/sdk/resources/#boards--items--clientboards)). The legacy `knowledge_hubs` field is deprecated.
 
-   
-     
        ```typescript
        await client.chatAi.updateAssistant(assistantId, {
          name: "Support Bot",
@@ -496,8 +410,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
          // board_ids: [boardId],  // optional: attach a CRM data-board too
        })
        ```
-     
-     
        ```python
        client.chat_ai.update_assistant(assistant_id, {
            "name": "Support Bot",
@@ -506,13 +418,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
            # "board_ids": [board_id],  # optional: attach a CRM data-board too
        })
        ```
-     
-   
 
 4. **Inspect and manage folders and files**
 
-   
-     
        ```typescript
        // Search folders
        const folders = await client.boards.searchFolders({ q: "Product" })
@@ -530,8 +438,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        // Delete folders
        await client.boards.deleteFolders({ ids: [folder._id] })
        ```
-     
-     
        ```python
        # Search folders
        folders = client.boards.search_folders(q="Product")
@@ -549,8 +455,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        # Delete folders
        client.boards.delete_folders([folder["_id"]])
        ```
-     
-   
 
 ---
 
@@ -558,10 +462,8 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 1. **Create a board**
 
-   A board is a CRM pipeline — leads, deals, tasks, or any structured data.
+   A board is a CRM pipeline â€” leads, deals, tasks, or any structured data.
 
-   
-     
        ```typescript
        const board = await client.boards.create({
          name: "Sales Pipeline",
@@ -569,8 +471,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        console.log("Board ID:", board._id)
        ```
-     
-     
        ```python
        board = client.boards.create(
            name="Sales Pipeline",
@@ -578,15 +478,11 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        )
        print("Board ID:", board["_id"])
        ```
-     
-   
 
 2. **Add a custom field**
 
-   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board — find your new field inside `board.fields`.
+   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board â€” find your new field inside `board.fields`.
 
-   
-     
        ```typescript
        const updated = await client.boards.createField(board._id, {
          name: "Company",
@@ -595,8 +491,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        // Find the identifier field (auto-created with every board)
        const identifierField = updated.fields.find(f => f.is_identifier)
        ```
-     
-     
        ```python
        updated = client.boards.create_field(board["_id"], {
            "name": "Company",
@@ -604,15 +498,11 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
        ```
-     
-   
 
 3. **Create board items (records)**
 
    Items use `{ fields: [{ board_field_id, value }] }` format:
 
-   
-     
        ```typescript
        const item = await client.boards.createItem(board._id, {
          fields: [
@@ -621,8 +511,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        console.log("Item ID:", item._id)
        ```
-     
-     
        ```python
        item = client.boards.create_item(board["_id"], {
            "fields": [
@@ -631,13 +519,9 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        })
        print("Item ID:", item["_id"])
        ```
-     
-   
 
 4. **List and search items**
 
-   
-     
        ```typescript
        // Paginate through items
        const { data: items } = await client.boards.listItems(board._id, { limit: 20, skip: 0 })
@@ -648,8 +532,6 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
          limit: 10,
        })
        ```
-     
-     
        ```python
        # Paginate through items
        items = client.boards.list_items(board["_id"], limit=20, skip=0)
@@ -657,45 +539,31 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        # Full-text search
        results = client.boards.search(board["_id"], q="Acme", limit=10)
        ```
-     
-   
 
 5. **Update and delete items**
 
-   `updateItem` uses `{ data: [{ key: fieldId, value }] }` array format:
-
-   
-     
        ```typescript
        await client.boards.updateItem(board._id, item._id, {
-         data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
+         fields: { name: "Acme Corp â€” Closed Won" },
        })
 
        await client.boards.deleteItem(board._id, item._id)
        ```
-     
-     
        ```python
        client.boards.update_item(board["_id"], item["_id"], {
-           "data": [{"key": identifier_field["_id"], "value": "Acme Corp — Closed Won"}],
+           "fields": {"name": "Acme Corp â€” Closed Won"},
        })
 
        client.boards.delete_item(board["_id"], item["_id"])
        ```
-     
-   
 
 6. **Export to CSV**
 
-   
-     
        ```typescript
        const csv = await client.boards.exportCsv(board._id)
-       // csv is a string — write to a file or send as a download
+       // csv is a string â€” write to a file or send as a download
        ```
-     
-     
        ```python
        csv = client.boards.export_csv(board["_id"])
-       # csv is a str — write to a file or send as a download
+       # csv is a str â€” write to a file or send as a download
        ```
