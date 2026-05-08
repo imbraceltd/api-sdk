@@ -1,0 +1,135 @@
+---
+title: 資料看板
+description: client.boards 的 SDK 參考 — CRM 管道、項目、欄位、區段和匯出。
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+看板是 CRM 管道的核心資料儲存 — leads、deals、tasks 或任何結構化資料。建立 assistant 時在 `board_ids` 中傳入 board ids 以授予存取權限 — 參閱[完整流程指南 §4](/zh-tw/sdk/full-flow-guide/#4-管理資料看板和項目crm-pipeline)。
+
+首先初始化 client（參閱[安裝](/zh-tw/sdk/installation/)或[快速入門](/zh-tw/sdk/quick-start/)）。
+
+---
+
+## 看板 CRUD
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: boards } = await client.boards.list();
+const board = await client.boards.get("board_id");
+
+const newBoard = await client.boards.create({ name: "企業 Leads" });
+await client.boards.update("board_id", { name: "企業 Leads 2025" });
+await client.boards.delete("board_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+boards = client.boards.list().get("data", [])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 項目
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
+const item = await client.boards.getItem("board_id", "item_id");
+
+const lead = await client.boards.createItem("board_id", {
+  fields: { name: "Acme Corp", status: "new", value: 50000 },
+});
+
+await client.boards.updateItem("board_id", lead.id, {
+  fields: { status: "qualified" },
+});
+
+await client.boards.deleteItem("board_id", "item_id");
+await client.boards.bulkDeleteItems("board_id", { ids: ["item_1", "item_2", "item_3"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+leads = client.boards.list_items("board_id", limit=100).get("data", [])
+
+lead = client.boards.create_item("board_id", {
+    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+})
+
+client.boards.update_item("board_id", lead["id"], {
+    "fields": {"status": "qualified"}
+})
+
+client.boards.delete_item("board_id", "item_id")
+client.boards.bulk_delete_items("board_id", {"ids": ["item_1", "item_2", "item_3"]})
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 搜尋
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const results = await client.boards.search("board_id", { q: "enterprise" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+results = client.boards.search("board_id", q="enterprise")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 欄位、區段和匯出
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 欄位
+const field = await client.boards.createField("board_id", {
+  name: "交易價值",
+  type: "number",
+});
+await client.boards.updateField("board_id", field._id, { name: "合約價值" });
+await client.boards.deleteField("board_id", field._id);
+
+// 區段
+const { data: segments } = await client.boards.listSegments("board_id");
+const segment = await client.boards.createSegment("board_id", {
+  name: "高價值 Leads",
+  filters: [{ field: "value", op: "gt", value: 10000 }],
+});
+
+// 匯出 CSV
+const csv = await client.boards.exportCsv("board_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 欄位
+field = client.boards.create_field("board_id", {"name": "交易價值", "type": "number"})
+client.boards.update_field("board_id", field["_id"], {"name": "合約價值"})
+client.boards.delete_field("board_id", field["_id"])
+
+# 區段
+segments = client.boards.list_segments("board_id")
+segment = client.boards.create_segment("board_id", {
+    "name": "高價值 Leads",
+    "filter": {"field": "value", "op": "gt", "value": 10000},
+})
+
+# 匯出 CSV
+csv = client.boards.export_csv("board_id")
+```
+</TabItem>
+</Tabs>

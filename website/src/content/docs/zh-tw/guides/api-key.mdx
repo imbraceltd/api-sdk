@@ -1,0 +1,80 @@
+---
+title: 取得 API Key
+description: 如何取得 Imbrace API Key — 透過 Portal UI 或使用 SDK 以程式方式產生。
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+API Key（`api_...`）讓你的後端能夠在不需要使用者 Session 的情況下呼叫 Imbrace。關於何時使用 API Key 而非 Access Token，請參閱[身份驗證](/zh-tw/sdk/authentication/)。
+
+---
+
+## 方式一 — Imbrace Portal（建議）
+
+1. 登入 Imbrace Portal。
+2. 進入 **Settings → API Keys**。
+3. 點擊 **Create** 並為 Key 命名。
+4. 複製 `api_...` 值 — 僅顯示一次。
+
+---
+
+## 方式二 — SDK（程式方式）
+
+適用於需要從程式碼產生 Key 的情境，例如自動化佈署。需要先透過 [OTP](/zh-tw/sdk/authentication/#otp-login-flow) 或[密碼](/zh-tw/sdk/authentication/#password-login)登入取得 Access Token。
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    // 需要使用 access token 初始化 client
+    const res = await client.auth.getThirdPartyToken(30) // 30 天後過期
+    const apiKey = res.apiKey.apiKey  // "api_..."
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # 需要使用 access token 初始化 client
+    res = client.auth.get_third_party_token(expiration_days=30)
+    api_key = res["apiKey"]["apiKey"]  # "api_..."
+    ```
+  </TabItem>
+</Tabs>
+
+回傳結構：
+
+```json
+{
+  "apiKey": {
+    "apiKey": "api_...",
+    "expired_at": "2025-08-01T00:00:00.000Z",
+    "is_active": true
+  },
+  "expires_in": 2592000
+}
+```
+
+---
+
+## 使用 Key
+
+將 Key 傳入 client 建構函式：
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
+
+    const client = new ImbraceClient({
+      apiKey: process.env.IMBRACE_API_KEY!,
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+    from imbrace import ImbraceClient
+
+    client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+    ```
+  </TabItem>
+</Tabs>

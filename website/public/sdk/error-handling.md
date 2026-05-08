@@ -1,25 +1,22 @@
 # Error Handling
 
-> Error types, automatic retry behavior, and best practices for handling failures with the Imbrace SDKs.
-
 All errors thrown by the SDK extend a single base type, so you can catch any SDK error in one place or branch on the specific subclass when you need to react differently. The hierarchy is identical across the TypeScript and Python SDKs.
 
 ## Error hierarchy
 
 ```
 Error
-└── ImbraceError          (base — catch-all for SDK errors)
-    ├── AuthError          (401, 403 — invalid or expired credentials)
-    ├── ApiError           (4xx/5xx — request rejected by the server)
-    └── NetworkError       (timeout, connection refused, DNS failure)
+â””â”€â”€ ImbraceError          (base â€” catch-all for SDK errors)
+    â”œâ”€â”€ AuthError          (401, 403 â€” invalid or expired credentials)
+    â”œâ”€â”€ ApiError           (4xx/5xx â€” request rejected by the server)
+    â””â”€â”€ NetworkError       (timeout, connection refused, DNS failure)
 ```
-
 ```
 Exception
-└── ImbraceError          (base — catch-all for SDK errors)
-    ├── AuthError          (401, 403 — invalid or expired credentials)
-    ├── ApiError           (4xx/5xx — request rejected by server)
-    └── NetworkError       (timeout, connection refused, DNS failure)
+â””â”€â”€ ImbraceError          (base â€” catch-all for SDK errors)
+    â”œâ”€â”€ AuthError          (401, 403 â€” invalid or expired credentials)
+    â”œâ”€â”€ ApiError           (4xx/5xx â€” request rejected by server)
+    â””â”€â”€ NetworkError       (timeout, connection refused, DNS failure)
 ```
 
 For specific error messages and known fixes, see [Troubleshooting](/guides/troubleshooting/).
@@ -28,7 +25,7 @@ For specific error messages and known fixes, see [Troubleshooting](/guides/troub
 
 ## AuthError
 
-Raised when the server returns **401** or **403** — credentials are invalid, expired, or revoked.
+Raised when the server returns **401** or **403** â€” credentials are invalid, expired, or revoked.
 
 ```typescript
 import { AuthError } from "@imbrace/sdk";
@@ -41,7 +38,6 @@ try {
   }
 }
 ```
-
 ```python
 from imbrace import AuthError
 
@@ -52,7 +48,7 @@ except AuthError as e:
     # Re-authenticate before retrying
 ```
 
-> `AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
+`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 â€” fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
 
 ---
 
@@ -77,7 +73,6 @@ try {
 | ------------ | -------- | ---------------------------------- |
 | `statusCode` | `number` | HTTP status code                   |
 | `message`    | `string` | Error message from server response |
-
 ```python
 from imbrace import ApiError
 
@@ -97,7 +92,7 @@ except ApiError as e:
 
 ## NetworkError
 
-Raised when the request never reaches the server — timeout, DNS failure, or connection reset.
+Raised when the request never reaches the server â€” timeout, DNS failure, or connection reset.
 
 ```typescript
 import { NetworkError } from "@imbrace/sdk";
@@ -111,7 +106,6 @@ try {
   }
 }
 ```
-
 ```python
 from imbrace import NetworkError
 
@@ -147,7 +141,6 @@ try {
   throw e; // re-throw non-SDK errors
 }
 ```
-
 ```python
 from imbrace import ImbraceError, AuthError, ApiError, NetworkError
 
@@ -174,20 +167,19 @@ The HTTP transport in both SDKs retries transient failures with exponential back
 | HTTP **429** (rate limit)   | Retry up to 2 times                      |
 | HTTP **5xx** (server error) | Retry up to 2 times                      |
 | Network error / timeout     | Retry up to 2 times                      |
-| HTTP **401 / 403**          | No retry — throw `AuthError` immediately |
-| HTTP **4xx** (other)        | No retry — throw `ApiError` immediately  |
+| HTTP **401 / 403**          | No retry â€” throw `AuthError` immediately |
+| HTTP **4xx** (other)        | No retry â€” throw `ApiError` immediately  |
 
-**Backoff:** `2^retryCount` seconds between attempts (2s → 4s). Total worst-case: 3 attempts.
-
+**Backoff:** `2^retryCount` seconds between attempts (2s â†’ 4s). Total worst-case: 3 attempts.
 | Condition                   | Action                                   |
 | --------------------------- | ---------------------------------------- |
 | HTTP **429** (rate limit)   | Retry up to 3 times                      |
 | HTTP **5xx** (server error) | Retry up to 3 times                      |
 | Network error / timeout     | Retry up to 3 times                      |
-| HTTP **401 / 403**          | No retry — raise `AuthError` immediately |
-| HTTP **4xx** (other)        | No retry — raise `ApiError` immediately  |
+| HTTP **401 / 403**          | No retry â€” raise `AuthError` immediately |
+| HTTP **4xx** (other)        | No retry â€” raise `ApiError` immediately  |
 
-**Backoff:** `2^retryCount` seconds between attempts (2s → 4s → 8s). Total worst-case: 4 attempts.
+**Backoff:** `2^retryCount` seconds between attempts (2s â†’ 4s â†’ 8s). Total worst-case: 4 attempts.
 
 ---
 
@@ -232,10 +224,10 @@ async with AsyncImbraceClient() as client:
 ## Best practices
 
 ```typescript
-// 1. Always handle AuthError separately — credentials need to be refreshed
-// 2. Log ApiError.statusCode — 400 = bad params, 404 = not found, 409 = conflict
+// 1. Always handle AuthError separately â€” credentials need to be refreshed
+// 2. Log ApiError.statusCode â€” 400 = bad params, 404 = not found, 409 = conflict
 // 3. Wrap top-level entry points in try/catch
-// 4. Don't retry on AuthError — won't help until credentials are fixed
+// 4. Don't retry on AuthError â€” won't help until credentials are fixed
 
 async function safeGetMe(client: ImbraceClient) {
   try {
@@ -249,13 +241,12 @@ async function safeGetMe(client: ImbraceClient) {
   }
 }
 ```
-
 ```python
 # 1. Use a context manager so connections are closed deterministically
 with ImbraceClient() as client:
     ...
 
-# 2. Handle AuthError separately — credentials need refresh before retrying
+# 2. Handle AuthError separately â€” credentials need refresh before retrying
 def safe_get_me(client):
     try:
         return client.platform.get_me()

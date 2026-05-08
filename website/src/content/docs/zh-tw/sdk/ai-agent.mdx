@@ -1,28 +1,348 @@
 ---
-title: AI Agent
-description: aiAgent / ai_agent 資源參考 — 串流聊天、向量嵌入、Parquet 資料、分散式追蹤以及 Chat Client 子 API。
+title: AI Agent & Assistants
+description: chatAi / chat_ai（助手管理）、aiAgent / ai_agent（串流聊天、embeddings、parquet、追蹤）以及 OpenAI 相容 client.ai 服務的參考文件。
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
+import AuthOnly from "../../../../components/AuthOnly.astro";
 
-`client.aiAgent` / `client.ai_agent` 連接到獨立的 AI Agent 服務，運行在與主 API gateway 不同的 base URL 上。該資源提供串流聊天、embedding knowledge base 管理、列式資料（Parquet）、分散式追蹤（Tempo），以及前端應用使用的完整 Chat Client 子 API。
+本頁涵蓋兩個相關的 AI 命名空間：
+
+- **`chatAi` / `chat_ai`** — 建立和管理 AI 助手、執行 completions、管理 knowledge bases。
+- **`aiAgent` / `ai_agent`** — 串流聊天（SSE）、embedding 管理、Parquet 資料、分散式追蹤以及 Chat Client 子 API。
+
+AI Agent 資源連接到獨立的專用服務，運行在與主 API gateway 不同的 base URL 上。
 
 端到端 `streamChat` 範例，參閱[完整流程指南 §1](/zh-tw/sdk/full-flow-guide/#1-建立-ai-助手並開始聊天)。
 
+<AuthOnly mode="access-token">
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-import { ImbraceClient } from "@imbrace/sdk";
-const client = new ImbraceClient();
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 from imbrace import ImbraceClient
-client = ImbraceClient()
+
+client = ImbraceClient(access_token="your-access-token")
 ```
+</TabItem>
+</Tabs>
+</AuthOnly>
+
+<AuthOnly mode="api-key">
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  apiKey: "your-api-key",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+```
+</TabItem>
+<TabItem label="Python">
+```python
+from imbrace import ImbraceClient
+
+client = ImbraceClient(api_key="your-api-key")
+```
+</TabItem>
+</Tabs>
+</AuthOnly>
 
 sync（`ImbraceClient`）和 async（`AsyncImbraceClient`）客戶端公開相同的介面 — async 方法需要 await，底層使用 `AsyncAiAgentResource`。
+
+---
+
+## 助手 — `chatAi` / `chat_ai`
+
+管理 AI 助手（CRUD）、執行 OpenAI 相容的 completions，以及處理 document/file。該命名空間也涵蓋 Knowledge Hub 資料夾和 knowledge bases。
+
+### 助手 CRUD
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 列出帳戶中的所有助手
+const assistants = await client.chatAi.listAssistants();
+// 每個助手有 `id`（UUID）和 `_id`（MongoDB ObjectId）。後續呼叫使用 `id` 欄位。
+
+// 取得單一助手
+const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
+
+// 建立 — provider_id 和 model_id 為必填
+const created = await client.chatAi.createAssistant({
+  name: "Support Bot",
+  workflow_name: "support_bot_v1",
+  provider_id: "system",
+  model_id: "gpt-4o",
+  description: "處理一級支援問題",
+});
+
+// 更新 — 更新時 workflow_name 也是必填
+const updated = await client.chatAi.updateAssistant(created.id, {
+  name: "Support Bot v2",
+  workflow_name: "support_bot_v1",
+});
+
+// 僅更新系統指令
+await client.chatAi.updateAssistantInstructions(
+  created.id,
+  "您是一位樂於助人的支援代理。",
+);
+
+await client.chatAi.deleteAssistant(created.id);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 列出所有助手
+assistants = client.chat_ai.list_assistants()
+
+# 取得單一助手
+assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
+
+# 建立 — provider_id 和 model_id 為必填
+created = client.chat_ai.create_assistant({
+    "name":          "Support Bot",
+    "workflow_name": "support_bot_v1",
+    "provider_id":   "system",
+    "model_id":      "gpt-4o",
+    "description":   "處理一級支援問題",
+})
+
+# 更新
+updated = client.chat_ai.update_assistant(created["id"], {
+    "name":          "Support Bot v2",
+    "workflow_name": "support_bot_v1",
+})
+
+# 僅更新系統指令
+client.chat_ai.update_assistant_instructions(
+    created["id"],
+    "您是一位樂於助人的支援代理。",
+)
+
+client.chat_ai.delete_assistant(created["id"])
+```
+</TabItem>
+</Tabs>
+
+### Completions（via `client.ai`）
+
+OpenAI 相容的 chat completions 在 `client.ai` 命名空間中對 TypeScript 和 Python 均可用。詳情參閱下方 [OpenAI 相容 AI 服務](#openai-相容-ai-服務--clientai) 章節。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const response = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "您是 CRM 助手。" },
+    { role: "user", content: "摘要這位客戶的備註：..." },
+  ],
+});
+console.log(response.choices[0].message.content);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "您是 CRM 助手。"},
+        {"role": "user",   "content": "摘要這位客戶的備註：..."},
+    ],
+)
+print(response["choices"][0]["message"]["content"])
+```
+</TabItem>
+</Tabs>
+
+### Document AI 模型
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const models = await client.chatAi.listDocumentModels();
+```
+</TabItem>
+<TabItem label="Python">
+```python
+models = client.chat_ai.list_document_models()
+```
+</TabItem>
+</Tabs>
+
+### 文件處理（視覺模型）
+
+使用視覺模型從 PDF 和圖片中擷取結構化資料。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const result = await client.chatAi.processDocument({
+  modelName: "gpt-4o",
+  url: "https://example.com/invoice.pdf",
+  organizationId: "org_xxx",
+});
+console.log(result.data);
+// { invoice_number: "INV-001", total: 1200, vendor: "Acme Corp", ... }
+```
+</TabItem>
+<TabItem label="Python">
+```python
+result = client.chat_ai.process_document(
+    model_name="gpt-4o",
+    url="https://example.com/invoice.pdf",
+    organization_id="org_xxx",
+)
+print(result["data"])
+# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
+```
+</TabItem>
+</Tabs>
+
+### 檔案擷取（agent 檔案上傳）
+
+上傳檔案並擷取其原始內容。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 上傳 agent 專用檔案
+const formData = new FormData();
+formData.append("file", fileBuffer, "report.pdf");
+const uploaded = await client.chatAi.uploadAgentFile(formData);
+
+// 從已上傳檔案中擷取內容
+const extracted = await client.chatAi.extractFile(formData);
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 上傳 agent 專用檔案
+uploaded = client.chat_ai.upload_agent_file(files={"file": open("report.pdf", "rb")}, agent_id="asst_abc")
+
+# 從已上傳檔案中擷取內容
+extracted = client.chat_ai.extract_file(files={"file": open("report.pdf", "rb")})
+```
+</TabItem>
+</Tabs>
+
+### Chat v1 工作階段
+
+保留對話歷史的舊版 REST 聊天介面。TypeScript 和 Python 均可透過 `client.ai_agent` 使用。參閱下方[舊版 v1 聊天](#舊版-v1-聊天)。
+
+### Knowledge Hub — 資料夾和 Knowledge Bases
+
+資料夾和 knowledge bases 透過 `client.boards`（TypeScript）/ `client.folders` 和 `client.boards`（Python）管理。建立助手時在 `folder_ids` 中傳入資料夾 ID — 參閱[完整流程指南 §3](/zh-tw/sdk/full-flow-guide/#3-管理-knowledge-hub-並綁定到助手)。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+import { type CreateFolderInput } from "@imbrace/sdk";
+
+// 資料夾
+const folders = await client.boards.searchFolders({ organizationId: "org_xxx" });
+const folder  = await client.boards.createFolder({ name: "Q1 報告" });
+await client.boards.updateFolder(folder._id, { name: "Q1 2025 報告" });
+await client.boards.deleteFolders({ ids: [folder._id] });
+
+// 檔案（knowledge base 條目）
+const uploaded = await client.boards.uploadFile(formData);
+const files    = await client.boards.searchFiles({ folderId: folder._id });
+const file     = await client.boards.getFile("file_id");
+await client.boards.createFile({ name: "doc.txt", folderId: folder.id });
+await client.boards.deleteFiles({ ids: ["file_id"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 資料夾
+folder = client.folders.create({"name": "Q1 報告"})
+folders = client.folders.search()
+client.folders.update(folder["_id"], {"name": "Q1 2025 報告"})
+client.folders.delete([folder["_id"]])
+
+# 檔案（knowledge base 條目）
+file = client.boards.upload_file(files={"file": open("doc.pdf", "rb")})
+files = client.boards.search_files(folder_id=folder["_id"])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## OpenAI 相容 AI 服務 — `client.ai`
+
+原始 OpenAI 風格的 completions、streaming 和 embeddings，針對 `aiv2` 服務。TypeScript 和 Python 均可使用。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 單次 completion
+const response = await client.ai.complete({
+  model: "gpt-4o",
+  messages: [
+    { role: "system", content: "您是 CRM 助手。" },
+    { role: "user",   content: "摘要這位客戶的備註：..." },
+  ],
+  temperature: 0.7,
+});
+console.log(response.choices[0].message.content);
+
+// 串流傳輸
+const stream = client.ai.stream({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "為這個 lead 起草跟進郵件。" }],
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0].delta.content ?? "");
+}
+
+// Embeddings
+const result = await client.ai.embed({
+  model: "text-embedding-ada-002",
+  input: ["客戶投訴計費問題", "計費問題升級"],
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 單次 completion
+response = client.ai.complete(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "您是 CRM 助手。"},
+        {"role": "user",   "content": "摘要這位客戶的備註：..."},
+    ],
+    temperature=0.7,
+)
+print(response["choices"][0]["message"]["content"])
+
+# 串流傳輸
+for chunk in client.ai.stream(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "為這個 lead 起草跟進郵件。"}],
+):
+    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
+
+# Embeddings
+result = client.ai.embed(
+    model="text-embedding-ada-002",
+    input=["客戶投訴計費問題", "計費問題升級"],
+)
+```
 </TabItem>
 </Tabs>
 

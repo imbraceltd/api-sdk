@@ -1,0 +1,135 @@
+---
+title: Data Boards
+description: Tham chiếu SDK cho client.boards — CRM pipelines, items, fields, segments và export.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Boards là core data store cho CRM pipelines — leads, deals, tasks, hoặc bất kỳ dữ liệu có cấu trúc nào. Truyền board ids vào `board_ids` khi tạo assistant để cho phép nó truy cập dữ liệu đó — xem [Hướng Dẫn Luồng Đầy Đủ §4](/vi/sdk/full-flow-guide/#4-quản-lý-data-boards-và-items-crm-pipeline).
+
+Khởi tạo client trước (xem [Cài Đặt](/vi/sdk/installation/) hoặc [Bắt Đầu Nhanh](/vi/sdk/quick-start/)).
+
+---
+
+## Board CRUD
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: boards } = await client.boards.list();
+const board = await client.boards.get("board_id");
+
+const newBoard = await client.boards.create({ name: "Enterprise Leads" });
+await client.boards.update("board_id", { name: "Enterprise Leads 2025" });
+await client.boards.delete("board_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+boards = client.boards.list().get("data", [])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Items
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
+const item = await client.boards.getItem("board_id", "item_id");
+
+const lead = await client.boards.createItem("board_id", {
+  fields: { name: "Acme Corp", status: "new", value: 50000 },
+});
+
+await client.boards.updateItem("board_id", lead.id, {
+  fields: { status: "qualified" },
+});
+
+await client.boards.deleteItem("board_id", "item_id");
+await client.boards.bulkDeleteItems("board_id", { ids: ["item_1", "item_2", "item_3"] });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+leads = client.boards.list_items("board_id", limit=100).get("data", [])
+
+lead = client.boards.create_item("board_id", {
+    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+})
+
+client.boards.update_item("board_id", lead["id"], {
+    "fields": {"status": "qualified"}
+})
+
+client.boards.delete_item("board_id", "item_id")
+client.boards.bulk_delete_items("board_id", {"ids": ["item_1", "item_2", "item_3"]})
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Tìm kiếm
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const results = await client.boards.search("board_id", { q: "enterprise" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+results = client.boards.search("board_id", q="enterprise")
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Fields, Segments & Export
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// Fields
+const field = await client.boards.createField("board_id", {
+  name: "Giá Trị Deal",
+  type: "number",
+});
+await client.boards.updateField("board_id", field._id, { name: "Giá Trị Hợp Đồng" });
+await client.boards.deleteField("board_id", field._id);
+
+// Segments
+const { data: segments } = await client.boards.listSegments("board_id");
+const segment = await client.boards.createSegment("board_id", {
+  name: "Leads Giá Trị Cao",
+  filters: [{ field: "value", op: "gt", value: 10000 }],
+});
+
+// Xuất CSV
+const csv = await client.boards.exportCsv("board_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Fields
+field = client.boards.create_field("board_id", {"name": "Giá Trị Deal", "type": "number"})
+client.boards.update_field("board_id", field["_id"], {"name": "Giá Trị Hợp Đồng"})
+client.boards.delete_field("board_id", field["_id"])
+
+# Segments
+segments = client.boards.list_segments("board_id")
+segment = client.boards.create_segment("board_id", {
+    "name": "Leads Giá Trị Cao",
+    "filter": {"field": "value", "op": "gt", "value": 10000},
+})
+
+# Xuất CSV
+csv = client.boards.export_csv("board_id")
+```
+</TabItem>
+</Tabs>

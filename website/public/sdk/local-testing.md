@@ -1,8 +1,6 @@
 # Local Testing
 
-> Test the built Imbrace SDK packages locally against a real or mock gateway.
-
-This guide lets you test the **built package** exactly as a consumer would install it — not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
+This guide lets you test the **built package** exactly as a consumer would install it â€” not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
 
 ## Prerequisites
 
@@ -36,11 +34,11 @@ Minimum required for live calls:
 | `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
 | `IMBRACE_BASE_URL` | One of the URLs in the table above (defaults to dev when unset)                              |
 
-Org context is encoded inside the API key — you do not pass an organization id.
+Org context is encoded inside the API key â€” you do not pass an organization id.
 
 ---
 
-## TypeScript — link the built dist
+## TypeScript â€” link the built dist
 
 ### One-time setup
 
@@ -67,24 +65,24 @@ cd ts/tests/local
 node test-local.mjs
 ```
 
-- **Without credentials** — runs instantiation + resource surface checks only (no network).
-- **With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_BASE_URL`.
+- **Without credentials** â€” runs instantiation + resource surface checks only (no network).
+- **With `IMBRACE_API_KEY` set** â€” runs all live API checks against the gateway in `IMBRACE_BASE_URL`.
 
 ### Iterating on SDK changes
 
 Every edit needs a rebuild for the link to pick it up:
 
 ```bash
-# terminal 1 — ts/
+# terminal 1 â€” ts/
 npm run dev          # tsc --watch
 
-# terminal 2 — ts/tests/local
+# terminal 2 â€” ts/tests/local
 node test-local.mjs  # re-run any time
 ```
 
 ---
 
-## Python — install from a wheel or editable
+## Python â€” install from a wheel or editable
 
 ### Editable install (fastest iteration)
 
@@ -134,7 +132,6 @@ The same test runs with both `IMBRACE_API_KEY` and `IMBRACE_ACCESS_TOKEN` to cov
 ```bash
 IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
 ```
-
 ```bash
 IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 ```

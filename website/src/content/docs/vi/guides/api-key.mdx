@@ -1,0 +1,80 @@
+---
+title: Lấy API Key
+description: Cách lấy Imbrace API key — qua Portal UI hoặc bằng SDK.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+API key (`api_...`) cho phép backend của bạn gọi Imbrace mà không cần user session. Để biết khi nào dùng API key thay vì access token, xem [Xác Thực](/vi/sdk/authentication/).
+
+---
+
+## Cách 1 — Imbrace Portal (khuyến nghị)
+
+1. Đăng nhập vào Imbrace Portal.
+2. Vào **Settings → API Keys**.
+3. Nhấn **Create** và đặt tên cho key.
+4. Sao chép giá trị `api_...` — chỉ hiển thị một lần duy nhất.
+
+---
+
+## Cách 2 — SDK (lập trình)
+
+Dùng khi cần tạo key từ code, ví dụ trong quá trình provisioning tự động. Bạn phải đăng nhập bằng access token trước (qua [OTP](/vi/sdk/authentication/#otp-login-flow) hoặc [mật khẩu](/vi/sdk/authentication/#password-login)).
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    // Yêu cầu client được khởi tạo với access token
+    const res = await client.auth.getThirdPartyToken(30) // hết hạn sau 30 ngày
+    const apiKey = res.apiKey.apiKey  // "api_..."
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Yêu cầu client được khởi tạo với access token
+    res = client.auth.get_third_party_token(expiration_days=30)
+    api_key = res["apiKey"]["apiKey"]  # "api_..."
+    ```
+  </TabItem>
+</Tabs>
+
+Cấu trúc response:
+
+```json
+{
+  "apiKey": {
+    "apiKey": "api_...",
+    "expired_at": "2025-08-01T00:00:00.000Z",
+    "is_active": true
+  },
+  "expires_in": 2592000
+}
+```
+
+---
+
+## Sử dụng key
+
+Truyền key vào constructor của client:
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
+
+    const client = new ImbraceClient({
+      apiKey: process.env.IMBRACE_API_KEY!,
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+    from imbrace import ImbraceClient
+
+    client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+    ```
+  </TabItem>
+</Tabs>

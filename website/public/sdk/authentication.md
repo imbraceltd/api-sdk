@@ -1,22 +1,20 @@
 # Authentication
 
-> API Key vs Access Token — when to use each, and how to pass them to the SDK.
-
-The SDK supports two credential types. Pass either `apiKey` / `api_key` or `accessToken` / `access_token` to the client constructor — the transport handles headers automatically.
+The SDK supports two credential types. Pass either `apiKey` / `api_key` or `accessToken` / `access_token` to the client constructor â€” the transport handles headers automatically.
 
 ### Which credential should I use?
 
 The choice depends on **what role Imbrace plays in your product**:
 
-#### Build on Imbrace → use Access Token
+#### Build on Imbrace â†’ use Access Token
 
 Imbrace is your backend. Your end-users log into Imbrace (via OTP or password); their `acc_...` access token is the credential the SDK uses for every request. Imbrace's auth, database, and business logic (assistants, knowledge hubs, workflows, AI agents) all run on behalf of the actual logged-in user.
 
 Typical product: a chat widget, dashboard, or mobile app where each user's identity is an Imbrace user. Imbrace records per-user history, permissions, and audit trail.
 
-#### Wrap Imbrace → use API Key
+#### Wrap Imbrace â†’ use API Key
 
-You have your own backend, your own users, your own database. Imbrace is one capability your service calls into — "use Imbrace's AI to answer this" — alongside everything else you do. Your end-users never see Imbrace; your service calls Imbrace using a single org-level `api_...` key (issued by an Imbrace org admin). Imbrace sees one identity (the API key's service user) and you handle per-user attribution on your side.
+You have your own backend, your own users, your own database. Imbrace is one capability your service calls into â€” "use Imbrace's AI to answer this" â€” alongside everything else you do. Your end-users never see Imbrace; your service calls Imbrace using a single org-level `api_...` key (issued by an Imbrace org admin). Imbrace sees one identity (the API key's service user) and you handle per-user attribution on your side.
 
 Typical product: an existing CRM, ticketing system, or internal tool that embeds Imbrace as a feature. One credential lives in your env file and serves every request.
 
@@ -39,7 +37,7 @@ Typical product: an existing CRM, ticketing system, or internal tool that embeds
 | `apiKey` / `api_key` | `x-api-key: api_xxx...` |
 | `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
 
-The org context is **encoded inside the credential itself** — every API key and every access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You never pass `organizationId` / `organization_id` to the SDK.
+The org context is **encoded inside the credential itself** â€” every API key and every access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You never pass `organizationId` / `organization_id` to the SDK.
 
 For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
 
@@ -47,7 +45,6 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
 
 ### API Key
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk";
 
@@ -56,8 +53,6 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
       baseUrl: "https://app-gatewayv2.imbrace.co",
     });
     ```
-  
-  
     ```python
     import os
     from imbrace import ImbraceClient
@@ -66,7 +61,6 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
         api_key=os.environ["IMBRACE_API_KEY"],
     )
     ```
-  
 
 ---
 
@@ -74,21 +68,17 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
 
 If you already have an `acc_...` token, pass it directly:
 
-  
     ```typescript
     const client = new ImbraceClient({
       accessToken: "acc_xxxxxxxxxxxxx",
       baseUrl: "https://app-gatewayv2.imbrace.co",
     });
     ```
-  
-  
     ```python
     client = ImbraceClient(
         access_token="acc_xxxxxxxxxxxxx",
     )
     ```
-  
 
 ---
 
@@ -96,7 +86,6 @@ If you already have an `acc_...` token, pass it directly:
 
 Use this flow to authenticate a user via email OTP and obtain a session token. The SDK stores the token automatically after login.
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
@@ -120,8 +109,6 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     // Now use any resource
     const { data: boards } = await client.boards.list()
     ```
-  
-  
     ```python
     from imbrace import ImbraceClient
 
@@ -130,7 +117,7 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     # Step 1: Send OTP to the user's email
     client.request_otp("user@example.com")
 
-    # Step 2: User enters OTP — token stored automatically
+    # Step 2: User enters OTP â€” token stored automatically
     client.login_with_otp("user@example.com", "123456")
 
     # Step 3: All subsequent calls are authenticated
@@ -147,13 +134,11 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
         await client.login_with_otp("user@example.com", "123456")
         me = await client.platform.get_me()
     ```
-  
 
 ---
 
 ### Password Login
 
-  
     ```typescript
     const client = new ImbraceClient({
       baseUrl: "https://app-gatewayv2.imbrace.co",
@@ -161,11 +146,9 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
 
     await client.login("user@example.com", "password")
 
-    // Token is stored automatically — proceed with any resource
+    // Token is stored automatically â€” proceed with any resource
     const { data: boards } = await client.boards.list()
     ```
-  
-  
     ```python
     client = ImbraceClient()
     client.login("user@example.com", "password123")
@@ -173,13 +156,11 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     # Token stored automatically
     boards = client.boards.list()
     ```
-  
 
 ---
 
 ### Token management
 
-  
     ```typescript
     // Replace token (e.g., after a refresh)
     client.setAccessToken("acc_new_token...")
@@ -187,8 +168,6 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     // Clear token (e.g., on logout)
     client.clearAccessToken()
     ```
-  
-  
     ```python
     # Replace token (e.g., after refresh)
     client.set_access_token("acc_new_token...")
@@ -196,7 +175,6 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     # Clear token (e.g., on logout)
     client.clear_access_token()
     ```
-  
 
 ---
 

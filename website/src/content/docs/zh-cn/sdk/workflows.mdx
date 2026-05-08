@@ -1,0 +1,136 @@
+---
+title: 工作流
+description: Activepieces 可视化工作流构建器和渠道自动化 — 通过 SDK 创建、触发和管理 flows。
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+SDK 公开两个工作流系统：**Activepieces**（`client.activepieces` / `client.workflows`）用于可视化工作流自动化，**渠道自动化**（`client.workflows`）用于消息渠道流程（如 WhatsApp）。
+
+首先初始化 client（参阅[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。端到端演练请参阅[完整流程指南 §2](/zh-cn/sdk/full-flow-guide/#2-使用-activepieces-创建工作流并与助手关联)。
+
+---
+
+## Activepieces — `client.activepieces` / `client.workflows`
+
+Activepieces 是可视化工作流构建器。TypeScript 和 Python 均可使用。
+
+### Flows
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: flows } = await client.activepieces.listFlows();
+
+const flow = await client.activepieces.getFlow("flow_id");
+
+const newFlow = await client.activepieces.createFlow({
+  displayName: "新 Lead 通知",
+  projectId: "project_id",
+});
+
+await client.activepieces.deleteFlow("flow_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+flows = client.workflows.list_flows().get("data", [])
+
+flow = client.workflows.get_flow("flow_id")
+
+new_flow = client.workflows.create_flow(
+    display_name="新 Lead 通知",
+    project_id="project_id",
+)
+
+client.workflows.delete_flow("flow_id")
+```
+</TabItem>
+</Tabs>
+
+### 触发 Flow
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// 异步触发
+await client.activepieces.triggerFlow("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
+
+// 等待结果
+const result = await client.activepieces.triggerFlowSync("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# 异步触发
+client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
+
+# 等待结果
+result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
+```
+</TabItem>
+</Tabs>
+
+### Runs、文件夹、连接、表
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
+const run                = await client.activepieces.getRun("run_id");
+
+const { data: folders }  = await client.activepieces.listFolders();
+const folder             = await client.activepieces.createFolder({ displayName: "CRM 自动化", projectId: "project_id" });
+
+const { data: connections } = await client.activepieces.listConnections();
+await client.activepieces.upsertConnection({
+  name: "slack-integration",
+  type: "OAUTH2",
+  value: { access_token: "xoxb-xxx" },
+});
+
+const { data: tables }   = await client.activepieces.listTables();
+const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+runs   = client.workflows.list_runs(flow_id="flow_id", limit=20).get("data", [])
+run    = client.workflows.get_run("run_id")
+
+folders = client.workflows.list_folders().get("data", [])
+folder  = client.workflows.create_folder(display_name="CRM 自动化", project_id="project_id")
+
+connections = client.workflows.list_connections().get("data", [])
+client.workflows.upsert_connection({"name": "slack-integration", "type": "OAUTH2", "value": {"access_token": "xoxb-xxx"}})
+
+tables  = client.workflows.list_tables().get("data", [])
+records = client.workflows.list_records(table_id="table_id").get("data", [])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## 渠道自动化 — `client.workflows`
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: automations }    = await client.workflows.listChannelAutomation();
+const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ channelType: "whatsapp" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+automations    = client.workflows.list_channel_automation().get("data", [])
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+</TabItem>
+</Tabs>

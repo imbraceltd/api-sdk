@@ -1,0 +1,136 @@
+---
+title: Workflows
+description: Activepieces visual workflow builder và channel automation — tạo, kích hoạt và quản lý flows qua SDK.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+SDK cung cấp hai hệ thống workflow: **Activepieces** (`client.activepieces` / `client.workflows`) cho visual workflow automation, và **channel automation** (`client.workflows`) cho messaging channel flows như WhatsApp.
+
+Khởi tạo client trước (xem [Cài Đặt](/vi/sdk/installation/) hoặc [Bắt Đầu Nhanh](/vi/sdk/quick-start/)). Để xem hướng dẫn end-to-end kết nối workflow với assistant, xem [Hướng Dẫn Luồng Đầy Đủ §2](/vi/sdk/full-flow-guide/#2-tạo-workflow-với-activepieces-và-liên-kết-với-assistant).
+
+---
+
+## Activepieces — `client.activepieces` / `client.workflows`
+
+Activepieces là visual workflow builder. Có sẵn cho cả TypeScript và Python.
+
+### Flows
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: flows } = await client.activepieces.listFlows();
+
+const flow = await client.activepieces.getFlow("flow_id");
+
+const newFlow = await client.activepieces.createFlow({
+  displayName: "Thông Báo Lead Mới",
+  projectId: "project_id",
+});
+
+await client.activepieces.deleteFlow("flow_id");
+```
+</TabItem>
+<TabItem label="Python">
+```python
+flows = client.workflows.list_flows().get("data", [])
+
+flow = client.workflows.get_flow("flow_id")
+
+new_flow = client.workflows.create_flow(
+    display_name="Thông Báo Lead Mới",
+    project_id="project_id",
+)
+
+client.workflows.delete_flow("flow_id")
+```
+</TabItem>
+</Tabs>
+
+### Kích hoạt flow
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+// Fire and forget
+await client.activepieces.triggerFlow("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
+
+// Đợi kết quả
+const result = await client.activepieces.triggerFlowSync("flow_id", {
+  contactId: "contact_xxx",
+  event: "lead_qualified",
+});
+```
+</TabItem>
+<TabItem label="Python">
+```python
+# Fire and forget
+client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
+
+# Đợi kết quả
+result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
+```
+</TabItem>
+</Tabs>
+
+### Runs, folders, connections, tables
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
+const run                = await client.activepieces.getRun("run_id");
+
+const { data: folders }  = await client.activepieces.listFolders();
+const folder             = await client.activepieces.createFolder({ displayName: "CRM Automations", projectId: "project_id" });
+
+const { data: connections } = await client.activepieces.listConnections();
+await client.activepieces.upsertConnection({
+  name: "slack-integration",
+  type: "OAUTH2",
+  value: { access_token: "xoxb-xxx" },
+});
+
+const { data: tables }   = await client.activepieces.listTables();
+const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+runs   = client.workflows.list_runs(flow_id="flow_id", limit=20).get("data", [])
+run    = client.workflows.get_run("run_id")
+
+folders = client.workflows.list_folders().get("data", [])
+folder  = client.workflows.create_folder(display_name="CRM Automations", project_id="project_id")
+
+connections = client.workflows.list_connections().get("data", [])
+client.workflows.upsert_connection({"name": "slack-integration", "type": "OAUTH2", "value": {"access_token": "xoxb-xxx"}})
+
+tables  = client.workflows.list_tables().get("data", [])
+records = client.workflows.list_records(table_id="table_id").get("data", [])
+```
+</TabItem>
+</Tabs>
+
+---
+
+## Channel Automation — `client.workflows`
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: automations }    = await client.workflows.listChannelAutomation();
+const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ channelType: "whatsapp" });
+```
+</TabItem>
+<TabItem label="Python">
+```python
+automations    = client.workflows.list_channel_automation().get("data", [])
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+```
+</TabItem>
+</Tabs>

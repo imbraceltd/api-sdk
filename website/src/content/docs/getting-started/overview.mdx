@@ -48,7 +48,6 @@ const client = new ImbraceClient({
 
 const stream = await client.aiAgent.streamChat({
   assistant_id: "asst_xxx",
-  organization_id: "org_xxx",
   messages: [{ role: "user", content: "What deals closed this quarter?" }],
 })
 ```
