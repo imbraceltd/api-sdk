@@ -1,6 +1,12 @@
 /**
  * Document AI test — runs against prodv2 gateway.
- * Usage: node test-document-ai.mjs
+ * Usage: node test-document-ai-apikey.mjs
+ *
+ * Covers:
+ *   - chatAi.listDocumentModels / chatAi.processDocument (low-level vision extraction)
+ *   - documentAi.listAgents / getAgent / createAgent / updateAgent / deleteAgent
+ *   - documentAi.suggestSchema (meta-prompt → JSON schema)
+ *   - documentAi.process (agent-driven extraction)
  */
 
 import { ImbraceClient } from '@imbrace/sdk'
@@ -12,15 +18,12 @@ const ORG_ID       = process.env.IMBRACE_ORG_ID       || 'org_8d2a2d53-20ef-4c54
 // Small Chinese VAT invoice image — publicly accessible on prodv2
 const TEST_IMAGE_URL = 'https://app-gatewayv2.imbrace.co/files/download/118615471-5b33f600-b7f3-11eb-94a1-78e635e66558.png'
 
-const client = new ImbraceClient({ apiKey: API_KEY, baseUrl: GATEWAY, organizationId: ORG_ID })
+const client = new ImbraceClient({ apiKey: API_KEY, baseUrl: GATEWAY, organizationId: ORG_ID, timeout: 120000 })
 const chatAi = client.chatAi
 const documentAi = client.documentAi
 
-// Optional env vars to enable full CRUD test on real data
-const TEST_FILE_ID   = process.env.IMBRACE_FIN_FILE_ID   || null
-const TEST_REPORT_ID = process.env.IMBRACE_FIN_REPORT_ID || null
-
 let passed = 0, failed = 0, skipped = 0
+const created = { agentId: null }
 
 function ok(label, detail = '') {
   console.log(`  ✓ ${label}${detail ? `  →  ${String(detail).slice(0, 120)}` : ''}`)
@@ -37,32 +40,30 @@ function skip(label, reason) {
   skipped++
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// List providers (document AI model source)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── [1] List providers ───────────────────────────────────────────────────────
 
 console.log('\n[1] List document AI providers')
 let visionModel = null
+let visionModelId = null
 try {
   const providers = await chatAi.listDocumentModels()
   const list = Array.isArray(providers) ? providers : []
   const allModels = list.flatMap(p => (p.models ?? []).map(m => ({ ...m, providerName: p.name })))
   const visionModels = allModels.filter(m => m.is_vision_available && !m.name.includes('image'))
-  // prefer gpt-4o for document reading
-  visionModel = visionModels.find(m => m.name === 'gpt-4o')?.name
-    ?? visionModels.find(m => m.name.startsWith('gpt-4'))?.name
-    ?? visionModels[0]?.name
+  const picked = visionModels.find(m => m.name === 'gpt-4o')
+    ?? visionModels.find(m => m.name.startsWith('gpt-4'))
+    ?? visionModels[0]
     ?? null
+  visionModel = picked?.name ?? null
+  visionModelId = picked?._id ?? picked?.id ?? null
   ok('listDocumentModels()', `${list.length} providers, ${allModels.length} models, ${visionModels.length} vision-capable`)
 } catch (e) { fail('listDocumentModels()', e) }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Process document — vision model from provider
-// ─────────────────────────────────────────────────────────────────────────────
+// ── [2] chatAi.processDocument (low-level URL → structured data) ─────────────
 
-console.log('\n[2] Process document with vision model from provider')
+console.log('\n[2] chatAi.processDocument with vision model')
 if (!visionModel) {
-  skip('processDocument()', 'no vision-capable model found in configured providers')
+  skip('processDocument()', 'no vision-capable model found')
 } else {
   try {
     const res = await chatAi.processDocument({
@@ -76,58 +77,99 @@ if (!visionModel) {
   } catch (e) { fail(`processDocument() ${visionModel}`, e) }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Financial Documents — new client.documentAi.* resource
-// ─────────────────────────────────────────────────────────────────────────────
+// ── [3] documentAi.listAgents ────────────────────────────────────────────────
 
-console.log('\n[3] Financial Documents — getFile / getReport (smoke)')
-if (TEST_FILE_ID) {
-  try {
-    const res = await documentAi.getFile(TEST_FILE_ID, { page: 1, limit: 5 })
-    const pagination = res?.importedFile?.pagination ?? res?.report?.pagination
-    ok('getFile()', `pagination=${JSON.stringify(pagination)}`)
-  } catch (e) { fail('getFile()', e) }
-} else {
-  skip('getFile()', 'set IMBRACE_FIN_FILE_ID to test')
-}
-
-if (TEST_REPORT_ID) {
-  try {
-    const res = await documentAi.getReport(TEST_REPORT_ID, { page: 1, limit: 5 })
-    ok('getReport()', `rows=${res?.data?.length ?? 'n/a'}`)
-  } catch (e) { fail('getReport()', e) }
-} else {
-  skip('getReport()', 'set IMBRACE_FIN_REPORT_ID to test')
-}
-
-console.log('\n[4] Financial Documents — listErrors (smoke)')
-if (TEST_FILE_ID) {
-  try {
-    const res = await documentAi.listErrors(TEST_FILE_ID, { limit: 10 })
-    const list = Array.isArray(res) ? res : (res?.data ?? [])
-    ok('listErrors()', `${list.length} errors`)
-  } catch (e) { fail('listErrors()', e) }
-} else {
-  skip('listErrors()', 'set IMBRACE_FIN_FILE_ID to test')
-}
-
-console.log('\n[5] Financial Documents — URL routing smoke (fake ID, expect 4xx)')
+console.log('\n[3] documentAi.listAgents')
 try {
-  await documentAi.getFile('FAKE_DOCUMENT_ID_FOR_ROUTING_CHECK')
-  ok('getFile(fake)', 'returned without error (unexpected — backend should 404)')
-} catch (e) {
-  // 404 is expected; means URL is correctly routed to the gateway
-  const msg = e?.message ?? ''
-  if (msg.includes('404') || msg.includes('not found') || msg.includes('Not Found')) {
-    ok('getFile(fake)', '404 — URL routed correctly')
-  } else if (msg.includes('401') || msg.includes('403')) {
-    skip('getFile(fake)', `auth error (${msg.slice(0, 60)})`)
-  } else {
-    fail('getFile(fake)', e)
+  const res = await documentAi.listAgents()
+  const list = Array.isArray(res) ? res : (res?.data ?? [])
+  ok('listAgents()', `${list.length} agents`)
+} catch (e) { fail('listAgents()', e) }
+
+try {
+  const res = await documentAi.listAgents({ documentAiOnly: true })
+  const list = Array.isArray(res) ? res : (res?.data ?? [])
+  ok('listAgents({documentAiOnly:true})', `${list.length} agents`)
+} catch (e) { fail('listAgents({documentAiOnly:true})', e) }
+
+// ── [4] documentAi.suggestSchema ─────────────────────────────────────────────
+
+console.log('\n[4] documentAi.suggestSchema')
+if (!visionModel) {
+  skip('suggestSchema()', 'no vision-capable model found')
+} else {
+  try {
+    const res = await documentAi.suggestSchema({
+      url: TEST_IMAGE_URL,
+      organizationId: ORG_ID,
+      modelName: visionModel,
+    })
+    const fieldCount = Object.keys(res?.data?.properties ?? res?.properties ?? {}).length
+    ok('suggestSchema()', `${fieldCount} suggested fields`)
+  } catch (e) { fail('suggestSchema()', e) }
+}
+
+// ── [5] documentAi.createAgent + updateAgent + deleteAgent ───────────────────
+
+console.log('\n[5] documentAi.createAgent / updateAgent / deleteAgent')
+if (!visionModelId) {
+  skip('createAgent()', 'no vision model id available')
+} else {
+  try {
+    const agent = await documentAi.createAgent({
+      name: `SDK Test Agent ${Date.now()}`,
+      instructions: 'Extract text content from documents.',
+      model_id: visionModelId,
+      schema: {
+        type: 'object',
+        properties: { text: { type: 'string' } },
+      },
+    })
+    created.agentId = agent?._id ?? agent?.id ?? null
+    ok('createAgent()', `id=${created.agentId}`)
+  } catch (e) { fail('createAgent()', e) }
+
+  if (created.agentId) {
+    try {
+      const agent = await documentAi.getAgent(created.agentId)
+      ok('getAgent()', `id=${agent?._id ?? agent?.id} name=${agent?.name}`)
+    } catch (e) { fail('getAgent()', e) }
+
+    try {
+      const agent = await documentAi.updateAgent(created.agentId, {
+        name: `SDK Test Agent Updated ${Date.now()}`,
+      })
+      ok('updateAgent()', `name=${agent?.name}`)
+    } catch (e) { fail('updateAgent()', e) }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ── [6] documentAi.process — agent-driven extraction ─────────────────────────
+
+console.log('\n[6] documentAi.process (agent-driven)')
+if (!created.agentId) {
+  skip('process(agentId)', 'no agent created')
+} else {
+  try {
+    const res = await documentAi.process({
+      agentId: created.agentId,
+      url: TEST_IMAGE_URL,
+      organizationId: ORG_ID,
+    })
+    if (!res?.success) throw new Error(JSON.stringify(res).slice(0, 120))
+    ok('process(agentId)', `extracted keys: ${Object.keys(res.data ?? {}).join(', ')}`)
+  } catch (e) { fail('process(agentId)', e) }
+}
+
+// ── [7] Cleanup ──────────────────────────────────────────────────────────────
+
+console.log('\n[7] Cleanup')
+if (created.agentId) {
+  try {
+    await documentAi.deleteAgent(created.agentId)
+    ok(`deleteAgent(${created.agentId})`)
+  } catch (e) { fail(`deleteAgent(${created.agentId})`, e) }
+}
 
 console.log(`\n${'─'.repeat(55)}`)
 console.log(`  ${passed} passed  |  ${failed} failed  |  ${skipped} skipped`)

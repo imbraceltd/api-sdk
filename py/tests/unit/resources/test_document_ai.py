@@ -242,7 +242,7 @@ def test_create_full_runs_full_flow(httpx_mock: HTTPXMock, client):
     )
 
     assert result["board_id"] == "brd_xxx"
-    assert result["assistant_id"] == "fa445273-aaaa"
+    assert result["ai_agent_id"] == "fa445273-aaaa"
     assert result["channel_id"] == "ch_xxx"
     assert result["usecase_id"] == "uc_xxx"
 
@@ -286,7 +286,7 @@ def test_create_full_default_vlm_falls_back_to_model_id(httpx_mock: HTTPXMock, c
     assert body["assistant"]["document_ai"]["source_languages"] == ["English"]
 
 
-def test_create_full_extra_assistant_overrides(httpx_mock: HTTPXMock, client):
+def test_create_full_extra_ai_agent_overrides(httpx_mock: HTTPXMock, client):
     httpx_mock.add_response(url=f"{BACKEND}/board", method="POST", json={"_id": "brd_z"})
     httpx_mock.add_response(url=f"{TPL}/v2/custom", method="POST", json={"data": {}})
 
@@ -294,7 +294,7 @@ def test_create_full_extra_assistant_overrides(httpx_mock: HTTPXMock, client):
         name="X", instructions="i",
         schema_fields=[{"name": "f", "type": "ShortText"}],
         model_id="m", provider_id="p",
-        extra_assistant={
+        extra_ai_agent={
             "workflow_function_call": ["wf_id_1"],
             "metadata": {"max_token_limit": 100},
         },

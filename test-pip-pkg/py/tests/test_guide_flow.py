@@ -100,7 +100,7 @@ def main() -> None:
     print("\n[Section 1] Assistant + Chat")
 
     def s12():
-        a = client.chat_ai.create_assistant({
+        a = client.chat_ai.create_ai_agent({
             "name": f"Support Bot {ts}",
             "workflow_name": f"support_bot_v1_{ts}",
             "description": "Handles tier-1 customer support queries",
@@ -111,7 +111,7 @@ def main() -> None:
         state["assistant_id"] = a["id"]
         return a["id"]
 
-    step("1.2 createAssistant", s12)
+    step("1.2 createAiAgent", s12)
 
     if state.get("assistant_id"):
         def s13():
@@ -212,7 +212,7 @@ def main() -> None:
 
         if state.get("assistant_id"):
             def s25():
-                client.chat_ai.update_assistant(state["assistant_id"], {
+                client.chat_ai.update_ai_agent(state["assistant_id"], {
                     "name": f"Support Bot {ts}",
                     "workflow_name": f"support_bot_v1_{ts}",
                     "workflow_function_call": [
@@ -220,7 +220,7 @@ def main() -> None:
                     ],
                 })
 
-            step("2.5 updateAssistant w/ workflow_function_call", s25)
+            step("2.5 updateAiAgent w/ workflow_function_call", s25)
 
         def s26():
             r = client.workflows.list_runs(limit=10, flow_id=state["flow_id"])
@@ -266,13 +266,13 @@ def main() -> None:
 
         if state.get("assistant_id"):
             def s33():
-                client.chat_ai.update_assistant(state["assistant_id"], {
+                client.chat_ai.update_ai_agent(state["assistant_id"], {
                     "name": f"Support Bot {ts}",
                     "workflow_name": f"support_bot_v1_{ts}",
                     "folder_ids": [state["folder_id"]],
                 })
 
-            step("3.3 updateAssistant w/ folder_ids", s33)
+            step("3.3 updateAiAgent w/ folder_ids", s33)
 
         def s34a():
             res = client.boards.search_folders(q="Product")
@@ -386,7 +386,7 @@ def main() -> None:
                 pass
         step("cleanup.flow", cflow)
     if state.get("assistant_id"):
-        step("cleanup.deleteAssistant", lambda: client.chat_ai.delete_assistant(state["assistant_id"]))
+        step("cleanup.deleteAiAgent", lambda: client.chat_ai.delete_ai_agent(state["assistant_id"]))
 
     # ---------------- SUMMARY ----------------
     ok = sum(1 for r in results if r["status"] == "ok")

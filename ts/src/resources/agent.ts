@@ -1,9 +1,9 @@
 import { HttpTransport } from "../http.js"
 import type { AgentTemplate } from "../types/index.js"
 
-// ─── Agent / use-case interfaces  
+// ─── Agent / use-case interfaces
 
-export interface AgentAssistantInput {
+export interface AgentAiAgentInput {
   name?: string
   description?: string
   model?: string
@@ -19,12 +19,14 @@ export interface AgentUseCaseInput {
 }
 
 export interface CreateAgentInput {
-  assistant: AgentAssistantInput
+  /** Wire body key kept as `assistant` for backend compatibility. */
+  assistant: AgentAiAgentInput
   usecase: AgentUseCaseInput
 }
 
 export interface UpdateAgentInput {
-  assistant?: AgentAssistantInput
+  /** Wire body key kept as `assistant` for backend compatibility. */
+  assistant?: AgentAiAgentInput
   usecase?: AgentUseCaseInput
 }
 

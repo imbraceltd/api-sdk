@@ -15,10 +15,11 @@ export interface UseCaseInput {
 }
 
 /**
- * Nested config inside `assistant.document_ai` for Document AI agents.
- * Mirrors the body sent by the iMBRACE webapp when creating a Document AI agent.
+ * Nested config inside the `assistant.document_ai` body slot for Document AI
+ * agents. Mirrors the body sent by the iMBRACE webapp when creating a
+ * Document AI agent.
  */
-export interface DocumentAIAssistantConfig {
+export interface DocumentAIAgentConfig {
   vlm_provider_id: string
   vlm_model: string
   source_languages: string[]
@@ -31,12 +32,13 @@ export interface DocumentAIAssistantConfig {
 }
 
 /**
- * The `assistant` half of the create-custom-template payload.
+ * The AI Agent half of the create-custom-template payload (sent on the wire
+ * under the `assistant` body key, kept as-is for backend compatibility).
  *
  * For Document AI agents: set `agent_type: "document_ai"` and populate the
  * nested `document_ai` config (linking the schema board, VLM provider, etc.).
  */
-export interface AssistantInput {
+export interface AiAgentInput {
   name: string
   description?: string
   mode?: "advanced" | "standard"
@@ -52,7 +54,7 @@ export interface AssistantInput {
   credential_name?: string
   board_ids?: string[]
   version?: number
-  document_ai?: DocumentAIAssistantConfig
+  document_ai?: DocumentAIAgentConfig
   metadata?: Record<string, unknown>
   [key: string]: unknown
 }
@@ -101,10 +103,10 @@ export interface CreateCustomTemplateResponse {
  * Use Case Templates resource.
  *
  * Wraps `/v2/backend/templates` endpoints. The most important method is
- * {@link createCustom}, which atomically creates a UseCase + Assistant pair
+ * {@link createCustom}, which atomically creates a UseCase + AI Agent pair
  * used by Document AI flows.
  *
- * @example Create a Document AI agent (UseCase + Assistant linked to a schema board)
+ * @example Create a Document AI agent (UseCase + AI Agent linked to a schema board)
  * ```ts
  * const res = await client.templates.createCustom({
  *   usecase: {
@@ -157,15 +159,17 @@ export class TemplatesResource {
   }
 
   /**
-   * Create a custom UseCase + Assistant in one POST.
+   * Create a custom UseCase + AI Agent in one POST.
    *
    * Routes to `POST /v2/backend/templates/v2/custom`. Backend auto-creates the
    * linked channel, workflow (ActivePieces), and assistant_app, and returns the
    * assembled use case (with `assistant_id`, `channel_id`).
+   *
+   * The wire body still uses the `assistant` key for backend compatibility.
    */
   async createCustom(input: {
     usecase: UseCaseInput
-    assistant: AssistantInput
+    assistant: AiAgentInput
   }): Promise<CreateCustomTemplateResponse> {
     return this.http.getFetch()(`${this.root}/v2/custom`, {
       method: "POST",

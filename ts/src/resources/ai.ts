@@ -1,9 +1,9 @@
 import { HttpTransport } from "../http.js"
 import type { Completion, Embedding, CompletionInput, EmbeddingInput, StreamChunk } from "../types/index.js"
 
-// ─── Assistant interfaces 
+// ─── AI Agent interfaces
 
-export interface Assistant {
+export interface AiAgent {
   _id: string
   name: string
   description?: string
@@ -47,12 +47,12 @@ export interface Assistant {
   [key: string]: unknown
 }
 
-export interface AssistantListResponse {
-  data: Assistant[]
+export interface AiAgentListResponse {
+  data: AiAgent[]
   total?: number
 }
 
-export interface AssistantNameCheckResponse {
+export interface AiAgentNameCheckResponse {
   available: boolean
   name: string
 }
@@ -62,9 +62,9 @@ export interface PatchInstructionsInput {
   [key: string]: unknown
 }
 
-// ─── Assistant App interfaces   
+// ─── AI Agent App interfaces
 
-export interface AssistantApp {
+export interface AiAgentApp {
   _id: string
   name: string
   assistant_id?: string
@@ -79,12 +79,12 @@ export interface AssistantApp {
   [key: string]: unknown
 }
 
-export interface AssistantAppListResponse {
-  data: AssistantApp[]
+export interface AiAgentAppListResponse {
+  data: AiAgentApp[]
   total?: number
 }
 
-export interface CreateAssistantAppInput {
+export interface CreateAiAgentAppInput {
   name: string
   workflow_name: string
   assistant_id?: string
@@ -96,7 +96,7 @@ export interface CreateAssistantAppInput {
   [key: string]: unknown
 }
 
-export interface UpdateAssistantAppInput {
+export interface UpdateAiAgentAppInput {
   name?: string
   mode?: string
   model_id?: string
@@ -106,7 +106,7 @@ export interface UpdateAssistantAppInput {
   [key: string]: unknown
 }
 
-export interface UpdateAssistantWorkflowInput {
+export interface UpdateAiAgentWorkflowInput {
   workflow: Record<string, unknown>
   [key: string]: unknown
 }
@@ -302,7 +302,7 @@ export class AiResource {
   private get v2() { return `${this.base.replace(/\/$/, "")}/v2/ai` }
   private get v3() { return `${this.base.replace(/\/$/, "")}/v3/ai` }
 
-  private get assistantBase() {
+  private get aiAgentBase() {
     return this.v3
   }
 
@@ -365,58 +365,58 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  // ─── Assistants   
+  // ─── AI Agents
 
-  async listAssistants(): Promise<AssistantListResponse> {
-    return this.http.getFetch()(`${this.assistantBase}/accounts/assistants`, { method: "GET" }).then(r => r.json())
+  async listAiAgents(): Promise<AiAgentListResponse> {
+    return this.http.getFetch()(`${this.aiAgentBase}/accounts/assistants`, { method: "GET" }).then(r => r.json())
   }
 
-  async getAssistant(assistantId: string): Promise<Assistant> {
-    return this.http.getFetch()(`${this.assistantBase}/accounts/assistants/${assistantId}`, { method: "GET" }).then(r => r.json())
+  async getAiAgent(aiAgentId: string): Promise<AiAgent> {
+    return this.http.getFetch()(`${this.aiAgentBase}/accounts/assistants/${aiAgentId}`, { method: "GET" }).then(r => r.json())
   }
 
-  async checkAssistantName(name: string): Promise<AssistantNameCheckResponse> {
-    const url = new URL(`${this.assistantBase}/assistants/check-name`)
+  async checkAiAgentName(name: string): Promise<AiAgentNameCheckResponse> {
+    const url = new URL(`${this.aiAgentBase}/assistants/check-name`)
     url.searchParams.set("name", name)
     return this.http.getFetch()(url, { method: "GET" }).then(r => r.json())
   }
 
-  async listAgents(): Promise<AssistantListResponse> {
-    return this.http.getFetch()(`${this.assistantBase}/assistants/agents`, { method: "GET" }).then(r => r.json())
+  async listAgents(): Promise<AiAgentListResponse> {
+    return this.http.getFetch()(`${this.aiAgentBase}/assistants/agents`, { method: "GET" }).then(r => r.json())
   }
 
-  async patchInstructions(assistantId: string, body: PatchInstructionsInput): Promise<Assistant> {
-    return this.http.getFetch()(`${this.assistantBase}/assistants/${assistantId}/instructions`, {
+  async patchInstructions(aiAgentId: string, body: PatchInstructionsInput): Promise<AiAgent> {
+    return this.http.getFetch()(`${this.aiAgentBase}/assistants/${aiAgentId}/instructions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  // ─── Assistant Apps   
+  // ─── AI Agent Apps
 
-  async createAssistantApp(body: CreateAssistantAppInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.assistantBase}/assistant_apps`, {
+  async createAiAgentApp(body: CreateAiAgentAppInput): Promise<AiAgentApp> {
+    return this.http.getFetch()(`${this.aiAgentBase}/assistant_apps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  async updateAssistantApp(assistantId: string, body: UpdateAssistantAppInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}`, {
+  async updateAiAgentApp(aiAgentId: string, body: UpdateAiAgentAppInput): Promise<AiAgentApp> {
+    return this.http.getFetch()(`${this.aiAgentBase}/assistant_apps/${aiAgentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  async deleteAssistantApp(assistantId: string): Promise<void> {
-    await this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}`, { method: "DELETE" })
+  async deleteAiAgentApp(aiAgentId: string): Promise<void> {
+    await this.http.getFetch()(`${this.aiAgentBase}/assistant_apps/${aiAgentId}`, { method: "DELETE" })
   }
 
-  async updateAssistantWorkflow(assistantId: string, body: UpdateAssistantWorkflowInput): Promise<AssistantApp> {
-    return this.http.getFetch()(`${this.assistantBase}/assistant_apps/${assistantId}/workflow`, {
+  async updateAiAgentWorkflow(aiAgentId: string, body: UpdateAiAgentWorkflowInput): Promise<AiAgentApp> {
+    return this.http.getFetch()(`${this.aiAgentBase}/assistant_apps/${aiAgentId}/workflow`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -601,13 +601,13 @@ export class AiResource {
   }
 
 
-  // --- AI Assistants (v2) ---
+  // --- AI Agents (v2) ---
 
-  async listAssistantsV2(): Promise<AssistantListResponse> {
+  async listAiAgentsV2(): Promise<AiAgentListResponse> {
     return this.http.getFetch()(`${this.v2}/ai/assistants`, { method: "GET" }).then(r => r.json())
   }
 
-  async createAssistantV2(body: any): Promise<Assistant> {
+  async createAiAgentV2(body: any): Promise<AiAgent> {
     return this.http.getFetch()(`${this.v2}/ai/assistants`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -615,19 +615,19 @@ export class AiResource {
     }).then(r => r.json())
   }
 
-  async updateAssistantV2(assistantId: string, body: any): Promise<Assistant> {
-    return this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, {
+  async updateAiAgentV2(aiAgentId: string, body: any): Promise<AiAgent> {
+    return this.http.getFetch()(`${this.v2}/ai/assistants/${aiAgentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then(r => r.json())
   }
 
-  async deleteAssistantV2(assistantId: string): Promise<void> {
-    await this.http.getFetch()(`${this.v2}/ai/assistants/${assistantId}`, { method: "DELETE" })
+  async deleteAiAgentV2(aiAgentId: string): Promise<void> {
+    await this.http.getFetch()(`${this.v2}/ai/assistants/${aiAgentId}`, { method: "DELETE" })
   }
 
-  async createAssistantAppV2(body: any): Promise<AssistantApp> {
+  async createAiAgentAppV2(body: any): Promise<AiAgentApp> {
     return this.http.getFetch()(`${this.v2}/ai/assistant_apps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -86,7 +86,7 @@ try:
 except Exception as e: fail("suggest_schema", e)
 
 # [6] create_full — atomic with type=DocumentAI + agent_type=document_ai
-print("\n[6] create_full — atomic Board(DocumentAI) + UseCase(document_ai) + Assistant")
+print("\n[6] create_full — atomic Board(DocumentAI) + UseCase(document_ai) + AI Agent")
 created = None
 test_name = f"SDK_TEST_DocAI_{os.getpid()}"
 if provider_id:
@@ -105,11 +105,11 @@ if provider_id:
         ok("create_full",
            f"board={(created.get('board_id') or '')[:30]} "
            f"uc={(created.get('usecase_id') or '')[:30]} "
-           f"a={(created.get('assistant_id') or '')[:30]}")
+           f"a={(created.get('ai_agent_id') or '')[:30]}")
     except Exception as e: fail("create_full", e)
 
-if created and created.get("assistant_id"):
-    aid = created["assistant_id"]
+if created and created.get("ai_agent_id"):
+    aid = created["ai_agent_id"]
 
     # [7] verify
     print("\n[7] verify created agent in document_ai_only filter")

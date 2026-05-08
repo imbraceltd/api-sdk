@@ -90,7 +90,7 @@ def run_env(env):
     except Exception as e: fail("client.document_ai.suggest_schema()", e)
 
     # CREATE_FULL
-    print("\n  ── CREATE_FULL (Board + UseCase + Assistant atomic) ─")
+    print("\n  ── CREATE_FULL (Board + UseCase + AI Agent atomic) ─")
     created = None
     test_name = f"SDK_TEST_DocAI_{os.getpid()}_{env['org'][:10]}"
     if provider_id:
@@ -106,15 +106,15 @@ def run_env(env):
                 model_id=str(model_id), provider_id=str(provider_id),
             )
             ok("client.document_ai.create_full()",
-               f"board={(created.get('board_id') or '')[:30]} a={(created.get('assistant_id') or '')[:30]}")
+               f"board={(created.get('board_id') or '')[:30]} a={(created.get('ai_agent_id') or '')[:30]}")
         except Exception as e:
             if "DocumentAI" in str(e) or "document_ai" in str(e) or "enum" in str(e):
                 expect_fail("client.document_ai.create_full()", e)
             else:
                 fail("client.document_ai.create_full()", e)
 
-    if created and created.get("assistant_id"):
-        aid = created["assistant_id"]
+    if created and created.get("ai_agent_id"):
+        aid = created["ai_agent_id"]
 
         try:
             doc_agents = da.list_agents(document_ai_only=True)

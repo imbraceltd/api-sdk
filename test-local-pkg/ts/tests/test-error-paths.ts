@@ -34,7 +34,7 @@ async function testErrorPaths() {
       });
 
       try {
-        await badClient.chatAi.listAssistants();
+        await badClient.chatAi.listAiAgents();
         throw new Error("Should have thrown 401");
       } catch (e: any) {
         logResult("Caught Expected 401", e.message);

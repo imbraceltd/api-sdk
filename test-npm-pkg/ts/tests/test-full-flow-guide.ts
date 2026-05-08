@@ -55,7 +55,7 @@ async function testFullFlowGuide() {
 
     await runTestSection("Assistant CRUD", async () => {
       // 1. Create
-      const assistant = await client.chatAi.createAssistant({
+      const assistant = await client.chatAi.createAiAgent({
         name: `SDK Test Assistant ${ts}`,
         workflow_name: `sdk_guide_test_${ts}`,
         description: "Created by full-flow-guide test",
@@ -65,22 +65,22 @@ async function testFullFlowGuide() {
       logResult("Assistant Created", state.assistantId);
 
       // 2. List & Verify
-      const allAssistants = await client.chatAi.listAssistants();
+      const allAssistants = await client.chatAi.listAiAgents();
       const found = allAssistants.find(a => a.id === state.assistantId);
       if (!found) throw new Error("Assistant not found in list");
       logResult("Assistant List & Verify", `Found among ${allAssistants.length} assistants`);
 
       // 3. Get & Verify
-      const asst = await client.chatAi.getAssistant(state.assistantId!);
+      const asst = await client.chatAi.getAiAgent(state.assistantId!);
       if (asst.name !== `SDK Test Assistant ${ts}`) throw new Error("Name mismatch");
       logResult("Assistant Retrieved & Verified", true);
 
       // 4. Update Instructions
-      await client.chatAi.updateAssistantInstructions(state.assistantId!, "You are a helpful test agent. Use the word 'IMBRACE' in your reply."); 
+      await client.chatAi.updateAiAgentInstructions(state.assistantId!, "You are a helpful test agent. Use the word 'IMBRACE' in your reply."); 
       logResult("Instructions Updated", true);
 
       // 5. Update Name
-      const updated = await client.chatAi.updateAssistant(state.assistantId!, {
+      const updated = await client.chatAi.updateAiAgent(state.assistantId!, {
         name: `SDK Assistant ${ts} Updated`,
         workflow_name: `sdk_guide_test_${ts}`,
       });
@@ -155,7 +155,7 @@ async function testFullFlowGuide() {
       logResult("Knowledge File Uploaded", secretCode);
 
       // 5. Attach to Assistant
-      await client.chatAi.updateAssistant(state.assistantId!, {
+      await client.chatAi.updateAiAgent(state.assistantId!, {
         name: `SDK Assistant ${ts} Updated`,
         workflow_name: `sdk_guide_test_${ts}`,
         knowledge_hubs: [state.kbFolderId!]
@@ -169,11 +169,11 @@ async function testFullFlowGuide() {
     // --- Verify RAG with Multi-turn Chat -------------------------------------
     await runTestSection("Multi-turn Chat Verification (RAG)", async () => {
       let chatAsstId = state.assistantId!;
-      const asstInfo = await client.chatAi.getAssistant(chatAsstId);
+      const asstInfo = await client.chatAi.getAiAgent(chatAsstId);
 
       if (!(asstInfo as any).model_id) {
           console.log("   ⚠️ New assistant has no model yet, falling back to an existing one for chat test.");
-          const all = await client.chatAi.listAssistants();
+          const all = await client.chatAi.listAiAgents();
           const fallback = all.find(a => (a as any).model_id);
           if (fallback) chatAsstId = fallback.id;
       }
@@ -263,7 +263,7 @@ async function testFullFlowGuide() {
     try {
         if (state.kbFolderId) await client.boards.deleteFolders({ ids: [state.kbFolderId] });
         if (state.boardId) await client.boards.delete(state.boardId);
-        if (state.assistantId) await client.chatAi.deleteAssistant(state.assistantId);
+        if (state.assistantId) await client.chatAi.deleteAiAgent(state.assistantId);
         console.log("   Cleanup finished.");
     } catch (e: any) {
         console.warn("   Cleanup failed:", e.message);

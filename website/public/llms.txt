@@ -2,6 +2,18 @@
 
 > iMBRACE is an enterprise-grade multi-channel engagement platform. This SDK provides a unified interface to three core gateways: **App Gateway** (Stable/v2), **Server Gateway** (3rd party automation), and **Journey API** (Marketplace).
 
+## Install
+
+- **TypeScript / JavaScript** — npm package [`@imbrace/sdk`](https://www.npmjs.com/package/@imbrace/sdk)
+  ```bash
+  npm install @imbrace/sdk
+  # or: yarn add @imbrace/sdk / pnpm add @imbrace/sdk
+  ```
+- **Python** — PyPI package [`imbrace`](https://pypi.org/project/imbrace/) (requires Python ≥ 3.9)
+  ```bash
+  pip install imbrace
+  ```
+
 ## Documentation & Links
 
 ### Getting Started

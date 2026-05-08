@@ -5,7 +5,7 @@ from ..http import HttpTransport, AsyncHttpTransport
 from ..types.ai import Completion, StreamChunk, Embedding, CompletionInput, EmbeddingInput
 
 
-class Assistant(TypedDict, total=False):
+class AiAgent(TypedDict, total=False):
     _id: str
     name: str
     description: Optional[str]
@@ -48,12 +48,12 @@ class Assistant(TypedDict, total=False):
     updated_at: Optional[str]
 
 
-class AssistantListResponse(TypedDict, total=False):
-    data: List[Assistant]
+class AiAgentListResponse(TypedDict, total=False):
+    data: List[AiAgent]
     total: Optional[int]
 
 
-class AssistantNameCheckResponse(TypedDict):
+class AiAgentNameCheckResponse(TypedDict):
     available: bool
     name: str
 
@@ -62,7 +62,7 @@ class PatchInstructionsInput(TypedDict, total=False):
     instructions: str
 
 
-class AssistantApp(TypedDict, total=False):
+class AiAgentApp(TypedDict, total=False):
     _id: str
     name: str
     assistant_id: Optional[str]
@@ -76,12 +76,12 @@ class AssistantApp(TypedDict, total=False):
     updated_at: Optional[str]
 
 
-class AssistantAppListResponse(TypedDict, total=False):
-    data: List[AssistantApp]
+class AiAgentAppListResponse(TypedDict, total=False):
+    data: List[AiAgentApp]
     total: Optional[int]
 
 
-class CreateAssistantAppInput(TypedDict, total=False):
+class CreateAiAgentAppInput(TypedDict, total=False):
     name: str
     workflow_name: str
     assistant_id: str
@@ -92,7 +92,7 @@ class CreateAssistantAppInput(TypedDict, total=False):
     agent_type: Optional[str]
 
 
-class UpdateAssistantAppInput(TypedDict, total=False):
+class UpdateAiAgentAppInput(TypedDict, total=False):
     name: str
     mode: Optional[str]
     model_id: Optional[str]
@@ -101,7 +101,7 @@ class UpdateAssistantAppInput(TypedDict, total=False):
     agent_type: Optional[str]
 
 
-class UpdateAssistantWorkflowInput(TypedDict, total=False):
+class UpdateAiAgentWorkflowInput(TypedDict, total=False):
     workflow: Dict[str, Any]
 
 
@@ -267,7 +267,7 @@ class VerifyToolServerResponse(TypedDict, total=False):
 
 
 class AiResource:
-    """AI domain — Sync. Completions, embeddings, assistants, RAG, guardrails."""
+    """AI domain — Sync. Completions, embeddings, AI agents, RAG, guardrails."""
 
     def __init__(self, http: HttpTransport, base: str):
         self._http = http
@@ -282,7 +282,7 @@ class AiResource:
         return f"{self._base.rstrip('/')}/v3/ai"
 
     @property
-    def _assistant_base(self) -> str:
+    def _ai_agent_base(self) -> str:
         return self._v3
 
     # --- Completions / Embeddings ---
@@ -326,40 +326,40 @@ class AiResource:
             return Embedding(**res["data"])
         return Embedding(**res)
 
-    # --- Assistants ---
-    def list_assistants(self) -> AssistantListResponse:
-        return self._http.request("GET", f"{self._assistant_base}/accounts/assistants").json()
+    # --- AiAgents ---
+    def list_ai_agents(self) -> AiAgentListResponse:
+        return self._http.request("GET", f"{self._ai_agent_base}/accounts/assistants").json()
 
-    def get_assistant(self, assistant_id: str) -> Assistant:
-        return self._http.request("GET", f"{self._assistant_base}/assistants/{assistant_id}").json()
+    def get_ai_agent(self, ai_agent_id: str) -> AiAgent:
+        return self._http.request("GET", f"{self._ai_agent_base}/assistants/{ai_agent_id}").json()
 
-    def check_assistant_name(self, name: str) -> AssistantNameCheckResponse:
-        return self._http.request("GET", f"{self._assistant_base}/assistants/check-name", params={"name": name}).json()
+    def check_ai_agent_name(self, name: str) -> AiAgentNameCheckResponse:
+        return self._http.request("GET", f"{self._ai_agent_base}/assistants/check-name", params={"name": name}).json()
 
-    def list_agents(self) -> AssistantListResponse:
-        return self._http.request("GET", f"{self._assistant_base}/assistants/agents").json()
+    def list_agents(self) -> AiAgentListResponse:
+        return self._http.request("GET", f"{self._ai_agent_base}/assistants/agents").json()
 
-    def patch_instructions(self, assistant_id: str, body: PatchInstructionsInput) -> Assistant:
-        return self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body).json()
+    def patch_instructions(self, ai_agent_id: str, body: PatchInstructionsInput) -> AiAgent:
+        return self._http.request("PATCH", f"{self._ai_agent_base}/assistants/{ai_agent_id}/instructions", json=body).json()
 
-    # --- Assistant Apps ---
-    def list_assistant_apps(self) -> AssistantAppListResponse:
-        return self._http.request("GET", f"{self._assistant_base}/assistant_apps").json()
+    # --- AiAgent Apps ---
+    def list_ai_agent_apps(self) -> AiAgentAppListResponse:
+        return self._http.request("GET", f"{self._ai_agent_base}/assistant_apps").json()
 
-    def get_assistant_app(self, assistant_id: str) -> AssistantApp:
-        return self._http.request("GET", f"{self._assistant_base}/assistant_apps/{assistant_id}").json()
+    def get_ai_agent_app(self, ai_agent_id: str) -> AiAgentApp:
+        return self._http.request("GET", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}").json()
 
-    def create_assistant_app(self, body: CreateAssistantAppInput) -> AssistantApp:
-        return self._http.request("POST", f"{self._assistant_base}/assistant_apps", json=body).json()
+    def create_ai_agent_app(self, body: CreateAiAgentAppInput) -> AiAgentApp:
+        return self._http.request("POST", f"{self._ai_agent_base}/assistant_apps", json=body).json()
 
-    def update_assistant_app(self, assistant_id: str, body: UpdateAssistantAppInput) -> AssistantApp:
-        return self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}", json=body).json()
+    def update_ai_agent_app(self, ai_agent_id: str, body: UpdateAiAgentAppInput) -> AiAgentApp:
+        return self._http.request("PUT", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}", json=body).json()
 
-    def delete_assistant_app(self, assistant_id: str) -> None:
-        self._http.request("DELETE", f"{self._assistant_base}/assistant_apps/{assistant_id}")
+    def delete_ai_agent_app(self, ai_agent_id: str) -> None:
+        self._http.request("DELETE", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}")
 
-    def update_assistant_workflow(self, assistant_id: str, body: UpdateAssistantWorkflowInput) -> AssistantApp:
-        return self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}/workflow", json=body).json()
+    def update_ai_agent_workflow(self, ai_agent_id: str, body: UpdateAiAgentWorkflowInput) -> AiAgentApp:
+        return self._http.request("PUT", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}/workflow", json=body).json()
 
     # --- RAG Files ---
     def list_rag_files(self) -> RagFileListResponse:
@@ -469,26 +469,26 @@ class AiResource:
     def verify_tool_server(self, body: VerifyToolServerInput) -> VerifyToolServerResponse:
         return self._http.request("POST", f"{self._v3}/configs/tool_servers/verify", json=body).json()
 
-    # --- AI Assistants (v2) ---
+    # --- AI AiAgents (v2) ---
 
-    def list_assistants_v2(self) -> AssistantListResponse:
-        """List assistants (v2)."""
+    def list_ai_agents_v2(self) -> AiAgentListResponse:
+        """List AI agents (v2)."""
         return self._http.request("GET", f"{self._v2}/ai/assistants").json()
 
-    def create_assistant_v2(self, body: Dict[str, Any]) -> Assistant:
-        """Create assistant (v2)."""
+    def create_ai_agent_v2(self, body: Dict[str, Any]) -> AiAgent:
+        """Create AI agent (v2)."""
         return self._http.request("POST", f"{self._v2}/ai/assistants", json=body).json()
 
-    def update_assistant_v2(self, assistant_id: str, body: Dict[str, Any]) -> Assistant:
-        """Update assistant (v2)."""
-        return self._http.request("PUT", f"{self._v2}/ai/assistants/{assistant_id}", json=body).json()
+    def update_ai_agent_v2(self, ai_agent_id: str, body: Dict[str, Any]) -> AiAgent:
+        """Update AI agent (v2)."""
+        return self._http.request("PUT", f"{self._v2}/ai/assistants/{ai_agent_id}", json=body).json()
 
-    def delete_assistant_v2(self, assistant_id: str) -> None:
-        """Delete assistant (v2)."""
-        self._http.request("DELETE", f"{self._v2}/ai/assistants/{assistant_id}")
+    def delete_ai_agent_v2(self, ai_agent_id: str) -> None:
+        """Delete AI agent (v2)."""
+        self._http.request("DELETE", f"{self._v2}/ai/assistants/{ai_agent_id}")
 
-    def create_assistant_app_v2(self, body: Dict[str, Any]) -> AssistantApp:
-        """Create assistant app (v2)."""
+    def create_ai_agent_app_v2(self, body: Dict[str, Any]) -> AiAgentApp:
+        """Create AI agent app (v2)."""
         return self._http.request("POST", f"{self._v2}/ai/assistant_apps", json=body).json()
 
 
@@ -508,7 +508,7 @@ class AsyncAiResource:
         return f"{self._base.rstrip('/')}/v3/ai"
 
     @property
-    def _assistant_base(self) -> str:
+    def _ai_agent_base(self) -> str:
         return self._v3
 
     # --- Completions / Embeddings ---
@@ -555,51 +555,51 @@ class AsyncAiResource:
             return Embedding(**data["data"])
         return Embedding(**data)
 
-    # --- Assistants ---
+    # --- AiAgents ---
 
-    async def list_assistants(self) -> AssistantListResponse:
-        res = await self._http.request("GET", f"{self._assistant_base}/accounts/assistants")
+    async def list_ai_agents(self) -> AiAgentListResponse:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/accounts/assistants")
         return res.json()
 
-    async def get_assistant(self, assistant_id: str) -> Assistant:
-        res = await self._http.request("GET", f"{self._assistant_base}/assistants/{assistant_id}")
+    async def get_ai_agent(self, ai_agent_id: str) -> AiAgent:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/assistants/{ai_agent_id}")
         return res.json()
 
-    async def check_assistant_name(self, name: str) -> AssistantNameCheckResponse:
-        res = await self._http.request("GET", f"{self._assistant_base}/assistants/check-name", params={"name": name})
+    async def check_ai_agent_name(self, name: str) -> AiAgentNameCheckResponse:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/assistants/check-name", params={"name": name})
         return res.json()
 
-    async def list_agents(self) -> AssistantListResponse:
-        res = await self._http.request("GET", f"{self._assistant_base}/assistants/agents")
+    async def list_agents(self) -> AiAgentListResponse:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/assistants/agents")
         return res.json()
 
-    async def patch_instructions(self, assistant_id: str, body: PatchInstructionsInput) -> Assistant:
-        res = await self._http.request("PATCH", f"{self._assistant_base}/assistants/{assistant_id}/instructions", json=body)
+    async def patch_instructions(self, ai_agent_id: str, body: PatchInstructionsInput) -> AiAgent:
+        res = await self._http.request("PATCH", f"{self._ai_agent_base}/assistants/{ai_agent_id}/instructions", json=body)
         return res.json()
 
-    # --- Assistant Apps ---
+    # --- AiAgent Apps ---
 
-    async def list_assistant_apps(self) -> AssistantAppListResponse:
-        res = await self._http.request("GET", f"{self._assistant_base}/assistant_apps")
+    async def list_ai_agent_apps(self) -> AiAgentAppListResponse:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/assistant_apps")
         return res.json()
 
-    async def get_assistant_app(self, assistant_id: str) -> AssistantApp:
-        res = await self._http.request("GET", f"{self._assistant_base}/assistant_apps/{assistant_id}")
+    async def get_ai_agent_app(self, ai_agent_id: str) -> AiAgentApp:
+        res = await self._http.request("GET", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}")
         return res.json()
 
-    async def create_assistant_app(self, body: CreateAssistantAppInput) -> AssistantApp:
-        res = await self._http.request("POST", f"{self._assistant_base}/assistant_apps", json=body)
+    async def create_ai_agent_app(self, body: CreateAiAgentAppInput) -> AiAgentApp:
+        res = await self._http.request("POST", f"{self._ai_agent_base}/assistant_apps", json=body)
         return res.json()
 
-    async def update_assistant_app(self, assistant_id: str, body: UpdateAssistantAppInput) -> AssistantApp:
-        res = await self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}", json=body)
+    async def update_ai_agent_app(self, ai_agent_id: str, body: UpdateAiAgentAppInput) -> AiAgentApp:
+        res = await self._http.request("PUT", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}", json=body)
         return res.json()
 
-    async def delete_assistant_app(self, assistant_id: str) -> None:
-        await self._http.request("DELETE", f"{self._assistant_base}/assistant_apps/{assistant_id}")
+    async def delete_ai_agent_app(self, ai_agent_id: str) -> None:
+        await self._http.request("DELETE", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}")
 
-    async def update_assistant_workflow(self, assistant_id: str, body: UpdateAssistantWorkflowInput) -> AssistantApp:
-        res = await self._http.request("PUT", f"{self._assistant_base}/assistant_apps/{assistant_id}/workflow", json=body)
+    async def update_ai_agent_workflow(self, ai_agent_id: str, body: UpdateAiAgentWorkflowInput) -> AiAgentApp:
+        res = await self._http.request("PUT", f"{self._ai_agent_base}/assistant_apps/{ai_agent_id}/workflow", json=body)
         return res.json()
 
     # --- RAG Files ---
@@ -721,28 +721,28 @@ class AsyncAiResource:
         res = await self._http.request("POST", f"{self._v3}/configs/tool_servers/verify", json=body)
         return res.json()
 
-    # --- AI Assistants (v2) ---
+    # --- AI AiAgents (v2) ---
 
-    async def list_assistants_v2(self) -> AssistantListResponse:
-        """List assistants (v2) (async)."""
+    async def list_ai_agents_v2(self) -> AiAgentListResponse:
+        """List AI agents (v2) (async)."""
         res = await self._http.request("GET", f"{self._v2}/ai/assistants")
         return res.json()
 
-    async def create_assistant_v2(self, body: Dict[str, Any]) -> Assistant:
-        """Create assistant (v2) (async)."""
+    async def create_ai_agent_v2(self, body: Dict[str, Any]) -> AiAgent:
+        """Create AI agent (v2) (async)."""
         res = await self._http.request("POST", f"{self._v2}/ai/assistants", json=body)
         return res.json()
 
-    async def update_assistant_v2(self, assistant_id: str, body: Dict[str, Any]) -> Assistant:
-        """Update assistant (v2) (async)."""
-        res = await self._http.request("PUT", f"{self._v2}/ai/assistants/{assistant_id}", json=body)
+    async def update_ai_agent_v2(self, ai_agent_id: str, body: Dict[str, Any]) -> AiAgent:
+        """Update AI agent (v2) (async)."""
+        res = await self._http.request("PUT", f"{self._v2}/ai/assistants/{ai_agent_id}", json=body)
         return res.json()
 
-    async def delete_assistant_v2(self, assistant_id: str) -> None:
-        """Delete assistant (v2) (async)."""
-        await self._http.request("DELETE", f"{self._v2}/ai/assistants/{assistant_id}")
+    async def delete_ai_agent_v2(self, ai_agent_id: str) -> None:
+        """Delete AI agent (v2) (async)."""
+        await self._http.request("DELETE", f"{self._v2}/ai/assistants/{ai_agent_id}")
 
-    async def create_assistant_app_v2(self, body: Dict[str, Any]) -> AssistantApp:
-        """Create assistant app (v2) (async)."""
+    async def create_ai_agent_app_v2(self, body: Dict[str, Any]) -> AiAgentApp:
+        """Create AI agent app (v2) (async)."""
         res = await self._http.request("POST", f"{self._v2}/ai/assistant_apps", json=body)
         return res.json()

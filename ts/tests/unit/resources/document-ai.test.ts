@@ -297,7 +297,7 @@ describe("DocumentAIResource", () => {
       })
 
       expect(result.board_id).toBe("brd_xxx")
-      expect(result.assistant_id).toBe("fa445273-aaaa")
+      expect(result.ai_agent_id).toBe("fa445273-aaaa")
       expect(result.channel_id).toBe("ch_xxx")
       expect(result.usecase_id).toBe("uc_xxx")
 
@@ -340,7 +340,7 @@ describe("DocumentAIResource", () => {
       expect(tplBody.assistant.document_ai.source_languages).toEqual(["English"])
     })
 
-    it("extraAssistant overrides assistant fields", async () => {
+    it("extraAiAgent overrides AI Agent fields on the wire body", async () => {
       mockFetchSequence([
         { data: { _id: "brd_z" } },
         { data: { data: {} } },
@@ -350,7 +350,7 @@ describe("DocumentAIResource", () => {
         name: "X", instructions: "i",
         schemaFields: [{ name: "f", type: "ShortText" }],
         modelId: "m", providerId: "p",
-        extraAssistant: {
+        extraAiAgent: {
           workflow_function_call: ["wf_id_1"],
           metadata: { max_token_limit: 100 },
         },

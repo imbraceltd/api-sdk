@@ -44,8 +44,8 @@ section("Flow 1: Create Assistant → Stream Chat")
 const ts = Date.now()
 let assistantId = null
 
-const assistant = await step("createAssistant", () =>
-  client.chatAi.createAssistant({
+const assistant = await step("createAiAgent", () =>
+  client.chatAi.createAiAgent({
     name: `SDK Test Assistant ${ts}`,
     workflow_name: `sdk_guide_test_${ts}`,
     description: "Created by full-flow-guide test",
@@ -54,30 +54,30 @@ const assistant = await step("createAssistant", () =>
 )
 if (assistant) assistantId = assistant.id
 
-await step("getAssistant", () =>
-  client.chatAi.getAssistant(assistantId)
+await step("getAiAgent", () =>
+  client.chatAi.getAiAgent(assistantId)
 )
 
-await step("listAssistants (contains new)", async () => {
-  const list = await client.chatAi.listAssistants()
+await step("listAiAgents (contains new)", async () => {
+  const list = await client.chatAi.listAiAgents()
   const found = list.find(a => a.id === assistantId)
   if (!found) throw new Error("New assistant not in list")
   return found
 })
 
-await step("updateAssistantInstructions", () =>
-  client.chatAi.updateAssistantInstructions(assistantId, "You are a helpful test agent. Reply in one sentence.")
+await step("updateAiAgentInstructions", () =>
+  client.chatAi.updateAiAgentInstructions(assistantId, "You are a helpful test agent. Reply in one sentence.")
 )
 
-await step("updateAssistant (rename)", () =>
-  client.chatAi.updateAssistant(assistantId, {
+await step("updateAiAgent (rename)", () =>
+  client.chatAi.updateAiAgent(assistantId, {
     name: `SDK Test Assistant ${ts} (updated)`,
     workflow_name: `sdk_guide_test_${ts}`,
   })
 )
 
 // Use an existing (fully configured) assistant for chat — newly created ones have no model
-const allAssistants = await client.chatAi.listAssistants().catch(() => [])
+const allAssistants = await client.chatAi.listAiAgents().catch(() => [])
 const chatAssistant = allAssistants.find(a => a.id !== assistantId && a.model_id) ?? null
 const chatAssistantId = chatAssistant?.id ?? null
 
@@ -192,7 +192,7 @@ await step("boards.getFolderContents", async () => {
 // Attach folder to assistant as its knowledge base
 if (assistantId && kbFolderId) {
   await step("attach knowledge folder to assistant", () =>
-    client.chatAi.updateAssistant(assistantId, {
+    client.chatAi.updateAiAgent(assistantId, {
       name: `SDK Test Assistant ${ts} (updated)`,
       workflow_name: `sdk_guide_test_${ts}`,
       knowledge_hubs: [kbFolderId],
@@ -273,7 +273,7 @@ section("Cleanup")
 
 if (kbFolderId) await step("boards.deleteFolders", () => client.boards.deleteFolders({ ids: [kbFolderId] }))
 if (boardId) await step("boards.delete", () => client.boards.delete(boardId))
-if (assistantId) await step("deleteAssistant", () => client.chatAi.deleteAssistant(assistantId))
+if (assistantId) await step("deleteAiAgent", () => client.chatAi.deleteAiAgent(assistantId))
 
 // ─── Summary ──────────────────────────────────────────────────────────────────
 

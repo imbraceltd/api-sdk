@@ -6,13 +6,13 @@ async function testChatAi() {
 
   // 1. Assistants
   let testAssistantId: string | null = null;
-  await runTestSection("chatAi.listAssistants", async () => {
-    const list = await client.chatAi.listAssistants();
+  await runTestSection("chatAi.listAiAgents", async () => {
+    const list = await client.chatAi.listAiAgents();
     logResult("Assistants", list);
   });
 
-  await runTestSection("chatAi.createAssistant", async () => {
-    const assistant = await client.chatAi.createAssistant({
+  await runTestSection("chatAi.createAiAgent", async () => {
+    const assistant = await client.chatAi.createAiAgent({
       name: `SDK_UNIT_TEST_${Date.now()}`,
       workflow_name: `sdk_unit_test_${Date.now()}`,
       description: "Temporary assistant for unit testing",
@@ -22,13 +22,13 @@ async function testChatAi() {
   });
 
   if (testAssistantId) {
-    await runTestSection("chatAi.getAssistant", async () => {
-      const assistant = await client.chatAi.getAssistant(testAssistantId!);
+    await runTestSection("chatAi.getAiAgent", async () => {
+      const assistant = await client.chatAi.getAiAgent(testAssistantId!);
       logResult("Fetched Assistant", assistant);
     });
 
-    await runTestSection("chatAi.updateAssistant", async () => {
-        const updated = await client.chatAi.updateAssistant(testAssistantId!, {
+    await runTestSection("chatAi.updateAiAgent", async () => {
+        const updated = await client.chatAi.updateAiAgent(testAssistantId!, {
             name: `SDK_UNIT_TEST_UPDATED_${Date.now()}`,
             workflow_name: `sdk_unit_test_${Date.now()}`,
         });
@@ -73,8 +73,8 @@ async function testChatAi() {
   }
 
   if (testAssistantId) {
-    await runTestSection("chatAi.deleteAssistant", async () => {
-      await client.chatAi.deleteAssistant(testAssistantId!);
+    await runTestSection("chatAi.deleteAiAgent", async () => {
+      await client.chatAi.deleteAiAgent(testAssistantId!);
       console.log("   Assistant deleted.");
     });
   }

@@ -48,10 +48,10 @@ async function runTest() {
     }
 
     console.log("\n--- 1. Kiểm tra Assistant ---");
-    const assistants = await client.chatAi.listAssistants();
+    const assistants = await client.chatAi.listAiAgents();
     console.log("Danh sách Assistant hiện có:", assistants.length);
 
-    const assistant = await client.chatAi.createAssistant({
+    const assistant = await client.chatAi.createAiAgent({
       name: `SDK_TEST_${Date.now()}`,
       workflow_name: `test_bot_${Date.now()}`,
       description: "Test",
@@ -60,7 +60,7 @@ async function runTest() {
     console.log("✅ Đã tạo Assistant:", assistantId);
 
     // Dọn dẹp ngay sau khi tạo để test tính năng delete
-    await client.chatAi.deleteAssistant(assistantId);
+    await client.chatAi.deleteAiAgent(assistantId);
     console.log("✅ Đã xóa Assistant thành công.");
 
     console.log("\n--- 2. Kiểm tra Boards ---");
