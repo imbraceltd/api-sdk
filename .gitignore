@@ -69,3 +69,8 @@ API-document
 .claude/skill/skill.md
 .claude/skill/skill.yaml
 .obsidian
+
+
+sdk-tester
+test-logs
+test-npm-pip-pkg    
