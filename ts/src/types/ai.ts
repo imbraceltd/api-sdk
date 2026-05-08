@@ -324,34 +324,3 @@ export interface VerifyToolServerResponse {
   tools?: Array<{ name: string; description?: string; [key: string]: unknown }>
   [key: string]: unknown
 }
-
-// ─── Financial Documents ──────────────────────────────────────────────────
-
-export interface FinancialDoc extends BaseEntity {
-  name?: string
-  status?: AiStatus | string
-  pages?: Record<string, unknown>[]
-}
-
-export interface UpdateFinancialDocInput {
-  [key: string]: unknown
-}
-
-export interface FinancialFixInput {
-  doc_id?: string
-  [key: string]: unknown
-}
-
-export interface FinancialErrorFilesResponse {
-  files?: Record<string, unknown>[]
-  [key: string]: unknown
-}
-
-export interface FinancialReport extends BaseEntity {
-  name?: string
-  status?: AiStatus | string
-}
-
-export interface UpdateFinancialReportInput {
-  [key: string]: unknown
-}

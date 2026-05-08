@@ -292,9 +292,6 @@ export interface VerifyToolServerResponse {
   [key: string]: unknown
 }
 
-// ─── Financial Document interfaces  
-
-
 export class AiResource {
   /**
    * @param base - Fully resolved AI base URL (gateway/ai).

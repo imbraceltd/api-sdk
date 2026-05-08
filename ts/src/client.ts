@@ -35,7 +35,6 @@ import { FileServiceResource } from "./resources/file-service.js"
 import { MessageSuggestionResource } from "./resources/message-suggestion.js"
 import { PredictResource } from "./resources/predict.js"
 import { AiAgentResource } from "./resources/ai-agent.js"
-import { FinancialDocumentsResource } from "./resources/financial-documents.js"
 import { DocumentAIResource } from "./resources/document-ai.js"
 import { TemplatesResource } from "./resources/templates.js"
 
@@ -102,7 +101,6 @@ export class ImbraceClient {
   public readonly messageSuggestion: MessageSuggestionResource
   public readonly predict: PredictResource
   public readonly aiAgent: AiAgentResource
-  public readonly financialDocuments: FinancialDocumentsResource
   public readonly documentAi: DocumentAIResource
   public readonly templates: TemplatesResource
 
@@ -195,7 +193,6 @@ export class ImbraceClient {
     this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
     this.predict          = new PredictResource(this.http, urls.predict)
     this.aiAgent           = new AiAgentResource(this.http, urls.aiAgent)
-    this.financialDocuments = new FinancialDocumentsResource(this.http, urls.ai)
     this.documentAi         = new DocumentAIResource(
       this.http, `${urls.ai}/v3/ai`,
       { boards: this.boards, templates: this.templates },
