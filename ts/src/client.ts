@@ -35,7 +35,9 @@ import { FileServiceResource } from "./resources/file-service.js"
 import { MessageSuggestionResource } from "./resources/message-suggestion.js"
 import { PredictResource } from "./resources/predict.js"
 import { AiAgentResource } from "./resources/ai-agent.js"
+import { FinancialDocumentsResource } from "./resources/financial-documents.js"
 import { DocumentAIResource } from "./resources/document-ai.js"
+import { TemplatesResource } from "./resources/templates.js"
 
 export interface ImbraceClientConfig {
   /**
@@ -100,7 +102,9 @@ export class ImbraceClient {
   public readonly messageSuggestion: MessageSuggestionResource
   public readonly predict: PredictResource
   public readonly aiAgent: AiAgentResource
+  public readonly financialDocuments: FinancialDocumentsResource
   public readonly documentAi: DocumentAIResource
+  public readonly templates: TemplatesResource
 
   constructor(opts?: ImbraceClientConfig) {
     this.opts = opts ?? {}
@@ -167,6 +171,9 @@ export class ImbraceClient {
 
     this.marketplace   = new MarketplaceResource(this.http, urls.marketplaces, urls.gateway)
 
+    // Use Case Templates — sibling to marketplaces under /v2/backend/
+    this.templates     = new TemplatesResource(this.http, `${urls.gateway}/v2/backend/templates`)
+
     // Agent templates + use-cases
     this.agent         = new AgentResource(this.http, urls.marketplaces)
 
@@ -188,7 +195,11 @@ export class ImbraceClient {
     this.messageSuggestion = new MessageSuggestionResource(this.http, urls.messageSuggestion)
     this.predict          = new PredictResource(this.http, urls.predict)
     this.aiAgent           = new AiAgentResource(this.http, urls.aiAgent)
-    this.documentAi        = new DocumentAIResource(this.http, urls.ai)
+    this.financialDocuments = new FinancialDocumentsResource(this.http, urls.ai)
+    this.documentAi         = new DocumentAIResource(
+      this.http, `${urls.ai}/v3/ai`,
+      { boards: this.boards, templates: this.templates },
+    )
     }
   // -- Convenience auth ------------------------------------------------------
 

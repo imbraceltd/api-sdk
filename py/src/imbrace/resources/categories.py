@@ -10,7 +10,7 @@ class CategoriesResource:
 
     def __init__(self, http: HttpTransport, base: str):
         self._http = http
-        self._base = f"{base.rstrip('/')}/v1/categories"
+        self._base = f"{base.rstrip('/')}/v1/backend/categories"
 
     def list(self, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         return self._http.request("GET", self._base, params=params or {}).json()
@@ -33,7 +33,7 @@ class AsyncCategoriesResource:
 
     def __init__(self, http: AsyncHttpTransport, base: str):
         self._http = http
-        self._base = f"{base.rstrip('/')}/v1/categories"
+        self._base = f"{base.rstrip('/')}/v1/backend/categories"
 
     async def list(self, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         res = await self._http.request("GET", self._base, params=params or {})

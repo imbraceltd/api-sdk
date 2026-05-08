@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from ..http import HttpTransport, AsyncHttpTransport
 
 
@@ -22,10 +22,35 @@ class BoardsResource:
     def get(self, board_id: str) -> Dict[str, Any]:
         return self._http.request("GET", f"{self._backend}/board/{board_id}").json()
 
-    def create(self, name: str, description: Optional[str] = None) -> Dict[str, Any]:
+    def create(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        *,
+        type: Optional[str] = None,
+        fields: Optional[List[Dict[str, Any]]] = None,
+        team_ids: Optional[List[str]] = None,
+        show_id: Optional[bool] = None,
+        **extra: Any,
+    ) -> Dict[str, Any]:
+        """Create a board.
+
+        Pass ``type="DocumentAI"`` + ``fields=[{name, type, description, is_identifier, ...}]``
+        to create a Document AI board with extraction schema embedded. ``fields[].type`` can be
+        ``ShortText``, ``Number``, ``Date``, ``Email``, ``LongText``, etc.
+        """
         body: Dict[str, Any] = {"name": name}
-        if description:
+        if description is not None:
             body["description"] = description
+        if type is not None:
+            body["type"] = type
+        if fields is not None:
+            body["fields"] = fields
+        if team_ids is not None:
+            body["team_ids"] = team_ids
+        if show_id is not None:
+            body["show_id"] = show_id
+        body.update(extra)
         return self._http.request("POST", f"{self._backend}/board", json=body).json()
 
     def update(self, board_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -238,10 +263,30 @@ class AsyncBoardsResource:
         res = await self._http.request("GET", f"{self._backend}/board/{board_id}")
         return res.json()
 
-    async def create(self, name: str, description: Optional[str] = None) -> Dict[str, Any]:
+    async def create(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        *,
+        type: Optional[str] = None,
+        fields: Optional[List[Dict[str, Any]]] = None,
+        team_ids: Optional[List[str]] = None,
+        show_id: Optional[bool] = None,
+        **extra: Any,
+    ) -> Dict[str, Any]:
+        """Create a board (async). See :meth:`BoardsResource.create` for full param docs."""
         body: Dict[str, Any] = {"name": name}
-        if description:
+        if description is not None:
             body["description"] = description
+        if type is not None:
+            body["type"] = type
+        if fields is not None:
+            body["fields"] = fields
+        if team_ids is not None:
+            body["team_ids"] = team_ids
+        if show_id is not None:
+            body["show_id"] = show_id
+        body.update(extra)
         res = await self._http.request("POST", f"{self._backend}/board", json=body)
         return res.json()
 

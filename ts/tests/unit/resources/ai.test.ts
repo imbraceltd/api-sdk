@@ -90,4 +90,45 @@ describe("AiResource", () => {
       expect((collected[1] as typeof chunks[1]).id).toBe("c2")
     })
   })
+
+  describe("listProviders()", () => {
+    it("hits /v3/ai/providers and returns raw array", async () => {
+      mockFetch([
+        {
+          _id: "p1", name: "test", type: "vllm",
+          config: { vllm: { host: "http://x" } },
+          source: "custom", is_shown: true,
+          models: [{ name: "qwen3.5-27b", provider: "vllm", is_vision_available: false }],
+          provider_id: "p1-uuid",
+          organization_id: "org_x",
+        },
+      ])
+      const res = await makeResource().listProviders()
+      const url = vi.mocked(globalThis.fetch).mock.calls[0][0]
+      expect(String(url)).toBe(`${BASE}/v3/ai/providers`)
+      expect(Array.isArray(res)).toBe(true)
+      expect(res).toHaveLength(1)
+      expect(res[0].name).toBe("test")
+      expect(res[0].models?.[0].name).toBe("qwen3.5-27b")
+    })
+  })
+
+  describe("getLlmModels()", () => {
+    it("hits /v3/ai/workflow-agent/models with wrapped {success, data}", async () => {
+      mockFetch({
+        success: true,
+        message: "Models retrieved successfully",
+        data: [
+          { name: "Default", is_toolCall_available: true, is_vision_available: true },
+        ],
+      })
+      const res = await makeResource().getLlmModels()
+      const url = vi.mocked(globalThis.fetch).mock.calls[0][0]
+      expect(String(url)).toBe(`${BASE}/v3/ai/workflow-agent/models`)
+      expect(res.success).toBe(true)
+      expect(res.data).toHaveLength(1)
+      expect(res.data[0].name).toBe("Default")
+      expect(res.data[0].is_vision_available).toBe(true)
+    })
+  })
 })

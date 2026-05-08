@@ -1,28 +1,46 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { DocumentAIResource } from "../../../src/resources/document-ai.js"
+import { BoardsResource } from "../../../src/resources/boards.js"
+import { TemplatesResource } from "../../../src/resources/templates.js"
 import { HttpTransport } from "../../../src/http.js"
 import { TokenManager } from "../../../src/auth/token-manager.js"
 
-const BASE = "https://app-gatewayv2.imbrace.co"
-const FIN = "/v2/ai/financial_documents"
+const BASE = "https://app-gatewayv2.imbrace.co/v3/ai"
 
 function makeResource() {
   const http = new HttpTransport({ apiKey: "test_key", timeout: 5000, tokenManager: new TokenManager() })
   return new DocumentAIResource(http, BASE)
 }
 
+function mockFetchSequence(responses: Array<{ data: unknown; status?: number }>) {
+  let i = 0
+  globalThis.fetch = vi.fn().mockImplementation(() => {
+    const r = responses[i++] ?? responses[responses.length - 1]
+    return Promise.resolve(
+      new Response(typeof r.data === "string" ? r.data : JSON.stringify(r.data), {
+        status: r.status ?? 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    )
+  })
+}
+
 function mockFetch(data: unknown, status = 200) {
-  globalThis.fetch = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } })
-  )
+  mockFetchSequence([{ data, status }])
 }
 
-function getCalledUrl(): URL {
-  return new URL(vi.mocked(globalThis.fetch).mock.calls[0][0] as URL)
+function getCalledUrl(callIndex = 0): string {
+  const arg = vi.mocked(globalThis.fetch).mock.calls[callIndex][0]
+  return arg instanceof URL ? arg.toString() : String(arg)
 }
 
-function getCalledInit() {
-  return vi.mocked(globalThis.fetch).mock.calls[0][1]!
+function getCalledInit(callIndex = 0) {
+  return vi.mocked(globalThis.fetch).mock.calls[callIndex][1]!
+}
+
+function getCalledBody(callIndex = 0): any {
+  const init = getCalledInit(callIndex)
+  return JSON.parse(init.body as string)
 }
 
 describe("DocumentAIResource", () => {
@@ -30,108 +48,326 @@ describe("DocumentAIResource", () => {
   beforeEach(() => { originalFetch = globalThis.fetch })
   afterEach(() => { globalThis.fetch = originalFetch })
 
-  describe("getFile()", () => {
-    it("GETs /v2/ai/financial_documents/{id}", async () => {
-      mockFetch({ message: "ok" })
-      await makeResource().getFile("file_123")
-      expect(getCalledUrl().pathname).toBe(`${FIN}/file_123`)
-      expect(getCalledInit().method).toBe("GET")
+  // ── listAgents ─────────────────────────────────────────────────────────────
+
+  describe("listAgents()", () => {
+    it("returns all assistants by default (no filter)", async () => {
+      mockFetch([
+        { _id: "a1", name: "Receipt Extractor" },
+        { _id: "a2", name: "Chat Bot" },
+        { _id: "a3", name: "BC Form Mapper" },
+      ])
+      const agents = await makeResource().listAgents()
+      expect(agents).toHaveLength(3)
     })
 
-    it("includes page and limit params", async () => {
-      mockFetch({})
-      await makeResource().getFile("file_123", { page: 2, limit: 10 })
-      const url = getCalledUrl()
-      expect(url.searchParams.get("page")).toBe("2")
-      expect(url.searchParams.get("limit")).toBe("10")
-    })
-  })
-
-  describe("getReport()", () => {
-    it("GETs /v2/ai/financial_documents/reports/{id}", async () => {
-      mockFetch({ data: [] })
-      await makeResource().getReport("rep_456", { page: 1, limit: 5 })
-      expect(getCalledUrl().pathname).toBe(`${FIN}/reports/rep_456`)
-    })
-  })
-
-  describe("listErrors()", () => {
-    it("GETs /errors-files/{fileId} with default limit=-1", async () => {
-      mockFetch({ data: [] })
-      await makeResource().listErrors("file_123")
-      const url = getCalledUrl()
-      expect(url.pathname).toBe(`${FIN}/errors-files/file_123`)
-      expect(url.searchParams.get("limit")).toBe("-1")
+    it("filters by nameContains (case-insensitive)", async () => {
+      mockFetch([
+        { _id: "a1", name: "Receipt Extractor" },
+        { _id: "a2", name: "Chat Bot" },
+        { _id: "a3", name: "BC Form Mapper" },
+      ])
+      const agents = await makeResource().listAgents({ nameContains: "extract" })
+      expect(agents).toHaveLength(1)
+      expect(agents[0]._id).toBe("a1")
     })
 
-    it("respects custom limit", async () => {
-      mockFetch({})
-      await makeResource().listErrors("file_123", { limit: 50 })
-      expect(getCalledUrl().searchParams.get("limit")).toBe("50")
+    it("handles wrapped { data: [...] } response", async () => {
+      mockFetch({ data: [{ _id: "a1", name: "X" }] })
+      const agents = await makeResource().listAgents()
+      expect(agents).toHaveLength(1)
+    })
+
+    it("hits /accounts/assistants", async () => {
+      mockFetch([])
+      await makeResource().listAgents()
+      expect(getCalledUrl()).toBe(`${BASE}/accounts/assistants`)
     })
   })
 
-  describe("suggest() / fix() / reset()", () => {
-    it("POST suggest", async () => {
-      mockFetch({})
-      await makeResource().suggest({ file_id: "f1" })
-      expect(getCalledUrl().pathname).toBe(`${FIN}/suggest`)
+  // ── getAgent ───────────────────────────────────────────────────────────────
+
+  describe("getAgent()", () => {
+    it("hits /assistants/{id}", async () => {
+      mockFetch({ _id: "a1", name: "Receipt", agent_type: "document_ai" })
+      const a = await makeResource().getAgent("a1")
+      expect(getCalledUrl()).toBe(`${BASE}/assistants/a1`)
+      expect(a.name).toBe("Receipt")
+    })
+  })
+
+  // ── createAgent ────────────────────────────────────────────────────────────
+
+  describe("createAgent()", () => {
+    it("POSTs /assistant_apps with sensible defaults", async () => {
+      mockFetch({ _id: "new", name: "X" })
+      await makeResource().createAgent({
+        name: "X",
+        instructions: "extract X",
+        model_id: "gpt-4o",
+      })
+      expect(getCalledUrl()).toBe(`${BASE}/assistant_apps`)
       expect(getCalledInit().method).toBe("POST")
-      expect(JSON.parse(getCalledInit().body as string)).toEqual({ file_id: "f1" })
+      const body = getCalledBody()
+      expect(body.provider_id).toBe("system")
+      expect(body.workflow_name).toBe("document_extraction")
+      expect(body.name).toBe("X")
     })
 
-    it("POST fix", async () => {
+    it("renames `schema` → `data_schema`", async () => {
       mockFetch({})
-      await makeResource().fix({ file_id: "f1", fixes: [] })
-      expect(getCalledUrl().pathname).toBe(`${FIN}/fix`)
+      await makeResource().createAgent({
+        name: "X", instructions: "i", model_id: "m",
+        schema: { invoice_number: { type: "string" } },
+      })
+      const body = getCalledBody()
+      expect(body.data_schema).toEqual({ invoice_number: { type: "string" } })
+      expect(body.schema).toBeUndefined()
     })
 
-    it("POST reset (with empty body)", async () => {
+    it("respects custom provider_id and workflow_name", async () => {
       mockFetch({})
-      await makeResource().reset()
-      expect(getCalledUrl().pathname).toBe(`${FIN}/reset`)
-      expect(JSON.parse(getCalledInit().body as string)).toEqual({})
+      await makeResource().createAgent({
+        name: "X", instructions: "i", model_id: "m",
+        provider_id: "custom-uuid", workflow_name: "wf",
+      })
+      const body = getCalledBody()
+      expect(body.provider_id).toBe("custom-uuid")
+      expect(body.workflow_name).toBe("wf")
     })
   })
 
-  describe("updateFile() / updateReport()", () => {
-    it("PUT /v2/ai/financial_documents/{id}", async () => {
+  // ── updateAgent ────────────────────────────────────────────────────────────
+
+  describe("updateAgent()", () => {
+    it("PUTs /assistant_apps/{id}", async () => {
       mockFetch({})
-      await makeResource().updateFile("file_123", { name: "new" })
-      expect(getCalledUrl().pathname).toBe(`${FIN}/file_123`)
+      await makeResource().updateAgent("a1", { name: "renamed" })
+      expect(getCalledUrl()).toBe(`${BASE}/assistant_apps/a1`)
       expect(getCalledInit().method).toBe("PUT")
     })
 
-    it("PUT /v2/ai/financial_documents/reports/{id}", async () => {
+    it("renames `schema` → `data_schema` on update", async () => {
       mockFetch({})
-      await makeResource().updateReport("rep_456", { status: "approved" })
-      expect(getCalledUrl().pathname).toBe(`${FIN}/reports/rep_456`)
-      expect(getCalledInit().method).toBe("PUT")
+      await makeResource().updateAgent("a1", { schema: { x: { type: "string" } } })
+      const body = getCalledBody()
+      expect(body.data_schema).toEqual({ x: { type: "string" } })
+      expect(body.schema).toBeUndefined()
     })
   })
 
-  describe("deleteFile() / deleteReport()", () => {
-    it("DELETE file", async () => {
-      mockFetch({})
-      await makeResource().deleteFile("file_123")
-      expect(getCalledUrl().pathname).toBe(`${FIN}/file_123`)
-      expect(getCalledInit().method).toBe("DELETE")
-    })
+  // ── deleteAgent ────────────────────────────────────────────────────────────
 
-    it("DELETE report", async () => {
-      mockFetch({})
-      await makeResource().deleteReport("rep_456")
-      expect(getCalledUrl().pathname).toBe(`${FIN}/reports/rep_456`)
+  describe("deleteAgent()", () => {
+    it("DELETEs /assistant_apps/{id}", async () => {
+      mockFetch({}, 200)
+      await makeResource().deleteAgent("a1")
+      expect(getCalledUrl()).toBe(`${BASE}/assistant_apps/a1`)
       expect(getCalledInit().method).toBe("DELETE")
     })
   })
 
-  describe("auth header", () => {
-    it("sends x-api-key", async () => {
+  // ── process ────────────────────────────────────────────────────────────────
+
+  describe("process()", () => {
+    it("with explicit modelName posts to /document/", async () => {
+      mockFetch({ success: true, data: {} })
+      await makeResource().process({
+        url: "u", organizationId: "o", modelName: "gpt-4o",
+      })
+      expect(getCalledUrl()).toBe(`${BASE}/document`)
+      expect(getCalledInit().method).toBe("POST")
+      const body = getCalledBody()
+      expect(body.modelName).toBe("gpt-4o")
+      expect(body.url).toBe("u")
+      expect(body.organizationId).toBe("o")
+    })
+
+    it("with agentId looks up agent then processes", async () => {
+      mockFetchSequence([
+        // 1st call: getAgent
+        { data: { _id: "a1", model_id: "claude-3-5", instructions: "extract X" } },
+        // 2nd call: process
+        { data: { success: true, data: { x: 1 } } },
+      ])
+      const r = await makeResource().process({
+        url: "u", organizationId: "o", agentId: "a1",
+      })
+      expect(getCalledUrl(0)).toBe(`${BASE}/assistants/a1`)
+      expect(getCalledUrl(1)).toBe(`${BASE}/document`)
+      const body = getCalledBody(1)
+      expect(body.modelName).toBe("claude-3-5")
+      expect(body.additionalInstructions).toBe("extract X")
+      expect(r.success).toBe(true)
+    })
+
+    it("explicit modelName overrides agent's", async () => {
+      mockFetchSequence([
+        { data: { _id: "a1", model_id: "claude-3-5", instructions: "X" } },
+        { data: { success: true, data: {} } },
+      ])
+      await makeResource().process({
+        url: "u", organizationId: "o", agentId: "a1", modelName: "gpt-4o",
+      })
+      const body = getCalledBody(1)
+      expect(body.modelName).toBe("gpt-4o")
+    })
+
+    it("throws when neither agentId nor modelName given", async () => {
       mockFetch({})
-      await makeResource().getFile("f1")
-      const headers = new Headers(getCalledInit().headers as HeadersInit)
-      expect(headers.get("x-api-key")).toBe("test_key")
+      await expect(
+        makeResource().process({ url: "u", organizationId: "o" }),
+      ).rejects.toThrow(/agentId.*modelName/i)
+    })
+
+    it("forwards extra fields like maxRetries, chunkSize", async () => {
+      mockFetch({ success: true, data: {} })
+      await makeResource().process({
+        url: "u", organizationId: "o", modelName: "gpt-4o",
+        maxRetries: 3, chunkSize: 1024,
+      })
+      const body = getCalledBody()
+      expect(body.maxRetries).toBe(3)
+      expect(body.chunkSize).toBe(1024)
+    })
+  })
+
+  // ── suggestSchema ──────────────────────────────────────────────────────────
+
+  describe("suggestSchema()", () => {
+    it("posts to /document/ with meta-prompt", async () => {
+      mockFetch({ success: true, data: {} })
+      await makeResource().suggestSchema({
+        url: "https://example.com/sample.pdf",
+        organizationId: "o",
+      })
+      expect(getCalledUrl()).toBe(`${BASE}/document`)
+      const body = getCalledBody()
+      expect(body.modelName).toBe("gpt-4o")
+      expect(body.additionalInstructions).toMatch(/JSON schema/i)
+    })
+
+    it("respects custom modelName", async () => {
+      mockFetch({})
+      await makeResource().suggestSchema({
+        url: "u", organizationId: "o", modelName: "claude-3-5",
+      })
+      expect(getCalledBody().modelName).toBe("claude-3-5")
+    })
+  })
+
+  // ── createFull (orchestrator) ───────────────────────────────────────────────
+
+  describe("createFull()", () => {
+    const GW = "https://app-gatewayv2.imbrace.co"
+
+    function makeWiredResource() {
+      const http = new HttpTransport({ apiKey: "test_key", timeout: 5000, tokenManager: new TokenManager() })
+      const boards    = new BoardsResource(http, `${GW}/data-board`, `${GW}/v1/backend`)
+      const templates = new TemplatesResource(http, `${GW}/v2/backend/templates`)
+      const documentAi = new DocumentAIResource(http, BASE, { boards, templates })
+      return { documentAi, boards, templates }
+    }
+
+    it("runs full flow: board create → templates createCustom, with linked board_id", async () => {
+      mockFetchSequence([
+        { data: { _id: "brd_xxx", name: "DEMO", type: "DocumentAI" } },
+        { data: { data: {
+            _id: "uc_xxx",
+            title: "DEMO",
+            agent_type: "document_ai",
+            channel_id: "ch_xxx",
+            assistant_id: "fa445273-aaaa",
+        } } },
+      ])
+
+      const { documentAi } = makeWiredResource()
+      const result = await documentAi.createFull({
+        name: "DEMO",
+        instructions: "Step 1: Extract Data...",
+        schemaFields: [
+          { name: "invoice_number", type: "ShortText", is_identifier: true, data: [] },
+          { name: "total_amount", type: "Number", data: [] },
+        ],
+        modelId: "qwen3.5:27b",
+        providerId: "prov-uuid",
+        description: "Receipt extractor",
+        sourceLanguages: ["English"],
+        handwritingSupport: true,
+      })
+
+      expect(result.board_id).toBe("brd_xxx")
+      expect(result.assistant_id).toBe("fa445273-aaaa")
+      expect(result.channel_id).toBe("ch_xxx")
+      expect(result.usecase_id).toBe("uc_xxx")
+
+      // Verify URLs hit
+      expect(getCalledUrl(0)).toBe(`${GW}/v1/backend/board`)
+      expect(getCalledUrl(1)).toBe(`${GW}/v2/backend/templates/v2/custom`)
+
+      // Board POST body
+      const boardBody = getCalledBody(0)
+      expect(boardBody.name).toBe("DEMO")
+      expect(boardBody.type).toBe("DocumentAI")
+      expect(boardBody.fields).toHaveLength(2)
+
+      // Templates POST body — linked board_id
+      const tplBody = getCalledBody(1)
+      expect(tplBody.usecase.title).toBe("DEMO")
+      expect(tplBody.usecase.agent_type).toBe("document_ai")
+      expect(tplBody.assistant.model_id).toBe("qwen3.5:27b")
+      expect(tplBody.assistant.core_task).toBe("Step 1: Extract Data...")
+      expect(tplBody.assistant.document_ai.board_id).toBe("brd_xxx")
+      expect(tplBody.assistant.document_ai.vlm_model).toBe("qwen3.5:27b") // defaults to modelId
+      expect(tplBody.assistant.document_ai.vlm_provider_id).toBe("prov-uuid")
+      expect(tplBody.assistant.document_ai.handwriting_support).toBe(true)
+    })
+
+    it("vlmModel/vlmProviderId defaust to modelId/providerId; sourceLanguages default to ['English']", async () => {
+      mockFetchSequence([
+        { data: { _id: "brd_y" } },
+        { data: { data: {} } },
+      ])
+      const { documentAi } = makeWiredResource()
+      await documentAi.createFull({
+        name: "X", instructions: "i",
+        schemaFields: [{ name: "f", type: "ShortText" }],
+        modelId: "gpt-4o", providerId: "p1",
+      })
+      const tplBody = getCalledBody(1)
+      expect(tplBody.assistant.document_ai.vlm_model).toBe("gpt-4o")
+      expect(tplBody.assistant.document_ai.vlm_provider_id).toBe("p1")
+      expect(tplBody.assistant.document_ai.source_languages).toEqual(["English"])
+    })
+
+    it("extraAssistant overrides assistant fields", async () => {
+      mockFetchSequence([
+        { data: { _id: "brd_z" } },
+        { data: { data: {} } },
+      ])
+      const { documentAi } = makeWiredResource()
+      await documentAi.createFull({
+        name: "X", instructions: "i",
+        schemaFields: [{ name: "f", type: "ShortText" }],
+        modelId: "m", providerId: "p",
+        extraAssistant: {
+          workflow_function_call: ["wf_id_1"],
+          metadata: { max_token_limit: 100 },
+        },
+      })
+      const tplBody = getCalledBody(1)
+      expect(tplBody.assistant.workflow_function_call).toEqual(["wf_id_1"])
+      expect(tplBody.assistant.metadata).toEqual({ max_token_limit: 100 })
+    })
+
+    it("throws when constructed without boards+templates deps", async () => {
+      const bare = makeResource() // no deps
+      await expect(
+        bare.createFull({
+          name: "X", instructions: "i",
+          schemaFields: [], modelId: "m", providerId: "p",
+        }),
+      ).rejects.toThrow(/boards \+ templates/)
     })
   })
 })
