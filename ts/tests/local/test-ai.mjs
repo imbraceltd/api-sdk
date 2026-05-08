@@ -44,30 +44,30 @@ let createdProviderId  = null
 console.log('\n[1] List assistants')
 let firstAssistantId = null
 try {
-  const res = await ai.listAssistants()
+  const res = await ai.listAiAgents()
   const list = Array.isArray(res) ? res : (res.data ?? [])
   firstAssistantId = list[0]?._id ?? null
-  ok('listAssistants()', `${list.length} assistants`)
-} catch (e) { fail('listAssistants()', e) }
+  ok('listAiAgents()', `${list.length} assistants`)
+} catch (e) { fail('listAiAgents()', e) }
 
 console.log('\n[2] Get assistant')
 if (!firstAssistantId) {
-  skip('getAssistant(id)', 'no assistants found')
+  skip('getAiAgent(id)', 'no assistants found')
 } else {
   try {
-    const res = await ai.getAssistant(firstAssistantId)
-    ok('getAssistant(id)', `id=${res._id} name=${res.name}`)
+    const res = await ai.getAiAgent(firstAssistantId)
+    ok('getAiAgent(id)', `id=${res._id} name=${res.name}`)
   } catch (e) {
-    if (String(e?.message).includes('400')) skip('getAssistant(id)', 'assistant not in token scope')
-    else fail('getAssistant(id)', e)
+    if (String(e?.message).includes('400')) skip('getAiAgent(id)', 'assistant not in token scope')
+    else fail('getAiAgent(id)', e)
   }
 }
 
 console.log('\n[3] Check assistant name')
 try {
-  const res = await ai.checkAssistantName('sdk-test-nonexistent-name-xyz')
-  ok('checkAssistantName()', JSON.stringify(res))
-} catch (e) { fail('checkAssistantName()', e) }
+  const res = await ai.checkAiAgentName('sdk-test-nonexistent-name-xyz')
+  ok('checkAiAgentName()', JSON.stringify(res))
+} catch (e) { fail('checkAiAgentName()', e) }
 
 console.log('\n[4] List agents')
 try {
@@ -95,23 +95,23 @@ if (!firstAssistantId) {
 
 console.log('\n[6] Create assistant app')
 try {
-  const res = await ai.createAssistantApp({ name: 'SDK Test App', workflow_name: 'sdk-test-workflow', instructions: 'Test only.' })
+  const res = await ai.createAiAgentApp({ name: 'SDK Test App', workflow_name: 'sdk-test-workflow', instructions: 'Test only.' })
   createdAppId = res.id ?? res._id ?? null
-  ok('createAssistantApp()', createdAppId ?? JSON.stringify(res).slice(0, 60))
-} catch (e) { fail('createAssistantApp()', e) }
+  ok('createAiAgentApp()', createdAppId ?? JSON.stringify(res).slice(0, 60))
+} catch (e) { fail('createAiAgentApp()', e) }
 
 console.log('\n[7] Update assistant app')
 if (!createdAppId) {
-  skip('updateAssistantApp(id)', 'no app created')
+  skip('updateAiAgentApp(id)', 'no app created')
 } else {
   try {
-    const res = await ai.updateAssistantApp(createdAppId, { name: 'SDK Test App Updated', workflow_name: 'sdk-test-workflow', instructions: 'Updated.' })
-    ok('updateAssistantApp(id)', res.id ?? res._id ?? JSON.stringify(res).slice(0, 60))
-  } catch (e) { fail('updateAssistantApp(id)', e) }
+    const res = await ai.updateAiAgentApp(createdAppId, { name: 'SDK Test App Updated', workflow_name: 'sdk-test-workflow', instructions: 'Updated.' })
+    ok('updateAiAgentApp(id)', res.id ?? res._id ?? JSON.stringify(res).slice(0, 60))
+  } catch (e) { fail('updateAiAgentApp(id)', e) }
 }
 
 console.log('\n[8] Update assistant workflow')
-skip('updateAssistantWorkflow(id)', 'route not available on this prodv2 version')
+skip('updateAiAgentWorkflow(id)', 'route not available on this prodv2 version')
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RAG Files
@@ -301,9 +301,9 @@ console.log('\n[27] Cleanup')
 
 if (createdAppId) {
   try {
-    await ai.deleteAssistantApp(createdAppId)
-    ok('deleteAssistantApp()', createdAppId)
-  } catch (e) { fail('deleteAssistantApp()', e) }
+    await ai.deleteAiAgentApp(createdAppId)
+    ok('deleteAiAgentApp()', createdAppId)
+  } catch (e) { fail('deleteAiAgentApp()', e) }
 }
 
 if (createdGuardrailId) {
@@ -331,7 +331,7 @@ if (createdProviderId) {
 skip('complete()', 'excluded per test plan')
 skip('stream()', 'excluded per test plan')
 skip('embed()', 'not available on prodv2')
-skip('listAssistantsV2() + v2 CRUD', 'returns 404 on prodv2')
+skip('listAiAgentsV2() + v2 CRUD', 'returns 404 on prodv2')
 
 // ─────────────────────────────────────────────────────────────────────────────
 

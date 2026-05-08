@@ -63,7 +63,7 @@ async function testFrontendSdk() {
           return;
       }
       
-      const assistants = await client.chatAi.listAssistants();
+      const assistants = await client.chatAi.listAiAgents();
       const realAsstId = assistants.length > 0 ? assistants[0].id : "dummy-id";
 
       const chat = await client.aiAgent.createClientChat({

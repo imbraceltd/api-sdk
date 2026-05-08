@@ -67,39 +67,39 @@ class ChatAiResource:
         """List LLM providers configured for the org — models available for document AI."""
         return self._http.request("GET", f"{self._base}/providers").json()
 
-    # --- Assistants ---
+    # --- AI Agents ---
 
-    def list_assistants(self) -> List[Dict[str, Any]]:
-        """List all assistants for the account."""
+    def list_ai_agents(self) -> List[Dict[str, Any]]:
+        """List all AI agents for the account."""
         return self._http.request("GET", f"{self._base}/accounts/assistants").json()
 
-    def get_assistant(self, assistant_id: str) -> Dict[str, Any]:
-        """Get assistant by UUID."""
-        return self._http.request("GET", f"{self._base}/assistants/{assistant_id}").json()
+    def get_ai_agent(self, ai_agent_id: str) -> Dict[str, Any]:
+        """Get AI agent by UUID."""
+        return self._http.request("GET", f"{self._base}/assistants/{ai_agent_id}").json()
 
-    def create_assistant(self, body: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new assistant. Required: name, workflow_name, provider_id, model_id."""
+    def create_ai_agent(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new AI agent. Required: name, workflow_name, provider_id, model_id."""
         return self._http.request("POST", f"{self._base}/assistant_apps", json=body).json()
 
-    def update_assistant(self, assistant_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        """Update assistant by UUID."""
-        return self._http.request("PUT", f"{self._base}/assistant_apps/{assistant_id}", json=body).json()
+    def update_ai_agent(self, ai_agent_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Update AI agent by UUID."""
+        return self._http.request("PUT", f"{self._base}/assistant_apps/{ai_agent_id}", json=body).json()
 
-    def delete_assistant(self, assistant_id: str) -> bool:
-        """Delete assistant by UUID."""
-        r = self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
+    def delete_ai_agent(self, ai_agent_id: str) -> bool:
+        """Delete AI agent by UUID."""
+        r = self._http.request("DELETE", f"{self._base}/assistant_apps/{ai_agent_id}")
         return r.is_success
 
-    def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
-        """Update only the instructions field of an assistant."""
+    def update_ai_agent_instructions(self, ai_agent_id: str, instructions: str) -> Dict[str, Any]:
+        """Update only the instructions field of an AI agent."""
         return self._http.request(
             "PATCH",
-            f"{self._base}/assistants/{assistant_id}/instructions",
+            f"{self._base}/assistants/{ai_agent_id}/instructions",
             json={"instructions": instructions},
         ).json()
 
-    def list_assistant_agents(self) -> List[Dict[str, Any]]:
-        """List all assistant agents."""
+    def list_ai_agent_sub_agents(self) -> List[Dict[str, Any]]:
+        """List sub-agents of AI agents."""
         return self._http.request("GET", f"{self._base}/assistants/agents").json()
 
 
@@ -161,36 +161,36 @@ class AsyncChatAiResource:
         res = await self._http.request("GET", f"{self._base}/providers")
         return res.json()
 
-    # --- Assistants ---
+    # --- AI Agents ---
 
-    async def list_assistants(self) -> List[Dict[str, Any]]:
+    async def list_ai_agents(self) -> List[Dict[str, Any]]:
         res = await self._http.request("GET", f"{self._base}/accounts/assistants")
         return res.json()
 
-    async def get_assistant(self, assistant_id: str) -> Dict[str, Any]:
-        res = await self._http.request("GET", f"{self._base}/assistants/{assistant_id}")
+    async def get_ai_agent(self, ai_agent_id: str) -> Dict[str, Any]:
+        res = await self._http.request("GET", f"{self._base}/assistants/{ai_agent_id}")
         return res.json()
 
-    async def create_assistant(self, body: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_ai_agent(self, body: Dict[str, Any]) -> Dict[str, Any]:
         res = await self._http.request("POST", f"{self._base}/assistant_apps", json=body)
         return res.json()
 
-    async def update_assistant(self, assistant_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-        res = await self._http.request("PUT", f"{self._base}/assistant_apps/{assistant_id}", json=body)
+    async def update_ai_agent(self, ai_agent_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+        res = await self._http.request("PUT", f"{self._base}/assistant_apps/{ai_agent_id}", json=body)
         return res.json()
 
-    async def delete_assistant(self, assistant_id: str) -> bool:
-        r = await self._http.request("DELETE", f"{self._base}/assistant_apps/{assistant_id}")
+    async def delete_ai_agent(self, ai_agent_id: str) -> bool:
+        r = await self._http.request("DELETE", f"{self._base}/assistant_apps/{ai_agent_id}")
         return r.is_success
 
-    async def update_assistant_instructions(self, assistant_id: str, instructions: str) -> Dict[str, Any]:
+    async def update_ai_agent_instructions(self, ai_agent_id: str, instructions: str) -> Dict[str, Any]:
         res = await self._http.request(
             "PATCH",
-            f"{self._base}/assistants/{assistant_id}/instructions",
+            f"{self._base}/assistants/{ai_agent_id}/instructions",
             json={"instructions": instructions},
         )
         return res.json()
 
-    async def list_assistant_agents(self) -> List[Dict[str, Any]]:
+    async def list_ai_agent_sub_agents(self) -> List[Dict[str, Any]]:
         res = await self._http.request("GET", f"{self._base}/assistants/agents")
         return res.json()

@@ -124,9 +124,9 @@ export interface Embedding {
   usage: { prompt_tokens: number; total_tokens: number }
 }
 
-// ─── AI Assistants ─────────────────────────────────────────────────────────
+// ─── AI Agents ─────────────────────────────────────────────────────────────
 
-export interface Assistant extends AiBaseResource {
+export interface AiAgent extends AiBaseResource {
   description?: string
   instructions?: string
   model?: string
@@ -165,9 +165,9 @@ export interface Assistant extends AiBaseResource {
   top_k?: number
 }
 
-export type AssistantListResponse = AiListResponse<Assistant>
+export type AiAgentListResponse = AiListResponse<AiAgent>
 
-export interface AssistantNameCheckResponse {
+export interface AiAgentNameCheckResponse {
   available: boolean
   name: string
 }
@@ -177,9 +177,9 @@ export interface PatchInstructionsInput {
   [key: string]: unknown
 }
 
-// ─── Assistant Apps ────────────────────────────────────────────────────────
+// ─── AI Agent Apps ─────────────────────────────────────────────────────────
 
-export interface AssistantApp extends AiBaseResource {
+export interface AiAgentApp extends AiBaseResource {
   assistant_id?: string
   mode?: AiMode | string
   model_id?: string
@@ -189,9 +189,9 @@ export interface AssistantApp extends AiBaseResource {
   workflow?: Record<string, unknown>
 }
 
-export type AssistantAppListResponse = AiListResponse<AssistantApp>
+export type AiAgentAppListResponse = AiListResponse<AiAgentApp>
 
-export interface CreateAssistantAppInput {
+export interface CreateAiAgentAppInput {
   name: string
   assistant_id?: string
   mode?: AiMode | string
@@ -202,7 +202,7 @@ export interface CreateAssistantAppInput {
   [key: string]: unknown
 }
 
-export interface UpdateAssistantAppInput {
+export interface UpdateAiAgentAppInput {
   name?: string
   mode?: AiMode | string
   model_id?: string
@@ -212,7 +212,7 @@ export interface UpdateAssistantAppInput {
   [key: string]: unknown
 }
 
-export interface UpdateAssistantWorkflowInput {
+export interface UpdateAiAgentWorkflowInput {
   workflow: Record<string, unknown>
   [key: string]: unknown
 }

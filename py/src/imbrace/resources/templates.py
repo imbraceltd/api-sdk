@@ -18,8 +18,9 @@ class UseCaseInput(TypedDict, total=False):
     agent_type: Optional[str]
 
 
-class DocumentAIAssistantConfig(TypedDict, total=False):
-    """Nested config inside ``assistant.document_ai`` for Document AI agents.
+class DocumentAIAgentConfig(TypedDict, total=False):
+    """Nested config inside the ``assistant.document_ai`` body slot for Document
+    AI agents (wire body key kept as ``assistant`` for backend compatibility).
 
     Mirrors the body sent by the iMBRACE webapp when creating a Document AI agent.
     """
@@ -33,8 +34,9 @@ class DocumentAIAssistantConfig(TypedDict, total=False):
     retry_time: int
 
 
-class AssistantInput(TypedDict, total=False):
-    """The ``assistant`` half of the create-custom-template payload.
+class AiAgentInput(TypedDict, total=False):
+    """The AI Agent half of the create-custom-template payload (sent on the
+    wire under the ``assistant`` body key, kept as-is for backend compatibility).
 
     For Document AI agents, set ``agent_type="document_ai"`` and populate the
     nested ``document_ai`` config (linking the schema board, VLM provider, etc.).
@@ -53,7 +55,7 @@ class AssistantInput(TypedDict, total=False):
     credential_name: Optional[str]
     board_ids: Optional[List[str]]
     version: Optional[int]
-    document_ai: Optional[DocumentAIAssistantConfig]
+    document_ai: Optional[DocumentAIAgentConfig]
     metadata: Optional[Dict[str, Any]]
 
 
@@ -102,7 +104,7 @@ class TemplatesResource:
     """Use Case Templates — Sync.
 
     Wraps ``/v2/backend/templates`` endpoints. The most important method is
-    :meth:`create_custom`, which atomically creates a UseCase + Assistant pair
+    :meth:`create_custom`, which atomically creates a UseCase + AI Agent pair
     used by Document AI flows (see also :class:`DocumentAIResource`).
 
     @param http  HTTP transport
@@ -110,7 +112,7 @@ class TemplatesResource:
 
     Example::
 
-        # Document AI: create UseCase + Assistant linked to a schema board
+        # Document AI: create UseCase + AI Agent linked to a schema board
         res = client.templates.create_custom(
             usecase={
                 "title": "Receipt Extractor",
@@ -155,13 +157,15 @@ class TemplatesResource:
     def create_custom(
         self,
         usecase: UseCaseInput,
-        assistant: AssistantInput,
+        assistant: AiAgentInput,
     ) -> CreateCustomTemplateResponse:
-        """Create a custom UseCase + Assistant in one POST.
+        """Create a custom UseCase + AI Agent in one POST.
 
         Routes to ``POST /v2/backend/templates/v2/custom``. Backend auto-creates
         the linked channel, workflow (ActivePieces), and assistant_app, and
         returns the assembled use case (with ``assistant_id``, ``channel_id``).
+
+        The wire body still uses the ``assistant`` key for backend compatibility.
         """
         body = {"usecase": usecase, "assistant": assistant}
         return self._http.request("POST", f"{self._base}/v2/custom", json=body).json()
@@ -177,7 +181,7 @@ class TemplatesResource:
     def delete_v2(self, usecase_id: str) -> None:
         """Delete v2 template (atomic) — ``DELETE /v2/backend/templates/v2/{id}``.
 
-        Cascades through linked Assistant + Channel. Use this for templates
+        Cascades through linked AI Agent + Channel. Use this for templates
         created via :meth:`create_custom`.
         """
         self._http.request("DELETE", f"{self._base}/v2/{usecase_id}")
@@ -197,7 +201,7 @@ class AsyncTemplatesResource:
     async def create_custom(
         self,
         usecase: UseCaseInput,
-        assistant: AssistantInput,
+        assistant: AiAgentInput,
     ) -> CreateCustomTemplateResponse:
         body = {"usecase": usecase, "assistant": assistant}
         res = await self._http.request("POST", f"{self._base}/v2/custom", json=body)

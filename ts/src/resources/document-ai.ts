@@ -87,7 +87,7 @@ export interface ProcessDocumentResponse {
 /**
  * Document AI — high-level wrapper for the iMBRACE Document AI Agent feature.
  *
- * **What is a Document AI Agent?** A specialized AI Assistant configured to
+ * **What is a Document AI Agent?** A specialized AI Agent configured to
  * extract structured JSON from unstructured documents (PDFs, images, scanned
  * forms). Each agent has:
  * - a **schema** defining the fields to extract
@@ -95,7 +95,7 @@ export interface ProcessDocumentResponse {
  * - a **model** + **provider** for the underlying VLM/LLM
  * - optional **workflow** integration for automation
  *
- * Under the hood this resource wraps the AI Assistant CRUD endpoints with
+ * Under the hood this resource wraps the AI Agent CRUD endpoints with
  * `agent_type: "document_ai"` filtering, plus the document processing endpoint
  * `/v3/ai/document/`.
  *
@@ -122,9 +122,9 @@ export interface ProcessDocumentResponse {
  * ```
  */
 export interface CreateFullDocumentAIInput {
-  /** Display name shown in UI + used as UseCase title and Assistant name. */
+  /** Display name shown in UI + used as UseCase title and AI Agent name. */
   name: string
-  /** System prompt governing extraction logic (mapped to assistant `core_task`). */
+  /** System prompt governing extraction logic (mapped to AI Agent `core_task`). */
   instructions: string
   /** Schema fields to extract — embedded in the auto-created board. */
   schemaFields: CreateBoardFieldInput[]
@@ -132,7 +132,7 @@ export interface CreateFullDocumentAIInput {
   modelId: string
   /** Provider id (UUID of the AI provider). */
   providerId: string
-  /** Optional description (used for UseCase short_description + Assistant description). */
+  /** Optional description (used for UseCase short_description + AI Agent description). */
   description?: string
   /** Vision model. Defaults to `modelId`. */
   vlmModel?: string
@@ -147,13 +147,13 @@ export interface CreateFullDocumentAIInput {
   temperature?: number
   demoUrl?: string
   teamIds?: string[]
-  /** Override / extend assistant fields (e.g. `workflow_function_call`, `metadata`). */
-  extraAssistant?: Record<string, unknown>
+  /** Override / extend AI Agent fields (e.g. `workflow_function_call`, `metadata`). */
+  extraAiAgent?: Record<string, unknown>
 }
 
 export interface CreateFullDocumentAIResult {
   board_id: string
-  assistant_id?: string
+  ai_agent_id?: string
   channel_id?: string
   usecase_id?: string
   usecase: UseCase | Record<string, unknown>
@@ -182,18 +182,18 @@ export class DocumentAIResource {
   // ── Agent CRUD ─────────────────────────────────────────────────────────────
 
   /**
-   * List AI Assistants. Optional `nameContains` filter (case-insensitive).
+   * List AI Agents. Optional `nameContains` filter (case-insensitive).
    *
    * @param opts.nameContains   case-insensitive name substring filter.
-   * @param opts.documentAiOnly  if `true`, return ONLY assistants that have
+   * @param opts.documentAiOnly  if `true`, return ONLY AI Agents that have
    *                             the `document_ai` config field populated
    *                             (i.e. created via {@link createFull} or via
    *                             the iMBRACE webapp Document AI flow).
    *
    * Note: in orgs without the Document AI module enabled, backend stores
-   * `agent_type: "agent"` for all assistants. With the module enabled,
+   * `agent_type: "agent"` for all AI Agents. With the module enabled,
    * Document AI agents have `agent_type: "document_ai"`. The most reliable
-   * marker across orgs is `assistant.document_ai != null`.
+   * marker across orgs is `<ai-agent>.document_ai != null` on the wire payload.
    */
   async listAgents(opts?: {
     nameContains?: string
@@ -335,14 +335,15 @@ export class DocumentAIResource {
    * Wraps the 2-step flow the iMBRACE webapp performs:
    * 1. Create a board with `type: "DocumentAI"` and `schemaFields` embedded
    *    (the extraction schema container).
-   * 2. Create a UseCase + Assistant via {@link TemplatesResource.createCustom},
-   *    linking the new board through `assistant.document_ai.board_id`.
+   * 2. Create a UseCase + AI Agent via {@link TemplatesResource.createCustom},
+   *    linking the new board through `assistant.document_ai.board_id` (wire
+   *    body key kept as `assistant` for backend compatibility).
    *
    * Returns aggregated ids: `{ board_id, assistant_id, channel_id, usecase_id, usecase, board }`.
    *
    * Defaults: `vlmModel` falls back to `modelId`, `vlmProviderId` to `providerId`,
-   * `sourceLanguages` to `["English"]`. Pass `extraAssistant` to override or
-   * extend assistant fields (e.g. `workflow_function_call`, `metadata`).
+   * `sourceLanguages` to `["English"]`. Pass `extraAiAgent` to override or
+   * extend AI Agent fields (e.g. `workflow_function_call`, `metadata`).
    *
    * @throws {Error} if the resource was constructed without `boards` + `templates`
    *   (typical when constructed manually, not via `ImbraceClient`).
@@ -378,7 +379,7 @@ export class DocumentAIResource {
     }
     if (input.demoUrl) usecase.demo_url = input.demoUrl
 
-    const assistant: Record<string, unknown> = {
+    const aiAgent: Record<string, unknown> = {
       name: input.name,
       description: input.description ?? "",
       mode: "advanced",
@@ -399,18 +400,18 @@ export class DocumentAIResource {
         continue_on_failure: input.continueOnFailure ?? false,
         retry_time: input.retryTime ?? 2,
       },
-      ...(input.extraAssistant ?? {}),
+      ...(input.extraAiAgent ?? {}),
     }
 
     const res = await templates.createCustom({
       usecase: usecase as any,
-      assistant: assistant as any,
+      assistant: aiAgent as any,
     })
     const data = (res?.data ?? res) as any
 
     return {
       board_id:     boardId,
-      assistant_id: data?.assistant_id,
+      ai_agent_id:  data?.assistant_id,
       channel_id:   data?.channel_id,
       usecase_id:   data?._id,
       usecase:      data,

@@ -181,19 +181,19 @@ await probe("schedule", "list", () => client.schedule.list({}));
 // ── AI / Chat-AI / AI-Agent / Activepieces ────────────────────────────
 
 section("ai");
-await probe("ai", "listAssistants", () => client.ai.listAssistants());
+await probe("ai", "listAiAgents", () => client.ai.listAiAgents());
 await probe("ai", "listAgents", () => client.ai.listAgents());
 await probe("ai", "listProviders", () => client.ai.listProviders());
 await probe("ai", "listGuardrails", () => client.ai.listGuardrails());
 await probe("ai", "listGuardrailProviders", () => client.ai.listGuardrailProviders());
 await probe("ai", "getLlmModels", () => client.ai.getLlmModels());
 await probe("ai", "listRagFiles", () => client.ai.listRagFiles());
-await probe("ai", "listAssistantsV2", () => client.ai.listAssistantsV2());
+await probe("ai", "listAiAgentsV2", () => client.ai.listAiAgentsV2());
 
 section("chatAi");
 await probe("chatAi", "listDocumentModels", () => client.chatAi.listDocumentModels());
-await probe("chatAi", "listAssistants", () => client.chatAi.listAssistants());
-await probe("chatAi", "listAssistantAgents", () => client.chatAi.listAssistantAgents());
+await probe("chatAi", "listAiAgents", () => client.chatAi.listAiAgents());
+await probe("chatAi", "listAiAgentSubAgents", () => client.chatAi.listAiAgentSubAgents());
 
 section("aiAgent");
 await probe("aiAgent", "getHealth", () => client.aiAgent.getHealth());

@@ -22,11 +22,11 @@ async function testMultiAgent() {
   try {
     // --- Section 1: Preparation ---
     await runTestSection("Preparation", async () => {
-      const assistants = await client.chatAi.listAssistants();
+      const assistants = await client.chatAi.listAiAgents();
       if (assistants.length > 0) {
         state.assistantId = assistants[0].id;
       } else {
-        const asst = await client.chatAi.createAssistant({
+        const asst = await client.chatAi.createAiAgent({
             name: `SDK Sub-Agent Test ${ts}`,
             workflow_name: `sub_agent_test_${ts}`
         });

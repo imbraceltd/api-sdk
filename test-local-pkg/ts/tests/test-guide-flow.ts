@@ -88,8 +88,8 @@ async function main() {
   // ---------------- SECTION 1 ----------------
   console.log("\n[Section 1] Assistant + Chat");
 
-  await step("1.2 createAssistant", async () => {
-    const a = await client.chatAi.createAssistant({
+  await step("1.2 createAiAgent", async () => {
+    const a = await client.chatAi.createAiAgent({
       name: `Support Bot ${ts}`,
       workflow_name: `support_bot_v1_${ts}`,
       description: "Handles tier-1 customer support queries",
@@ -194,8 +194,8 @@ async function main() {
     // the sync call always times out, regardless of auth mode.
 
     if (state.assistantId) {
-      await step("2.5 updateAssistant w/ workflow_function_call", async () => {
-        await client.chatAi.updateAssistant(state.assistantId, {
+      await step("2.5 updateAiAgent w/ workflow_function_call", async () => {
+        await client.chatAi.updateAiAgent(state.assistantId, {
           name: `Support Bot ${ts}`,
           workflow_name: `support_bot_v1_${ts}`,
           workflow_function_call: [
@@ -244,8 +244,8 @@ async function main() {
     });
 
     if (state.assistantId) {
-      await step("3.3 updateAssistant w/ folder_ids", async () => {
-        await client.chatAi.updateAssistant(state.assistantId, {
+      await step("3.3 updateAiAgent w/ folder_ids", async () => {
+        await client.chatAi.updateAiAgent(state.assistantId, {
           name: `Support Bot ${ts}`,
           workflow_name: `support_bot_v1_${ts}`,
           folder_ids: [state.folderId],
@@ -362,8 +362,8 @@ async function main() {
     });
   }
   if (state.assistantId) {
-    await step("cleanup.deleteAssistant", async () => {
-      await client.chatAi.deleteAssistant(state.assistantId);
+    await step("cleanup.deleteAiAgent", async () => {
+      await client.chatAi.deleteAiAgent(state.assistantId);
     });
   }
 

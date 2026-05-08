@@ -66,32 +66,32 @@ def test_sync():
     print("\n[1] List assistants (sync)")
     first_assistant_id = None
     try:
-        res = ai.list_assistants()
+        res = ai.list_ai_agents()
         lst = res if isinstance(res, list) else res.get("data", [])
         first_assistant_id = lst[0].get("_id") if lst else None
-        ok("list_assistants()", f"{len(lst)} assistants")
+        ok("list_ai_agents()", f"{len(lst)} assistants")
     except Exception as e:
-        fail("list_assistants()", e)
+        fail("list_ai_agents()", e)
 
     print("\n[2] Get assistant (sync)")
     if not first_assistant_id:
-        skip("get_assistant(id)", "no assistants found")
+        skip("get_ai_agent(id)", "no assistants found")
     else:
         try:
-            res = ai.get_assistant(first_assistant_id)
-            ok("get_assistant(id)", f"id={res.get('_id')} name={res.get('name')}")
+            res = ai.get_ai_agent(first_assistant_id)
+            ok("get_ai_agent(id)", f"id={res.get('_id')} name={res.get('name')}")
         except Exception as e:
             if _is_4xx(e):
-                skip("get_assistant(id)", "assistant not in token scope")
+                skip("get_ai_agent(id)", "assistant not in token scope")
             else:
-                fail("get_assistant(id)", e)
+                fail("get_ai_agent(id)", e)
 
     print("\n[3] Check assistant name (sync)")
     try:
-        res = ai.check_assistant_name("sdk-test-nonexistent-name-xyz")
-        ok("check_assistant_name()", str(res))
+        res = ai.check_ai_agent_name("sdk-test-nonexistent-name-xyz")
+        ok("check_ai_agent_name()", str(res))
     except Exception as e:
-        fail("check_assistant_name()", e)
+        fail("check_ai_agent_name()", e)
 
     print("\n[4] List agents (sync)")
     try:
@@ -118,24 +118,24 @@ def test_sync():
 
     print("\n[6] Create assistant app (sync)")
     try:
-        res = ai.create_assistant_app({"name": "SDK Test App", "workflow_name": "sdk-test-workflow", "instructions": "Test only."})
+        res = ai.create_ai_agent_app({"name": "SDK Test App", "workflow_name": "sdk-test-workflow", "instructions": "Test only."})
         created_app_id = res.get("id") or res.get("_id")
-        ok("create_assistant_app()", created_app_id or str(res)[:60])
+        ok("create_ai_agent_app()", created_app_id or str(res)[:60])
     except Exception as e:
-        fail("create_assistant_app()", e)
+        fail("create_ai_agent_app()", e)
 
     print("\n[7] Update assistant app (sync)")
     if not created_app_id:
-        skip("update_assistant_app(id)", "no app created")
+        skip("update_ai_agent_app(id)", "no app created")
     else:
         try:
-            res = ai.update_assistant_app(created_app_id, {"name": "SDK Test App Updated", "workflow_name": "sdk-test-workflow", "instructions": "Updated."})
-            ok("update_assistant_app(id)", res.get("id") or res.get("_id", str(res)[:60]))
+            res = ai.update_ai_agent_app(created_app_id, {"name": "SDK Test App Updated", "workflow_name": "sdk-test-workflow", "instructions": "Updated."})
+            ok("update_ai_agent_app(id)", res.get("id") or res.get("_id", str(res)[:60]))
         except Exception as e:
-            fail("update_assistant_app(id)", e)
+            fail("update_ai_agent_app(id)", e)
 
     print("\n[8] Update assistant workflow (sync)")
-    skip("update_assistant_workflow(id)", "route not available on this prodv2 version")
+    skip("update_ai_agent_workflow(id)", "route not available on this prodv2 version")
 
     # ── RAG Files ──────────────────────────────────────────────────────────────
 
@@ -324,10 +324,10 @@ def test_sync():
 
     if created_app_id:
         try:
-            ai.delete_assistant_app(created_app_id)
-            ok("delete_assistant_app()", created_app_id)
+            ai.delete_ai_agent_app(created_app_id)
+            ok("delete_ai_agent_app()", created_app_id)
         except Exception as e:
-            fail("delete_assistant_app()", e)
+            fail("delete_ai_agent_app()", e)
 
     if created_guardrail_id:
         try:
@@ -353,7 +353,7 @@ def test_sync():
     skip("complete()", "excluded per test plan")
     skip("stream()", "excluded per test plan")
     skip("embed()", "not available on prodv2")
-    skip("list_assistants_v2() + v2 CRUD", "returns 404 on prodv2")
+    skip("list_ai_agents_v2() + v2 CRUD", "returns 404 on prodv2")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -366,11 +366,11 @@ async def test_async():
 
     print("\n[28] List assistants (async)")
     try:
-        res = await ai.list_assistants()
+        res = await ai.list_ai_agents()
         lst = res if isinstance(res, list) else res.get("data", [])
-        ok("async list_assistants()", f"{len(lst)} assistants")
+        ok("async list_ai_agents()", f"{len(lst)} assistants")
     except Exception as e:
-        fail("async list_assistants()", e)
+        fail("async list_ai_agents()", e)
 
     print("\n[29] List guardrail providers (async)")
     try:

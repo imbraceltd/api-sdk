@@ -33,7 +33,7 @@ async function testAiAgent() {
   // 4. Prompt Suggestions
   await runTestSection("aiAgent.getAgentPromptSuggestion", async () => {
     // Try with a dummy ID or skip if no assistant
-    const assistants = await client.chatAi.listAssistants();
+    const assistants = await client.chatAi.listAiAgents();
     if (assistants.length > 0) {
         const suggestions = await client.aiAgent.getAgentPromptSuggestion(assistants[0].id);
         logResult("Suggestions", suggestions);

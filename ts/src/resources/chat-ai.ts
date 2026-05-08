@@ -1,8 +1,8 @@
 import { HttpTransport } from "../http.js"
 
-// ─── Assistants ───────────────────────────────────────────────────────────────
+// ─── AI Agents ────────────────────────────────────────────────────────────────
 
-export interface Assistant {
+export interface AiAgent {
   id: string
   name: string
   description?: string
@@ -11,11 +11,11 @@ export interface Assistant {
   [key: string]: unknown
 }
 
-export interface CreateAssistantInput {
+export interface CreateAiAgentInput {
   name: string
   workflow_name: string
   /**
-   * The provider this assistant chats through. Use `"system"` to delegate to
+   * The provider this AI agent chats through. Use `"system"` to delegate to
    * the org's default LLM provider; pass a specific provider UUID to pin one.
    */
   provider_id: string
@@ -67,7 +67,7 @@ export interface DocumentAIResponse {
  * What this resource covers:
  *   • Agent file upload and content extraction
  *   • Document AI (vision-model document processing) and provider listing
- *   • Imbrace assistants (`/accounts/assistants`, `/assistant_apps`, …)
+ *   • Imbrace AI agents (`/accounts/assistants`, `/assistant_apps`, …)
  */
 export class ChatAiResource {
   constructor(private readonly http: HttpTransport, private readonly base: string) {}
@@ -106,20 +106,20 @@ export class ChatAiResource {
     return this.http.getFetch()(`${this.base}/providers`, { method: "GET" }).then(r => r.json())
   }
 
-  // ─── Assistants ────────────────────────────────────────────────────────────
+  // ─── AI Agents ─────────────────────────────────────────────────────────────
 
-  async listAssistants(): Promise<Assistant[]> {
+  async listAiAgents(): Promise<AiAgent[]> {
     return this.http.getFetch()(`${this.base}/accounts/assistants`, { method: "GET" }).then(r => r.json())
   }
 
-  async getAssistant(id: string): Promise<Assistant> {
+  async getAiAgent(id: string): Promise<AiAgent> {
     return this.http.getFetch()(`${this.base}/assistants/${id}`, { method: "GET" }).then(r => r.json())
   }
 
-  async createAssistant(body: CreateAssistantInput): Promise<Assistant> {
+  async createAiAgent(body: CreateAiAgentInput): Promise<AiAgent> {
     if (!body?.provider_id || !body?.model_id) {
       throw new Error(
-        "createAssistant: provider_id and model_id are required. " +
+        "createAiAgent: provider_id and model_id are required. " +
         "Use { provider_id: \"system\", model_id: \"gpt-4o\" } for the system default, " +
         "or pass a custom provider's UUID and model name.",
       )
@@ -131,7 +131,7 @@ export class ChatAiResource {
     }).then(r => r.json())
   }
 
-  async updateAssistant(id: string, body: Partial<CreateAssistantInput>): Promise<Assistant> {
+  async updateAiAgent(id: string, body: Partial<CreateAiAgentInput>): Promise<AiAgent> {
     return this.http.getFetch()(`${this.base}/assistant_apps/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -139,12 +139,12 @@ export class ChatAiResource {
     }).then(r => r.json())
   }
 
-  async deleteAssistant(id: string): Promise<boolean> {
+  async deleteAiAgent(id: string): Promise<boolean> {
     const r = await this.http.getFetch()(`${this.base}/assistant_apps/${id}`, { method: "DELETE" })
     return r.ok
   }
 
-  async updateAssistantInstructions(id: string, instructions: string): Promise<Assistant> {
+  async updateAiAgentInstructions(id: string, instructions: string): Promise<AiAgent> {
     return this.http.getFetch()(`${this.base}/assistants/${id}/instructions`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -152,7 +152,7 @@ export class ChatAiResource {
     }).then(r => r.json())
   }
 
-  async listAssistantAgents(): Promise<unknown[]> {
+  async listAiAgentSubAgents(): Promise<unknown[]> {
     return this.http.getFetch()(`${this.base}/assistants/agents`, { method: "GET" }).then(r => r.json())
   }
 }

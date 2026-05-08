@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from .boards import BoardsResource, AsyncBoardsResource
     from .templates import (
         TemplatesResource, AsyncTemplatesResource,
-        UseCaseInput, AssistantInput,
+        UseCaseInput, AiAgentInput,
     )
 
 
@@ -20,7 +20,7 @@ _SUGGEST_SCHEMA_PROMPT = (
 class DocumentAIResource:
     """Document AI — high-level wrapper for the iMBRACE Document AI Agent feature (Sync).
 
-    A Document AI Agent is a specialized AI Assistant configured to extract
+    A Document AI Agent is a specialized AI Agent configured to extract
     structured JSON from unstructured documents. Each agent has:
 
     - a **schema** (``data_schema`` field) defining the extraction fields
@@ -28,7 +28,7 @@ class DocumentAIResource:
     - a **model** + **provider** for the VLM/LLM
     - optional **workflow** integration
 
-    This resource wraps AI Assistant CRUD endpoints (filtered by
+    This resource wraps AI Agent CRUD endpoints (filtered by
     ``agent_type='document_ai'``) plus the processing endpoint ``/v3/ai/document/``.
 
     Example::
@@ -75,18 +75,18 @@ class DocumentAIResource:
         name_contains: Optional[str] = None,
         document_ai_only: bool = False,
     ) -> List[Dict[str, Any]]:
-        """List AI Assistants. Optional filters.
+        """List AI Agents. Optional filters.
 
         :param name_contains: case-insensitive name substring filter.
-        :param document_ai_only: if ``True``, return ONLY assistants that have
+        :param document_ai_only: if ``True``, return ONLY AI Agents that have
             the ``document_ai`` config field populated (i.e. created via
             :meth:`create_full` or via the iMBRACE webapp Document AI flow).
             Existing agents whose names suggest "Document AI" but were not
             tagged with the ``document_ai`` config are excluded.
 
-        Note: backend stores ``agent_type='agent'`` for ALL assistants, so
+        Note: backend stores ``agent_type='agent'`` for ALL AI Agents, so
         that field is not a reliable filter. The reliable marker is
-        ``document_ai != None`` on the assistant.
+        ``document_ai != None`` on the wire payload.
         """
         res = self._http.request("GET", f"{self._base}/accounts/assistants").json()
         all_a = res.get("data", res) if isinstance(res, dict) else res
@@ -226,7 +226,7 @@ class DocumentAIResource:
         temperature: float = 0.1,
         demo_url: Optional[str] = None,
         team_ids: Optional[List[str]] = None,
-        extra_assistant: Optional[Dict[str, Any]] = None,
+        extra_ai_agent: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """End-to-end Document AI agent creation.
 
@@ -234,23 +234,24 @@ class DocumentAIResource:
 
         1. Create a board with ``type="DocumentAI"`` and ``schema_fields`` embedded
            (this is the extraction schema container).
-        2. Create a UseCase + Assistant via :meth:`TemplatesResource.create_custom`,
-           linking the new board through ``assistant.document_ai.board_id``.
+        2. Create a UseCase + AI Agent via :meth:`TemplatesResource.create_custom`,
+           linking the new board through ``assistant.document_ai.board_id`` (wire
+           body key kept as ``assistant`` for backend compatibility).
 
         Returns aggregated ids::
 
             {
-                "board_id":     "brd_xxx",
-                "assistant_id": "fa445273-...",
-                "channel_id":   "ch_xxx",
-                "usecase_id":   "uc_xxx",
-                "usecase":      <full UseCase object>,
-                "board":        <full Board object>,
+                "board_id":    "brd_xxx",
+                "ai_agent_id": "fa445273-...",
+                "channel_id":  "ch_xxx",
+                "usecase_id":  "uc_xxx",
+                "usecase":     <full UseCase object>,
+                "board":       <full Board object>,
             }
 
         Defaults: ``vlm_model`` falls back to ``model_id``, ``vlm_provider_id``
         falls back to ``provider_id``, ``source_languages`` to ``["English"]``.
-        Pass ``extra_assistant`` to override / extend assistant fields
+        Pass ``extra_ai_agent`` to override / extend AI Agent fields
         (e.g. ``{"workflow_function_call": [...], "metadata": {...}}``).
 
         :raises RuntimeError: if the resource was not constructed via
@@ -283,7 +284,7 @@ class DocumentAIResource:
         if demo_url:
             usecase["demo_url"] = demo_url
 
-        assistant: Dict[str, Any] = {
+        ai_agent: Dict[str, Any] = {
             "name": name,
             "description": description or "",
             "mode": "advanced",
@@ -306,18 +307,18 @@ class DocumentAIResource:
                 "retry_time": retry_time,
             },
         }
-        if extra_assistant:
-            assistant.update(extra_assistant)
+        if extra_ai_agent:
+            ai_agent.update(extra_ai_agent)
 
         res = self._templates.create_custom(
             usecase=cast("UseCaseInput", usecase),
-            assistant=cast("AssistantInput", assistant),
+            assistant=cast("AiAgentInput", ai_agent),
         )
         data = res.get("data", res) if isinstance(res, dict) else {}
 
         return {
             "board_id":     board_id,
-            "assistant_id": data.get("assistant_id"),
+            "ai_agent_id": data.get("assistant_id"),
             "channel_id":   data.get("channel_id"),
             "usecase_id":   data.get("_id"),
             "usecase":      data,
@@ -467,7 +468,7 @@ class AsyncDocumentAIResource:
         temperature: float = 0.1,
         demo_url: Optional[str] = None,
         team_ids: Optional[List[str]] = None,
-        extra_assistant: Optional[Dict[str, Any]] = None,
+        extra_ai_agent: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """End-to-end Document AI agent creation (async).
 
@@ -499,7 +500,7 @@ class AsyncDocumentAIResource:
         if demo_url:
             usecase["demo_url"] = demo_url
 
-        assistant: Dict[str, Any] = {
+        ai_agent: Dict[str, Any] = {
             "name": name,
             "description": description or "",
             "mode": "advanced",
@@ -522,18 +523,18 @@ class AsyncDocumentAIResource:
                 "retry_time": retry_time,
             },
         }
-        if extra_assistant:
-            assistant.update(extra_assistant)
+        if extra_ai_agent:
+            ai_agent.update(extra_ai_agent)
 
         res = await self._templates.create_custom(
             usecase=cast("UseCaseInput", usecase),
-            assistant=cast("AssistantInput", assistant),
+            assistant=cast("AiAgentInput", ai_agent),
         )
         data = res.get("data", res) if isinstance(res, dict) else {}
 
         return {
             "board_id":     board_id,
-            "assistant_id": data.get("assistant_id"),
+            "ai_agent_id": data.get("assistant_id"),
             "channel_id":   data.get("channel_id"),
             "usecase_id":   data.get("_id"),
             "usecase":      data,
