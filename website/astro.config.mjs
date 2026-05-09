@@ -75,6 +75,16 @@ export default defineConfig({
           ],
         },
         {
+          label: 'CLI',
+          translations: { vi: 'CLI' },
+          items: [
+            { label: 'Overview',        link: '/cli/overview/' },
+            { label: 'Installation',    link: '/cli/installation/' },
+            { label: 'Commands',        link: '/cli/commands/' },
+            { label: 'API Reference',   link: '/cli/api-reference/' },
+          ],
+        },
+        {
           label: 'SDK',
           translations: { vi: 'SDK', 'zh-CN': 'SDK', 'zh-TW': 'SDK' },
           items: [
@@ -91,16 +101,6 @@ export default defineConfig({
             { label: 'Error Handling',  translations: { vi: 'Xử Lý Lỗi',            'zh-CN': '错误处理',   'zh-TW': '錯誤處理'   }, link: '/sdk/error-handling/' },
             { label: 'Integrations',    translations: { vi: 'Tích Hợp',             'zh-CN': '集成',       'zh-TW': '整合'       }, link: '/sdk/integrations/' },
             { label: 'Local Testing',   translations: { vi: 'Kiểm Thử Cục Bộ',      'zh-CN': '本地测试',   'zh-TW': '本地測試'   }, link: '/sdk/local-testing/' },
-          ],
-        },
-        {
-          label: 'CLI',
-          translations: { vi: 'CLI' },
-          items: [
-            { label: 'Overview',        link: '/cli/overview/' },
-            { label: 'Installation',    link: '/cli/installation/' },
-            { label: 'Commands',        link: '/cli/commands/' },
-            { label: 'API Reference',   link: '/cli/api-reference/' },
           ],
         },
         {
