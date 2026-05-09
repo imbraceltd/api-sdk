@@ -1,8 +1,6 @@
 # Vibe Coding
 
-> Use the Imbrace SDK faster by dropping llms.txt into your AI coding assistant — Claude, Cursor, Copilot, or any LLM-powered IDE.
-
-**Vibe Coding** means writing code by collaborating with an AI assistant — describing what you want in plain language and letting the AI generate, explain, or refactor the code for you. The Imbrace SDK ships an [`llms.txt`](https://developer.imbrace.co/llms.txt) file so any AI tool can instantly understand the SDK without hallucinating method names or argument shapes.
+**Vibe Coding** means writing code by collaborating with an AI assistant â€” describing what you want in plain language and letting the AI generate, explain, or refactor the code for you. The Imbrace SDK ships an [`llms.txt`](https://developer.imbrace.co/llms.txt) file so any AI tool can instantly understand the SDK without hallucinating method names or argument shapes.
 
 ## Setup
 
@@ -13,14 +11,13 @@ Before vibe coding, make sure the SDK is installed and your credentials are conf
 ```bash
 npm install @imbrace/sdk
 ```
-
 ```bash
 pip install imbrace
 ```
 
 **2. Store your credentials**
 
-Create a `.env` file in your project root. The SDK does **not** auto-read environment variables — you pass them to the constructor in step 3.
+Create a `.env` file in your project root. The SDK does **not** auto-read environment variables â€” you pass them to the constructor in step 3.
 
 ```env
 IMBRACE_API_KEY=your_api_key_here
@@ -39,7 +36,6 @@ const client = new ImbraceClient({
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
 });
 ```
-
 ```python
 import os
 from imbrace import ImbraceClient
@@ -58,7 +54,7 @@ Download or copy the file at [`https://developer.imbrace.co/llms.txt`](https://d
 
 ## What is `llms.txt`?
 
-`llms.txt` is a plain-text file (similar to `robots.txt`) that gives AI models a compact, accurate summary of a library — its clients, resources, authentication, and common patterns. When you paste it into an AI context window, the model already knows the SDK and can write correct code on the first try.
+`llms.txt` is a plain-text file (similar to `robots.txt`) that gives AI models a compact, accurate summary of a library â€” its clients, resources, authentication, and common patterns. When you paste it into an AI context window, the model already knows the SDK and can write correct code on the first try.
 
 **File URL:** [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt)
 
@@ -101,7 +97,7 @@ Once the AI has the `llms.txt` context, try prompts like:
 - *"What's the difference between `streamChat` and `streamSubAgentChat`?"*
 - *"Write an Express.js auth proxy for the Chat Client, following the Integrations guide pattern."*
 
-> For long sessions keep `llms.txt` pinned as a **system prompt** or **project instruction** so it applies to every message automatically.
+For long sessions keep `llms.txt` pinned as a **system prompt** or **project instruction** so it applies to every message automatically.
 
 ## Keep it up to date
 

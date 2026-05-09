@@ -97,8 +97,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const product = await client.marketplace.createProduct(body);
-  return NextResponse.json(product, { status: 201 });
+  const order = await client.marketplace.createOrder(body);
+  return NextResponse.json(order, { status: 201 });
 }
 ```
 
@@ -162,6 +162,7 @@ The simplest pattern — one async client per request, lifetime managed by the d
 ```python
 from fastapi import FastAPI, Depends
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 app = FastAPI()
 
@@ -171,7 +172,7 @@ async def get_imbrace() -> AsyncImbraceClient:
 
 @app.get("/products")
 async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
-    result = await client.marketplace.list_products(limit=20)
+    result = await client.marketplace.list_products({"limit": 20})
     return result["data"]
 
 @app.get("/products/{product_id}")
@@ -180,10 +181,10 @@ async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_
 
 @app.post("/ai/chat")
 async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
-    return await client.ai.complete(
+    return await client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[{"role": "user", "content": message}],
-    )
+        messages=[CompletionMessage(role="user", content=message)],
+    ))
 ```
 
 ### Global singleton (better connection reuse)
@@ -226,8 +227,8 @@ async def fetch_dashboard_data():
     async with AsyncImbraceClient() as client:
         me, products, channels = await asyncio.gather(
             client.platform.get_me(),
-            client.marketplace.list_products(limit=5),
-            client.channel.list_channels(type="group"),
+            client.marketplace.list_products({"limit": 5}),
+            client.channel.list(type="group"),
         )
         return {
             "user": me,
@@ -243,14 +244,15 @@ data = asyncio.run(fetch_dashboard_data())
 ```python
 import asyncio
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 async def stream_response():
     async with AsyncImbraceClient() as client:
-        async for chunk in client.ai.stream(
+        async for chunk in client.ai.stream(CompletionInput(
             model="gpt-4o",
-            messages=[{"role": "user", "content": "Explain async/await in Python."}],
-        ):
-            content = chunk["choices"][0]["delta"].get("content", "")
+            messages=[CompletionMessage(role="user", content="Explain async/await in Python.")],
+        )):
+            content = chunk.choices[0].delta.content or ""
             print(content, end="", flush=True)
 
 asyncio.run(stream_response())
@@ -270,10 +272,10 @@ from imbrace import ImbraceClient, ApiError
 def product_list(request):
     with ImbraceClient() as client:
         try:
-            result = client.marketplace.list_products(
-                category=request.GET.get("category"),
-                page=int(request.GET.get("page", 1)),
-            )
+            result = client.marketplace.list_products({
+                "category": request.GET.get("category"),
+                "page": int(request.GET.get("page", 1)),
+            })
             return JsonResponse(result)
         except ApiError as e:
             return JsonResponse({"error": str(e)}, status=e.status_code)
@@ -314,7 +316,7 @@ app = Celery("tasks")
 def sync_products(self):
     try:
         with ImbraceClient() as client:
-            result = client.marketplace.list_products(limit=100)
+            result = client.marketplace.list_products({"limit": 100})
             for product in result["data"]:
                 save_to_db(product)
     except NetworkError as exc:
@@ -391,16 +393,15 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.request_otp(body.email)
+        await client.auth.signin_email_request(body.email)
     return {"message": "OTP sent"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            await client.login_with_otp(body.email, body.otp)
-            token = client._token_manager.get_token()
-            return {"access_token": token}
+            result = await client.auth.signin_with_email(body.email, body.otp)
+            return {"access_token": result["token"]}
         except AuthError:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 ```

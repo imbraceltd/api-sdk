@@ -26,26 +26,44 @@ pip install imbrace
 </TabItem>
 </Tabs>
 
-**2. 設定憑證**
+**2. 儲存憑證**
+
+在專案根目錄建立 `.env` 檔案。SDK **不會**自動讀取環境變數——你需要在第 3 步將其傳入建構子。
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+```
+
+如需瞭解何時使用 API Key 或 Access Token，請參閱 [Authentication](/sdk/authentication/)；如需瞭解如何取得 API Key，請參閱 [Setup 指南](/getting-started/setup/#get-an-api-key)。
+
+**3. 初始化客戶端**
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey:         process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+});
 ```
 </TabItem>
 <TabItem label="Python">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+)
 ```
 </TabItem>
 </Tabs>
 
-如需瞭解如何取得 API Key，請參閱 [Authentication](/sdk/authentication/)。
-
-**3. 取得 `llms.txt`**
+**4. 取得 `llms.txt`**
 
 下載或複製 [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) 的檔案內容，並匯入你的 AI 工具（見下方[如何使用](#如何使用)）。
 
@@ -91,7 +109,7 @@ export IMBRACE_ORG_ID=your_org_id
 
 為 AI 提供 `llms.txt` 上下文後，可以嘗試如下提示：
 
-- *「用 Python 示範如何建立 AI 助手並串流獲取聊天回應。」*
+- *「用 Python 示範如何建立 AI Agent 並串流獲取聊天回應。」*
 - *「生成 TypeScript 程式碼，列出所有 embedding 檔案並刪除狀態為 `error` 的檔案。」*
 - *「`streamChat` 和 `streamSubAgentChat` 有什麼區別？」*
 - *「參照 Integrations 指南，撰寫一個用於 Chat Client 的 Express.js 驗證代理。」*
@@ -99,6 +117,26 @@ export IMBRACE_ORG_ID=your_org_id
 <Aside type="tip">
 在長時間的會話中，將 `llms.txt` 固定為 **系統提示詞** 或 **專案指令**，使其自動套用於每則訊息。
 </Aside>
+
+### 用於編碼代理的 CLI
+
+Imbrace CLI（`@imbrace/cli`）同樣專為編碼代理設計。安裝 CLI 後，AI 助手可以直接透過終端機執行命令，無需編寫任何 SDK 程式碼：
+
+```bash
+# 列出看板
+imbrace data-board list --json
+
+# 建立項目
+imbrace data-board create-item <boardId> --fields '<json>' --json
+
+# 列出 AI 代理
+imbrace ai-agent list --json
+
+# 管理工作流程
+imbrace workflow list --json
+```
+
+所有命令都支援 `--json` 輸出機器可讀的結果，以及 `-h` / `--help` 檢視說明。請參閱 [CLI 命令](/cli/commands/) 取得完整參考。
 
 ## 保持更新
 

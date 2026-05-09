@@ -1,21 +1,21 @@
 ---
 title: 集成
-description: 在 React、Next.js、Node.js、FastAPI、asyncio、Django 和 Celery 中使用 Imbrace SDKs。
+description: 在 React、Next.js、Node.js、FastAPI、asyncio、Django 和 Celery 中使用 Imbrace SDK。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-两个 SDK 的框架级接线模式。TypeScript 部分涵盖 React、Next.js 和 Node.js；Python 部分涵盖 FastAPI、asyncio、Django 和 Celery。OTP 登录流程为两者均有记录。
+两个 SDK 的框架级接入模式。选择适合你技术栈的章节——TypeScript 涵盖 React、Next.js 和纯 Node.js；Python 涵盖 FastAPI、asyncio、Django 和 Celery。OTP 登录流程两种语言均有文档。
 
-凭证策略（api key vs access token、env vars），参阅[身份验证](/zh-cn/sdk/authentication/)和[安装指南](/zh-cn/getting-started/setup/#configure-credentials)。
+有关凭证策略（API key 与 access token、环境变量），参见[认证](/sdk/authentication/)和[设置指南](/getting-started/setup/#configure-credentials)。
 
 ---
 
-## React (TypeScript)
+## React（TypeScript）
 
 ### 单例客户端
 
-在组件树外创建一次客户端并复用。`localStorage` 中的 token 来自 [OTP 登录流程](/zh-cn/sdk/authentication/#otp-登录流程)。
+在组件树外部创建一次客户端，并在所有组件中复用。`localStorage` 中的令牌来自[OTP 登录流程](/sdk/authentication/#otp-login-flow)。
 
 ```typescript
 // lib/imbrace.ts
@@ -75,7 +75,7 @@ export function ProductList() {
 
 ---
 
-## Next.js (TypeScript)
+## Next.js（TypeScript）
 
 ### API 路由（App Router）
 
@@ -97,12 +97,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const product = await client.marketplace.createProduct(body);
-  return NextResponse.json(product, { status: 201 });
+  const order = await client.marketplace.createOrder(body);
+  return NextResponse.json(order, { status: 201 });
 }
 ```
 
-`process.env.IMBRACE_API_KEY` 应按你的部署平台的方式设置。参阅[安装指南 → 配置凭证](/zh-cn/getting-started/setup/#configure-credentials)。
+`process.env.IMBRACE_API_KEY` 应按照部署平台期望的方式设置（Vercel 环境变量、开发环境使用 `.env.local` 等）。参见[设置指南 → 配置凭证](/getting-started/setup/#configure-credentials)。
 
 ### 服务端组件（App Router）
 
@@ -118,7 +118,7 @@ export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
     <main>
-      <h1>商品</h1>
+      <h1>产品</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
@@ -127,7 +127,7 @@ export default async function ProductsPage() {
 
 ---
 
-## Node.js CLI 脚本 (TypeScript)
+## Node.js CLI 脚本（TypeScript）
 
 适用于一次性脚本（数据导出、回填、临时查询）：
 
@@ -153,15 +153,16 @@ npx ts-node scripts/export-contacts.ts
 
 ---
 
-## FastAPI (Python)
+## FastAPI（Python）
 
-### Per-request 依赖注入
+### 按请求的依赖注入
 
-最简单的模式 — 每个请求一个 async client，由依赖项管理生命周期：
+最简单的模式——每个请求一个异步客户端，生命周期由依赖管理：
 
 ```python
 from fastapi import FastAPI, Depends
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 app = FastAPI()
 
@@ -171,7 +172,7 @@ async def get_imbrace() -> AsyncImbraceClient:
 
 @app.get("/products")
 async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
-    result = await client.marketplace.list_products(limit=20)
+    result = await client.marketplace.list_products({"limit": 20})
     return result["data"]
 
 @app.get("/products/{product_id}")
@@ -180,15 +181,15 @@ async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_
 
 @app.post("/ai/chat")
 async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
-    return await client.ai.complete(
+    return await client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[{"role": "user", "content": message}],
-    )
+        messages=[CompletionMessage(role="user", content=message)],
+    ))
 ```
 
-### 全局单例（提高连接复用）
+### 全局单例（更好的连接复用）
 
-对于更高吞吐量，在应用程序生命周期内共享一个 client：
+对于更高吞吐量，在应用生命周期内共享一个客户端：
 
 ```python
 from contextlib import asynccontextmanager
@@ -214,7 +215,7 @@ async def get_me():
 
 ---
 
-## asyncio (Python)
+## asyncio（Python）
 
 ### 并发请求
 
@@ -226,8 +227,8 @@ async def fetch_dashboard_data():
     async with AsyncImbraceClient() as client:
         me, products, channels = await asyncio.gather(
             client.platform.get_me(),
-            client.marketplace.list_products(limit=5),
-            client.channel.list_channels(type="group"),
+            client.marketplace.list_products({"limit": 5}),
+            client.channel.list(type="group"),
         )
         return {
             "user": me,
@@ -243,14 +244,15 @@ data = asyncio.run(fetch_dashboard_data())
 ```python
 import asyncio
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 async def stream_response():
     async with AsyncImbraceClient() as client:
-        async for chunk in client.ai.stream(
+        async for chunk in client.ai.stream(CompletionInput(
             model="gpt-4o",
-            messages=[{"role": "user", "content": "解释 Python 中的 async/await。"}],
-        ):
-            content = chunk["choices"][0]["delta"].get("content", "")
+            messages=[CompletionMessage(role="user", content="用 Python 解释 async/await。")],
+        )):
+            content = chunk.choices[0].delta.content or ""
             print(content, end="", flush=True)
 
 asyncio.run(stream_response())
@@ -258,7 +260,7 @@ asyncio.run(stream_response())
 
 ---
 
-## Django (Python)
+## Django（Python）
 
 ### 同步视图
 
@@ -270,16 +272,16 @@ from imbrace import ImbraceClient, ApiError
 def product_list(request):
     with ImbraceClient() as client:
         try:
-            result = client.marketplace.list_products(
-                category=request.GET.get("category"),
-                page=int(request.GET.get("page", 1)),
-            )
+            result = client.marketplace.list_products({
+                "category": request.GET.get("category"),
+                "page": int(request.GET.get("page", 1)),
+            })
             return JsonResponse(result)
         except ApiError as e:
             return JsonResponse({"error": str(e)}, status=e.status_code)
 ```
 
-### Django 设置集成
+### 设置集成
 
 ```python
 # settings.py
@@ -299,9 +301,9 @@ def get_client() -> ImbraceClient:
 
 ---
 
-## Celery (Python)
+## Celery（Python）
 
-对于后台任务 workers，在每个 task 内部创建 client — 不要在 worker 之间共享：
+对于后台任务工作者，使用同步客户端并在每个任务内创建：
 
 ```python
 # tasks.py
@@ -314,7 +316,7 @@ app = Celery("tasks")
 def sync_products(self):
     try:
         with ImbraceClient() as client:
-            result = client.marketplace.list_products(limit=100)
+            result = client.marketplace.list_products({"limit": 100})
             for product in result["data"]:
                 save_to_db(product)
     except NetworkError as exc:
@@ -322,14 +324,14 @@ def sync_products(self):
 ```
 
 :::tip
-不要在 Celery worker 之间共享单一 `ImbraceClient` — 在每个 task 中创建新的。httpx 连接池无法安全地在进程间共享。
+不要在 Celery 工作者之间共享单个 `ImbraceClient` 实例——使用上下文管理器在每个任务调用时创建。httpx 连接池在进程间共享是不安全的。
 :::
 
 ---
 
 ## OTP 登录流程
 
-OTP 流程在两个 SDK 中概念上相同：为邮箱请求 OTP，然后交换为 access token。参阅[身份验证 → OTP 登录流程](/zh-cn/sdk/authentication/#otp-登录流程)了解完整的凭证生命周期。
+OTP 流程在两个 SDK 中的概念相同：为邮箱请求 OTP，然后将其兑换为访问令牌。参见[认证 → OTP 登录流程](/sdk/authentication/#otp-login-flow)了解完整的凭证生命周期。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -355,19 +357,19 @@ export function LoginForm() {
       await client.loginWithOtp(email, otp);
       window.location.href = "/dashboard";
     } catch (e) {
-      if (e instanceof AuthError) alert("OTP 不正确");
+      if (e instanceof AuthError) alert("OTP 无效");
     }
   }
 
   return step === "email" ? (
     <div>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="邮箱" />
+      <input value={email} onChange={(e) => setEmail(e.target.value)} />
       <button onClick={requestOtp}>发送 OTP</button>
     </div>
   ) : (
     <div>
-      <input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="输入 OTP" />
-      <button onClick={verifyOtp}>确认</button>
+      <input value={otp} onChange={(e) => setOtp(e.target.value)} />
+      <button onClick={verifyOtp}>验证</button>
     </div>
   );
 }
@@ -391,18 +393,17 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.request_otp(body.email)
+        await client.auth.signin_email_request(body.email)
     return {"message": "OTP 已发送"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            await client.login_with_otp(body.email, body.otp)
-            token = client._token_manager.get_token()
-            return {"access_token": token}
+            result = await client.auth.signin_with_email(body.email, body.otp)
+            return {"access_token": result["token"]}
         except AuthError:
-            raise HTTPException(status_code=401, detail="OTP 不正确")
+            raise HTTPException(status_code=401, detail="OTP 无效")
 ```
 </TabItem>
 </Tabs>

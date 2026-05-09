@@ -227,6 +227,20 @@ async def main():
 
 ---
 
+### CLI 安装
+
+```bash
+# 全局安装
+npm install -g @imbrace/cli
+
+# 登录开始使用
+imbrace login --api-key api_xxx...
+```
+
+请参阅 [CLI 安装](/cli/installation/) 了解其他安装方法，以及 [CLI 命令](/cli/commands/) 获取完整命令参考。
+
+---
+
 ### 快速使用示例
 
 <Tabs>
@@ -241,10 +255,10 @@ const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 const me = await client.platform.getMe()
 
 // 频道列表
-const channels = await client.channel.listChannels()
+const channels = await client.channel.list()
 
 // 发送消息
-await client.channel.sendMessage('conv_123', { content: '你好！', type: 'text' })
+await client.messages.send({ type: 'text', text: '你好！' })
 
 // AI 补全
 const result = await client.ai.complete({
@@ -261,7 +275,6 @@ for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })
 const response = await client.aiAgent.streamChat({
   id: 'chat_id',
   assistant_id: 'asst_abc',
-  organization_id: 'org_abc',
   messages: [{ role: 'user', content: '你好' }],
 })
 ```
@@ -271,27 +284,27 @@ const response = await client.aiAgent.streamChat({
 
 ```python
 from imbrace import ImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 with ImbraceClient(api_key="sk-...") as client:
     # 获取用户信息
     me = client.platform.get_me()
 
     # 频道和看板列表
-    channels = client.channel.list_channels()
+    channels = client.channel.list()
     boards   = client.boards.list()
-    items    = client.boards.get_items(boards[0]["id"])
+    items    = client.boards.list_items(boards[0]["id"])
 
     # AI 补全
-    result = client.ai.complete(
+    result = client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[{"role": "user", "content": "你好"}],
-    )
+        messages=[CompletionMessage(role="user", content="你好")],
+    ))
 
     # AI Agent — 流式对话
     response = client.ai_agent.stream_chat({
         "id": "chat_id",
         "assistant_id": "asst_abc",
-        "organization_id": "org_abc",
         "messages": [{"role": "user", "content": "你好"}],
     })
     for line in response.iter_lines():
@@ -353,7 +366,7 @@ client = ImbraceClient(
 | `file_service`         | `fileService`       | File service                        |
 | `message_suggestion`   | `messageSuggestion` | Message Suggestion service          |
 | `predict`              | `predict`           | Predict service                     |
-| `activepieces`         | `activepieces`      | ActivePieces                        |
+| `activepieces`         | `activepieces`      | Workflows                           |
 | `ai_agent`             | `aiAgent`           | AI Agent service                    |
 
 ---

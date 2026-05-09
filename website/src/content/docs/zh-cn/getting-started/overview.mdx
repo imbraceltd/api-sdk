@@ -1,65 +1,61 @@
 ---
-title: 架构概览
-description: Imbrace SDK 的范围、结构以及各网关之间的区别。
+title: 概述
+description: Imbrace 是什么以及您可以使用 SDK 构建什么。
 ---
 
-### 范围
+Imbrace 是一个客户互动平台 — 它在同一个地方处理聊天频道、CRM 管道、AI 代理、自动化工作流和文档处理。SDK 让您可以直接将这些功能嵌入到自己的应用程序中，无需自行构建基础设施。
 
-- SDK 覆盖 **App Gateway + Server Gateway**。
-- **Journey API** 和 **n8n 专用 HTTP 路径**不在本仓库范围内。
+### 您可以构建什么
 
-### SDK 结构
+- **AI 代理** — 从基于您的知识库训练的 AI 代理实时流式传输响应
+- **自动化工作流** — 通过工作流引擎触发和管理多步骤自动化
+- **CRM 管道** — 创建看板、管理潜在客户、搜索和导出交易数据
+- **文档处理** — 从 PDF 和发票中提取结构化数据，生成嵌入向量
 
-```
-api-sdk/
-├── py/src/imbrace/
-│   ├── client.py              ← ImbraceClient（同步入口）
-│   ├── async_client.py        ← AsyncImbraceClient
-│   ├── http.py                ← 传输、认证头、重试
-│   ├── exceptions.py          ← AuthError, ApiError, NetworkError
-│   ├── environments.py        ← URL 预设（develop/sandbox/stable）
-│   ├── service_registry.py    ← 解析各服务 base URL
-│   ├── auth/token_manager.py  ← 线程安全令牌存储
-│   ├── resources/             ← 每个文件对应一个资源命名空间
-│   │   ├── ai_agent.py        (AiAgentResource, AsyncAiAgentResource)
-│   │   ├── platform.py
-│   │   ├── channel.py
-│   │   └── ...                （共 29 个资源）
-│   └── types/                 ← 公共 Pydantic 模型
-│
-└── ts/src/
-    ├── client.ts              ← ImbraceClient（入口）
-    ├── http.ts                ← 传输、认证头、重试
-    ├── errors.ts              ← AuthError, ApiError, NetworkError
-    ├── environments.ts        ← URL 预设
-    ├── service-registry.ts    ← 解析各服务 base URL
-    ├── auth/token-manager.ts  ← 令牌存储
-    ├── resources/             ← 每个文件对应一个资源命名空间
-    │   ├── ai-agent.ts        (AiAgentResource)
-    │   ├── platform.ts
-    │   ├── channel.ts
-    │   └── ...                （共 29 个资源）
-    └── types/                 ← TypeScript 公共接口
-```
+### CLI 工具
 
-### 各网关的区别
+Imbrace 还提供了一个命令行界面（`@imbrace/cli`），用于从终端与平台交互。它专为开发者和编码代理设计 — 与 SDK 一起安装，用于快速原型设计、调试和自动化。
 
-| 网关           | 认证头                          | 路径模式                  |
-| -------------- | ------------------------------- | ------------------------- |
-| App Gateway    | `x-access-token` = access token | `/v1\|v2\|v3/backend/...` |
-| Server Gateway | `x-api-key` = API key      | `/3rd/...`                |
+详情请参阅 [CLI 概述](/cli/overview/)。
 
-### 测试层级
+### 可用的 SDK
+
+| SDK | 包 | 运行时 |
+|---|---|---|
+| TypeScript / JavaScript | `@imbrace/sdk` | Node.js 18+, 浏览器 |
+| Python | `imbrace` | Python 3.9+ |
+
+### 身份验证
+
+有两种验证方式：
+
+- **访问令牌** — 用于面向用户的应用程序。用户在通过 OTP 或 OAuth 登录后获取。在初始化客户端时作为 `accessToken` 传入。
+- **API 密钥** — 用于服务器到服务器的集成。从 Imbrace 管理仪表板生成。作为 `apiKey` 传入。
+
+### 网关
+
+所有 SDK 请求都通过：
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  单元测试（无需服务器，无需 API key）                      │
-│  → 完整 HTTP 模拟：pytest-httpx (Python) / vitest (TS)   │
-│  → 离线运行，适合 CI/CD                                   │
-│  → 检查：SDK 逻辑、请求头、URL、参数、错误                 │
-├──────────────────────────────────────────────────────────┤
-│  集成测试（需要真实服务器 + 有效 API key）                 │
-│  → 真实调用 app-gatewayv2.imbrace.co                     │
-│  → 未设置 IMBRACE_API_KEY 时自动跳过                      │
-└──────────────────────────────────────────────────────────┘
+https://app-gatewayv2.imbrace.co
 ```
+
+网关默认设置 — 除非您针对不同环境，否则无需配置。
+
+### 快速示例
+
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
+
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+
+const stream = await client.aiAgent.streamChat({
+  assistant_id: "asst_xxx",
+  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+})
+```
+
+---

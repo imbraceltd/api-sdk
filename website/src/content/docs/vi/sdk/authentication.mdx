@@ -1,50 +1,50 @@
 ---
-title: Xác Thực
-description: API Key vs Access Token — khi nào dùng loại nào, và cách truyền vào SDK.
+title: Xác thực
+description: API Key so với Access Token — khi nào nên dùng mỗi loại và cách truyền chúng vào SDK.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK hỗ trợ hai loại credential. Truyền `apiKey` / `api_key` hoặc `accessToken` / `access_token` vào constructor — transport tự xử lý headers.
+SDK hỗ trợ hai loại thông tin xác thực. Truyền `apiKey` / `api_key` hoặc `accessToken` / `access_token` vào hàm tạo client — lớp vận chuyển (transport) tự động xử lý header.
 
-### Nên Dùng Credential Nào?
+### Nên dùng thông tin xác thực nào?
 
-Lựa chọn tuỳ thuộc vào **vai trò của Imbrace trong sản phẩm của bạn**:
+Lựa chọn phụ thuộc vào **vai trò của Imbrace trong sản phẩm của bạn**:
 
-#### Build trên Imbrace → dùng Access Token
+#### Build on Imbrace → dùng Access Token
 
-Imbrace **là** backend của bạn. End-user của bạn đăng nhập vào Imbrace (qua OTP hoặc password); token `acc_...` của họ chính là credential mà SDK gửi đi trên mỗi request. Auth, database, và business logic của Imbrace (assistants, knowledge hubs, workflows, AI agents) đều chạy thay mặt cho user đăng nhập đó.
+Imbrace là backend của bạn. Người dùng cuối đăng nhập vào Imbrace (qua OTP hoặc mật khẩu); token truy cập `acc_...` của họ là thông tin xác thực SDK dùng cho mọi yêu cầu. Hệ thống xác thực, cơ sở dữ liệu và logic nghiệp vụ của Imbrace (assistant, knowledge hub, workflow, AI agent) đều chạy thay mặt cho người dùng đã đăng nhập.
 
-Sản phẩm điển hình: chat widget, dashboard, hoặc mobile app — mỗi user là một user trong Imbrace. Imbrace tự ghi nhận history, permissions, và audit trail theo từng user.
+Sản phẩm điển hình: widget chat, bảng điều khiển hoặc ứng dụng di động nơi danh tính mỗi người dùng là một người dùng Imbrace. Imbrace ghi lại lịch sử, quyền và nhật ký kiểm toán theo từng người dùng.
 
 #### Wrap Imbrace → dùng API Key
 
-Bạn có backend riêng, user riêng, database riêng. Imbrace chỉ là **một capability** mà service của bạn gọi tới — "dùng AI của Imbrace để trả lời câu này" — bên cạnh nhiều thứ khác bạn đang làm. End-user của bạn không biết Imbrace tồn tại; service của bạn gọi Imbrace bằng một api-key cấp org (`api_...`) duy nhất (do admin org của Imbrace cấp). Imbrace chỉ thấy một danh tính (service account của API key) và bạn tự lo phần per-user attribution ở phía mình.
+Bạn có backend riêng, người dùng riêng, cơ sở dữ liệu riêng. Imbrace là một khả năng mà dịch vụ của bạn gọi đến — "dùng AI của Imbrace để trả lời" — cùng với mọi thứ khác bạn làm. Người dùng cuối không bao giờ thấy Imbrace; dịch vụ của bạn gọi Imbrace bằng một khóa `api_...` cấp tổ chức duy nhất (do quản trị viên org Imbrace cấp). Imbrace thấy một danh tính (người dùng dịch vụ của khóa API) và bạn tự xử lý việc gán theo người dùng ở phía mình.
 
-Sản phẩm điển hình: CRM có sẵn, hệ thống ticketing, hoặc internal tool nhúng Imbrace như một feature. Một credential duy nhất nằm trong env file phục vụ tất cả request.
+Sản phẩm điển hình: CRM hiện có, hệ thống ticket hoặc công cụ nội bộ nhúng Imbrace như một tính năng. Một thông tin xác thực nằm trong tệp env của bạn và phục vụ mọi yêu cầu.
 
-| | Build trên Imbrace (Access Token) | Wrap Imbrace (API Key) |
+| | Build on Imbrace (Access Token) | Wrap Imbrace (API Key) |
 | --- | --- | --- |
-| **Ai chạy auth?** | Imbrace (OTP / password login) | Bạn (auth của bạn) |
-| **User của ai?** | User của Imbrace | User của bạn |
-| **DB nào là canonical?** | Của Imbrace | Của bạn |
-| **Imbrace thấy danh tính nào** | End-user thực sự | Một service account |
-| **Per-user attribution trên server** | Có sẵn | Bạn tự xử lý |
-| **Thời hạn credential** | Theo session; refresh khi cần | Lâu dài; không tự hết hạn |
-| **Header gửi đi** | `x-access-token: acc_...` | `x-api-key: api_...` |
+| **Ai chạy xác thực?** | Imbrace (đăng nhập OTP / mật khẩu) | Bạn (xác thực của bạn) |
+| **Người dùng của ai?** | Người dùng Imbrace | Người dùng của bạn |
+| **CSDL chính thức của ai?** | Imbrace | Của bạn |
+| **Danh tính Imbrace thấy** | Người dùng cuối thực tế | Một tài khoản dịch vụ |
+| **Gán theo người dùng upstream** | Được tích hợp sẵn | Tùy bạn |
+| **Thời hạn sống của thông tin xác thực** | Theo phiên; làm mới khi cần | Dài hạn; không tự hết hạn |
+| **Header được gửi** | `x-access-token: acc_...` | `x-api-key: api_...` |
 
-> Cả hai credential đều được hỗ trợ đầy đủ. Hầu hết resources nhận cả hai. Một số tính năng phụ thuộc user context (document artifacts, chat history per-user) chỉ có ý nghĩa khi dùng access token.
+> Cả hai loại thông tin xác thực đều là công dân hạng nhất. Hầu hết tài nguyên chấp nhận cả hai. Một số tính năng phụ thuộc vào ngữ cảnh người dùng (document artifact, lịch sử chat theo người dùng) chỉ có ý nghĩa khi dùng access token.
 
-### Tham Chiếu Header
+### Tham chiếu Header
 
-| Credential | Header gửi đi |
+| Thông tin xác thực | Header được gửi |
 | --- | --- |
 | `apiKey` / `api_key` | `x-api-key: api_xxx...` |
 | `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
 
-Org context được **mã hoá ngay trong chính credential** — mỗi API key và mỗi access token đều cố định với một org duy nhất. Gateway resolve org trên mỗi request từ chính credential bạn gửi. Bạn **không bao giờ** cần truyền `organizationId` / `organization_id` cho SDK.
+Ngữ cảnh tổ chức được **mã hóa bên trong thông tin xác thực** — mọi khóa API và mọi token truy cập đều gắn với đúng một tổ chức. Gateway phân giải tổ chức trên mọi yêu cầu từ thông tin xác thực bạn đã gửi. Bạn không bao giờ truyền `organizationId` / `organization_id` cho SDK.
 
-Để thiết lập credentials từng bước (env vars, dotenv, secrets), xem [Hướng Dẫn Cài Đặt](/vi/getting-started/setup/#configure-credentials).
+Để biết hướng dẫn thiết lập thông tin xác thực từng bước (biến môi trường, dotenv, secrets), xem [Hướng dẫn thiết lập](/getting-started/setup/#configure-credentials).
 
 ---
 
@@ -77,7 +77,7 @@ Org context được **mã hoá ngay trong chính credential** — mỗi API key
 
 ### Access Token
 
-Nếu bạn đã có token `acc_...`, truyền trực tiếp:
+Nếu bạn đã có token `acc_...`, hãy truyền trực tiếp:
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -99,9 +99,9 @@ Nếu bạn đã có token `acc_...`, truyền trực tiếp:
 
 ---
 
-### Luồng OTP Login
+### Luồng đăng nhập OTP
 
-Dùng luồng này để xác thực user qua email OTP và lấy session token. SDK tự lưu token sau khi đăng nhập thành công.
+Sử dụng luồng này để xác thực người dùng qua email OTP và lấy token phiên. SDK tự động lưu token sau khi đăng nhập.
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -112,19 +112,20 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
 
-    // Bước 1: Gửi OTP đến email người dùng
+    // Step 1: Send OTP to the user's email
     await client.requestOtp("user@example.com")
 
-    // Bước 2: Người dùng nhập OTP — token được lưu tự động
+    // Step 2: User submits the OTP they received
     const loginRes = await client.loginWithOtp("user@example.com", "ABC123")
+    // loginRes contains a short-lived login_acc_... token (stored internally)
 
-    // Bước 3: Đổi lấy long-lived access token
+    // Step 3: Exchange for a long-lived access token
     const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id")
 
-    // Bước 4: Kích hoạt token cho tất cả các call tiếp theo
+    // Step 4: Activate the token for all subsequent calls
     client.setAccessToken(token)
 
-    // Giờ dùng bất kỳ resource nào
+    // Now use any resource
     const { data: boards } = await client.boards.list()
     ```
   </TabItem>
@@ -134,17 +135,17 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
 
     client = ImbraceClient()
 
-    # Bước 1: Gửi OTP đến email người dùng
+    # Step 1: Send OTP to the user's email
     client.request_otp("user@example.com")
 
-    # Bước 2: Người dùng nhập OTP — token được lưu tự động
+    # Step 2: User enters OTP — token stored automatically
     client.login_with_otp("user@example.com", "123456")
 
-    # Bước 3: Tất cả các call tiếp theo đã được xác thực
+    # Step 3: All subsequent calls are authenticated
     me = client.platform.get_me()
     ```
 
-    Phiên bản async:
+    Biến thể async:
 
     ```python
     from imbrace import AsyncImbraceClient
@@ -159,7 +160,7 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
 
 ---
 
-### Đăng Nhập Bằng Password
+### Đăng nhập bằng mật khẩu
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -170,7 +171,7 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
 
     await client.login("user@example.com", "password")
 
-    // Token được lưu tự động — dùng bất kỳ resource nào
+    // Token is stored automatically — proceed with any resource
     const { data: boards } = await client.boards.list()
     ```
   </TabItem>
@@ -179,7 +180,7 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
     client = ImbraceClient()
     client.login("user@example.com", "password123")
 
-    # Token được lưu tự động
+    # Token stored automatically
     boards = client.boards.list()
     ```
   </TabItem>
@@ -187,24 +188,24 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
 
 ---
 
-### Quản Lý Token
+### Quản lý token
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
-    // Thay token (ví dụ: sau khi refresh)
+    // Replace token (e.g., after a refresh)
     client.setAccessToken("acc_new_token...")
 
-    // Xóa token (ví dụ: khi logout)
+    // Clear token (e.g., on logout)
     client.clearAccessToken()
     ```
   </TabItem>
   <TabItem label="Python">
     ```python
-    # Thay token (ví dụ: sau khi refresh)
+    # Replace token (e.g., after refresh)
     client.set_access_token("acc_new_token...")
 
-    # Xóa token (ví dụ: khi logout)
+    # Clear token (e.g., on logout)
     client.clear_access_token()
     ```
   </TabItem>
@@ -212,9 +213,9 @@ Dùng luồng này để xác thực user qua email OTP và lấy session token.
 
 ---
 
-### Context Manager (Chỉ Python)
+### Trình quản lý ngữ cảnh (chỉ Python)
 
-Luôn wrap Python client trong context manager để HTTP connection pool được đóng đúng cách:
+Luôn bọc Python client trong trình quản lý ngữ cảnh để nhóm kết nối `httpx` bên dưới được đóng sạch sẽ:
 
 ```python
 # Synchronous

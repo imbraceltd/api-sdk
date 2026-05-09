@@ -1,0 +1,83 @@
+---
+title: CLI Overview
+description: Architecture and authentication flow of the Imbrace CLI.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+The Imbrace CLI (`@imbrace/cli`) is a terminal tool for interacting with the Imbrace platform. Commands call the Imbrace platform directly via the `@imbrace/sdk` package. Source: [imbraceltd/imbrace-cli](https://github.com/imbraceltd/imbrace-cli).
+
+```
+imbrace (CLI) → https://app-gatewayv2.imbrace.co (Imbrace Platform)
+```
+
+## Authentication Flow
+
+The CLI supports two authentication methods:
+
+**1. API Key** (credential starts with `sk-` or `api_`):
+- Passed directly to SDK: `new ImbraceClient({ apiKey: credential, baseUrl })`
+- Stored as-is in local config
+
+**2. Email + Password** (returns JWT token):
+- SDK: `client.login(email, password)` → token stored locally
+- JWT token stored as credential
+
+### Credential Storage
+
+Credentials are stored via the `conf` npm package with `projectName: "imbrace"`.
+
+| OS | Config path |
+|---|---|
+| macOS | `~/Library/Preferences/imbrace-nodejs/config.json` |
+| Linux | `~/.config/imbrace-nodejs/config.json` |
+| Windows | `%APPDATA%\imbrace-nodejs\Config\config.json` |
+
+Stored fields: `credential`, `method` (`"api-key"` | `"password"`), `email`.
+
+### Auto-login
+
+Every CLI command (except `login`) extends `BaseCommand`, which calls `ensureLoggedIn()` on init. If no credential is found, it interactively prompts the user to choose a login method (API Key or Email + Password).
+
+<Aside type="tip">
+  All commands accept `--json` for machine-readable output and `-h` / `--help` for usage.
+</Aside>
+
+## Project Structure
+
+```
+imbrace-cli/
+└── cli/                     ← oclif CLI
+    └── src/
+        ├── base-command.ts       ← Auto-login
+        ├── config.ts             ← Credential store (conf)
+        └── commands/
+            ├── login.ts / logout.ts / whoami.ts / docs.ts
+            ├── data-board/    (8 commands)
+            ├── ai-agent/      (9 commands)
+            ├── document-ai/   (7 commands)
+            ├── orchestrator/  (4 commands)
+            ├── guardrail/     (5 commands)
+            └── workflow/      (32 commands)
+```
+
+## Workflow Node Architecture
+
+Workflows use a **linked list** structure via `nextAction` pointers:
+
+```typescript
+{
+  version: {
+    trigger: {
+      name: "trigger",
+      type: "PIECE_TRIGGER" | "EMPTY" | "PIECE" | "ROUTER" | "LOOP_ON_ITEMS" | "CODE",
+      settings: { pieceName, pieceVersion, input, ... },
+      nextAction: { ... },
+      children?: any[],          // ROUTER branches
+      firstLoopAction?: any,     // LOOP_ON_ITEMS body
+    }
+  }
+}
+```
+
+All node operations use `applyFlowOperation()` with types: `UPDATE_TRIGGER`, `ADD_ACTION`, `UPDATE_ACTION`, `DELETE_ACTION`, `LOCK_AND_PUBLISH`, `CHANGE_STATUS`, `CHANGE_FOLDER`.

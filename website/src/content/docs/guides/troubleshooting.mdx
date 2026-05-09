@@ -75,3 +75,27 @@ mypy scanning `site-packages` by mistake. Configured in `pyproject.toml`. If it 
 ```bash
 mypy src/imbrace --exclude site-packages
 ```
+
+---
+
+## CLI: commands return `401 Unauthorized`
+
+Your credential has expired or the API server has a stale token.
+
+```bash
+imbrace login --api-key api_xxx...
+```
+
+---
+
+---
+
+## CLI: `workflow run --sync` times out
+
+The sync mode may time out at ~30s. Use async + poll instead:
+
+```bash
+imbrace workflow run <flowId> --payload '{}'
+imbrace workflow runs --limit 10           # find the run ID
+imbrace workflow run-detail <runId>        # check result
+```

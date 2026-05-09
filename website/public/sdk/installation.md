@@ -1,10 +1,7 @@
 # Installation
 
-> Install the Imbrace SDK for TypeScript or Python.
-
 ### Install
 
-  
     ```bash
     npm install @imbrace/sdk@1.0.2
     # or
@@ -14,8 +11,6 @@
     ```
 
     Requires Node.js 18+ (or any browser with native `fetch` and `ReadableStream`).
-  
-  
     ```bash
     pip install imbrace==1.0.2
     # or
@@ -23,28 +18,24 @@
     ```
 
     Requires Python 3.9+.
-  
 
 ### Initialize the client
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
-    // Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
+    // Build on Imbrace â€” Imbrace IS your backend, end-users log in via OTP
     const client = new ImbraceClient({
       accessToken: "acc_your_token",
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
 
-    The client is stateful — create it once and reuse it across your app.
-  
-  
+    The client is stateful â€” create it once and reuse it across your app.
     ```python
     from imbrace import ImbraceClient
 
-    # Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
+    # Build on Imbrace â€” Imbrace IS your backend, end-users log in via OTP
     with ImbraceClient(access_token="acc_your_token") as client:
         ...
     ```
@@ -52,26 +43,22 @@
     Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
 
     The context manager closes the underlying HTTP connection pool automatically.
-  
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
-    // Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    // Wrap Imbrace â€” Imbrace is a feature inside YOUR backend, your users
     const client = new ImbraceClient({
       apiKey: "api_xxx...",
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
 
-    The client is stateful — create it once and reuse it across your app.
-  
-  
+    The client is stateful â€” create it once and reuse it across your app.
     ```python
     from imbrace import ImbraceClient
 
-    # Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
+    # Wrap Imbrace â€” Imbrace is a feature inside YOUR backend, your users
     with ImbraceClient(api_key="api_xxx...") as client:
         ...
     ```
@@ -79,24 +66,19 @@
     Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
 
     The context manager closes the underlying HTTP connection pool automatically.
-  
 
 For when to use each credential, see [Authentication](/sdk/authentication/). For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
 
 ### Verify
 
-  
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
     console.log("SDK loaded:", typeof ImbraceClient) // "function"
     ```
-  
-  
     ```python
     from imbrace import ImbraceClient
     print("SDK ready:", ImbraceClient)
     ```
-  
 
 ### Environment variables
 
@@ -108,4 +90,4 @@ The SDK does **not** auto-read environment variables. Pass credentials directly 
 | `IMBRACE_ACCESS_TOKEN` | A user's access token (per-session credential) |
 | `IMBRACE_BASE_URL` | Override the gateway URL (default: `https://app-gatewayv2.imbrace.co`) |
 
-The org id is encoded inside both API keys and access tokens — you never pass `organizationId`/`organization_id` to the SDK. See [Authentication](/sdk/authentication/) for details.
+The org id is encoded inside both API keys and access tokens â€” you never pass `organizationId`/`organization_id` to the SDK. See [Authentication](/sdk/authentication/) for details.

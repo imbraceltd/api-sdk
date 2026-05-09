@@ -1,0 +1,91 @@
+---
+title: Lấy API Key
+description: Cách lấy Imbrace API key — qua Portal UI hoặc bằng SDK.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import step1 from "../../../../assets/get_api_key_from_ui_step_1.png";
+import step2 from "../../../../assets/get_api_key_from_ui_step_2.png";
+import step3 from "../../../../assets/get_api_key_from_ui_step_3.png";
+
+API key (`api_...`) cho phép backend của bạn gọi Imbrace mà không cần user session. Để biết khi nào dùng API key thay vì access token, xem [Xác Thực](/vi/sdk/authentication/).
+
+---
+
+## Cách 1 — Lấy API Key từ UI
+
+**Bước 1** — Đăng nhập vào Imbrace Portal, sau đó vào **GovernCore → Generate External Token**.
+
+<Image src={step1} alt="Imbrace Portal — thanh bên hiển thị menu GovernCore với tùy chọn Generate External Token" />
+
+**Bước 2** — Nhấn **Generate Token** để tạo một API key mới.
+
+<Image src={step2} alt="Trang GovernCore Generate External Token — nút Generate Token được tô sáng" />
+
+**Bước 3** — Sao chép key đã tạo. Key bắt đầu bằng `api_` và chỉ hiển thị một lần.
+
+<Image src={step3} alt="API key đã tạo được hiển thị đầy đủ — biểu tượng sao chép cạnh giá trị api_..." />
+
+---
+
+## Cách 2 — SDK (lập trình)
+
+Dùng khi cần tạo key từ code, ví dụ trong quá trình provisioning tự động. Bạn phải đăng nhập bằng access token trước (qua [OTP](/vi/sdk/authentication/#otp-login-flow) hoặc [mật khẩu](/vi/sdk/authentication/#password-login)).
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    // Yêu cầu client được khởi tạo với access token
+    const res = await client.auth.getThirdPartyToken(30) // hết hạn sau 30 ngày
+    const apiKey = res.apiKey.apiKey  // "api_..."
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    # Yêu cầu client được khởi tạo với access token
+    res = client.auth.get_third_party_token(expiration_days=30)
+    api_key = res["apiKey"]["apiKey"]  # "api_..."
+    ```
+  </TabItem>
+</Tabs>
+
+Cấu trúc response:
+
+```json
+{
+  "apiKey": {
+    "apiKey": "api_...",
+    "expired_at": "2025-08-01T00:00:00.000Z",
+    "is_active": true
+  },
+  "expires_in": 2592000
+}
+```
+
+---
+
+## Sử dụng key
+
+Truyền key vào constructor của client:
+
+<Tabs syncKey="lang">
+  <TabItem label="TypeScript">
+    ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
+
+    const client = new ImbraceClient({
+      apiKey: process.env.IMBRACE_API_KEY!,
+      baseUrl: "https://app-gatewayv2.imbrace.co",
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python">
+    ```python
+    import os
+    from imbrace import ImbraceClient
+
+    client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+    ```
+  </TabItem>
+</Tabs>

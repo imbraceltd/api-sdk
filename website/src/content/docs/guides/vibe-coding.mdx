@@ -109,7 +109,7 @@ Copy the raw file content and paste it at the start of your prompt before asking
 
 Once the AI has the `llms.txt` context, try prompts like:
 
-- *"Show me how to create an AI assistant and stream a chat response in Python."*
+- *"Show me how to create an AI agent and stream a chat response in Python."*
 - *"Generate TypeScript code to list all embedding files and delete ones with status `error`."*
 - *"What's the difference between `streamChat` and `streamSubAgentChat`?"*
 - *"Write an Express.js auth proxy for the Chat Client, following the Integrations guide pattern."*
@@ -117,6 +117,26 @@ Once the AI has the `llms.txt` context, try prompts like:
 <Aside type="tip">
 For long sessions keep `llms.txt` pinned as a **system prompt** or **project instruction** so it applies to every message automatically.
 </Aside>
+
+### CLI for Coding Agents
+
+The Imbrace CLI (`@imbrace/cli`) is also designed for coding agents. After installing the CLI, an AI assistant can run commands directly via the terminal without writing any SDK code:
+
+```bash
+# List boards
+imbrace data-board list --json
+
+# Create items
+imbrace data-board create-item <boardId> --fields '<json>' --json
+
+# List AI agents
+imbrace ai-agent list --json
+
+# Manage workflows
+imbrace workflow list --json
+```
+
+All commands support `--json` for machine-readable output and `-h` / `--help` for usage. See [CLI Commands](/cli/commands/) for the full reference.
 
 ## Keep it up to date
 

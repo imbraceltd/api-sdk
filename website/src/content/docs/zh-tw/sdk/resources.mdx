@@ -1,561 +1,18 @@
 ---
 title: 資源參考
-description: Imbrace SDKs 的按命名空間參考 — assistants、AI agent、workflows、boards、contacts 等。
+description: Imbrace SDK 各命名空間參考 — 聯絡人、對話、訊息、活動等。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-本頁列出 SDK 公開的每個資源命名空間以及每個命名空間中最常用的呼叫。首先初始化 client（參閱[安裝](/zh-tw/sdk/installation/)或[快速入門](/zh-tw/sdk/quick-start/)）。以下所有程式碼片段均假設 `client` 是已初始化的實例。
+本頁涵蓋 SDK 提供的 CRM 與訊息命名空間。請先初始化客戶端（參閱[安裝](/sdk/installation/)或[快速入門](/sdk/quick-start/)）。以下所有程式碼片段假設 `client` 為已初始化的實例。
 
-端到端演練請參閱[完整流程指南](/zh-tw/sdk/full-flow-guide/)。
+關於 AI 與工作流程相關資源，請參閱：
+- [AI Agent](/sdk/ai-agent/) — 助理（`chatAi`）、AI Agent 串流、嵌入向量、Parquet
+- [工作流程](/sdk/workflows/) — 工作流程流程與頻道自動化
+- [資料看板](/sdk/databoard/) — CRM 管道看板與項目
 
----
-
-## 助手 — `chatAi` / `chat_ai`
-
-管理 AI 助手（CRUD）、執行 OpenAI 相容的 completions，以及處理 document/file。該命名空間也涵蓋 Knowledge Hub 資料夾和 knowledge bases。
-
-### 助手 CRUD
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-// 列出帳戶中的所有助手
-const assistants = await client.chatAi.listAssistants();
-
-// 取得單一助手
-const assistant = await client.chatAi.getAssistant("9f77692f-33d0-436a-8138-2efb268838e6");
-
-// 建立 — provider_id 和 model_id 為必填
-const created = await client.chatAi.createAssistant({
-  name: "Support Bot",
-  workflow_name: "support_bot_v1",
-  provider_id: "system",
-  model_id: "gpt-4o",
-  description: "處理一級支援問題",
-});
-
-// 更新 — 更新時 workflow_name 也是必填
-const updated = await client.chatAi.updateAssistant(created.id, {
-  name: "Support Bot v2",
-  workflow_name: "support_bot_v1",
-});
-
-// 僅更新系統指令
-await client.chatAi.updateAssistantInstructions(
-  created.id,
-  "您是一位樂於助人的支援代理。",
-);
-
-await client.chatAi.deleteAssistant(created.id);
-```
-</TabItem>
-<TabItem label="Python">
-```python
-# 列出所有助手
-assistants = client.chat_ai.list_assistants()
-
-# 取得單一助手
-assistant = client.chat_ai.get_assistant("9f77692f-33d0-436a-8138-2efb268838e6")
-
-# 建立 — provider_id 和 model_id 為必填
-created = client.chat_ai.create_assistant({
-    "name":          "Support Bot",
-    "workflow_name": "support_bot_v1",
-    "provider_id":   "system",
-    "model_id":      "gpt-4o",
-    "description":   "處理一級支援問題",
-})
-
-# 更新
-updated = client.chat_ai.update_assistant(created["id"], {
-    "name":          "Support Bot v2",
-    "workflow_name": "support_bot_v1",
-})
-
-# 僅更新系統指令
-client.chat_ai.update_assistant_instructions(
-    created["id"],
-    "您是一位樂於助人的支援代理。",
-)
-
-client.chat_ai.delete_assistant(created["id"])
-```
-</TabItem>
-</Tabs>
-
-### Completions
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const response = await client.chatAi.chat({
-  model: "gpt-4o",
-  messages: [
-    { role: "system", content: "您是 CRM 助手。" },
-    { role: "user", content: "摘要這位客戶的備註：..." },
-  ],
-});
-console.log(response.choices[0].message.content);
-```
-</TabItem>
-<TabItem label="Python">
-```python
-response = client.chat_ai.chat({
-    "model": "gpt-4o",
-    "messages": [
-        {"role": "system", "content": "您是 CRM 助手。"},
-        {"role": "user",   "content": "摘要這位客戶的備註：..."},
-    ],
-})
-print(response["choices"][0]["message"]["content"])
-```
-</TabItem>
-</Tabs>
-
-### 模型
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const models = await client.chatAi.listModels();
-```
-</TabItem>
-<TabItem label="Python">
-```python
-models = client.chat_ai.list_models()
-```
-</TabItem>
-</Tabs>
-
-### 檔案處理
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-// 從 PDF 或圖片中擷取結構化資料
-const result = await client.chatAi.extractFile({
-  modelName: "gpt-4o",
-  url: "https://example.com/invoice.pdf",
-  organizationId: "org_xxx",
-});
-```
-</TabItem>
-<TabItem label="Python">
-```python
-result = client.chat_ai.process_document(
-    model_name="gpt-4o",
-    url="https://example.com/invoice.pdf",
-    organization_id="org_xxx",
-)
-print(result["data"])
-# {"invoice_number": "INV-001", "total": 1200, "vendor": "Acme Corp", ...}
-```
-</TabItem>
-</Tabs>
-
-### 持久化聊天工作階段（Python）
-
-```python
-chat    = client.chat_ai.create_chat({"title": "Support Chat"})
-history = client.chat_ai.list_chats()
-client.chat_ai.delete_chat(chat["id"])
-```
-
-### Knowledge Hub — 資料夾和 Knowledge Bases
-
-資料夾組織 knowledge bases。建立助手時在 `folder_ids` 中傳入資料夾 ID — 參閱[完整流程指南 §3](/zh-tw/sdk/full-flow-guide/#3-管理-knowledge-hub-並綁定到助手)。
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-// 資料夾
-const folders = await client.chatAi.listFolders();
-const folder  = await client.chatAi.createFolder({ name: "Q1 報告" });
-await client.chatAi.updateFolder(folder.id, { name: "Q1 2025 報告" });
-await client.chatAi.deleteFolder(folder.id);
-
-// Knowledge bases
-const all = await client.chatAi.listKnowledge();
-const kb  = await client.chatAi.getKnowledge("kb_id");
-const created = await client.chatAi.createKnowledge({
-  name: "支援文件",
-  folderId: folder.id,
-});
-await client.chatAi.deleteKnowledge(created.id);
-```
-</TabItem>
-<TabItem label="Python">
-```python
-# 資料夾透過 client.chat_ai 公開（與 TypeScript 相同）
-knowledge_bases = client.chat_ai.list_knowledge()
-```
-</TabItem>
-</Tabs>
-
----
-
-## OpenAI 相容 AI 服務 — `client.ai`（Python）
-
-原始 OpenAI 風格的 completions、streaming 和 embeddings。TypeScript SDK 目前不公開此命名空間 — 請改用[助手 → Completions](#completions)。
-
-```python
-# 單次 completion
-response = client.ai.complete(
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": "您是 CRM 助手。"},
-        {"role": "user",   "content": "摘要這位客戶的備註：..."},
-    ],
-    temperature=0.7,
-)
-print(response["choices"][0]["message"]["content"])
-
-# 串流傳輸
-for chunk in client.ai.stream(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "為這個 lead 起草跟進郵件。"}],
-):
-    print(chunk["choices"][0]["delta"].get("content", ""), end="", flush=True)
-
-# Embeddings
-result = client.ai.embed(
-    model="text-embedding-ada-002",
-    input=["客戶投訴計費問題", "計費問題升級"],
-)
-```
-
----
-
-## AI Agent — `aiAgent` / `ai_agent`
-
-與助手的串流聊天、knowledge base embedding 管理、parquet 資料和終端用戶聊天工作階段。參閱 [AI Agent](/zh-tw/sdk/ai-agent/) 取得完整的方法參考。最常用的入口是 `streamChat`。
-
-### 串流聊天（SSE）
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const sessionId = crypto.randomUUID();
-
-const response = await client.aiAgent.streamChat({
-  id: sessionId,
-  assistant_id: "asst_xxx",
-  organization_id: "org_xxx",
-  messages: [{ role: "user", content: "本季度哪些交易已成交？" }],
-});
-
-const reader = response.body!.getReader();
-const decoder = new TextDecoder();
-
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-  const text = decoder.decode(value);
-  for (const line of text.split("\n")) {
-    if (!line.startsWith("data: ")) continue;
-    const raw = line.slice(6).trim();
-    if (raw === "[DONE]") break;
-    try {
-      const event = JSON.parse(raw);
-      if (event.type === "text-delta") process.stdout.write(event.textDelta);
-    } catch {}
-  }
-}
-```
-</TabItem>
-<TabItem label="Python">
-```python
-import uuid
-
-session_id = str(uuid.uuid4())
-
-resp = client.ai_agent.stream_chat({
-    "id": session_id,
-    "assistant_id": "asst_xxx",
-    "organization_id": "org_xxx",
-    "messages": [{"role": "user", "content": "本季度哪些交易已成交？"}],
-})
-
-for line in resp.iter_lines():
-    if line:
-        print(line)
-```
-</TabItem>
-</Tabs>
-
-### 提示建議
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const suggestions = await client.aiAgent.getAgentPromptSuggestion("asst_xxx");
-```
-</TabItem>
-<TabItem label="Python">
-```python
-suggestions = client.ai_agent.get_agent_prompt_suggestion("assistant_id")
-```
-</TabItem>
-</Tabs>
-
-### Embedding 檔案（Knowledge Base）
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const files = await client.aiAgent.listEmbeddingFiles();
-const file  = await client.aiAgent.getEmbeddingFile("file_id");
-
-const classified = await client.aiAgent.classifyFile({
-  url: "https://example.com/product-catalog.pdf",
-  mime_type: "application/pdf",
-});
-
-await client.aiAgent.updateEmbeddingFileStatus("file_id", { status: "active" });
-await client.aiAgent.deleteEmbeddingFile("file_id");
-```
-</TabItem>
-<TabItem label="Python">
-```python
-files      = client.ai_agent.list_embedding_files()
-classified = client.ai_agent.classify_file(
-    url="https://example.com/product-catalog.pdf",
-    mime_type="application/pdf",
-)
-```
-</TabItem>
-</Tabs>
-
-### Parquet 資料
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const job = await client.aiAgent.generateParquet({
-  assistant_id: "asst_xxx",
-  data: [{ id: "1", name: "Acme Corp", revenue: 120000 }],
-});
-
-const parquetFiles = await client.aiAgent.listParquetFiles();
-await client.aiAgent.deleteParquetFile("file_id");
-```
-</TabItem>
-<TabItem label="Python">
-```python
-result = client.ai_agent.generate_parquet(
-    data=[{"id": "1", "name": "Acme Corp", "revenue": 120000}],
-    file_name="users",
-    folder_name="exports",
-)
-files = client.ai_agent.list_parquet_files()
-client.ai_agent.delete_parquet_file("exports/users.parquet")
-```
-</TabItem>
-</Tabs>
-
-### 終端用戶聊天客戶端
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const chat = await client.aiAgent.createClientChat({
-  id: crypto.randomUUID(),
-  assistantId: "asst_xxx",
-  organizationId: "org_xxx",
-  userId: "user_xxx",
-  selectedVisibilityType: "private",
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    content: "您好，我需要協助。",
-    createdAt: new Date().toISOString(),
-    parts: [{ type: "text", text: "您好，我需要協助。" }],
-  },
-});
-
-const clientChats = await client.aiAgent.listClientChats();
-const messages    = await client.aiAgent.listClientMessages(chat.id);
-await client.aiAgent.deleteClientChat(chat.id);
-```
-</TabItem>
-<TabItem label="Python">
-```python
-import uuid
-from datetime import datetime, timezone
-
-chat = client.ai_agent.create_client_chat({
-    "id":              str(uuid.uuid4()),
-    "assistantId":     "assistant_id",
-    "organizationId":  "org_xxx",
-    "userId":          "user_id",
-    "selectedVisibilityType": "private",
-    "message": {
-        "id":        str(uuid.uuid4()),
-        "role":      "user",
-        "content":   "您好",
-        "createdAt": datetime.now(timezone.utc).isoformat(),
-        "parts":     [{"type": "text", "text": "您好"}],
-    },
-})
-
-messages = client.ai_agent.list_client_messages(chat["id"])
-client.ai_agent.delete_client_chat(chat["id"])
-```
-</TabItem>
-</Tabs>
-
----
-
-## 工作流程 — Activepieces (`client.activepieces`，TypeScript)
-
-完整 lifecycle（create → publish → trigger），參閱[完整流程指南 §2](/zh-tw/sdk/full-flow-guide/#2-使用-activepieces-建立工作流並與助手關聯)。
-
-### Flows
-
-```typescript
-const { data: flows } = await client.activepieces.listFlows();
-const flow = await client.activepieces.getFlow("flow_id");
-const newFlow = await client.activepieces.createFlow({
-  displayName: "新 Lead 通知",
-  folderId: "folder_id",
-});
-await client.activepieces.deleteFlow("flow_id");
-```
-
-### 觸發 Flow
-
-```typescript
-// 非同步觸發
-await client.activepieces.triggerFlow("flow_id", {
-  contactId: "contact_xxx",
-  event: "lead_qualified",
-});
-
-// 等待結果
-const result = await client.activepieces.triggerFlowSync("flow_id", {
-  contactId: "contact_xxx",
-  event: "lead_qualified",
-});
-```
-
-### Runs、資料夾、連線、表
-
-```typescript
-const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
-const run                = await client.activepieces.getRun("run_id");
-const { data: folders }  = await client.activepieces.listFolders();
-const folder             = await client.activepieces.createFolder({ displayName: "CRM 自動化" });
-const { data: connections } = await client.activepieces.listConnections();
-const { data: tables }   = await client.activepieces.listTables();
-const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
-```
-
----
-
-## 看板 & 項目 — `client.boards`
-
-看板是 CRM pipeline 的核心資料儲存。參閱[完整流程指南 §4](/zh-tw/sdk/full-flow-guide/#4-管理資料看板和項目crm-pipeline)。
-
-### 看板 CRUD
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const { data: boards } = await client.boards.list();
-const board = await client.boards.get("board_id");
-const newBoard = await client.boards.create({ name: "企業 Leads" });
-await client.boards.update("board_id", { name: "企業 Leads 2025" });
-await client.boards.delete("board_id");
-```
-</TabItem>
-<TabItem label="Python">
-```python
-boards = client.boards.list().get("data", [])
-```
-</TabItem>
-</Tabs>
-
-### 項目
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
-const item = await client.boards.getItem("board_id", "item_id");
-
-const lead = await client.boards.createItem("board_id", {
-  fields: { name: "Acme Corp", status: "new", value: 50000 },
-});
-
-await client.boards.updateItem("board_id", lead.id, {
-  fields: { status: "qualified" },
-});
-
-await client.boards.deleteItem("board_id", "item_id");
-await client.boards.bulkDeleteItems("board_id", ["item_1", "item_2", "item_3"]);
-```
-</TabItem>
-<TabItem label="Python">
-```python
-leads = client.boards.list_items("board_id", limit=100).get("data", [])
-
-lead = client.boards.create_item("board_id", {
-    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
-})
-
-client.boards.update_item("board_id", lead["id"], {
-    "fields": {"status": "qualified"}
-})
-```
-</TabItem>
-</Tabs>
-
-### 搜尋
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-const results = await client.boards.search("board_id", { q: "enterprise" });
-```
-</TabItem>
-<TabItem label="Python">
-```python
-results = client.boards.search("board_id", {"query": "enterprise"})
-```
-</TabItem>
-</Tabs>
-
-### 欄位、區段和匯出
-
-<Tabs syncKey="lang">
-<TabItem label="TypeScript">
-```typescript
-// 欄位
-const field = await client.boards.createField("board_id", {
-  name: "交易價值",
-  type: "number",
-});
-await client.boards.updateField("board_id", field.id, { name: "合約價值" });
-await client.boards.deleteField("board_id", field.id);
-
-// 區段
-const { data: segments } = await client.boards.listSegments("board_id");
-const segment = await client.boards.createSegment("board_id", {
-  name: "高價值 Leads",
-  filters: [{ field: "value", op: "gt", value: 10000 }],
-});
-
-// 匯出 CSV
-const csv = await client.boards.exportCsv("board_id");
-```
-</TabItem>
-<TabItem label="Python">
-```python
-csv = client.boards.export_csv("board_id")
-```
-</TabItem>
-</Tabs>
+如需結合使用這些資源的端到端逐步解說，請參閱[完整流程指南](/sdk/full-flow-guide/)。
 
 ---
 
@@ -573,9 +30,9 @@ await client.contacts.update("contact_id", {
   phone: "+84901234567",
 });
 
-const activity = await client.contacts.getActivity("contact_id");
 const comments = await client.contacts.getComments("contact_id");
 const files    = await client.contacts.getFiles("contact_id");
+const activity = await client.contacts.getActivities("conversation_id");
 ```
 </TabItem>
 <TabItem label="Python">
@@ -591,9 +48,9 @@ client.contacts.update("contact_id", {
     "phone": "+84901234567",
 })
 
-activity  = client.contacts.get_activities("conversation_id")
 comments  = client.contacts.get_comments("contact_id")
 files     = client.contacts.get_files("contact_id")
+activity  = client.contacts.get_activities("conversation_id")
 ```
 </TabItem>
 </Tabs>
@@ -612,7 +69,7 @@ const { data: convs } = await client.conversations.search({
   limit: 20,
 });
 
-// 未處理的對話
+// 待處理（未解決）
 const { data: open } = await client.conversations.getOutstanding({
   businessUnitId: "bu_xxx",
   limit: 50,
@@ -659,12 +116,12 @@ client.conversations.update_status({
 ```typescript
 const channels = await client.channel.list();
 
-await client.messages.send("conversation_id", {
-  parts: [{ type: "text", text: "您好，有什麼可以幫您？" }],
+await client.messages.send({
+  type: "text",
+  text: "您好，請問有什麼可以協助您的？",
 });
 
-const msgs = await client.messages.list("conversation_id");
-await client.channel.markRead("conversation_id");
+const msgs = await client.messages.list({ limit: 20 });
 ```
 </TabItem>
 <TabItem label="Python">
@@ -673,7 +130,7 @@ channels = client.channel.list()
 
 client.messages.send(
     type="text",
-    text="您好，有什麼可以幫您？",
+    text="您好，請問有什麼可以協助您的？",
 )
 
 msgs = client.messages.list(limit=20)
@@ -683,25 +140,40 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## 頻道自動化工作流程 — `client.workflows`（Python）
+## 行銷活動與接觸點 — `client.campaign`
 
-```python
-automations    = client.workflows.list_channel_automation().get("data", [])
-whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const { data: campaigns } = await client.campaign.list();
+const campaign  = await client.campaign.get("campaign_id");
+const newCamp   = await client.campaign.create({ name: "Q2 Outreach", channel_type: "email" });
+await client.campaign.delete("campaign_id");
+
+// 接觸點
+const { data: touchpoints } = await client.campaign.listTouchpoints();
+const tp = await client.campaign.getTouchpoint("touchpoint_id");
+
+await client.campaign.createTouchpoint({
+  campaign_id: "campaign_id",
+  type:        "email",
+  delay_days:  3,
+});
+await client.campaign.updateTouchpoint("touchpoint_id", { delay_days: 5 });
+await client.campaign.deleteTouchpoint("touchpoint_id");
+
+// 在儲存前驗證接觸點設定
+const result = await client.campaign.validateTouchpoint({ type: "email", template_id: "tpl_xxx" });
 ```
-
----
-
-## 行銷活動 & 觸點 — `client.campaign`（Python）
-
+</TabItem>
+<TabItem label="Python">
 ```python
-# Campaign CRUD
 campaigns = client.campaign.list().get("data", [])
 campaign  = client.campaign.get("campaign_id")
-new_camp  = client.campaign.create({"name": "Q2 推廣", "type": "email"})
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "channel_type": "email"})
 client.campaign.delete("campaign_id")
 
-# 觸點
+# 接觸點
 touchpoints = client.campaign.list_touchpoints().get("data", [])
 tp = client.campaign.get_touchpoint("touchpoint_id")
 
@@ -713,25 +185,54 @@ client.campaign.create_touchpoint({
 client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
 client.campaign.delete_touchpoint("touchpoint_id")
 
-# 儲存前驗證觸點設定
+# 在儲存前驗證接觸點設定
 result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
 ```
+</TabItem>
+</Tabs>
 
 ---
 
-## 訊息建議 — `client.message_suggestion`（Python）
+## 訊息建議 — `client.messageSuggestion` / `client.message_suggestion`
 
+TypeScript 與 Python 皆可使用。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const suggestions = await client.messageSuggestion.getSuggestions({
+  conversation_id: "conv_xxx",
+  limit: 3,
+});
+```
+</TabItem>
+<TabItem label="Python">
 ```python
 suggestions = client.message_suggestion.get_suggestions({
     "conversation_id": "conv_xxx",
     "limit": 3,
 })
 ```
+</TabItem>
+</Tabs>
 
 ---
 
-## 預測 — `client.predict`（Python）
+## 預測 — `client.predict`
 
+TypeScript 與 Python 皆可使用。
+
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
+```typescript
+const result = await client.predict.predict({
+  model: "lead_score_v1",
+  input: { company_size: 200, industry: "saas", mrr: 5000 },
+});
+console.log(result.score);   // 0.87
+```
+</TabItem>
+<TabItem label="Python">
 ```python
 result = client.predict.predict({
     "model": "lead_score_v1",
@@ -739,3 +240,5 @@ result = client.predict.predict({
 })
 print(result["score"])   # 0.87
 ```
+</TabItem>
+</Tabs>

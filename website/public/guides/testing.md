@@ -1,7 +1,5 @@
 # Testing Guide
 
-> Comprehensive guide for running unit tests, integration tests, lint, and type checks for the Imbrace SDK.
-
 **Updated:** 2026-04-10
 
 ## Environment Setup
@@ -32,7 +30,7 @@ npm install
 
 ---
 
-## Python — Running & Testing
+## Python â€” Running & Testing
 
 ### Unit Tests (No API key needed)
 
@@ -82,7 +80,7 @@ pytest tests/unit --cov=src/imbrace --cov-report=term-missing
 
 ---
 
-## TypeScript — Running & Testing
+## TypeScript â€” Running & Testing
 
 ### Build
 
@@ -133,9 +131,9 @@ npm run test:all
 
 ## Detailed Test Case Breakdown
 
-### Python — Unit Tests
+### Python â€” Unit Tests
 
-#### `tests/unit/test_auth.py` — TokenManager
+#### `tests/unit/test_auth.py` â€” TokenManager
 
 Verifies thread-safe token storage and deletion.
 
@@ -145,9 +143,9 @@ Verifies thread-safe token storage and deletion.
 | `test_initial_token_set`  | Token is stored correctly from constructor            |
 | `test_set_token`          | Token updates successfully                            |
 | `test_clear_token`        | Token is deleted, `get_token()` returns `None`        |
-| `test_thread_safety`      | 2 concurrent threads — no crashes, no race conditions |
+| `test_thread_safety`      | 2 concurrent threads â€” no crashes, no race conditions |
 
-#### `tests/unit/test_exceptions.py` — Error classes
+#### `tests/unit/test_exceptions.py` â€” Error classes
 
 | Error Type     | Occurrence Scenario           |
 | -------------- | ----------------------------- |
@@ -161,9 +159,9 @@ Verifies thread-safe token storage and deletion.
 | `test_api_error_message`                        | `status_code` and message follow format `[404] Not Found` |
 | `test_auth_error_is_catchable_as_imbrace_error` | Catchable using `except ImbraceError`                     |
 
-#### `tests/unit/test_http.py` — HttpTransport
+#### `tests/unit/test_http.py` â€” HttpTransport
 
-Uses `pytest-httpx` to simulate server — no real requests made.
+Uses `pytest-httpx` to simulate server â€” no real requests made.
 
 | Test case                                | Scenario                         | Verification                                         |
 | ---------------------------------------- | -------------------------------- | ---------------------------------------------------- |
@@ -173,10 +171,10 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_401_raises_auth_error`             | Server returns 401               | Raises `AuthError`, no retry                         |
 | `test_403_raises_auth_error`             | Server returns 403               | Raises `AuthError`, no retry                         |
 | `test_404_raises_api_error`              | Server returns 404               | Raises `ApiError(status_code=404)`                   |
-| `test_500_retries_then_raises`           | Server returns 500 consecutively | Retries twice → total 3 requests → raises `ApiError` |
-| `test_network_error_retries_then_raises` | Network interrupted              | Retries twice → raises `NetworkError`                |
+| `test_500_retries_then_raises`           | Server returns 500 consecutively | Retries twice â†’ total 3 requests â†’ raises `ApiError` |
+| `test_network_error_retries_then_raises` | Network interrupted              | Retries twice â†’ raises `NetworkError`                |
 
-#### `tests/unit/test_client.py` — ImbraceClient
+#### `tests/unit/test_client.py` â€” ImbraceClient
 
 | Test case                             | Verification                               |
 | ------------------------------------- | ------------------------------------------ |
@@ -188,7 +186,7 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_set_access_token`               | Token is updated correctly                 |
 | `test_context_manager`                | `with` block automatically calls `close()` |
 
-#### `tests/unit/resources/` — Resource tests
+#### `tests/unit/resources/` â€” Resource tests
 
 | File                        | Endpoint Verified                                          |
 | --------------------------- | ---------------------------------------------------------- |
@@ -202,9 +200,9 @@ Uses `pytest-httpx` to simulate server — no real requests made.
 | `test_contacts.py`          | Contacts list, search, update, notifications               |
 | `test_conversations.py`     | Views count, create, search                                |
 | `test_messages.py`          | List, send (text/image)                                    |
-| `test_message_suggestion.py`| `POST /v1/message-suggestion` — AI reply suggestions       |
+| `test_message_suggestion.py`| `POST /v1/message-suggestion` â€” AI reply suggestions       |
 | `test_organizations.py`     | List, pagination, auth header                              |
-| `test_predict.py`           | `POST /predict/` — ML-based scoring                        |
+| `test_predict.py`           | `POST /predict/` â€” ML-based scoring                        |
 | `test_sessions.py`          | List sessions, directory filter                            |
 | `test_settings.py`          | Message templates, users, bulk invite                      |
 | `test_teams.py`             | List, my teams, add/remove users                           |

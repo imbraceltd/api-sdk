@@ -58,7 +58,6 @@
 ### AI & Agents
 - **`chatAi`**: Assistant CRUD, LLM completions, Knowledge Hub, File Extraction. Includes `processDocument(body)` → `POST /ai/v3/document/` — low-level one-shot URL-to-structured-data extraction with an LLM vision model.
 - **`aiAgent`**: Streaming Chat (SSE), Sub-agent, Embeddings/RAG, Parquet, Tracing.
-- **`documentAi`**: high-level wrapper for the iMBRACE Document AI Agent feature (Receipt Extractor, BC Form, Business Card, Information Parser, etc.). Methods: `createAgent({name, instructions, model_id, schema})`, `listAgents()`, `getAgent(id)`, `updateAgent(id, body)`, `deleteAgent(id)`, `process({agentId|modelName, url, organizationId})`, `suggestSchema({url, organizationId})`. Wraps AI Assistant CRUD (`/v3/ai/assistant_apps/*`) with `agent_type=document_ai` filter + processing endpoint `/v3/ai/document/`.
 
 ### CRM & Automation
 - **`boards`**: CRM pipelines. CRUD for `items`, `fields`, and `segments`.
@@ -82,3 +81,111 @@
     - `AuthError` (401/403): Invalid credentials. **No retry.**
     - `ApiError` (4xx/5xx): Has `statusCode`.
     - `NetworkError`: Connection/Timeout. **Auto retry.**
+
+---
+
+# Imbrace CLI — Reference for LLMs
+
+> CLI tool for interacting with the Imbrace platform from the terminal. Designed for coding agents (Claude, Cursor, Copilot).
+
+## Authentication
+
+- `imbrace login --api-key api_xxx...` — Login with API key (recommended for CI/CD)
+- `imbrace login --email user@example.com --password mypass` — Login with email + password
+- `imbrace logout` — Clear credentials
+- `imbrace whoami --json` — Verify login status
+
+Credentials stored via `conf` package: macOS `~/Library/Preferences/imbrace-nodejs/config.json`, Linux `~/.config/imbrace-nodejs/config.json`, Windows `%APPDATA%\imbrace-nodejs\Config\config.json`.
+
+If a command returns 401, run `imbrace login --api-key api_xxx...` again. All commands support `--json` flag for machine-readable output — always use it when scripting.
+
+## Data Board
+
+- `imbrace data-board list --json` — List boards (`brd_...` IDs)
+- `imbrace data-board create --name "X" --json` — Create board
+- `imbrace data-board create-field <boardId> --name "X" --type <type> --json` — Add field (types: ShortText, LongText, Number, Date, Email, Phone, Currency, SingleSelection, MultipleSelection, Checkbox, Assignee, MultipleAssignee, Link, Notes, Origin, Priority. **Do NOT use Dropdown** — use SingleSelection.)
+- `imbrace data-board create-item <boardId> --fields '...' --json` — Create item (fields: `[{board_field_id, value}]`)
+- `imbrace data-board list-items --board-id <id> [--limit 20] [--skip 0] [--q <search>] --json` — List/search items
+- `imbrace data-board update-item <boardId> <itemId> --data '...' --json` — Update (data: `[{key, value}]`)
+- `imbrace data-board delete-item <boardId> <itemId> --yes --json`
+- `imbrace data-board export-csv --board-id <id> [--out ./board.csv]`
+
+## AI Agent
+
+- `imbrace ai-agent list|get|delete <id>|create|update <id> --json`
+- `imbrace ai-agent list-providers --json` — LLM providers (UUID `provider_id`, NOT Mongo `_id`)
+- `imbrace ai-agent list-models --provider-id <id> --json` — Models per provider. System provider only has `Default`.
+- `imbrace ai-agent list-folders [--search <q>] --json` — Knowledge Hub folders
+- `imbrace ai-agent list-files --folder-id <id> --json` — Files in a KH folder
+
+Create/update flags (same set; update is PUT-merge): `--name/-n`, `--description/-d`, `--instructions/-i`, `--model`, `--provider-id`, `--mode` (standard|advanced), `--temperature` (0-2), `--personality`, `--core-task`, `--tone`, `--response-length` (short|medium|long), `--banned-words`, `--category` (Support|Sales|Marketing|Team|Other), `--guardrail-id`, `--preload-information`, `--folder-ids`, `--default-folder-id`, `--knowledge-hubs`, `--board-ids`, `--file-ids`, `--show-thinking`/`--no-show-thinking`, `--streaming`/`--no-streaming`, `--use-memory`/`--no-use-memory`, `--yes`, `--json`, `--id-only`.
+
+**All agent content must be in English** — diacritics produce unreadable slugs. Agent create atomically provisions assistant + web channel + template via `createUseCase()`.
+
+The platform's "Create Your AI" dialog has 4 choices, each with its own CLI topic:
+
+| UI choice | CLI command | Backend `agent_type` |
+|---|---|---|
+| AI AGENT | `imbrace ai-agent create` | `agent` |
+| ORCHESTRATOR | `imbrace orchestrator create` | `team_lead` |
+| DOCUMENT AI | `imbrace document-ai create` | `document_ai` |
+| GUARD RAIL | `imbrace guardrail create` | (separate resource, not an agent) |
+
+Use `--agent-type agent|assistant|conversational|workflow` on `ai-agent create` for the other AiAgentType variants.
+
+## Document AI
+
+Extracts structured JSON from PDFs/images. Stored as AI Agents with `agent_type: "document_ai"`.
+
+- `imbrace document-ai list [--search <q>] [--all] --json` — `--all` includes regular agents
+- `imbrace document-ai get <id> --json`
+- `imbrace document-ai create -n -i --model --schema '<json>' [--schema-file <path>] [--provider-id] --json` — schema example: `{"invoice_number":{"type":"string"},"total":{"type":"number"}}`
+- `imbrace document-ai update <id> [partial] --json`
+- `imbrace document-ai delete <id> --yes --json`
+- `imbrace document-ai process --url <url> --org-id <orgId> [--agent-id | --model] [--instructions] [--board-id] --json` — runs extraction
+- `imbrace document-ai suggest-schema --url <url> --org-id <orgId> [--model] --json` — LLM proposes a schema
+
+## Orchestrator
+
+An AI Agent with `agent_type: "team_lead"` that delegates to `sub_agents` / `team_leads`.
+
+- `imbrace orchestrator list|get|delete --json`
+- `imbrace orchestrator create -n "Name" -i "Routing rules" --sub-agents id1,id2 [--team-leads id3] [--model] [--temperature] --json`
+
+CLI handles 3 backend quirks transparently: (1) orchestrator-ness is encoded as `agent_type: "team_lead"` (not a separate boolean), (2) `sub_agents`/`team_leads` must be assistant IDs (UUID), so CLI auto-resolves any `uc_*` use-case IDs, (3) `createUseCase` drops these fields, so CLI follows up with a `chatAi.updateAiAgent` PUT.
+
+## Guard Rail
+
+Content-safety / compliance layer attached to agents via `--guardrail-id`.
+
+- `imbrace guardrail list|get|delete --json`
+- `imbrace guardrail create -n -i [--model nim-nemo|model-armor] [--guardrail-provider-id] [--unsafe-categories "violence,hate"] [--custom-unsafe-patterns] [--competitor-keywords] --json`
+- `imbrace guardrail update <id> -n -i --model --json`
+
+CLI handles backend quirks: `org_id` is required (auto-fetched from account), default model is `nim-nemo`, `model-armor` ignores `instructions`/`custom_unsafe_patterns`/`competitor_keywords`, response ID field is `guardrails_config_id` (CLI normalizes).
+
+## Workflow
+
+A workflow (Activepieces) = nodes: trigger → actions. 6 layers: Flow → Version → Nodes → Connections → Runs → Pieces.
+
+**CRUD:** `imbrace workflow list/get/create --name/delete/move <flowId> --folder-id <id|NULL>`.
+**Nodes:** `node list|add --type trigger|action --piece --trigger-name|action-name [--after] [--input '<json>']|update|delete|add-raw`.
+**Pieces:** `piece list [--search]|detail <name>`.
+**Connections:** `conn list|get|create --piece --type SECRET_TEXT|OAUTH2|CLOUD_OAUTH2|BASIC_AUTH|CUSTOM_AUTH --value|delete`.
+**Folders:** `folder list|get|create --name|update --name|delete`. 4 system folders: Channel Workflow, Board Automation, AI Agent Capabilities, Others.
+**MCP:** `mcp list|get|create --name|delete|rotate-token`.
+**Lifecycle:** `publish|enable|disable <flowId>`. **Order: create → add nodes → publish → enable → run.**
+**Runs:** `runs [--limit]|run-detail <runId>|run <flowId> [--payload '<json>'] [--sync]`.
+
+**Known issues:** `--sync` may timeout ~30s — use `runs` + `run-detail` instead. Always `publish` before `enable`. `prompt` field for AI Connector must be `{ prompt: { prompt: "text" } }`. If flow is open in browser, CLI updates may be rejected.
+
+**Variable syntax:** `{{trigger.body.X}}`, `{{trigger.X}}`, `{{step_N.output.Y}}`, `{{connections.<id>.access_token}}`.
+
+## Installation
+
+```bash
+npm install -g @imbrace/cli
+imbrace login --api-key api_xxx...
+```
+
+For full command reference: [developer.imbrace.co/cli/commands/](https://developer.imbrace.co/cli/commands/)

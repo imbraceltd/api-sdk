@@ -26,26 +26,44 @@ pip install imbrace
 </TabItem>
 </Tabs>
 
-**2. Cấu hình credentials**
+**2. Lưu credentials**
+
+Tạo file `.env` ở thư mục gốc project. SDK **không** tự đọc biến môi trường — bạn truyền chúng vào constructor ở bước 3.
+
+```env
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+```
+
+Xem [Authentication](/sdk/authentication/) để biết nên dùng API Key hay Access Token, và [Hướng dẫn Setup](/getting-started/setup/#get-an-api-key) để biết cách lấy API key.
+
+**3. Khởi tạo client**
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```typescript
+import { ImbraceClient } from "@imbrace/sdk";
+
+const client = new ImbraceClient({
+  apiKey:         process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+});
 ```
 </TabItem>
 <TabItem label="Python">
-```bash
-export IMBRACE_API_KEY=your_api_key
-export IMBRACE_ORG_ID=your_org_id
+```python
+import os
+from imbrace import ImbraceClient
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+)
 ```
 </TabItem>
 </Tabs>
 
-Xem [Authentication](/sdk/authentication/) để biết cách lấy API key.
-
-**3. Lấy file `llms.txt`**
+**4. Lấy file `llms.txt`**
 
 Tải hoặc copy file tại [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
 
@@ -91,7 +109,7 @@ Copy nội dung raw của file và paste vào đầu prompt trước khi đặt 
 
 Sau khi AI có context từ `llms.txt`, thử các prompt như:
 
-- *"Hướng dẫn tạo AI assistant và stream chat response bằng Python."*
+- *"Hướng dẫn tạo AI agent và stream chat response bằng Python."*
 - *"Tạo TypeScript code để list tất cả embedding file và xóa những file có status `error`."*
 - *"Sự khác nhau giữa `streamChat` và `streamSubAgentChat` là gì?"*
 - *"Viết Express.js auth proxy cho Chat Client theo pattern trong Integrations guide."*
@@ -99,6 +117,26 @@ Sau khi AI có context từ `llms.txt`, thử các prompt như:
 <Aside type="tip">
 Với những session dài, hãy pin `llms.txt` làm **system prompt** hoặc **project instruction** để nó tự động áp dụng cho mọi tin nhắn.
 </Aside>
+
+### CLI cho Coding Agents
+
+Imbrace CLI (`@imbrace/cli`) cũng được thiết kế cho coding agent. Sau khi cài đặt CLI, AI assistant có thể chạy lệnh trực tiếp qua terminal mà không cần viết mã SDK:
+
+```bash
+# Danh sách boards
+imbrace data-board list --json
+
+# Tạo items
+imbrace data-board create-item <boardId> --fields '<json>' --json
+
+# Danh sách AI agents
+imbrace ai-agent list --json
+
+# Quản lý workflows
+imbrace workflow list --json
+```
+
+Tất cả lệnh đều hỗ trợ `--json` cho đầu ra máy đọc được và `-h` / `--help` để xem hướng dẫn. Xem [CLI Commands](/cli/commands/) để tham khảo đầy đủ.
 
 ## Cập nhật định kỳ
 
