@@ -206,7 +206,7 @@ imbrace workflow node add <flowId> \
 imbrace workflow node update <flowId> <nodeName> \
   [--input '<json>'] [--display-name <name>] [--json]
 imbrace workflow node delete <flowId> <nodeName> [--yes] [--json]
-imbrace workflow node add-raw <flowId> --op-file <path> [--json]
+imbrace workflow node add-raw <flowId> (--op-file <path> | --op '<json>' | --stdin) [--json]
 ```
 
 ### Piece Discovery
@@ -225,7 +225,7 @@ imbrace workflow conn create \
   --piece <pieceName> \
   --type SECRET_TEXT|OAUTH2|CLOUD_OAUTH2|BASIC_AUTH|CUSTOM_AUTH \
   --value "<token-or-json>" \
-  [--display-name <name>] [--json] [--id-only]
+  [--display-name <name>] [--external-id <id>] [--json] [--id-only]
 imbrace workflow conn delete <connId> [--yes] [--json]
 ```
 
