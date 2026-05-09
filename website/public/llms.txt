@@ -122,6 +122,48 @@ Create/update flags (same set; update is PUT-merge): `--name/-n`, `--description
 
 **All agent content must be in English** — diacritics produce unreadable slugs. Agent create atomically provisions assistant + web channel + template via `createUseCase()`.
 
+The platform's "Create Your AI" dialog has 4 choices, each with its own CLI topic:
+
+| UI choice | CLI command | Backend `agent_type` |
+|---|---|---|
+| AI AGENT | `imbrace ai-agent create` | `agent` |
+| ORCHESTRATOR | `imbrace orchestrator create` | `team_lead` |
+| DOCUMENT AI | `imbrace document-ai create` | `document_ai` |
+| GUARD RAIL | `imbrace guardrail create` | (separate resource, not an agent) |
+
+Use `--agent-type agent|assistant|conversational|workflow` on `ai-agent create` for the other AiAgentType variants.
+
+## Document AI
+
+Extracts structured JSON from PDFs/images. Stored as AI Agents with `agent_type: "document_ai"`.
+
+- `imbrace document-ai list [--search <q>] [--all] --json` — `--all` includes regular agents
+- `imbrace document-ai get <id> --json`
+- `imbrace document-ai create -n -i --model --schema '<json>' [--schema-file <path>] [--provider-id] --json` — schema example: `{"invoice_number":{"type":"string"},"total":{"type":"number"}}`
+- `imbrace document-ai update <id> [partial] --json`
+- `imbrace document-ai delete <id> --yes --json`
+- `imbrace document-ai process --url <url> --org-id <orgId> [--agent-id | --model] [--instructions] [--board-id] --json` — runs extraction
+- `imbrace document-ai suggest-schema --url <url> --org-id <orgId> [--model] --json` — LLM proposes a schema
+
+## Orchestrator
+
+An AI Agent with `agent_type: "team_lead"` that delegates to `sub_agents` / `team_leads`.
+
+- `imbrace orchestrator list|get|delete --json`
+- `imbrace orchestrator create -n "Name" -i "Routing rules" --sub-agents id1,id2 [--team-leads id3] [--model] [--temperature] --json`
+
+CLI handles 3 backend quirks transparently: (1) orchestrator-ness is encoded as `agent_type: "team_lead"` (not a separate boolean), (2) `sub_agents`/`team_leads` must be assistant IDs (UUID), so CLI auto-resolves any `uc_*` use-case IDs, (3) `createUseCase` drops these fields, so CLI follows up with a `chatAi.updateAiAgent` PUT.
+
+## Guard Rail
+
+Content-safety / compliance layer attached to agents via `--guardrail-id`.
+
+- `imbrace guardrail list|get|delete --json`
+- `imbrace guardrail create -n -i [--model nim-nemo|model-armor] [--guardrail-provider-id] [--unsafe-categories "violence,hate"] [--custom-unsafe-patterns] [--competitor-keywords] --json`
+- `imbrace guardrail update <id> -n -i --model --json`
+
+CLI handles backend quirks: `org_id` is required (auto-fetched from account), default model is `nim-nemo`, `model-armor` ignores `instructions`/`custom_unsafe_patterns`/`competitor_keywords`, response ID field is `guardrails_config_id` (CLI normalizes).
+
 ## Workflow
 
 A workflow (Activepieces) = nodes: trigger → actions. 6 layers: Flow → Version → Nodes → Connections → Runs → Pieces.

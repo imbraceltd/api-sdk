@@ -167,6 +167,132 @@ imbrace ai-agent create \
 
 ---
 
+### Agent Type
+
+The platform stores 4 distinct agent types under `agent_type`. The CLI exposes them via dedicated topics or the `--agent-type` flag:
+
+| UI Create choice | CLI command | Backend `agent_type` |
+|---|---|---|
+| AI AGENT | `imbrace ai-agent create` | `agent` (default) |
+| ORCHESTRATOR | `imbrace orchestrator create` | `team_lead` |
+| DOCUMENT AI | `imbrace document-ai create` | `document_ai` |
+| GUARD RAIL | `imbrace guardrail create` | (not an agent — separate resource) |
+
+The `--agent-type` flag on `ai-agent create` accepts `agent`, `assistant`, `conversational`, or `workflow`. For Document AI, use the dedicated `document-ai` topic. For Orchestrator, use the `orchestrator` topic.
+
+---
+
+## Document AI
+
+A Document AI agent extracts structured JSON from unstructured documents (PDFs, images, scanned forms). Each agent has a **schema** defining fields to extract, **instructions** guiding the LLM, and a **model + provider**. Stored as AI Agents with `agent_type: "document_ai"`.
+
+### CRUD
+
+```bash
+imbrace document-ai list [--search <q>] [--all] [--json]
+imbrace document-ai get <agentId> [--json]
+imbrace document-ai create -n "<name>" -i "<instructions>" --model <id> \
+  (--schema '<json>' | --schema-file <path>) \
+  [--provider-id <uuid>] [--description <text>] [--workflow-name <name>] \
+  [--json] [--id-only]
+imbrace document-ai update <agentId> [--name | --instructions | --model | --provider-id | --schema | --schema-file | --description | --workflow-name] [--json]
+imbrace document-ai delete <agentId> [--yes] [--json]
+```
+
+`list` defaults to filtering for `documentAiOnly: true`. Pass `--all` to include regular agents.
+
+### Process a document
+
+```bash
+imbrace document-ai process \
+  --url <pdf-or-image-url> \
+  --org-id <orgId> \
+  [--agent-id <id>] [--model <id>] [--instructions <text>] \
+  [--board-id <boardId>] [--language <lang>] \
+  [--additional-instructions <text>] \
+  [--chunk-size <n>] [--max-concurrent <n>] [--max-retries <n>] \
+  [--no-enhanced-processing] [--json]
+```
+
+Either `--agent-id` (uses agent's stored model + instructions) or `--model` (override) is required.
+
+### Suggest a schema
+
+```bash
+imbrace document-ai suggest-schema --url <url> --org-id <orgId> [--model <id>] [--json]
+```
+
+Asks the LLM to inspect a sample document and propose an extraction schema.
+
+### Schema example
+
+```json
+{
+  "invoice_number": { "type": "string", "description": "Invoice ID" },
+  "total_amount":   { "type": "number" },
+  "due_date":       { "type": "string", "format": "date" }
+}
+```
+
+---
+
+## Orchestrator
+
+An Orchestrator is an AI Agent stored with `agent_type: "team_lead"` that delegates work to `sub_agents` / `team_leads`. Mirrors the **ORCHESTRATOR** choice in the UI's Create dialog.
+
+```bash
+imbrace orchestrator list [--json]
+imbrace orchestrator get <id> [--json]
+imbrace orchestrator create -n "<name>" -i "<routing instructions>" \
+  --sub-agents <id1>,<id2> [--team-leads <id3>,<id4>] \
+  [--description <text>] [--model <id>] [--provider-id <uuid>] [--temperature <0-2>] \
+  [--json] [--id-only]
+imbrace orchestrator delete <id> [--yes] [--json]
+```
+
+### Backend quirks (handled automatically)
+
+The CLI works around three platform behaviors so callers don't need to know them — but useful when debugging raw SDK responses:
+
+1. **`agent_type: "team_lead"` is the orchestrator marker** — there is no separate `is_orchestrator` boolean. The webapp does the same conversion.
+2. **`sub_agents` / `team_leads` must be assistant IDs (UUIDs), not use-case IDs (`uc_*`).** CLI auto-resolves any `uc_*` you pass via `client.agent.get()` lookup.
+3. **`createUseCase` silently drops both fields above** when set on the assistant payload. CLI does a 2-step: create → `chatAi.updateAiAgent` PUT to apply them.
+
+`get` fetches the underlying assistant so `sub_agents` / `team_leads` display correctly (they live on the assistant, not the use case).
+
+---
+
+## Guard Rail
+
+A Guard Rail is a content-safety / compliance layer attached to AI Agents via `--guardrail-id` on `ai-agent create`. Mirrors the **GUARD RAIL** choice in the UI's Create dialog.
+
+```bash
+imbrace guardrail list [--json]
+imbrace guardrail get <id> [--json]
+imbrace guardrail create -n "<name>" -i "<rules>" \
+  [--model nim-nemo|model-armor] \
+  [--guardrail-provider-id <uuid>] [--org-id <orgId>] \
+  [--description <text>] \
+  [--unsafe-categories "violence,hate,sexual"] \
+  [--custom-unsafe-patterns "regex1,regex2"] \
+  [--competitor-keywords "X,Y"] \
+  [--json] [--id-only]
+imbrace guardrail update <id> -n -i --model [partial flags] [--json]
+imbrace guardrail delete <id> [--yes] [--json]
+```
+
+### Backend quirks (handled automatically)
+
+1. **`org_id` is required** but the SDK type marks it optional. CLI auto-fetches it via `client.account.getAccount()` if you don't pass `--org-id`.
+2. **`model` is not a regular LLM name** — it's the guardrail model:
+   - `nim-nemo` (NVIDIA NIM Nemo) — the CLI default
+   - `model-armor` (Google)
+   - or any custom guardrail-provider model when paired with `--guardrail-provider-id`
+3. **`model-armor` ignores `instructions`, `custom_unsafe_patterns`, and `competitor_keywords`.** CLI strips them automatically.
+4. **Backend returns `guardrails_config_id`, not `_id`.** CLI normalizes this so `--id-only` and `get <id>` work as expected.
+
+---
+
 ## Workflow
 
 A workflow is a chain of nodes: a trigger fires, then actions run in sequence.
