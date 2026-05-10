@@ -109,7 +109,6 @@ except ApiError as e:
 | Attribute     | Type  | Description                        |
 | ------------- | ----- | ---------------------------------- |
 | `status_code` | `int` | HTTP status code                   |
-| `message`    | `str` | Error message from server response |
 </TabItem>
 </Tabs>
 
@@ -220,28 +219,28 @@ The HTTP transport in both SDKs retries transient failures with exponential back
 | HTTP **401 / 403**          | No retry — raise `AuthError` immediately |
 | HTTP **4xx** (other)        | No retry — raise `ApiError` immediately  |
 
-**Backoff:** `2^retryCount` seconds between attempts (2s → 4s → 8s). Total worst-case: 4 attempts.
+**Backoff:** `2^retryCount` seconds between attempts (1s → 2s → 4s). Total worst-case: 4 attempts.
 </TabItem>
 </Tabs>
 
 ---
 
-## Request cancellation (TypeScript)
+## Request timeout
 
-Pass an `AbortSignal` to cancel an in-flight request:
+Configure the timeout when creating the client (default: **30 s**). When the timeout fires, the in-flight request is aborted and a `NetworkError` is thrown/raised.
 
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
 ```typescript
-const controller = new AbortController();
-setTimeout(() => controller.abort(), 5000);
-
-try {
-  const result = await client.marketplace.listProducts({ page: 1 });
-} catch (e) {
-  if (e instanceof NetworkError && e.message.includes("aborted")) {
-    console.log("Request cancelled");
-  }
-}
+const client = new ImbraceClient({ timeout: 15_000 }); // milliseconds
 ```
+</TabItem>
+<TabItem label="Python">
+```python
+client = ImbraceClient(timeout=15)  # seconds
+```
+</TabItem>
+</Tabs>
 
 ## Async error handling (Python)
 

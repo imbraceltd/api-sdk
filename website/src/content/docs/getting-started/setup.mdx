@@ -272,11 +272,14 @@ for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })
 }
 
 // AI Agent — streaming chat
-const response = await client.aiAgent.streamChat({
+const stream = client.aiAgent.streamChat({
   id: 'chat_id',
   assistant_id: 'asst_abc',
   messages: [{ role: 'user', content: 'Hello' }],
 })
+for await (const chunk of stream) {
+  console.log(chunk)
+}
 ```
 
   </TabItem>
@@ -292,8 +295,10 @@ with ImbraceClient(api_key="sk-...") as client:
 
     # List channels and boards
     channels = client.channel.list()
-    boards   = client.boards.list()
-    items    = client.boards.list_items(boards[0]["id"])
+    boards_res = client.boards.list()
+    boards_data = boards_res.get("data", [])
+    if boards_data:
+        items = client.boards.list_items(boards_data[0]["id"])
 
     # AI completion
     result = client.ai.complete(CompletionInput(

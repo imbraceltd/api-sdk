@@ -59,7 +59,7 @@ Then in the test folder:
 ```bash
 cd ts/tests/local
 npm link @imbrace/sdk
-cp .env.example .env
+cp ../../.env.example .env
 # fill in .env
 ```
 
@@ -114,7 +114,7 @@ This catches missing files, packaging bugs, and import-path issues that an edita
 
 ```bash
 cd py
-pip install -r tests/requirements.txt
+pip install -e ".[dev]"
 python -m pytest tests/
 ```
 
