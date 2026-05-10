@@ -42,7 +42,7 @@ Typical product: an existing CRM, ticketing system, or internal tool that embeds
 | `apiKey` / `api_key` | `x-api-key: api_xxx...` |
 | `accessToken` / `access_token` | `x-access-token: acc_xxx...` |
 
-The org context is **encoded inside the credential itself** — every API key and every access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You never pass `organizationId` / `organization_id` to the SDK.
+The org context is **encoded inside the credential itself** — every API key and every access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor.
 
 For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
 
@@ -138,10 +138,14 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     # Step 1: Send OTP to the user's email
     client.request_otp("user@example.com")
 
-    # Step 2: User enters OTP — token stored automatically
+    # Step 2: User submits the OTP they received
     client.login_with_otp("user@example.com", "123456")
 
-    # Step 3: All subsequent calls are authenticated
+    # Step 3: Exchange for a long-lived access token
+    result = client.auth.exchange_access_token("org_your_org_id")
+    client.set_access_token(result["token"])
+
+    # Step 4: Now use any resource
     me = client.platform.get_me()
     ```
 
@@ -153,6 +157,8 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     async with AsyncImbraceClient() as client:
         await client.request_otp("user@example.com")
         await client.login_with_otp("user@example.com", "123456")
+        result = await client.auth.exchange_access_token("org_your_org_id")
+        client.set_access_token(result["token"])
         me = await client.platform.get_me()
     ```
   </TabItem>

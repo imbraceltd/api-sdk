@@ -80,7 +80,7 @@ Boards are CRM pipelines — leads, deals, tasks, or any structured data. This c
     const { data: boards } = await client.boards.list()
 
     for (const board of boards) {
-      console.log(board._id, board.doc_name)
+      console.log(board.id, board.name)
     }
     ```
   </TabItem>
@@ -89,7 +89,7 @@ Boards are CRM pipelines — leads, deals, tasks, or any structured data. This c
     boards = client.boards.list()
 
     for board in boards.get("data", []):
-        print(board["_id"], board.get("doc_name"))
+        print(board["id"], board.get("name"))
     ```
   </TabItem>
 </Tabs>

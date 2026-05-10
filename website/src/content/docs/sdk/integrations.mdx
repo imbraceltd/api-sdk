@@ -66,7 +66,7 @@ export function ProductList() {
   return (
     <ul>
       {products.map((p) => (
-        <li key={p.id}>{p.name} — {p.price} {p.currency}</li>
+        <li key={p.id}>{p.name} — {p.price}</li>
       ))}
     </ul>
   );
@@ -233,7 +233,7 @@ async def fetch_dashboard_data():
         return {
             "user": me,
             "products": products["data"],
-            "channels": channels["data"],
+            "channels": channels.data,
         }
 
 data = asyncio.run(fetch_dashboard_data())

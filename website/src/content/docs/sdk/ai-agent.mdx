@@ -8,7 +8,7 @@ import AuthOnly from "../../../components/AuthOnly.astro";
 
 This page covers two related AI namespaces:
 
-- **`chatAi` / `chat_ai`** — create and manage AI agents, run completions, manage knowledge bases.
+- **`chatAi` / `chat_ai`** — create and manage AI agents, document/file processing, and document AI.
 - **`aiAgent` / `ai_agent`** — streaming chat (SSE), embedding management, Parquet data, distributed tracing, and the Chat Client sub-API.
 
 The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway.
@@ -74,7 +74,7 @@ Manages AI agents (CRUD), runs OpenAI-compatible completions, and handles docume
 ```typescript
 // List all AI agents in your account
 const agents = await client.chatAi.listAiAgents();
-// Each AI agent has an `id` (UUID) and `_id` (MongoDB ObjectId).
+// Each AI agent has an `id` (UUID).
 // Use the `id` field for all subsequent calls.
 
 // List sub-agents (agents that can be delegated to by an orchestrator)
@@ -92,7 +92,7 @@ const created = await client.chatAi.createAiAgent({
   description: "Handles tier-1 support queries",
 });
 
-// Update — workflow_name is required on update too
+// Update — all fields are optional (Partial)
 const updated = await client.chatAi.updateAiAgent(created.id, {
   name: "Support Bot v2",
   workflow_name: "support_bot_v1",
@@ -246,17 +246,17 @@ await client.boards.deleteFolders({ ids: [folder._id] });
 const uploaded = await client.boards.uploadFile(formData);
 const files    = await client.boards.searchFiles({ folderId: folder._id });
 const file     = await client.boards.getFile("file_id");
-await client.boards.createFile({ name: "doc.txt", folderId: folder.id });
+await client.boards.createFile({ name: "doc.txt", folderId: folder._id });
 await client.boards.deleteFiles({ ids: ["file_id"] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 # Folders
-folder = client.folders.create({"name": "Q1 Reports"})
-folders = client.folders.search()
-client.folders.update(folder["_id"], {"name": "Q1 2025 Reports"})
-client.folders.delete([folder["_id"]])
+folder = client.boards.create_folder({"name": "Q1 Reports"})
+folders = client.boards.search_folders()
+client.boards.update_folder(folder["_id"], {"name": "Q1 2025 Reports"})
+client.boards.delete_folders([folder["_id"]])
 
 # Files (knowledge base entries)
 file = client.boards.upload_file(files={"file": open("doc.pdf", "rb")})

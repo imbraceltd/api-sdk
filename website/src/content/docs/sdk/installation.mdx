@@ -9,24 +9,24 @@ import VersionOnly from "../../../components/VersionOnly.astro";
 
 ### Install
 
-<VersionOnly version="1.0.2">
+<VersionOnly version="1.0.4">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```bash
-    npm install @imbrace/sdk@1.0.2
+    npm install @imbrace/sdk
     # or
-    yarn add @imbrace/sdk@1.0.2
+    yarn add @imbrace/sdk
     # or
-    pnpm add @imbrace/sdk@1.0.2
+    pnpm add @imbrace/sdk
     ```
 
     Requires Node.js 18+ (or any browser with native `fetch` and `ReadableStream`).
   </TabItem>
   <TabItem label="Python">
     ```bash
-    pip install imbrace==1.0.2
+    pip install imbrace
     # or
-    uv add imbrace==1.0.2
+    uv add imbrace
     ```
 
     Requires Python 3.9+.
@@ -127,4 +127,4 @@ The SDK does **not** auto-read environment variables. Pass credentials directly 
 | `IMBRACE_ACCESS_TOKEN` | A user's access token (per-session credential) |
 | `IMBRACE_BASE_URL` | Override the gateway URL (default: `https://app-gatewayv2.imbrace.co`) |
 
-The org id is encoded inside both API keys and access tokens — you never pass `organizationId`/`organization_id` to the SDK. See [Authentication](/sdk/authentication/) for details.
+The org id is encoded inside both API keys and access tokens. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor. See [Authentication](/sdk/authentication/) for details.
