@@ -1,21 +1,21 @@
 ---
 title: 整合
-description: 在 React、Next.js、Node.js、FastAPI、asyncio、Django 與 Celery 中使用 Imbrace SDK。
+description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-兩套 SDK 的框架層級整合模式。選擇適合你技術棧的章節 — TypeScript 涵蓋 React、Next.js 與純 Node.js；Python 涵蓋 FastAPI、asyncio、Django 與 Celery。兩者皆有 OTP 登入流程的文件。
+兩個 SDK 的框架層級整合模式。選擇您技術棧適用的章節 — TypeScript 涵蓋 React、Next.js 和純 Node.js；Python 涵蓋 FastAPI、asyncio、Django 和 Celery。兩個版本都有記錄 OTP 登入流程。
 
-關於憑證策略（API Key 與 Access Token、環境變數），請參閱[驗證](/sdk/authentication/)與[設定指南](/getting-started/setup/#configure-credentials)。
+有關憑證策略（API 金鑰與存取令牌、環境變數），請參閱[認證](/sdk/authentication/)和[設定指南](/getting-started/setup/#configure-credentials)。
 
 ---
 
-## React (TypeScript)
+## React（TypeScript）
 
-### 單例客戶端
+### Singleton 客戶端
 
-在元件樹外部建立一次客戶端，並在所有元件中重複使用。`localStorage` 權杖來自 [OTP 登入流程](/sdk/authentication/#otp-login-flow)。
+在元件樹外部建立客戶端一次，並在所有元件中重複使用。`localStorage` 中的令牌來自 [OTP 登入流程](/sdk/authentication/#otp-login-flow)。
 
 ```typescript
 // lib/imbrace.ts
@@ -61,12 +61,12 @@ import { useProducts } from "@/hooks/useProducts";
 
 export function ProductList() {
   const { products, loading, error } = useProducts("electronics");
-  if (loading) return <p>載入中...</p>;
-  if (error) return <p>錯誤：{error.message}</p>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
   return (
     <ul>
       {products.map((p) => (
-        <li key={p.id}>{p.name} — {p.price} {p.currency}</li>
+        <li key={p.id}>{p.name} — {p.price}</li>
       ))}
     </ul>
   );
@@ -75,7 +75,7 @@ export function ProductList() {
 
 ---
 
-## Next.js (TypeScript)
+## Next.js（TypeScript）
 
 ### API 路由（App Router）
 
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`process.env.IMBRACE_API_KEY` 應依據你的部署平台要求設定（Vercel 環境變數、開發用的 `.env.local` 等）。請參閱[設定指南 → 設定憑證](/getting-started/setup/#configure-credentials)。
+`process.env.IMBRACE_API_KEY` 應按照您的部署平台期望的方式設定（Vercel 環境變數、開發用的 `.env.local` 等）。請參閱[設定指南 → 設定憑證](/getting-started/setup/#configure-credentials)。
 
 ### 伺服器元件（App Router）
 
@@ -118,7 +118,7 @@ export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
     <main>
-      <h1>產品列表</h1>
+      <h1>Products</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
@@ -127,9 +127,9 @@ export default async function ProductsPage() {
 
 ---
 
-## Node.js CLI 腳本 (TypeScript)
+## Node.js CLI 腳本（TypeScript）
 
-用於一次性腳本（資料匯出、資料補填、臨時查詢）：
+適用於一次性腳本（資料匯出、回填、臨時查詢）：
 
 ```typescript
 // scripts/export-contacts.ts
@@ -141,7 +141,7 @@ const client = new ImbraceClient();
 async function exportContacts() {
   const { data: contacts } = await client.contacts.list({ limit: 1000 });
   writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
-  console.log(`已匯出 ${contacts.length} 筆聯絡人`);
+  console.log(`Exported ${contacts.length} contacts`);
 }
 
 exportContacts().catch(console.error);
@@ -153,7 +153,7 @@ npx ts-node scripts/export-contacts.ts
 
 ---
 
-## FastAPI (Python)
+## FastAPI（Python）
 
 ### 每個請求的依賴注入
 
@@ -187,9 +187,9 @@ async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
     ))
 ```
 
-### 全域單例（更好的連線重用）
+### 全域 singleton（更好的連線重複使用）
 
-為了更高的吞吐量，在應用程式的生命週期中共用一個客戶端：
+為了獲得更高的吞吐量，可以在應用程式的整個生命週期中共用一個客戶端：
 
 ```python
 from contextlib import asynccontextmanager
@@ -215,9 +215,9 @@ async def get_me():
 
 ---
 
-## asyncio (Python)
+## asyncio（Python）
 
-### 並發請求
+### 並行請求
 
 ```python
 import asyncio
@@ -233,7 +233,7 @@ async def fetch_dashboard_data():
         return {
             "user": me,
             "products": products["data"],
-            "channels": channels["data"],
+            "channels": channels.data,
         }
 
 data = asyncio.run(fetch_dashboard_data())
@@ -250,7 +250,7 @@ async def stream_response():
     async with AsyncImbraceClient() as client:
         async for chunk in client.ai.stream(CompletionInput(
             model="gpt-4o",
-            messages=[CompletionMessage(role="user", content="用 Python 解釋 async/await。")],
+            messages=[CompletionMessage(role="user", content="Explain async/await in Python.")],
         )):
             content = chunk.choices[0].delta.content or ""
             print(content, end="", flush=True)
@@ -260,9 +260,9 @@ asyncio.run(stream_response())
 
 ---
 
-## Django (Python)
+## Django（Python）
 
-### 同步檢視
+### 同步視圖
 
 ```python
 # views.py
@@ -281,7 +281,7 @@ def product_list(request):
             return JsonResponse({"error": str(e)}, status=e.status_code)
 ```
 
-### Settings 整合
+### 設定整合
 
 ```python
 # settings.py
@@ -301,9 +301,9 @@ def get_client() -> ImbraceClient:
 
 ---
 
-## Celery (Python)
+## Celery（Python）
 
-對於背景任務工作者，請使用同步客戶端並在每個任務內部建立一個：
+對於背景任務工作者，使用同步客戶端並在每個任務內部建立一個：
 
 ```python
 # tasks.py
@@ -324,14 +324,14 @@ def sync_products(self):
 ```
 
 :::tip
-不要在 Celery 工作者之間共用單一 `ImbraceClient` 實例 — 每個任務呼叫應使用情境管理器建立一個新的。httpx 連線池在跨程序共用時不安全。
+請勿在 Celery 工作者之間共用單一 `ImbraceClient` 實例 — 請使用 context manager 在每次任務呼叫時建立一個。httpx 連線池不安全的跨處理序共用。
 :::
 
 ---
 
 ## OTP 登入流程
 
-OTP 流程在兩個 SDK 中概念相同：為電子郵件請求 OTP，然後將其兌換為存取權杖。完整的憑證生命週期請參閱[驗證 → OTP 登入流程](/sdk/authentication/#otp-login-flow)。
+OTP 流程在兩個 SDK 中的概念相同：請求一個 OTP 到電子郵件，然後將其兌換為存取令牌。請參閱[認證 → OTP 登入流程](/sdk/authentication/#otp-login-flow)以了解完整的憑證生命週期。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -357,19 +357,19 @@ export function LoginForm() {
       await client.loginWithOtp(email, otp);
       window.location.href = "/dashboard";
     } catch (e) {
-      if (e instanceof AuthError) alert("OTP 無效");
+      if (e instanceof AuthError) alert("Invalid OTP");
     }
   }
 
   return step === "email" ? (
     <div>
       <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <button onClick={requestOtp}>發送 OTP</button>
+      <button onClick={requestOtp}>Send OTP</button>
     </div>
   ) : (
     <div>
       <input value={otp} onChange={(e) => setOtp(e.target.value)} />
-      <button onClick={verifyOtp}>驗證</button>
+      <button onClick={verifyOtp}>Verify</button>
     </div>
   );
 }
@@ -394,7 +394,7 @@ class OtpVerify(BaseModel):
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
         await client.auth.signin_email_request(body.email)
-    return {"message": "OTP 已發送"}
+    return {"message": "OTP sent"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
@@ -403,7 +403,7 @@ async def verify_otp(body: OtpVerify):
             result = await client.auth.signin_with_email(body.email, body.otp)
             return {"access_token": result["token"]}
         except AuthError:
-            raise HTTPException(status_code=401, detail="OTP 無效")
+            raise HTTPException(status_code=401, detail="Invalid OTP")
 ```
 </TabItem>
 </Tabs>

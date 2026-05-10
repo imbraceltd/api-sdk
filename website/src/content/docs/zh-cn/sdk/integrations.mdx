@@ -1,21 +1,21 @@
 ---
 title: 集成
-description: 在 React、Next.js、Node.js、FastAPI、asyncio、Django 和 Celery 中使用 Imbrace SDK。
+description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-两个 SDK 的框架级接入模式。选择适合你技术栈的章节——TypeScript 涵盖 React、Next.js 和纯 Node.js；Python 涵盖 FastAPI、asyncio、Django 和 Celery。OTP 登录流程两种语言均有文档。
+两个 SDK 的框架级接线模式。选择适合你技术栈的部分 — TypeScript 涵盖 React、Next.js 和纯 Node.js；Python 涵盖 FastAPI、asyncio、Django 和 Celery。OTP 登录流程为两者都有文档。
 
-有关凭证策略（API key 与 access token、环境变量），参见[认证](/sdk/authentication/)和[设置指南](/getting-started/setup/#configure-credentials)。
+关于凭证策略（api key vs access token、环境变量），请参见[认证](/zh-cn/sdk/authentication/)和[设置指南](/zh-cn/getting-started/setup/#configure-credentials)。
 
 ---
 
-## React（TypeScript）
+## React (TypeScript)
 
 ### 单例客户端
 
-在组件树外部创建一次客户端，并在所有组件中复用。`localStorage` 中的令牌来自[OTP 登录流程](/sdk/authentication/#otp-login-flow)。
+在组件树外部创建一次客户端，并在所有组件中重复使用。`localStorage` 令牌来自 [OTP 登录流程](/zh-cn/sdk/authentication/#otp-login-flow)。
 
 ```typescript
 // lib/imbrace.ts
@@ -29,7 +29,7 @@ export const client = new ImbraceClient({
 });
 ```
 
-### 数据获取 Hook
+### 数据获取钩子
 
 ```tsx
 // hooks/useProducts.ts
@@ -66,7 +66,7 @@ export function ProductList() {
   return (
     <ul>
       {products.map((p) => (
-        <li key={p.id}>{p.name} — {p.price} {p.currency}</li>
+        <li key={p.id}>{p.name} — {p.price}</li>
       ))}
     </ul>
   );
@@ -75,7 +75,7 @@ export function ProductList() {
 
 ---
 
-## Next.js（TypeScript）
+## Next.js (TypeScript)
 
 ### API 路由（App Router）
 
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`process.env.IMBRACE_API_KEY` 应按照部署平台期望的方式设置（Vercel 环境变量、开发环境使用 `.env.local` 等）。参见[设置指南 → 配置凭证](/getting-started/setup/#configure-credentials)。
+`process.env.IMBRACE_API_KEY` 应按照你部署平台的要求设置（Vercel 环境变量、开发环境 `.env.local` 等）。参见[设置指南 → 配置凭证](/zh-cn/getting-started/setup/#configure-credentials)。
 
 ### 服务端组件（App Router）
 
@@ -118,7 +118,7 @@ export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
     <main>
-      <h1>产品</h1>
+      <h1>产品列表</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
@@ -127,9 +127,9 @@ export default async function ProductsPage() {
 
 ---
 
-## Node.js CLI 脚本（TypeScript）
+## Node.js CLI 脚本 (TypeScript)
 
-适用于一次性脚本（数据导出、回填、临时查询）：
+适用于一次性脚本（数据导出、数据回填、临时查询）：
 
 ```typescript
 // scripts/export-contacts.ts
@@ -141,7 +141,7 @@ const client = new ImbraceClient();
 async function exportContacts() {
   const { data: contacts } = await client.contacts.list({ limit: 1000 });
   writeFileSync("contacts.json", JSON.stringify(contacts, null, 2));
-  console.log(`已导出 ${contacts.length} 个联系人`);
+  console.log(`导出了 ${contacts.length} 个联系人`);
 }
 
 exportContacts().catch(console.error);
@@ -153,11 +153,11 @@ npx ts-node scripts/export-contacts.ts
 
 ---
 
-## FastAPI（Python）
+## FastAPI (Python)
 
-### 按请求的依赖注入
+### 每请求依赖注入
 
-最简单的模式——每个请求一个异步客户端，生命周期由依赖管理：
+最简单的模式 — 每个请求一个异步客户端，生命周期由依赖管理：
 
 ```python
 from fastapi import FastAPI, Depends
@@ -189,7 +189,7 @@ async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
 
 ### 全局单例（更好的连接复用）
 
-对于更高吞吐量，在应用生命周期内共享一个客户端：
+为了更高吞吐量，在应用程序生命周期内共享一个客户端：
 
 ```python
 from contextlib import asynccontextmanager
@@ -215,7 +215,7 @@ async def get_me():
 
 ---
 
-## asyncio（Python）
+## asyncio (Python)
 
 ### 并发请求
 
@@ -233,7 +233,7 @@ async def fetch_dashboard_data():
         return {
             "user": me,
             "products": products["data"],
-            "channels": channels["data"],
+            "channels": channels.data,
         }
 
 data = asyncio.run(fetch_dashboard_data())
@@ -250,7 +250,7 @@ async def stream_response():
     async with AsyncImbraceClient() as client:
         async for chunk in client.ai.stream(CompletionInput(
             model="gpt-4o",
-            messages=[CompletionMessage(role="user", content="用 Python 解释 async/await。")],
+            messages=[CompletionMessage(role="user", content="Explain async/await in Python.")],
         )):
             content = chunk.choices[0].delta.content or ""
             print(content, end="", flush=True)
@@ -260,7 +260,7 @@ asyncio.run(stream_response())
 
 ---
 
-## Django（Python）
+## Django (Python)
 
 ### 同步视图
 
@@ -301,9 +301,9 @@ def get_client() -> ImbraceClient:
 
 ---
 
-## Celery（Python）
+## Celery (Python)
 
-对于后台任务工作者，使用同步客户端并在每个任务内创建：
+对于后台任务工作器，使用同步客户端并在每个任务中创建一个：
 
 ```python
 # tasks.py
@@ -324,14 +324,14 @@ def sync_products(self):
 ```
 
 :::tip
-不要在 Celery 工作者之间共享单个 `ImbraceClient` 实例——使用上下文管理器在每个任务调用时创建。httpx 连接池在进程间共享是不安全的。
+不要跨 Celery 工作器共享单个 `ImbraceClient` 实例 — 使用上下文管理器在每个任务调用中创建一个。httpx 连接池不适合跨进程共享。
 :::
 
 ---
 
 ## OTP 登录流程
 
-OTP 流程在两个 SDK 中的概念相同：为邮箱请求 OTP，然后将其兑换为访问令牌。参见[认证 → OTP 登录流程](/sdk/authentication/#otp-login-flow)了解完整的凭证生命周期。
+OTP 流程在两个 SDK 中概念相同：请求邮箱的 OTP，然后将其兑换为访问令牌。关于完整的凭证生命周期，请参见[认证 → OTP 登录流程](/zh-cn/sdk/authentication/#otp-login-flow)。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -357,7 +357,7 @@ export function LoginForm() {
       await client.loginWithOtp(email, otp);
       window.location.href = "/dashboard";
     } catch (e) {
-      if (e instanceof AuthError) alert("OTP 无效");
+      if (e instanceof AuthError) alert("无效的 OTP");
     }
   }
 
@@ -403,7 +403,7 @@ async def verify_otp(body: OtpVerify):
             result = await client.auth.signin_with_email(body.email, body.otp)
             return {"access_token": result["token"]}
         except AuthError:
-            raise HTTPException(status_code=401, detail="OTP 无效")
+            raise HTTPException(status_code=401, detail="无效的 OTP")
 ```
 </TabItem>
 </Tabs>

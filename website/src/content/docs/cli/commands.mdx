@@ -431,7 +431,7 @@ imbrace docs > /tmp/imbrace-llms.txt   # save for an AI agent
 1. **Field type `Dropdown`** — Backend rejects it. Use `SingleSelection` instead.
 2. **Provider ID vs `_id`** — Use UUID `provider_id`, not MongoDB `_id`.
 3. **English-only content** — AI agent content must be in English.
-4. **`workflow run --sync` timeout** — May time out at ~30s. Use `workflow runs` + `run-detail` instead.
+4. **`workflow run --sync` timeout** — May time out at ~60s. Use `workflow runs` + `run-detail` instead.
 5. **Enable before publish** — `workflow enable` requires `workflow publish` first.
 6. **AI Connector `prompt` field** — Must be `{ prompt: { prompt: "text" } }`.
 7. **Flow lock** — If a flow is open in the browser, CLI updates may be rejected.

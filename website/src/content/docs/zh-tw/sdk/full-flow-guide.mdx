@@ -1,12 +1,12 @@
 ---
 title: 完整流程指南
-description: 端到端逐步解說 — 從客戶端設定到 AI Agent、工作流程、知識庫與資料看板。TypeScript 與 Python。
+description: End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
 ---
 
 import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
-import AuthOnly from "../../../../components/AuthOnly.astro";
+import AuthOnly from "../../../components/AuthOnly.astro";
 
-本指南從頭到尾逐步介紹 Imbrace SDK 中的四大主要工作流程。每個章節都是獨立的 — 你可以依序閱讀，或直接跳到需要的部分。切換語言分頁一次，整個頁面就會記住你的選擇。
+本指南從頭到尾逐步說明 Imbrace SDK 中的四大主要工作流程。每個章節都是獨立的 — 可以依序閱讀或直接跳到您需要的部分。切換語言標籤一次，頁面其餘部分將記住您的選擇。
 
 ---
 
@@ -66,11 +66,11 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
    </Tabs>
    </AuthOnly>
 
-   標題下拉選單可在 **access token**（Imbrace 作為後端的面向使用者應用程式）與 **api key**（Imbrace 作為你技術棧中一個功能的服務對服務）之間切換這些程式碼片段。完整的決策樹請參閱[驗證 → 我該使用哪種憑證](/sdk/authentication/#which-credential-should-i-use)。
+   頁首下拉選單可在**存取令牌**（Imbrace 作為後端的面向使用者應用程式）和**API 金鑰**（Imbrace 作為您技術棧內部功能的服務對服務）之間切換這些程式碼片段。請參閱[認證 → 應該使用哪種憑證](/sdk/authentication/#which-credential-should-i-use)以了解完整的決策樹。
 
-2. **建立 AI Agent**
+2. **建立 AI agent**
 
-   `workflow_name` 在你的組織內必須是唯一的。
+   `workflow_name` 在您的組織內必須是唯一的。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -78,14 +78,14 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        const agent = await client.chatAi.createAiAgent({
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         description: "處理第一線客戶支援查詢",
-         instructions: "你是一個樂於助人的支援代理。請保持簡潔與友善。",
+         description: "Handles tier-1 customer support queries",
+         instructions: "You are a helpful support agent. Be concise and friendly.",
          provider_id: "system",   // 使用組織的預設 LLM 提供者
-         model_id: "gpt-4o",      // 系統提供者暴露的任何模型名稱
+         model_id: "gpt-4o",      // 系統提供者公開的任何模型名稱
        })
 
-       const assistantId = agent.id  // UUID — 後續所有呼叫都使用此 ID
-       console.log("AI agent created:", assistantId)
+       const aiAgentId = agent.id  // UUID — 所有後續呼叫使用此 ID
+       console.log("AI agent created:", aiAgentId)
        ```
      </TabItem>
      <TabItem label="Python">
@@ -93,30 +93,30 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        agent = client.chat_ai.create_ai_agent({
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
-           "description": "處理第一線客戶支援查詢",
-           "instructions": "你是一個樂於助人的支援代理。請保持簡潔與友善。",
+           "description": "Handles tier-1 customer support queries",
+           "instructions": "You are a helpful support agent. Be concise and friendly.",
            "provider_id": "system",   # 使用組織的預設 LLM 提供者
-           "model_id": "gpt-4o",      # 系統提供者暴露的任何模型名稱
+           "model_id": "gpt-4o",      # 系統提供者公開的任何模型名稱
        })
 
-       assistant_id = agent["id"]
-       print("AI agent created:", assistant_id)
+       ai_agent_id = agent["id"]
+        print("AI agent created:", ai_agent_id)
        ```
      </TabItem>
    </Tabs>
 
-   `provider_id` 與 `model_id` 為必填。傳入 `provider_id: "system"` 以委派給組織的預設 LLM 提供者，或傳入自訂提供者的 UUID。使用 `provider_id: "system"` 時，`model_id` 可接受模型名稱如 `"gpt-4o"`，或傳入字面值 `"Default"` 以使用系統預設模型。
+   `provider_id` 和 `model_id` 是必填的。傳遞 `provider_id: "system"` 以委派給組織的預設 LLM 提供者，或傳遞自訂提供者的 UUID。使用 `provider_id: "system"` 時，`model_id` 接受像 `"gpt-4o"` 這樣的模型名稱，或使用字面值 `"Default"` 以回退到系統預設模型。
 
-3. **使用 AI Agent 串流聊天回應**
+3. **使用 AI agent 串流聊天回應**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
        const response = await client.aiAgent.streamChat({
-         assistant_id: assistantId,
-         messages: [{ role: "user", content: "我要如何重設密碼？" }],
-         // id 為工作階段 UUID — 重複使用以維持對話歷史
-         // 若省略，每次呼叫會自動產生新的 UUID
+         assistant_id: aiAgentId,
+         messages: [{ role: "user", content: "How do I reset my password?" }],
+         // id 是連線 UUID — 重複使用以保持對話歷史記錄
+         // 如果省略，每次呼叫會自動產生新的 UUID
        })
 
        const reader = response.body!.getReader()
@@ -143,10 +143,10 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="Python">
        ```python
        response = client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
-           "messages": [{"role": "user", "content": "我要如何重設密碼？"}],
-           # id 為工作階段 UUID — 重複使用以維持對話歷史。
-           # 若省略，每次呼叫會自動產生新的 UUID。
+           "assistant_id": ai_agent_id,
+           "messages": [{"role": "user", "content": "How do I reset my password?"}],
+           # id 是連線 UUID — 重複使用以保持對話歷史記錄。
+           # 如果省略，每次呼叫會自動產生新的 UUID。
        })
 
        import json
@@ -166,9 +166,9 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-4. **維持對話歷史（工作階段 ID）**
+4. **維護對話歷史記錄（連線 ID）**
 
-   在多次呼叫中傳入相同的 `id`（必須是 UUID）以保持上下文：
+   在多次呼叫中傳遞相同的 `id`（必須是 UUID）以保持上下文：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -179,37 +179,37 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
        // 第一則訊息
        await client.aiAgent.streamChat({
-         assistant_id: assistantId,
+         assistant_id: aiAgentId,
          id: sessionId,
-         messages: [{ role: "user", content: "你們的退款政策是什麼？" }],
+         messages: [{ role: "user", content: "What's your refund policy?" }],
        })
 
-       // 後續追問 — 相同工作階段，助理記得上下文
-       await client.aiAgent.streamChat({
-         assistant_id: assistantId,
-         id: sessionId,
-         messages: [{ role: "user", content: "需要多久時間？" }],
-       })
-       ```
-     </TabItem>
-     <TabItem label="Python">
-       ```python
-       import uuid
+        // 後續 — 相同連線，AI agent 記住上下文
+        await client.aiAgent.streamChat({
+          assistant_id: aiAgentId,
+          id: sessionId,
+          messages: [{ role: "user", content: "How long does it take?" }],
+        })
+        ```
+      </TabItem>
+      <TabItem label="Python">
+        ```python
+        import uuid
 
-       session_id = str(uuid.uuid4())
+        session_id = str(uuid.uuid4())
 
-       # 第一則訊息
+        # 第一則訊息
+        client.ai_agent.stream_chat({
+            "assistant_id": ai_agent_id,
+            "id": session_id,
+            "messages": [{"role": "user", "content": "What's your refund policy?"}],
+        })
+
+        # 後續 — 相同連線，AI agent 記住上下文
        client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
+           "assistant_id": ai_agent_id,
            "id": session_id,
-           "messages": [{"role": "user", "content": "你們的退款政策是什麼？"}],
-       })
-
-       # 後續追問 — 相同工作階段，助理記得上下文
-       client.ai_agent.stream_chat({
-           "assistant_id": assistant_id,
-           "id": session_id,
-           "messages": [{"role": "user", "content": "需要多久時間？"}],
+           "messages": [{"role": "user", "content": "How long does it take?"}],
        })
        ```
      </TabItem>
@@ -219,11 +219,11 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 2. 建立工作流程並綁定至助理
+## 2. 建立工作流程並繫結至 AI Agent
 
 <Steps>
 
-1. **列出現有流程以尋找你的專案 ID**
+1. **列出現有流程以尋找您的專案 ID**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -266,14 +266,14 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-3. **新增 Webhook 觸發器並發布流程**
+3. **新增 Webhook 觸發條件並發佈流程**
 
-   新建立的流程處於**草稿**狀態，沒有觸發器 — Webhook URL 還不存在，所以 `triggerFlow` 會回傳 404。先加入 Webhook 片段作為觸發器，然後發布：
+   新建立的流程處於**草稿**狀態且沒有觸發條件 — Webhook URL 還不存在，因此 `triggerFlow` 會回傳 404。新增 Webhook 元件作為觸發條件，然後發佈：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       // 設定 Webhook 片段為流程的觸發器
+       // 將 Webhook 元件設為流程的觸發條件
        await client.workflows.applyFlowOperation(flow.id, {
          type: "UPDATE_TRIGGER",
          request: {
@@ -291,7 +291,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
          },
        })
 
-       // 發布 — 流程狀態從 DISABLED 變為 ENABLED，Webhook URL 生效
+       // 發佈 — 流程狀態從 DISABLED 轉為 ENABLED，Webhook URL 生效
        await client.workflows.applyFlowOperation(flow.id, {
          type: "LOCK_AND_PUBLISH",
          request: {},
@@ -300,7 +300,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
      <TabItem label="Python">
        ```python
-       # 設定 Webhook 片段為流程的觸發器
+       # 將 Webhook 元件設為流程的觸發條件
        client.workflows.apply_flow_operation(flow["id"], {
            "type": "UPDATE_TRIGGER",
            "request": {
@@ -318,7 +318,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
            },
        })
 
-       # 發布 — DISABLED → ENABLED，Webhook URL 生效
+       # 發佈 — DISABLED → ENABLED，Webhook URL 生效
        client.workflows.apply_flow_operation(flow["id"], {
            "type": "LOCK_AND_PUBLISH",
            "request": {},
@@ -327,20 +327,20 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-4. **使用負載手動觸發流程**
+4. **使用酬載手動觸發流程**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       // 發送後即忘（非同步）
+       // 觸發後即忘（非同步）
        await client.workflows.triggerFlow(flow.id, {
          contact_name: "Jane Smith",
          email: "jane@example.com",
        })
 
-       // 同步觸發 — 若要實際回傳資料而非超時，
-       // 流程需要透過 applyFlowOperation ADD_ACTION 新增「Return Response」動作
-       // （否則 Gateway 會等待 30 秒後放棄）。
+       // 同步觸發 — 要讓它實際回傳資料而不會逾時，
+       // 流程需要透過 applyFlowOperation ADD_ACTION 新增「回傳回應」動作
+       // （否則閘道會等待 30 秒回應然後放棄）。
        const result = await client.workflows.triggerFlowSync(flow.id, {
          contact_name: "Jane Smith",
          email: "jane@example.com",
@@ -350,15 +350,15 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
      <TabItem label="Python">
        ```python
-       # 發送後即忘（非同步）
+       # 觸發後即忘（非同步）
        client.workflows.trigger_flow(flow["id"], {
            "contact_name": "Jane Smith",
            "email": "jane@example.com",
        })
 
-       # 同步觸發 — 若要實際回傳資料而非超時，
-       # 流程需要透過 apply_flow_operation ADD_ACTION 新增「Return Response」動作
-       # （否則 Gateway 會等待 30 秒後放棄）。
+       # 同步觸發 — 要讓它實際回傳資料而不會逾時，
+       # 流程需要透過 apply_flow_operation ADD_ACTION 新增「回傳回應」動作
+       # （否則閘道會等待 30 秒然後放棄）。
        result = client.workflows.trigger_flow_sync(flow["id"], {
            "contact_name": "Jane Smith",
            "email": "jane@example.com",
@@ -368,36 +368,36 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-5. **將流程綁定至你的 AI Agent**
+5. **將流程繫結至您的 AI agent**
 
-   在 Imbrace 儀表板中開啟你的 AI Agent，前往**工具 → 工作流程**，然後附加該流程。AI Agent 將能在對話中適時觸發它。
+   在 Imbrace 儀表板中開啟您的 AI agent，前往**工具 → 工作流程**，然後附加流程。AI agent 將能夠在對話中適當時觸發它。
 
-   或者，更新 AI Agent 使其透過名稱參考該工作流程：
+   或者，更新 AI agent 以依名稱參考工作流程：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       await client.chatAi.updateAiAgent(assistantId, {
+       await client.chatAi.updateAiAgent(aiAgentId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
-         workflow_function_call: [{ flow_id: flow.id, description: "新潛在客戶時更新 CRM" }],
+         workflow_function_call: [{ flow_id: flow.id, description: "Update CRM on new lead" }],
        })
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       client.chat_ai.update_ai_agent(assistant_id, {
+       client.chat_ai.update_ai_agent(ai_agent_id, {
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "workflow_function_call": [
-               {"flow_id": flow["id"], "description": "新潛在客戶時更新 CRM"}
+               {"flow_id": flow["id"], "description": "Update CRM on new lead"}
            ],
        })
        ```
      </TabItem>
    </Tabs>
 
-6. **檢查執行歷史**
+6. **檢查執行歷史記錄**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -424,9 +424,9 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 3. 管理知識庫並附加至 AI Agent
+## 3. 管理知識中心並附加至 AI Agent
 
-知識庫檔案與資料夾位於 **data-board** 服務（`client.boards`）中。資料夾的 `_id` 即為你傳遞給 AI Agent 作為其知識來源的值。
+知識中心檔案和資料夾存在於 **data-board** 服務（`client.boards`）中。資料夾的 `_id` 就是您傳遞給 AI agent 作為其知識來源的內容。
 
 <Steps>
 
@@ -488,34 +488,34 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-3. **將資料夾附加至 AI Agent**
+3. **將資料夾附加至 AI agent**
 
-   在 `folder_ids` 中傳入資料夾 `_id` — AI Agent 會從該資料夾中的所有檔案進行檢索。使用 `board_ids` 可附加 CRM 資料看板（其項目會成為知識來源 — 請參閱[資源 → 看板與項目](/sdk/resources/#boards--items--clientboards)）。舊版的 `knowledge_hubs` 欄位已棄用。
+   在 `folder_ids` 中傳遞資料夾 `_id` — AI agent 從該資料夾中的每個檔案檢索。使用 `board_ids` 來附加 CRM data-board（其項目成為知識來源 — 請參閱[資源 → Boards 與項目](/sdk/resources/#boards--items--clientboards)）。舊的 `knowledge_hubs` 欄位已棄用。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       await client.chatAi.updateAiAgent(assistantId, {
+       await client.chatAi.updateAiAgent(aiAgentId, {
          name: "Support Bot",
          workflow_name: "support_bot_v1",
          folder_ids: [folder._id],
-         // board_ids: [boardId],  // 可選：同時附加 CRM 資料看板
+         // board_ids: [boardId],  // 可選：也附加 CRM data-board
        })
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       client.chat_ai.update_ai_agent(assistant_id, {
+       client.chat_ai.update_ai_agent(ai_agent_id, {
            "name": "Support Bot",
            "workflow_name": "support_bot_v1",
            "folder_ids": [folder["_id"]],
-           # "board_ids": [board_id],  # 可選：同時附加 CRM 資料看板
+           # "board_ids": [board_id],  # 可選：也附加 CRM data-board
        })
        ```
      </TabItem>
    </Tabs>
 
-4. **檢查與管理資料夾與檔案**
+4. **檢查和管理資料夾與檔案**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -525,7 +525,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
        // 取得資料夾內容
        const contents = await client.boards.getFolderContents(folder._id)
-       console.log("檔案數量：", contents.files?.length)
+       console.log("Files:", contents.files?.length)
 
        // 重新命名資料夾
        await client.boards.updateFolder(folder._id, { name: "Product Docs v2" })
@@ -544,7 +544,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
        # 取得資料夾內容
        contents = client.boards.get_folder_contents(folder["_id"])
-       print("檔案數量：", len(contents.get("files") or []))
+       print("Files:", len(contents.get("files") or []))
 
        # 重新命名資料夾
        client.boards.update_folder(folder["_id"], {"name": "Product Docs v2"})
@@ -562,20 +562,20 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 ---
 
-## 4. 管理資料看板與項目 (CRM 管道)
+## 4. 管理 Data Boards 與項目（CRM 管道）
 
 <Steps>
 
-1. **建立看板**
+1. **建立 Board**
 
-   看板即 CRM 管道 — 潛在客戶、交易、任務或任何結構化資料。
+   Board 就是一個 CRM 管道 — 潛在客戶、交易、任務或任何結構化資料。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
        const board = await client.boards.create({
          name: "Sales Pipeline",
-         description: "追蹤所有進行中的交易",
+         description: "Track all active deals",
        })
        console.log("Board ID:", board._id)
        ```
@@ -584,7 +584,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        ```python
        board = client.boards.create(
            name="Sales Pipeline",
-           description="追蹤所有進行中的交易",
+           description="Track all active deals",
        )
        print("Board ID:", board["_id"])
        ```
@@ -593,7 +593,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
 2. **新增自訂欄位**
 
-   欄位類型包括 `ShortText`、`LongText`、`Number`、`Dropdown`、`Date`、`Checkbox` 等。`createField` 會回傳更新後的看板 — 在 `board.fields` 中找到你的新欄位。
+   欄位類型有 `ShortText`、`LongText`、`Number`、`Dropdown`、`Date`、`Checkbox` 等。`createField` 回傳更新後的 board — 在 `board.fields` 中找到您的新欄位。
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -602,7 +602,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
          name: "Company",
          type: "ShortText",
        })
-       // 找出識別欄位（每個看板自動建立）
+       // 尋找識別欄位（每個 board 自動建立）
        const identifierField = updated.fields.find(f => f.is_identifier)
        ```
      </TabItem>
@@ -617,7 +617,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-3. **建立看板項目（記錄）**
+3. **建立 board 項目（記錄）**
 
    項目使用 `{ fields: [{ board_field_id, value }] }` 格式：
 
@@ -644,7 +644,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-4. **列出與搜尋項目**
+4. **列出和搜尋項目**
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
@@ -670,13 +670,15 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      </TabItem>
    </Tabs>
 
-5. **更新與刪除項目**
+5. **更新和刪除項目**
+
+   更新使用 `{ data: [{ key, value }] }`（注意：是 `key`，不是 `board_field_id`）：
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
        await client.boards.updateItem(board._id, item._id, {
-         fields: { name: "Acme Corp — Closed Won" },
+         data: [{ key: identifierField._id, value: "Acme Corp — Closed Won" }],
        })
 
        await client.boards.deleteItem(board._id, item._id)
@@ -685,7 +687,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="Python">
        ```python
        client.boards.update_item(board["_id"], item["_id"], {
-           "fields": {"name": "Acme Corp — Closed Won"},
+           "data": [{"key": identifier_field["_id"], "value": "Acme Corp — Closed Won"}],
        })
 
        client.boards.delete_item(board["_id"], item["_id"])
@@ -699,13 +701,13 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
      <TabItem label="TypeScript">
        ```typescript
        const csv = await client.boards.exportCsv(board._id)
-       // csv 為字串 — 可寫入檔案或做為下載傳送
+       // csv 是字串 — 寫入檔案或作為下載傳送
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
        csv = client.boards.export_csv(board["_id"])
-       # csv 為字串 — 可寫入檔案或做為下載傳送
+       # csv 是 str — 寫入檔案或作為下載傳送
        ```
      </TabItem>
    </Tabs>

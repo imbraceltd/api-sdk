@@ -12,7 +12,7 @@ description: Comprehensive guide for running unit tests, integration tests, lint
 ```bash
 cd py
 
-# Install dependencies + dev tools (pytest, ruff, mypy, pytest-httpx)
+# Install dependencies + dev tools (pytest, pytest-asyncio, pytest-httpx, ruff, mypy)
 pip install -e ".[dev]"
 ```
 
@@ -77,6 +77,8 @@ pytest tests/ -v
 
 ### Coverage Report
 
+> `pytest-cov` is not included by default. Install it separately: `pip install pytest-cov`
+
 ```bash
 pytest tests/unit --cov=src/imbrace --cov-report=term-missing
 ```
@@ -116,24 +118,13 @@ npx vitest run tests/unit/resources/contacts.test.ts
 npm run test:watch
 ```
 
-### Integration Tests (Requires real API key)
-
-```bash
-cd ts
-
-IMBRACE_API_KEY=api_xxx npm run test:integration
-```
-
-### Run All (Unit + Integration)
+### Run All (Unit + Local Tests)
 
 ```bash
 npm run test:all
 ```
 
----
-
-
-
+This runs vitest across the whole project (unit + any local files matching test patterns). TypeScript integration tests aren't available yet — see `py/tests/integration/` for live API checks, or `ts/tests/local/` for manual live testing scripts.
 ---
 
 ## Lint & Type Check

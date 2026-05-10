@@ -1,15 +1,15 @@
 ---
 title: Imbrace SDK
-description: Imbrace Gateway 官方 TypeScript 和 Python SDK — 类型安全、功能完整、生产就绪。
+description: Official TypeScript and Python SDKs for the Imbrace Gateway — type-safe, batteries-included, production-ready.
 template: splash
 hero:
-  title: 使用 Imbrace SDK 更快构建
-  tagline: 类型安全、功能完整的 Imbrace Gateway SDK。几分钟内将 TypeScript 和 Python 应用连接到 Imbrace 平台。
+  title: 使用 Imbrace SDK 更快交付
+  tagline: 类型安全、功能完备的 Imbrace Gateway SDK。几分钟内将 TypeScript 和 Python 应用连接到 Imbrace 平台。
   image:
     file: ../../../assets/imbrace_logo_small.svg
     alt: Imbrace
   actions:
-    - text: 快速开始
+    - text: 开始使用
       link: getting-started/overview/
       icon: right-arrow
       variant: primary
@@ -29,16 +29,16 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
   <Card title="类型安全设计" icon="approve-check-circle">
-    覆盖 27+ 资源命名空间的完整 TypeScript 定义和 Python 类型注解。在编译时捕获错误，而非运行时。
+    覆盖全部 27+ 资源命名空间的完整 TypeScript 定义和 Python 类型提示。在编译时而非运行时捕获错误。
   </Card>
   <Card title="自动重试与弹性" icon="random">
-    针对 429 和 5xx 响应内置指数退避重试。无需配置 — 高负载下应用依然稳定运行。
+    内置针对 429 和 5xx 响应的指数退避。无需任何配置 — 您的应用在负载下保持稳定。
   </Card>
-  <Card title="三层身份验证" icon="setting">
-    API Key、JWT Bearer 和 legacy access token — 全部透明处理。无需更改业务逻辑即可切换认证策略。
+  <Card title="三层认证" icon="setting">
+    API Key、JWT Bearer 和旧版访问令牌 — 全部透明处理。无需更改业务逻辑即可切换认证策略。
   </Card>
   <Card title="Python 异步优先" icon="rocket">
-    `AsyncImbraceClient` 与同步客户端并行存在。一行导入即可接入 FastAPI、asyncio 或 Django。
+    同步客户端与并行 `AsyncImbraceClient`。一次导入即可用于 FastAPI、asyncio 或 Django。
   </Card>
 </CardGrid>
 
@@ -87,27 +87,27 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <div class="splash-links">
 
-## 探索文档
+## 浏览文档
 
 <CardGrid>
   <LinkCard
     title="SDK 概览"
-    description="架构、资源命名空间、身份验证策略。TypeScript 和 Python 在同一处。"
+    description="架构、资源命名空间、认证策略。TypeScript 和 Python 统一呈现。"
     href="sdk/overview/"
   />
   <LinkCard
     title="快速入门"
-    description="在 60 秒内完成首次 API 调用 — 在 TypeScript 和 Python 之间切换。"
+    description="60 秒内发起您的第一个 API 调用 — 切换 TypeScript 或 Python。"
     href="sdk/quick-start/"
   />
   <LinkCard
-    title="身份验证"
-    description="API 密钥 vs 访问令牌、OTP 登录流程，以及如何选择。"
+    title="认证"
+    description="API Key 与访问令牌、OTP 登录流程以及如何选择。"
     href="sdk/authentication/"
   />
   <LinkCard
     title="完整流程指南"
-    description="四个主要工作流程的端到端演练。"
+    description="四大工作流的端到端演练。"
     href="sdk/full-flow-guide/"
   />
   <LinkCard
@@ -116,7 +116,7 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
     href="guides/testing/"
   />
   <LinkCard
-    title="常见问题"
+    title="故障排除"
     description="常见错误、调试技巧、已知问题。"
     href="guides/troubleshooting/"
   />

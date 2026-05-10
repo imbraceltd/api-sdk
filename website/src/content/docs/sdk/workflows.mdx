@@ -5,7 +5,7 @@ description: Workflows — visual workflow builder and channel automation — cr
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-The SDK exposes two workflow systems: **Workflows** (`client.workflows`) for visual workflow automation, and **channel automation** (`client.workflows`) for messaging channel flows such as WhatsApp.
+`client.workflows` exposes both channel automation (v2/backend route) and the flow engine (CRUD flows, runs, folders, connections, pieces, MCP servers, tables, invitations).
 
 Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an AI agent, see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent).
 
@@ -23,7 +23,7 @@ const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ 
 <TabItem label="Python">
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
-whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp").get("data", [])
 ```
 </TabItem>
 </Tabs>
@@ -71,16 +71,40 @@ client.workflows.delete_flow("flow_id")
 <TabItem label="TypeScript">
 ```typescript
 await client.workflows.applyFlowOperation("flow_id", {
-  operation: "UPDATE_TRIGGER",
-  trigger: { type: "PIECE", pieceName: "@imbrace/schedule", actionName: "every_day" },
+  type: "UPDATE_TRIGGER",
+  request: {
+    name: "trigger",
+    type: "PIECE_TRIGGER",
+    valid: true,
+    displayName: "Webhook",
+    settings: {
+      pieceName: "@activepieces/piece-webhook",
+      pieceVersion: "0.1.24",
+      triggerName: "catch_webhook",
+      input: {},
+      propertySettings: {},
+    },
+  },
 });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 client.workflows.apply_flow_operation("flow_id", {
-    "operation": "UPDATE_TRIGGER",
-    "trigger": {"type": "PIECE", "pieceName": "@imbrace/schedule", "actionName": "every_day"},
+    "type": "UPDATE_TRIGGER",
+    "request": {
+        "name": "trigger",
+        "type": "PIECE_TRIGGER",
+        "valid": True,
+        "displayName": "Webhook",
+        "settings": {
+            "pieceName": "@activepieces/piece-webhook",
+            "pieceVersion": "0.1.24",
+            "triggerName": "catch_webhook",
+            "input": {},
+            "propertySettings": {},
+        },
+    },
 })
 ```
 </TabItem>
@@ -211,13 +235,13 @@ pieces = client.workflows.list_pieces(limit=20)
 <TabItem label="TypeScript">
 ```typescript
 const status = await client.workflows.getTriggerRunStatus();
-await client.workflows.testTrigger({ pieceName: "@imbrace/schedule", flowId: "flow_id" });
+await client.workflows.testTrigger({ pieceName: "@activepieces/piece-webhook", flowId: "flow_id" });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 status = client.workflows.get_trigger_run_status()
-client.workflows.test_trigger({"pieceName": "@imbrace/schedule", "flowId": "flow_id"})
+client.workflows.test_trigger({"pieceName": "@activepieces/piece-webhook", "flowId": "flow_id"})
 ```
 </TabItem>
 </Tabs>

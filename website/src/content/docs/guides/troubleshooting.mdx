@@ -11,33 +11,20 @@ API key in `.env` has expired.
 # Update .env
 IMBRACE_API_KEY=new_api_key
 ```
-
----
-
-## `ApiError: [400] {"message":"must have required property 'type'"}`
-
-`channel.list()` called without mandatory parameter.
-
-```python
-# Incorrect
-client.channel.list()
-
-# Correct
-client.channel.list(type="web")
-```
-
 ---
 
 ## `ApiError: [404]` with double path in URL
 
-URL is doubled because `IMBRACE_BASE_URL` was incorrectly set to a full endpoint.
+The `baseUrl` / `base_url` passed to the constructor points to a full endpoint path instead of just the gateway root.
+
+> The SDK does **not** auto-read environment variables. Convention is `IMBRACE_GATEWAY_URL` in `.env`; you pass it manually: `new ImbraceClient({ baseUrl: process.env.IMBRACE_GATEWAY_URL })`.
 
 ```env
 # Incorrect
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
 
 # Correct
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
 ```
 
 ---
@@ -88,11 +75,9 @@ imbrace login --api-key api_xxx...
 
 ---
 
----
-
 ## CLI: `workflow run --sync` times out
 
-The sync mode may time out at ~30s. Use async + poll instead:
+The sync mode may time out at ~60s. Use async + poll instead:
 
 ```bash
 imbrace workflow run <flowId> --payload '{}'

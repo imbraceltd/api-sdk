@@ -1,6 +1,6 @@
 ---
-title: Lỗi Thường Gặp
-description: Các lỗi phổ biến và cách khắc phục khi sử dụng Imbrace SDK.
+title: Khắc phục sự cố
+description: Các lỗi phổ biến và giải pháp khi sử dụng Imbrace SDK.
 ---
 
 ## `AuthError: Invalid or expired access token.` (HTTP 401)
@@ -9,45 +9,32 @@ API key trong `.env` đã hết hạn.
 
 ```bash
 # Cập nhật .env
-IMBRACE_API_KEY=api_xxx_moi
+IMBRACE_API_KEY=api_key_mới
 ```
-
 ---
 
-## `ApiError: [400] {"message":"must have required property 'type'"}`
+## `ApiError: [404]` với đường dẫn kép trong URL
 
-Gọi `channel.list()` thiếu param bắt buộc.
+`baseUrl` / `base_url` được truyền vào constructor trỏ đến một đường dẫn endpoint đầy đủ thay vì chỉ root gateway.
 
-```python
-# Sai
-client.channel.list()
-
-# Đúng
-client.channel.list(type="web")
-```
-
----
-
-## `ApiError: [404]` với URL có path kép
-
-URL bị double vì `IMBRACE_BASE_URL` được set nhầm thành full endpoint.
+> SDK **không** tự động đọc biến môi trường. Quy ước là `IMBRACE_GATEWAY_URL` trong `.env`; bạn truyền nó thủ công: `new ImbraceClient({ baseUrl: process.env.IMBRACE_GATEWAY_URL })`.
 
 ```env
 # Sai
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token
 
 # Đúng
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
 ```
 
 ---
 
-## Integration test bị skip toàn bộ
+## Integration tests đều bị bỏ qua
 
-`IMBRACE_API_KEY` chưa được set.
+`IMBRACE_API_KEY` chưa được đặt.
 
 ```bash
-# Set tạm thời khi chạy
+# Đặt tạm thời trong quá trình thực thi
 IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 
 # Hoặc thêm vào .env
@@ -58,19 +45,19 @@ echo "IMBRACE_API_KEY=api_xxx" >> py/.env
 
 ## `Cannot find module` (TypeScript tests)
 
-Đường dẫn import trong test file cần đúng cấp thư mục:
+Đường dẫn import trong tệp kiểm thử phải tương đối với độ sâu thư mục:
 
-| Vị trí test file                 | Import                            |
-| -------------------------------- | --------------------------------- |
-| `tests/unit/*.test.ts`           | `../../src/client.js`             |
-| `tests/unit/resources/*.test.ts` | `../../../src/app/resources/x.js` |
-| `tests/integration/*.test.ts`    | `../../src/client.js`             |
+| Vị trí tệp kiểm thử                 | Import                            |
+| ----------------------------------- | --------------------------------- |
+| `tests/unit/*.test.ts`              | `../../src/client.js`             |
+| `tests/unit/resources/*.test.ts`    | `../../../src/resources/x.js`     |
+| `tests/integration/*.test.ts`       | `../../src/client.js`             |
 
 ---
 
-## `mypy` báo lỗi `Pattern matching is only supported in Python 3.10`
+## `mypy` error: `Pattern matching is only supported in Python 3.10`
 
-mypy scan nhầm vào `site-packages`. Đã config trong `pyproject.toml`. Nếu vẫn lỗi:
+mypy đang quét `site-packages` nhầm. Đã cấu hình trong `pyproject.toml`. Nếu vẫn còn:
 
 ```bash
 mypy src/imbrace --exclude site-packages
@@ -80,7 +67,7 @@ mypy src/imbrace --exclude site-packages
 
 ## CLI: lệnh trả về `401 Unauthorized`
 
-Credential đã hết hạn hoặc server API có token cũ.
+Thông tin xác thực của bạn đã hết hạn hoặc máy chủ API có token cũ.
 
 ```bash
 imbrace login --api-key api_xxx...
@@ -88,14 +75,12 @@ imbrace login --api-key api_xxx...
 
 ---
 
----
-
 ## CLI: `workflow run --sync` hết thời gian
 
-Chế độ sync có thể hết thời gian chờ ở ~30s. Dùng async + poll để thay thế:
+Chế độ đồng bộ có thể hết thời gian ở ~60s. Sử dụng bất đồng bộ + thăm dò thay thế:
 
 ```bash
 imbrace workflow run <flowId> --payload '{}'
-imbrace workflow runs --limit 10           # tìm run ID
+imbrace workflow runs --limit 10           # tìm ID lần chạy
 imbrace workflow run-detail <runId>        # kiểm tra kết quả
 ```

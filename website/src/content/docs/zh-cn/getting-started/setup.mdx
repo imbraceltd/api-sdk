@@ -1,22 +1,22 @@
 ---
-title: 安装指南
-description: 安装 Imbrace SDK、配置凭证、设置环境以及覆盖服务 URL。
+title: 设置指南
+description: Install the Imbrace SDK, configure credentials, set up environments, and override service URLs.
 ---
 
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 
-本指南涵盖 Imbrace SDK 集成所需的一切 — 从安装、凭证配置、环境设置到服务 URL 覆盖。
+本指南涵盖了你从零开始到完成 Imbrace SDK 集成所需的一切 — 安装、凭证、环境和服务 URL 覆盖。
 
 ---
 
 ### 系统要求
 
-| 要求      | 最低版本 |
-|---|---|
-| Node.js   | 18.0.0+  |
-| npm       | 8.0.0+   |
-| Python    | 3.9+     |
-| pip       | 23.0+    |
+| 要求 | 最低版本 |
+| ----------- | --------------- |
+| Node.js | 18.0.0+ |
+| npm | 8.0.0+ |
+| Python | 3.9+ |
+| pip | 23.0+ |
 
 ---
 
@@ -25,7 +25,7 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 <Tabs>
   <TabItem label="TypeScript">
 
-**从 npm 安装：**
+**从 npm 注册表：**
 
 ```bash
 npm install @imbrace/sdk
@@ -43,11 +43,11 @@ cd ts
 npm install
 npm run build
 
-# 步骤 2（可选）— 全局链接以在其他项目中使用
+# 步骤 2（可选）— 链接到全局，以在同一台机器上的另一个项目中使用
 npm link
 ```
 
-在外部项目中：
+然后在你的外部项目中：
 
 ```bash
 npm link @imbrace/sdk
@@ -56,14 +56,14 @@ npm link @imbrace/sdk
 **验证：**
 
 ```typescript
-import { ImbraceClient } from '@imbrace/sdk'
-console.log('SDK loaded:', typeof ImbraceClient) // 'function'
+import { ImbraceClient } from "@imbrace/sdk";
+console.log("SDK loaded:", typeof ImbraceClient); // 'function'
 ```
 
   </TabItem>
   <TabItem label="Python">
 
-**从 PyPI 安装：**
+**从 PyPI：**
 
 ```bash
 pip install imbrace
@@ -71,14 +71,14 @@ pip install imbrace
 uv add imbrace
 ```
 
-**Monorepo / 本地开发（可编辑模式）：**
+**Monorepo / 本地开发（editable 模式）：**
 
 ```bash
 cd py
 pip install -e ".[dev]"
 ```
 
-`[dev]` 标志额外安装：`pytest`, `pytest-asyncio`, `pytest-httpx`, `ruff`, `mypy`。
+`[dev]` 标志安装：`pytest`、`pytest-asyncio`、`pytest-httpx`、`ruff`、`mypy`。
 
 **验证：**
 
@@ -96,7 +96,7 @@ print("SDK loaded:", ImbraceClient)
 
 #### 创建 `.env` 文件
 
-SDK 不会自动读取环境变量 — 需要直接将凭证传入构造函数。`.env` 文件是用户约定；使用 `dotenv` 或框架的环境加载器读取。
+SDK 不会自动读取环境变量 — 你需要将凭证直接传递给构造函数。`.env` 文件是存储密钥的用户约定；使用 `dotenv` 或你的框架的环境变量加载器来读取它们。
 
 ```env
 # 凭证
@@ -107,14 +107,14 @@ IMBRACE_ACCESS_TOKEN=your_jwt_token_here
 IMBRACE_ORGANIZATION_ID=your_org_id_here
 
 # 可选：直接覆盖网关 URL
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
 ```
 
 #### 获取 API Key
 
-**方式一 — Imbrace Portal：** 登录并进入 **Settings → API Keys**。
+**选项 1 — Imbrace 门户：** 登录后转到 **设置 → API 密钥**。
 
-**方式二 — 通过 API**（需要现有 access token）：
+**选项 2 — 通过 API**（需要现有的访问令牌）：
 
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
@@ -123,25 +123,25 @@ curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_tok
   -d '{"expirationDays": 30}'
 ```
 
-所需值为 `response.apiKey.apiKey`。
+你需要的值是 `response.apiKey.apiKey`。
 
 ---
 
 ### 环境
 
-| 名称      | 网关 URL                                 | 使用场景     |
-|---|---|---|
-| `develop` | `https://app-gateway.dev.imbrace.co`     | 内部开发     |
-| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | 集成测试     |
-| `stable`  | `https://app-gatewayv2.imbrace.co`       | 生产（默认） |
+| 名称 | 网关 URL | 使用场景 |
+| --------- | ---------------------------------------- | -------------------- |
+| `develop` | `https://app-gateway.dev.imbrace.co` | 内部开发 |
+| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | 集成测试 |
+| `stable` | `https://app-gatewayv2.imbrace.co` | 生产环境（默认） |
 
-通过构造函数的 `env` 选项切换环境，或使用 `baseUrl` 直接覆盖 URL：
+通过 `env` 构造函数选项切换环境，或直接用 `baseUrl` 覆盖 URL：
 
 <Tabs>
   <TabItem label="TypeScript">
 
 ```typescript
-const client = new ImbraceClient({ env: 'sandbox' })
+const client = new ImbraceClient({ env: "sandbox" });
 ```
 
   </TabItem>
@@ -162,26 +162,26 @@ client = ImbraceClient(env="sandbox")
   <TabItem label="TypeScript">
 
 ```typescript
-import { ImbraceClient } from '@imbrace/sdk'
+import { ImbraceClient } from "@imbrace/sdk";
 
 // 服务端 — API Key
 const client = new ImbraceClient({
   apiKey:         process.env.IMBRACE_API_KEY,
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
-  baseUrl:        'https://app-gatewayv2.imbrace.co', // 或使用 env: 'stable'
-})
+  baseUrl:        "https://app-gatewayv2.imbrace.co", // 或使用 env: "stable"
+});
 
 // 客户端 — Access Token（例如 OTP 登录后）
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN,
-  baseUrl:     'https://app-gatewayv2.imbrace.co',
-})
+  baseUrl:     "https://app-gatewayv2.imbrace.co",
+});
 
 // OTP 登录流程
-const anon = new ImbraceClient({ baseUrl: 'https://app-gatewayv2.imbrace.co' })
-await anon.requestOtp('user@example.com')
-await anon.loginWithOtp('user@example.com', '123456')
-// 令牌自动存储在客户端
+const anon = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+await anon.requestOtp("user@example.com");
+await anon.loginWithOtp("user@example.com", "123456");
+// 令牌自动存储在客户端上
 ```
 
   </TabItem>
@@ -237,11 +237,11 @@ npm install -g @imbrace/cli
 imbrace login --api-key api_xxx...
 ```
 
-请参阅 [CLI 安装](/cli/installation/) 了解其他安装方法，以及 [CLI 命令](/cli/commands/) 获取完整命令参考。
+其他安装方法请参见 [CLI 安装](/zh-cn/cli/installation/)，完整命令参考请参见 [CLI 命令](/zh-cn/cli/commands/)。
 
 ---
 
-### 快速使用示例
+## 快速使用示例
 
 <Tabs>
   <TabItem label="TypeScript">
@@ -251,32 +251,39 @@ import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 
-// 获取当前用户信息
+// 获取当前用户
 const me = await client.platform.getMe()
 
-// 频道列表
+// 列出频道
 const channels = await client.channel.list()
 
 // 发送消息
-await client.messages.send({ type: 'text', text: '你好！' })
+await client.messages.send({ type: 'text', text: 'Hello!' })
 
 // AI 补全
 const result = await client.ai.complete({
   model: 'gpt-4o',
-  messages: [{ role: 'user', content: '总结这份报告。' }],
+  messages: [{ role: 'user', content: 'Summarize this.' }],
 })
 
-// AI 流式输出
+// AI 流式传输
 for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })) {
   process.stdout.write(chunk.choices[0]?.delta?.content ?? '')
 }
 
-// AI Agent — 流式对话
+// AI 代理 — 流式聊天
 const response = await client.aiAgent.streamChat({
   id: 'chat_id',
   assistant_id: 'asst_abc',
-  messages: [{ role: 'user', content: '你好' }],
+  messages: [{ role: 'user', content: 'Hello' }],
 })
+const reader = response.body!.getReader()
+const decoder = new TextDecoder()
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  console.log(decoder.decode(value))
+}
 ```
 
   </TabItem>
@@ -287,25 +294,28 @@ from imbrace import ImbraceClient
 from imbrace.types.ai import CompletionInput, CompletionMessage
 
 with ImbraceClient(api_key="sk-...") as client:
-    # 获取用户信息
+    # 获取当前用户
     me = client.platform.get_me()
 
-    # 频道和看板列表
+    # 列出频道和面板
     channels = client.channel.list()
-    boards   = client.boards.list()
-    items    = client.boards.list_items(boards[0]["id"])
+    boards_res = client.boards.list()
+    boards_data = boards_res.get("data", [])
+    if boards_data:
+        board_id = boards_data[0].get("_id") or boards_data[0]["id"]
+        items = client.boards.list_items(board_id)
 
     # AI 补全
     result = client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[CompletionMessage(role="user", content="你好")],
+        messages=[CompletionMessage(role="user", content="Hello")],
     ))
 
-    # AI Agent — 流式对话
+    # AI 代理 — 流式聊天
     response = client.ai_agent.stream_chat({
         "id": "chat_id",
         "assistant_id": "asst_abc",
-        "messages": [{"role": "user", "content": "你好"}],
+        "messages": [{"role": "user", "content": "Hello"}],
     })
     for line in response.iter_lines():
         print(line)
@@ -318,20 +328,20 @@ with ImbraceClient(api_key="sk-...") as client:
 
 ### 覆盖服务 URL
 
-当某个微服务运行在不同地址时使用（例如本地开发、独立 staging）。
+当微服务运行在不同地址时使用（例如本地开发、专用预发布环境）。
 
 <Tabs>
   <TabItem label="TypeScript">
 
 ```typescript
 const client = new ImbraceClient({
-  env: 'develop',
+  env: "develop",
   services: {
-    aiAgent:        'http://localhost:4000/ai-agent',
-    dataBoard:      'http://localhost:3001/data-board',
-    channelService: 'http://localhost:3002/channel-service',
+    aiAgent: "http://localhost:4000/ai-agent",
+    dataBoard: "http://localhost:3001/data-board",
+    channelService: "http://localhost:3002/channel-service",
   },
-})
+});
 ```
 
   </TabItem>
@@ -341,9 +351,9 @@ const client = new ImbraceClient({
 client = ImbraceClient(
     env="develop",
     services={
-        "ai_agent":        "http://localhost:4000/ai-agent",
-        "data_board":      "http://localhost:3001/data-board",
-        "channel_service": "http://localhost:3002/channel-service",
+        "ai_agent":       "http://localhost:4000/ai-agent",
+        "data_board":     "http://localhost:3001/data-board",
+        "channel_service":"http://localhost:3002/channel-service",
     },
 )
 ```
@@ -353,25 +363,25 @@ client = ImbraceClient(
 
 所有有效的服务键：
 
-| Python 键              | TypeScript 键       | 服务                                |
-|---|---|---|
-| `gateway`              | `gateway`           | App Gateway                         |
-| `platform`             | `platform`          | Platform service                    |
-| `channel_service`      | `channelService`    | Channel service                     |
-| `data_board`           | `dataBoard`         | Data Board                          |
-| `backend`              | `backend`           | Board/Items backend (`/v1/backend`) |
-| `ips`                  | `ips`               | IPS service                         |
-| `ai`                   | `ai`                | AI service                          |
-| `marketplaces`         | `marketplaces`      | Marketplace service                 |
-| `file_service`         | `fileService`       | File service                        |
-| `message_suggestion`   | `messageSuggestion` | Message Suggestion service          |
-| `predict`              | `predict`           | Predict service                     |
-| `activepieces`         | `activepieces`      | Workflows                           |
-| `ai_agent`             | `aiAgent`           | AI Agent service                    |
+| Python 键 | TypeScript 键 | 服务 |
+| -------------------- | ------------------- | ----------------------------------- |
+| `gateway` | `gateway` | App Gateway |
+| `platform` | `platform` | Platform service |
+| `channel_service` | `channelService` | Channel service |
+| `data_board` | `dataBoard` | Data Board |
+| `backend` | `backend` | Board/Items backend（`/v1/backend`） |
+| `ips` | `ips` | IPS service |
+| `ai` | `ai` | AI service |
+| `marketplaces` | `marketplaces` | Marketplace service |
+| `file_service` | `fileService` | File service |
+| `message_suggestion` | `messageSuggestion` | Message Suggestion service |
+| `predict` | `predict` | Predict service |
+| `workflow_engine` | `workflowEngine` | Workflows (Activepieces) |
+| `ai_agent` | `aiAgent` | AI Agent service |
 
 ---
 
-### 常见错误排查
+### 故障排除
 
 ##### `Cannot find package '@imbrace/sdk'`
 
@@ -382,7 +392,7 @@ npm link
 cd /path/to/your-project && npm link @imbrace/sdk
 ```
 
-##### `ERR_MODULE_NOT_FOUND`（dist/ 中的文件）
+##### `ERR_MODULE_NOT_FOUND` for files in `dist/`
 
 包尚未构建：
 
@@ -398,7 +408,7 @@ cd py && pip install -e ".[dev]"
 
 ##### `401 Unauthorized`
 
-API Key 已过期或无效。生成新密钥：
+API Key 过期或无效。生成一个新的：
 
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
@@ -409,4 +419,4 @@ curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_tok
 
 ##### `UserWarning: ImbraceClient: no credentials provided`
 
-未传入 `api_key` 或 `access_token`。如果是有意为之（例如仅用于登录），可忽略此警告。否则请检查 `.env` 文件。
+未传入 `api_key` 或 `access_token`。如果是有意为之（例如仅登录流程），忽略此警告。否则请检查你的 `.env` 文件。

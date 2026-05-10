@@ -1,18 +1,18 @@
 ---
-title: Tham chiếu tài nguyên
-description: Tham chiếu theo không gian tên cho Imbrace SDK — danh bạ, hội thoại, nhắn tin, chiến dịch và hơn thế nữa.
+title: Tài liệu Tham khảo Resource
+description: Tài liệu tham khảo theo từng namespace cho Imbrace SDKs — contacts, conversations, messaging, campaigns, và hơn thế nữa.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Trang này bao gồm các không gian tên CRM và nhắn tin được SDK cung cấp. Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Bắt đầu nhanh](/sdk/quick-start/)). Tất cả đoạn mã bên dưới giả định `client` là phiên bản đã được khởi tạo.
+Trang này bao gồm các namespace CRM và nhắn tin được hiển thị bởi SDK. Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Quick Start](/sdk/quick-start/)). Tất cả các đoạn mã bên dưới đều giả định `client` là instance đã được khởi tạo.
 
-Đối với các tài nguyên liên quan đến AI và workflow, xem:
-- [AI Agent](/sdk/ai-agent/) — assistant (`chatAi`), AI agent streaming, embeddings, parquet
-- [Workflows](/sdk/workflows/) — Luồng workflow và tự động hóa kênh
-- [Data Boards](/sdk/databoard/) — Board pipeline CRM và mục
+Để biết các resource liên quan đến AI và workflow, xem:
+- [AI Agent](/sdk/ai-agent/) — AI agents (`chatAi`), AI agent streaming, embeddings, parquet
+- [Workflows](/sdk/workflows/) — Workflow flows và tự động hóa kênh
+- [Data Boards](/sdk/databoard/) — Board và mục pipeline CRM
 
-Để có hướng dẫn từ đầu đến cuối sử dụng các tài nguyên này cùng nhau, xem [Hướng dẫn toàn luồng](/sdk/full-flow-guide/).
+Để biết hướng dẫn từ đầu đến cuối sử dụng các resource này cùng nhau, xem [Hướng dẫn toàn diện](/sdk/full-flow-guide/).
 
 ---
 
@@ -62,26 +62,26 @@ activity  = client.contacts.get_activities("conversation_id")
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// Search
+// Tìm kiếm
 const { data: convs } = await client.conversations.search({
   businessUnitId: "bu_xxx",
   q: "support",
   limit: 20,
 });
 
-// Outstanding (unresolved)
+// Chưa giải quyết
 const { data: open } = await client.conversations.getOutstanding({
   businessUnitId: "bu_xxx",
   limit: 50,
 });
 
-// Assign
+// Gán
 await client.conversations.assignTeamMember({
   conversation_id: "conv_xxx",
   user_id: "user_xxx",
 });
 
-// Update status
+// Cập nhật trạng thái
 await client.conversations.updateStatus({
   conversation_id: "conv_xxx",
   status: "resolved",
@@ -109,7 +109,7 @@ client.conversations.update_status({
 
 ---
 
-## Messaging — `client.channel`, `client.messages`
+## Nhắn tin — `client.channel`, `client.messages`
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -140,7 +140,7 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## Campaigns & touchpoints — `client.campaign`
+## Chiến dịch & điểm tiếp xúc — `client.campaign`
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -150,7 +150,7 @@ const campaign  = await client.campaign.get("campaign_id");
 const newCamp   = await client.campaign.create({ name: "Q2 Outreach", channel_type: "email" });
 await client.campaign.delete("campaign_id");
 
-// Touchpoints
+// Điểm tiếp xúc
 const { data: touchpoints } = await client.campaign.listTouchpoints();
 const tp = await client.campaign.getTouchpoint("touchpoint_id");
 
@@ -162,7 +162,7 @@ await client.campaign.createTouchpoint({
 await client.campaign.updateTouchpoint("touchpoint_id", { delay_days: 5 });
 await client.campaign.deleteTouchpoint("touchpoint_id");
 
-// Validate touchpoint config before saving
+// Xác thực cấu hình điểm tiếp xúc trước khi lưu
 const result = await client.campaign.validateTouchpoint({ type: "email", template_id: "tpl_xxx" });
 ```
 </TabItem>
@@ -173,7 +173,7 @@ campaign  = client.campaign.get("campaign_id")
 new_camp  = client.campaign.create({"name": "Q2 Outreach", "channel_type": "email"})
 client.campaign.delete("campaign_id")
 
-# Touchpoints
+# Điểm tiếp xúc
 touchpoints = client.campaign.list_touchpoints().get("data", [])
 tp = client.campaign.get_touchpoint("touchpoint_id")
 
@@ -185,7 +185,7 @@ client.campaign.create_touchpoint({
 client.campaign.update_touchpoint("touchpoint_id", {"delay_days": 5})
 client.campaign.delete_touchpoint("touchpoint_id")
 
-# Validate touchpoint config before saving
+# Xác thực cấu hình điểm tiếp xúc trước khi lưu
 result = client.campaign.validate_touchpoint({"type": "email", "template_id": "tpl_xxx"})
 ```
 </TabItem>
@@ -193,14 +193,15 @@ result = client.campaign.validate_touchpoint({"type": "email", "template_id": "t
 
 ---
 
-## Message suggestion — `client.messageSuggestion` / `client.message_suggestion`
+## Đề xuất tin nhắn — `client.messageSuggestion` / `client.message_suggestion`
 
-Khả dụng cho cả TypeScript và Python.
+Có sẵn cho cả TypeScript và Python.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 const suggestions = await client.messageSuggestion.getSuggestions({
+  message: "Can you help me with my order?",
   conversation_id: "conv_xxx",
   limit: 3,
 });
@@ -209,6 +210,7 @@ const suggestions = await client.messageSuggestion.getSuggestions({
 <TabItem label="Python">
 ```python
 suggestions = client.message_suggestion.get_suggestions({
+    "message": "Can you help me with my order?",
     "conversation_id": "conv_xxx",
     "limit": 3,
 })
@@ -218,9 +220,9 @@ suggestions = client.message_suggestion.get_suggestions({
 
 ---
 
-## Predict — `client.predict`
+## Dự đoán — `client.predict`
 
-Khả dụng cho cả TypeScript và Python.
+Có sẵn cho cả TypeScript và Python.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">

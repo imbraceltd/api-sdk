@@ -1,17 +1,17 @@
 ---
-title: SDK Methods Reference
+title: SDK 方法參考
 description: SDK methods used by each CLI command group.
 ---
 
-The CLI communicates with the Imbrace platform directly via `@imbrace/sdk`. This page maps each command group to the underlying SDK methods.
+CLI 透過 `@imbrace/sdk` 直接與 Imbrace 平台通訊。此頁面將每個指令群組對應至底層的 SDK 方法。
 
-For the full SDK reference see [SDK Overview](/sdk/overview/).
+如需完整的 SDK 參考，請參閱 [SDK 概覽](/sdk/overview/)。
 
 ---
 
 ## Data Board — `client.boards`
 
-| CLI Command | SDK Method |
+| CLI 指令 | SDK 方法 |
 |---|---|
 | `data-board list` | `client.boards.list()` |
 | `data-board get <id>` | `client.boards.get(id)` |
@@ -28,7 +28,7 @@ For the full SDK reference see [SDK Overview](/sdk/overview/).
 
 ## AI Agent — `client.chatAi`, `client.ai`
 
-| CLI Command | SDK Method |
+| CLI 指令 | SDK 方法 |
 |---|---|
 | `ai-agent list` | `client.chatAi.listAiAgents()` |
 | `ai-agent get <id>` | `client.chatAi.getAiAgent(id)` |
@@ -44,7 +44,7 @@ For the full SDK reference see [SDK Overview](/sdk/overview/).
 
 ## Workflow — `client.workflows`
 
-| CLI Command | SDK Method |
+| CLI 指令 | SDK 方法 |
 |---|---|
 | `workflow list` | `client.workflows.listFlows(params)` |
 | `workflow get <id>` | `client.workflows.getFlow(id)` |

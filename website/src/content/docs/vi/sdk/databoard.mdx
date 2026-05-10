@@ -1,13 +1,13 @@
 ---
 title: Data Boards
-description: Tham chiếu SDK cho client.boards — pipeline CRM, mục, trường, phân đoạn, Knowledge Hub, nhập/xuất và tích hợp ổ đĩa ngoài.
+description: Tài liệu tham khảo SDK cho client.boards — CRM pipelines, items, fields, segments, Knowledge Hub, import/export, và tích hợp ổ đĩa ngoài.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Boards là kho dữ liệu cốt lõi cho các pipeline CRM — khách hàng tiềm năng, thỏa thuận, nhiệm vụ hoặc bất kỳ dữ liệu có cấu trúc nào. Truyền board id trong `board_ids` khi tạo AI agent để cấp quyền truy cập dữ liệu đó — xem [Hướng dẫn toàn luồng §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
+Boards là kho dữ liệu cốt lõi cho các pipeline CRM — khách hàng tiềm năng, giao dịch, nhiệm vụ, hoặc bất kỳ dữ liệu có cấu trúc nào. Truyền ID board trong `board_ids` khi tạo AI agent để cấp cho nó quyền truy cập vào dữ liệu đó — xem [Hướng dẫn toàn diện §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
 
-Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Bắt đầu nhanh](/sdk/quick-start/)).
+Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Quick Start](/sdk/quick-start/)).
 
 ---
 
@@ -53,43 +53,43 @@ client.boards.reorder({"order": ["board_id_1", "board_id_2", "board_id_3"]})
 
 ---
 
-## Import / Export
+## Nhập / Xuất
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// CSV import (multipart/form-data)
+// Nhập CSV (multipart/form-data)
 const formData = new FormData();
 formData.append("file", csvFile);
 const result = await client.boards.importCsv("board_id", formData);
 
-// Excel import
+// Nhập Excel
 const excelForm = new FormData();
 excelForm.append("file", excelFile);
 await client.boards.importExcel("board_id", excelForm);
 
-// Import progress
+// Tiến trình nhập
 const progress = await client.boards.getImportProgress("board_id");
 
-// CSV export
+// Xuất CSV
 const csv = await client.boards.exportCsv("board_id");
 
-// CSV export via email
+// Xuất CSV qua email
 await client.boards.exportCsvViaMail("board_id", { email: "user@example.com" });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# CSV import (multipart/form-data)
+# Nhập CSV (multipart/form-data)
 result = client.boards.import_csv("board_id", files={"file": open("data.csv", "rb")})
 
-# Excel import
+# Nhập Excel
 client.boards.import_excel("board_id", files={"file": open("data.xlsx", "rb")})
 
-# Import progress
+# Tiến trình nhập
 progress = client.boards.get_import_progress("board_id")
 
-# CSV export
+# Xuất CSV
 csv = client.boards.export_csv("board_id")
 ```
 </TabItem>
@@ -99,7 +99,7 @@ Lưu ý: `exportCsvViaMail` chỉ dành cho TypeScript.
 
 ---
 
-## Items
+## Mục
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -107,12 +107,18 @@ Lưu ý: `exportCsvViaMail` chỉ dành cho TypeScript.
 const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
 const item = await client.boards.getItem("board_id", "item_id");
 
+// createItem sử dụng { fields: [{ board_field_id, value }] }
 const lead = await client.boards.createItem("board_id", {
-  fields: { name: "Acme Corp", status: "new", value: 50000 },
+  fields: [
+    { board_field_id: "name_field_id",   value: "Acme Corp" },
+    { board_field_id: "status_field_id", value: "new" },
+    { board_field_id: "value_field_id",  value: 50000 },
+  ],
 });
 
-await client.boards.updateItem("board_id", lead.id, {
-  fields: { status: "qualified" },
+// updateItem sử dụng { data: [{ key, value }] } — lưu ý `key`, không phải `board_field_id`
+await client.boards.updateItem("board_id", lead._id, {
+  data: [{ key: "status_field_id", value: "qualified" }],
 });
 
 await client.boards.deleteItem("board_id", "item_id");
@@ -123,12 +129,18 @@ await client.boards.bulkDeleteItems("board_id", { ids: ["item_1", "item_2", "ite
 ```python
 leads = client.boards.list_items("board_id", limit=100).get("data", [])
 
+# create_item sử dụng {"fields": [{"board_field_id", "value"}]}
 lead = client.boards.create_item("board_id", {
-    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+    "fields": [
+        {"board_field_id": "name_field_id",   "value": "Acme Corp"},
+        {"board_field_id": "status_field_id", "value": "new"},
+        {"board_field_id": "value_field_id",  "value": 50000},
+    ],
 })
 
-client.boards.update_item("board_id", lead["id"], {
-    "fields": {"status": "qualified"}
+# update_item sử dụng {"data": [{"key", "value"}]} — lưu ý "key", không phải "board_field_id"
+client.boards.update_item("board_id", lead["_id"], {
+    "data": [{"key": "status_field_id", "value": "qualified"}],
 })
 
 client.boards.delete_item("board_id", "item_id")
@@ -152,31 +164,31 @@ result = client.boards.check_conflict("board_id", "item_id", {"version": 2})
 </TabItem>
 </Tabs>
 
-### Mục được liên kết (board liên quan)
+### Mục liên kết (board liên quan)
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// Get related items from another board
+// Lấy mục liên quan từ board khác
 const related = await client.boards.getRelatedItems("board_id", "item_id", "related_board_id");
 
-// Get linked board items by type (Opportunities / Tasks)
+// Lấy mục board liên kết theo loại (Opportunities / Tasks)
 const linked = await client.boards.getLinkedBoardItems("contact_board_id", "item_id", "Opportunities");
 
-// Link and unlink
+// Liên kết và hủy liên kết
 await client.boards.linkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
 await client.boards.unlinkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# Get related items from another board
+# Lấy mục liên quan từ board khác
 related = client.boards.get_related_items("board_id", "item_id", "related_board_id")
 
-# Get linked board items by type (Opportunities / Tasks)
+# Lấy mục board liên kết theo loại (Opportunities / Tasks)
 linked = client.boards.get_linked_board_items("contact_board_id", "item_id", "Opportunities")
 
-# Link and unlink
+# Liên kết và hủy liên kết
 client.boards.link_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
 client.boards.unlink_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
 ```
@@ -209,23 +221,23 @@ results = client.boards.search("board_id", q="enterprise")
 ```typescript
 const field = await client.boards.createField("board_id", {
   name: "Deal Value",
-  type: "number",
+  type: "Number",
 });
 await client.boards.updateField("board_id", field._id, { name: "Contract Value" });
 await client.boards.deleteField("board_id", field._id);
 
-// Reorder and bulk update
+// Sắp xếp lại và cập nhật hàng loạt
 await client.boards.reorderFields("board_id", { fields: ["field_id_1", "field_id_2"] });
 await client.boards.bulkUpdateFields("board_id", { fields: [{ _id: "field_1", name: "Updated" }] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-field = client.boards.create_field("board_id", {"name": "Deal Value", "type": "number"})
+field = client.boards.create_field("board_id", {"name": "Deal Value", "type": "Number"})
 client.boards.update_field("board_id", field["_id"], {"name": "Contract Value"})
 client.boards.delete_field("board_id", field["_id"])
 
-# Reorder and bulk update
+# Sắp xếp lại và cập nhật hàng loạt
 client.boards.reorder_fields("board_id", {"fields": ["field_id_1", "field_id_2"]})
 client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "name": "Updated"}]})
 ```
@@ -239,10 +251,11 @@ client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "nam
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: segments } = await client.boards.listSegments("board_id");
+// listSegments trả về BoardSegment[] trực tiếp (không có wrapper { data })
+const segments = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
   name: "High Value Leads",
-  filter: { field: "value", op: "gt", value: 10000 },
+  filter: {},
 });
 await client.boards.updateSegment("board_id", segment._id, { name: "VIP Leads" });
 await client.boards.deleteSegment("board_id", segment._id);
@@ -253,7 +266,7 @@ await client.boards.deleteSegment("board_id", segment._id);
 segments = client.boards.list_segments("board_id")
 segment = client.boards.create_segment("board_id", {
     "name": "High Value Leads",
-    "filter": {"field": "value", "op": "gt", "value": 10000},
+    "filter": {},
 })
 client.boards.update_segment("board_id", segment["_id"], {"name": "VIP Leads"})
 client.boards.delete_segment("board_id", segment["_id"])
@@ -268,7 +281,7 @@ client.boards.delete_segment("board_id", segment["_id"])
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// Search
+// Tìm kiếm
 const folders = await client.boards.searchFolders({ q: "contracts" });
 
 // CRUD
@@ -277,13 +290,13 @@ const newFolder = await client.boards.createFolder({ name: "Contracts", parent_i
 await client.boards.updateFolder("folder_id", { name: "Renamed" });
 await client.boards.deleteFolders({ ids: ["folder_id_1", "folder_id_2"] });
 
-// Contents (folder metadata + subfolders + files)
+// Nội dung (metadata thư mục + thư mục con + tệp)
 const contents = await client.boards.getFolderContents("folder_id");
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# Search
+# Tìm kiếm
 folders = client.boards.search_folders(q="contracts")
 
 # CRUD
@@ -292,7 +305,7 @@ new_folder = client.boards.create_folder({"name": "Contracts", "parent_id": "par
 client.boards.update_folder("folder_id", {"name": "Renamed"})
 client.boards.delete_folders(["folder_id_1", "folder_id_2"])
 
-# Contents (folder metadata + subfolders + files)
+# Nội dung (metadata thư mục + thư mục con + tệp)
 contents = client.boards.get_folder_contents("folder_id")
 ```
 </TabItem>
@@ -305,28 +318,28 @@ contents = client.boards.get_folder_contents("folder_id")
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// Search and CRUD
+// Tìm kiếm và CRUD
 const files = await client.boards.searchFiles({ folderId: "folder_id" });
 const file = await client.boards.getFile("file_id");
 const newFile = await client.boards.createFile({ name: "report.pdf", folder_id: "folder_id" });
 await client.boards.updateFile("file_id", { name: "renamed.pdf" });
 await client.boards.deleteFiles({ ids: ["file_id_1", "file_id_2"] });
 
-// Upload and download
+// Tải lên và tải xuống
 const uploaded = await client.boards.uploadFile(formData);
 const response = await client.boards.downloadFile("file_id");
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# Search and CRUD
+# Tìm kiếm và CRUD
 files = client.boards.search_files(folder_id="folder_id")
 file = client.boards.get_file("file_id")
 new_file = client.boards.create_file({"name": "report.pdf", "folder_id": "folder_id"})
 client.boards.update_file("file_id", {"name": "renamed.pdf"})
 client.boards.delete_files(["file_id_1", "file_id_2"])
 
-# Upload and download
+# Tải lên và tải xuống
 uploaded = client.boards.upload_file(files={"file": open("report.pdf", "rb")})
 response = client.boards.download_file("file_id")
 ```
@@ -346,7 +359,7 @@ const formData = new FormData();
 formData.append("file", file);
 const { url } = await client.boards.uploadBoardFile(formData);
 
-// Alternative endpoint
+// Endpoint thay thế
 const { url: url2 } = await client.boards.uploadBoardFileV2(formData);
 ```
 </TabItem>
@@ -354,7 +367,7 @@ const { url: url2 } = await client.boards.uploadBoardFileV2(formData);
 ```python
 result = client.boards.upload_board_file(files={"file": open("photo.jpg", "rb")})
 
-# Alternative endpoint
+# Endpoint thay thế
 result = client.boards.upload_board_file_v2(files={"file": open("photo.jpg", "rb")})
 ```
 </TabItem>
@@ -367,19 +380,19 @@ result = client.boards.upload_board_file_v2(files={"file": open("photo.jpg", "rb
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// AI-generated tags
+// Thẻ do AI tạo
 const { tags } = await client.boards.generateAiTags({ text: "Enterprise deal with Acme Corp" });
 
-// Link preview
+// Xem trước liên kết
 const preview = await client.boards.getLinkPreview("https://example.com");
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# AI-generated tags
+# Thẻ do AI tạo
 tags = client.boards.generate_ai_tags({"text": "Enterprise deal with Acme Corp"})
 
-# Link preview
+# Xem trước liên kết
 preview = client.boards.get_link_preview("https://example.com")
 ```
 </TabItem>
@@ -394,33 +407,33 @@ Tích hợp OneDrive / Google Drive cho Knowledge Hub.
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// Initiate OAuth flow
+// Bắt đầu luồng OAuth
 const { auth_url } = await client.boards.initiateDriveAuth("onedrive");
 
-// List remote folders and files
+// Liệt kê thư mục và tệp từ xa
 const folders = await client.boards.listDriveFolders("onedrive");
 const files = await client.boards.listDriveFiles("onedrive", { folder_id: "remote_folder_id" });
 
-// Download a remote file
+// Tải xuống tệp từ xa
 const response = await client.boards.downloadDriveFile("onedrive", { file_id: "remote_file_id" });
 
-// Session status (OneDrive only)
+// Trạng thái phiên (chỉ OneDrive)
 const { status } = await client.boards.getOneDriveSessionStatus();
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# Initiate OAuth flow
+# Bắt đầu luồng OAuth
 auth = client.boards.initiate_drive_auth("onedrive")
 
-# List remote folders and files
+# Liệt kê thư mục và tệp từ xa
 folders = client.boards.list_drive_folders("onedrive")
 files = client.boards.list_drive_files("onedrive", {"folder_id": "remote_folder_id"})
 
-# Download a remote file
+# Tải xuống tệp từ xa
 response = client.boards.download_drive_file("onedrive", {"file_id": "remote_file_id"})
 
-# Session status (OneDrive only)
+# Trạng thái phiên (chỉ OneDrive)
 status = client.boards.get_onedrive_session_status()
 ```
 </TabItem>

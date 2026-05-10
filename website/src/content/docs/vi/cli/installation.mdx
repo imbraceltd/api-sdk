@@ -1,21 +1,21 @@
 ---
-title: Installation
-description: Install and authenticate with the Imbrace CLI.
+title: Cài đặt
+description: Cài đặt và xác thực với Imbrace CLI.
 ---
 
 import { Aside } from "@astrojs/starlight/components";
 
-## Install the CLI
+## Cài đặt CLI
 
-### Public npm Package
+### Gói npm công khai
 
 ```bash
 npm install -g @imbrace/cli
 ```
 
-### From Source
+### Từ mã nguồn
 
-Clone the repository and run the install script:
+Clone kho lưu trữ và chạy script cài đặt:
 
 ```bash
 git clone https://github.com/imbraceltd/imbrace-cli.git
@@ -23,9 +23,9 @@ cd imbrace-cli
 ./install.sh
 ```
 
-`install.sh` runs `npm install`, `npm run build`, `npm link`, then symlinks `imbrace` into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel).
+`install.sh` chạy `npm install`, `npm run build`, `npm link`, sau đó tạo symlink `imbrace` vào `/opt/homebrew/bin` (Apple Silicon) hoặc `/usr/local/bin` (Intel).
 
-### Manual Build
+### Biên dịch thủ công
 
 ```bash
 cd cli
@@ -34,43 +34,43 @@ npm run build
 npm link
 ```
 
-## Authentication
+## Xác thực
 
-All commands (except `login`) auto-prompt login if not authenticated.
+Tất cả các lệnh (ngoại trừ `login`) sẽ tự động yêu cầu đăng nhập nếu chưa được xác thực.
 
-### Login with API Key
+### Đăng nhập với API Key
 
-Recommended for CI/CD and coding agents:
+Khuyến nghị cho CI/CD và các tác nhân lập trình:
 
 ```bash
 imbrace login --api-key api_xxx...
 ```
 
-### Login with Email + Password
+### Đăng nhập với Email + Mật khẩu
 
 ```bash
 imbrace login --email user@example.com --password mypass
 ```
 
-### Check Current Login
+### Kiểm tra đăng nhập hiện tại
 
 ```bash
 imbrace whoami [--json]
 ```
 
-### Logout
+### Đăng xuất
 
 ```bash
 imbrace logout
 ```
 
 <Aside type="tip">
-  If a command returns 401, run `imbrace login --api-key api_xxx...` again.
+  Nếu một lệnh trả về 401, hãy chạy `imbrace login --api-key api_xxx...` lại.
 </Aside>
 
-## Credential Storage
+## Lưu trữ thông tin xác thực
 
-| OS | Path |
+| Hệ điều hành | Đường dẫn |
 |---|---|
 | macOS | `~/Library/Preferences/imbrace-nodejs/config.json` |
 | Linux | `~/.config/imbrace-nodejs/config.json` |

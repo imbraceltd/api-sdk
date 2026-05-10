@@ -1,42 +1,42 @@
 ---
-title: Xử lý lỗi
-description: Các loại lỗi, hành vi tự động thử lại và các phương pháp tốt nhất để xử lý lỗi với Imbrace SDK.
+title: Xử lý Lỗi
+description: Các loại lỗi, hành vi thử lại tự động, và các phương pháp tốt nhất để xử lý lỗi với Imbrace SDKs.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Tất cả lỗi do SDK ném ra đều mở rộng từ một kiểu cơ sở duy nhất, vì vậy bạn có thể bắt bất kỳ lỗi SDK nào ở một nơi hoặc phân nhánh theo lớp con cụ thể khi cần phản ứng khác nhau. Cấu trúc phân cấp giống hệt nhau trên SDK TypeScript và Python.
+Tất cả các lỗi do SDK đưa ra đều mở rộng từ một kiểu cơ sở duy nhất, vì vậy bạn có thể bắt bất kỳ lỗi SDK nào ở một nơi hoặc phân nhánh theo lớp con cụ thể khi bạn cần phản ứng khác nhau. Hệ thống phân cấp giống hệt nhau trong SDK TypeScript và Python.
 
-## Phân cấp lỗi
+## Hệ thống phân cấp lỗi
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```
 Error
-└── ImbraceError          (base — catch-all for SDK errors)
-    ├── AuthError          (401, 403 — invalid or expired credentials)
-    ├── ApiError           (4xx/5xx — request rejected by the server)
-    └── NetworkError       (timeout, connection refused, DNS failure)
+└── ImbraceError          (cơ sở — bắt tất cả lỗi SDK)
+    ├── AuthError          (401, 403 — thông tin xác thực không hợp lệ hoặc hết hạn)
+    ├── ApiError           (4xx/5xx — yêu cầu bị máy chủ từ chối)
+    └── NetworkError       (hết thời gian, từ chối kết nối, lỗi DNS)
 ```
 </TabItem>
 <TabItem label="Python">
 ```
 Exception
-└── ImbraceError          (base — catch-all for SDK errors)
-    ├── AuthError          (401, 403 — invalid or expired credentials)
-    ├── ApiError           (4xx/5xx — request rejected by server)
-    └── NetworkError       (timeout, connection refused, DNS failure)
+└── ImbraceError          (cơ sở — bắt tất cả lỗi SDK)
+    ├── AuthError          (401, 403 — thông tin xác thực không hợp lệ hoặc hết hạn)
+    ├── ApiError           (4xx/5xx — yêu cầu bị máy chủ từ chối)
+    └── NetworkError       (hết thời gian, từ chối kết nối, lỗi DNS)
 ```
 </TabItem>
 </Tabs>
 
-Để biết thông báo lỗi cụ thể và cách khắc phục đã biết, xem [Khắc phục sự cố](/guides/troubleshooting/).
+Để biết các thông báo lỗi cụ thể và cách khắc phục đã biết, xem [Khắc phục sự cố](/guides/troubleshooting/).
 
 ---
 
 ## AuthError
 
-Được ném ra khi máy chủ trả về **401** hoặc **403** — thông tin xác thực không hợp lệ, đã hết hạn hoặc bị thu hồi.
+Được đưa ra khi máy chủ trả về **401** hoặc **403** — thông tin xác thực không hợp lệ, hết hạn hoặc bị thu hồi.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -47,7 +47,7 @@ try {
   const me = await client.platform.getMe();
 } catch (e) {
   if (e instanceof AuthError) {
-    console.error("Re-authenticate:", e.message);
+    console.error("Cần xác thực lại:", e.message);
   }
 }
 ```
@@ -59,21 +59,21 @@ from imbrace import AuthError
 try:
     me = client.platform.get_me()
 except AuthError as e:
-    print(f"Auth failed: {e}")
-    # Re-authenticate before retrying
+    print(f"Xác thực thất bại: {e}")
+    # Xác thực lại trước khi thử lại
 ```
 </TabItem>
 </Tabs>
 
 :::caution
-`AuthError` **không bao giờ được thử lại**. SDK ném/raise ngay lập tức khi gặp 401/403 — hãy sửa thông tin xác thực trước khi thử lại. Để biết chiến lược thông tin xác thực, xem [Xác thực](/sdk/authentication/).
+`AuthError` **không bao giờ được thử lại**. SDK ném/đưa ra ngay lập tức khi gặp 401/403 — hãy sửa thông tin xác thực trước khi thử lại. Để biết chiến lược thông tin xác thực, xem [Xác thực](/sdk/authentication/).
 :::
 
 ---
 
 ## ApiError
 
-Được ném ra cho tất cả các phản hồi **4xx và 5xx** khác (sau khi đã cạn kiệt số lần thử lại cho 429/5xx).
+Được đưa ra cho tất cả các phản hồi **4xx và 5xx** khác (sau khi đã thử lại hết cho 429/5xx).
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -85,15 +85,15 @@ try {
 } catch (e) {
   if (e instanceof ApiError) {
     console.error(`HTTP ${e.statusCode}: ${e.message}`);
-    // e.g. "HTTP 404: Product not found"
+    // ví dụ: "HTTP 404: Không tìm thấy sản phẩm"
   }
 }
 ```
 
-| Thuộc tính | Kiểu | Mô tả |
+| Thuộc tính   | Loại     | Mô tả                              |
 | ------------ | -------- | ---------------------------------- |
-| `statusCode` | `number` | Mã trạng thái HTTP |
-| `message` | `string` | Thông báo lỗi từ phản hồi máy chủ |
+| `statusCode` | `number` | Mã trạng thái HTTP                 |
+| `message`    | `string` | Thông báo lỗi từ phản hồi máy chủ |
 </TabItem>
 <TabItem label="Python">
 ```python
@@ -103,13 +103,12 @@ try:
     client.marketplace.get_product("nonexistent_id")
 except ApiError as e:
     print(f"HTTP {e.status_code}: {e}")
-    # e.g. "HTTP 404: Product not found"
+    # ví dụ: "HTTP 404: Không tìm thấy sản phẩm"
 ```
 
-| Thuộc tính | Kiểu | Mô tả |
-| ------------- | ----- | ---------------------------------- |
-| `status_code` | `int` | Mã trạng thái HTTP |
-| `message` | `str` | Thông báo lỗi từ phản hồi máy chủ |
+| Thuộc tính    | Loại  | Mô tả                |
+| ------------- | ----- | -------------------- |
+| `status_code` | `int` | Mã trạng thái HTTP   |
 </TabItem>
 </Tabs>
 
@@ -117,7 +116,7 @@ except ApiError as e:
 
 ## NetworkError
 
-Được ném ra khi yêu cầu không bao giờ đến được máy chủ — hết thời gian chờ, lỗi DNS hoặc kết nối bị reset.
+Được đưa ra khi yêu cầu không bao giờ đến được máy chủ — hết thời gian, lỗi DNS hoặc kết nối bị reset.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -128,8 +127,8 @@ try {
   await client.platform.getMe();
 } catch (e) {
   if (e instanceof NetworkError) {
-    console.error("Cannot reach baseUrl:", e.message);
-    // e.g. "Request timed out after 30000ms"
+    console.error("Không thể kết nối baseUrl:", e.message);
+    // ví dụ: "Yêu cầu đã hết thời gian sau 30000ms"
   }
 }
 ```
@@ -141,8 +140,8 @@ from imbrace import NetworkError
 try:
     client.platform.get_me()
 except NetworkError as e:
-    print(f"Network error: {e}")
-    # e.g. "Request timed out after 30s"
+    print(f"Lỗi mạng: {e}")
+    # ví dụ: "Lỗi mạng hoặc hết thời gian: ConnectTimeout(...)"
 ```
 </TabItem>
 </Tabs>
@@ -171,7 +170,7 @@ try {
   if (e instanceof ApiError) return handleApiError(e);
   if (e instanceof NetworkError) return handleNetworkError(e);
   if (e instanceof ImbraceError) return handleUnknown(e);
-  throw e; // re-throw non-SDK errors
+  throw e; // ném lại lỗi không phải SDK
 }
 ```
 </TabItem>
@@ -195,57 +194,57 @@ except ImbraceError as e:
 
 ---
 
-## Hành vi tự động thử lại
+## Hành vi thử lại tự động
 
-Bộ vận chuyển HTTP trong cả hai SDK thử lại các lỗi tạm thời với backoff theo cấp số nhân. Số lần thử lại khác nhau đôi chút giữa các ngôn ngữ nhưng các điều kiện thì giống hệt nhau.
+Tầng vận chuyển HTTP trong cả hai SDK đều thử lại các lỗi tạm thời với exponential backoff. Số lần thử lại khác nhau đôi chút giữa các ngôn ngữ nhưng các điều kiện thì giống hệt nhau.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
-| Điều kiện | Hành động |
-| --------------------------- | ---------------------------------------- |
-| HTTP **429** (giới hạn tốc độ) | Thử lại tối đa 2 lần |
-| HTTP **5xx** (lỗi máy chủ) | Thử lại tối đa 2 lần |
-| Lỗi mạng / hết thời gian chờ | Thử lại tối đa 2 lần |
-| HTTP **401 / 403** | Không thử lại — ném `AuthError` ngay lập tức |
-| HTTP **4xx** (khác) | Không thử lại — ném `ApiError` ngay lập tức |
+| Điều kiện                      | Hành động                                |
+| ------------------------------ | ---------------------------------------- |
+| HTTP **429** (giới hạn tốc độ) | Thử lại tối đa 2 lần                     |
+| HTTP **5xx** (lỗi máy chủ)     | Thử lại tối đa 2 lần                     |
+| Lỗi mạng / hết thời gian       | Thử lại tối đa 2 lần                     |
+| HTTP **401 / 403**             | Không thử lại — ném `AuthError` ngay lập tức |
+| HTTP **4xx** (khác)            | Không thử lại — ném `ApiError` ngay lập tức |
 
-**Backoff:** `2^số_lần_thử` giây giữa các lần thử (2s → 4s). Tổng tệ nhất: 3 lần thử.
+**Backoff:** `2^sốLầnThửLại` giây giữa các lần thử (2s → 4s). Tổng tệ nhất: 3 lần thử.
 </TabItem>
 <TabItem label="Python">
-| Điều kiện | Hành động |
-| --------------------------- | ---------------------------------------- |
-| HTTP **429** (giới hạn tốc độ) | Thử lại tối đa 3 lần |
-| HTTP **5xx** (lỗi máy chủ) | Thử lại tối đa 3 lần |
-| Lỗi mạng / hết thời gian chờ | Thử lại tối đa 3 lần |
-| HTTP **401 / 403** | Không thử lại — raise `AuthError` ngay lập tức |
-| HTTP **4xx** (khác) | Không thử lại — raise `ApiError` ngay lập tức |
+| Điều kiện                      | Hành động                                |
+| ------------------------------ | ---------------------------------------- |
+| HTTP **429** (giới hạn tốc độ) | Thử lại tối đa 3 lần                     |
+| HTTP **5xx** (lỗi máy chủ)     | Thử lại tối đa 3 lần                     |
+| Lỗi mạng / hết thời gian       | Thử lại tối đa 3 lần                     |
+| HTTP **401 / 403**             | Không thử lại — đưa ra `AuthError` ngay lập tức |
+| HTTP **4xx** (khác)            | Không thử lại — đưa ra `ApiError` ngay lập tức |
 
-**Backoff:** `2^số_lần_thử` giây giữa các lần thử (2s → 4s → 8s). Tổng tệ nhất: 4 lần thử.
+**Backoff:** `2^sốLầnThửLại` giây giữa các lần thử (1s → 2s → 4s). Tổng tệ nhất: 4 lần thử.
 </TabItem>
 </Tabs>
 
 ---
 
-## Hủy yêu cầu (TypeScript)
+## Thời gian chờ yêu cầu
 
-Truyền `AbortSignal` để hủy một yêu cầu đang thực hiện:
+Cấu hình thời gian chờ khi tạo client (mặc định: **30 s**). Khi hết thời gian chờ, yêu cầu đang thực hiện sẽ bị hủy và `NetworkError` được ném/đưa ra.
 
+<Tabs syncKey="lang">
+<TabItem label="TypeScript">
 ```typescript
-const controller = new AbortController();
-setTimeout(() => controller.abort(), 5000);
-
-try {
-  const result = await client.marketplace.listProducts({ page: 1 });
-} catch (e) {
-  if (e instanceof NetworkError && e.message.includes("aborted")) {
-    console.log("Request cancelled");
-  }
-}
+const client = new ImbraceClient({ timeout: 15_000 }); // mili giây
 ```
+</TabItem>
+<TabItem label="Python">
+```python
+client = ImbraceClient(timeout=15)  # giây
+```
+</TabItem>
+</Tabs>
 
 ## Xử lý lỗi bất đồng bộ (Python)
 
-Client bất đồng bộ raise các kiểu ngoại lệ giống hệt nhau:
+Client bất đồng bộ đưa ra các loại ngoại lệ giống hệt nhau:
 
 ```python
 from imbrace import AsyncImbraceClient, AuthError, ApiError
@@ -254,7 +253,7 @@ async with AsyncImbraceClient() as client:
     try:
         me = await client.platform.get_me()
     except AuthError:
-        print("Re-authenticate")
+        print("Cần xác thực lại")
     except ApiError as e:
         print(f"[{e.status_code}] {e}")
 ```
@@ -266,10 +265,10 @@ async with AsyncImbraceClient() as client:
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 1. Always handle AuthError separately — credentials need to be refreshed
-// 2. Log ApiError.statusCode — 400 = bad params, 404 = not found, 409 = conflict
-// 3. Wrap top-level entry points in try/catch
-// 4. Don't retry on AuthError — won't help until credentials are fixed
+// 1. Luôn xử lý AuthError riêng — cần làm mới thông tin xác thực
+// 2. Ghi log ApiError.statusCode — 400 = tham số sai, 404 = không tìm thấy, 409 = xung đột
+// 3. Bọc các điểm vào cấp cao nhất trong try/catch
+// 4. Không thử lại AuthError — sẽ không giúp ích cho đến khi thông tin xác thực được sửa
 
 async function safeGetMe(client: ImbraceClient) {
   try {
@@ -286,11 +285,11 @@ async function safeGetMe(client: ImbraceClient) {
 </TabItem>
 <TabItem label="Python">
 ```python
-# 1. Use a context manager so connections are closed deterministically
+# 1. Sử dụng context manager để kết nối được đóng một cách xác định
 with ImbraceClient() as client:
     ...
 
-# 2. Handle AuthError separately — credentials need refresh before retrying
+# 2. Xử lý AuthError riêng — cần làm mới thông tin xác thực trước khi thử lại
 def safe_get_me(client):
     try:
         return client.platform.get_me()
@@ -298,14 +297,14 @@ def safe_get_me(client):
         refresh_credentials(client)
         return client.platform.get_me()
 
-# 3. Branch on status_code for ApiError
+# 3. Phân nhánh theo status_code cho ApiError
 try:
     client.marketplace.create_order(data)
 except ApiError as e:
     if e.status_code == 409:
-        print("Order already exists")
+        print("Đơn hàng đã tồn tại")
     elif e.status_code == 400:
-        print(f"Invalid data: {e}")
+        print(f"Dữ liệu không hợp lệ: {e}")
 ```
 </TabItem>
 </Tabs>

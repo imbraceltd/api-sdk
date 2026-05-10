@@ -1,48 +1,48 @@
 ---
-title: Tổng Quan
+title: Tổng quan
 description: Imbrace là gì và bạn có thể xây dựng những gì với SDK.
 ---
 
-Imbrace là nền tảng tương tác khách hàng — nó xử lý các kênh chat, CRM pipeline, AI agent, quy trình tự động hóa và xử lý tài liệu tại một nơi. SDK cho phép bạn nhúng các tính năng đó trực tiếp vào ứng dụng của mình mà không cần tự xây dựng hạ tầng.
+Imbrace là một nền tảng tương tác khách hàng — nó xử lý các kênh chat, pipeline CRM, AI agents, workflow tự động hóa và xử lý tài liệu trong một nơi. SDK cho phép bạn nhúng các tính năng đó trực tiếp vào ứng dụng của riêng bạn mà không cần xây dựng cơ sở hạ tầng.
 
-### Bạn Có Thể Xây Dựng
+### Những gì bạn có thể xây dựng
 
 - **AI Agents** — stream phản hồi trực tiếp từ AI agent được huấn luyện trên kiến thức của bạn
-- **Quy trình tự động** — kích hoạt và quản lý các quy trình tự động hóa nhiều bước qua workflow engine
-- **CRM pipelines** — tạo board, quản lý lead, tìm kiếm và xuất dữ liệu deal
+- **Workflow tự động hóa** — kích hoạt và quản lý các tự động hóa đa bước qua công cụ workflow
+- **Pipeline CRM** — tạo board, quản lý khách hàng tiềm năng, tìm kiếm và xuất dữ liệu giao dịch
 - **Xử lý tài liệu** — trích xuất dữ liệu có cấu trúc từ PDF và hóa đơn, tạo embeddings
 
-### CLI Tool
+### Công cụ CLI
 
-Imbrace cũng cung cấp giao diện dòng lệnh (`@imbrace/cli`) để tương tác với nền tảng từ terminal. Nó được thiết kế cho nhà phát triển và coding agent — cài đặt cùng SDK để tạo mẫu nhanh, gỡ lỗi và tự động hóa.
+Imbrace cũng cung cấp giao diện dòng lệnh (`@imbrace/cli`) để tương tác với nền tảng từ terminal. Nó được thiết kế cho nhà phát triển và tác nhân lập trình — cài đặt nó cùng với SDK để tạo mẫu nhanh, gỡ lỗi và tự động hóa.
 
-Xem [CLI Overview](/cli/overview/) để biết chi tiết.
+Xem [Tổng quan CLI](/cli/overview/) để biết chi tiết.
 
-### SDK Khả Dụng
+### SDK có sẵn
 
-| SDK | Package | Runtime |
+| SDK | Gói | Môi trường chạy |
 |---|---|---|
 | TypeScript / JavaScript | `@imbrace/sdk` | Node.js 18+, trình duyệt |
 | Python | `imbrace` | Python 3.9+ |
 
-### Xác Thực
+### Xác thực
 
-Có hai cách xác thực:
+Có hai cách để xác thực:
 
-- **Access token** — cho ứng dụng có người dùng. Lấy được sau khi người dùng đăng nhập qua OTP hoặc OAuth. Truyền dưới dạng `accessToken` khi khởi tạo client.
-- **API key** — cho tích hợp server-to-server. Tạo từ bảng điều khiển Imbrace. Truyền dưới dạng `apiKey`.
+- **Access token** — cho ứng dụng hướng đến người dùng. Lấy được sau khi người dùng đăng nhập qua OTP hoặc OAuth. Truyền nó dưới dạng `accessToken` khi khởi tạo client.
+- **API key** — cho tích hợp máy chủ-máy chủ. Tạo một key từ bảng điều khiển quản trị Imbrace. Truyền nó dưới dạng `apiKey`.
 
 ### Gateway
 
-Tất cả request SDK đều đi qua:
+Tất cả các yêu cầu SDK đều đi qua:
 
 ```
 https://app-gatewayv2.imbrace.co
 ```
 
-Gateway được đặt mặc định — bạn không cần cấu hình trừ khi nhắm đến môi trường khác.
+Gateway được đặt mặc định — bạn không cần cấu hình trừ khi bạn đang nhắm đến một môi trường khác.
 
-### Ví Dụ Nhanh
+### Ví dụ nhanh
 
 ```typescript
 import { ImbraceClient } from "@imbrace/sdk"
@@ -54,7 +54,7 @@ const client = new ImbraceClient({
 
 const stream = await client.aiAgent.streamChat({
   assistant_id: "asst_xxx",
-  messages: [{ role: "user", content: "What deals closed this quarter?" }],
+  messages: [{ role: "user", content: "Những giao dịch nào đã chốt trong quý này?" }],
 })
 ```
 

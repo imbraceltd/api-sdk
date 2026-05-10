@@ -1,27 +1,27 @@
 ---
-title: Hướng Dẫn Test
-description: Hướng dẫn toàn diện về chạy unit test, integration test, lint và type check cho Imbrace SDK.
+title: Hướng dẫn Kiểm thử
+description: Hướng dẫn toàn diện để chạy unit tests, integration tests, lint và type checks cho Imbrace SDK.
 ---
 
 **Cập nhật:** 2026-04-10
 
-## Cài Đặt Môi Trường
+## Thiết lập Môi trường
 
 ### Python SDK
 
 ```bash
 cd py
 
-# Cài dependencies + dev tools (pytest, ruff, mypy, pytest-httpx)
+# Cài đặt phụ thuộc + công cụ dev (pytest, pytest-asyncio, pytest-httpx, ruff, mypy)
 pip install -e ".[dev]"
 ```
 
-Tạo file `py/.env` (chỉ cần cho integration test):
+Tạo `py/.env` (chỉ cần cho integration tests):
 
 ```env
 IMBRACE_API_KEY=api_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
-IMBRACE_ORG_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
+IMBRACE_ORGANIZATION_ID=org_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
 ### TypeScript SDK
@@ -33,49 +33,51 @@ npm install
 
 ---
 
-## Python — Lệnh Chạy & Test
+## Python — Chạy & Kiểm thử
 
-### Unit Tests (không cần API key)
+### Unit Tests (Không cần API key)
 
 ```bash
 cd py
 
-# Chạy toàn bộ unit tests
+# Chạy tất cả unit tests
 pytest tests/unit -v
 
-# Chạy một file cụ thể
+# Chạy một tệp cụ thể
 pytest tests/unit/test_http.py -v
 pytest tests/unit/resources/test_channel.py -v
 
 # Chạy một test case cụ thể
 pytest tests/unit/test_http.py::test_401_raises_auth_error -v
 
-# Chạy theo keyword
+# Chạy theo từ khóa
 pytest tests/unit -k "channel" -v
 pytest tests/unit -k "boards" -v
 ```
 
-### Integration Tests (cần API key thật)
+### Integration Tests (Yêu cầu API key thực)
 
-Kiểm thử tích hợp gọi thật tới API Gateway.
+Integration tests thực hiện các lời gọi thực đến API Gateway.
 
 ```bash
 cd py
 
-# Cách 1: Set key trực tiếp trong lệnh
+# Tùy chọn 1: Đặt key trực tiếp trong lệnh
 IMBRACE_API_KEY=api_xxx pytest tests/integration -v -m integration
 
-# Cách 2: Dùng .env (SDK tự đọc)
+# Tùy chọn 2: Sử dụng .env (conftest.py tự động tải qua load_dotenv)
 pytest tests/integration -v -m integration
 ```
 
-### Chạy tất cả (unit + integration)
+### Chạy Tất cả (Unit + Integration)
 
 ```bash
 pytest tests/ -v
 ```
 
-### Coverage Report
+### Báo cáo Độ phủ
+
+> `pytest-cov` không được bao gồm theo mặc định. Cài đặt riêng: `pip install pytest-cov`
 
 ```bash
 pytest tests/unit --cov=src/imbrace --cov-report=term-missing
@@ -83,133 +85,46 @@ pytest tests/unit --cov=src/imbrace --cov-report=term-missing
 
 ---
 
-## TypeScript — Lệnh Chạy & Test
+## TypeScript — Chạy & Kiểm thử
 
-### Build
+### Xây dựng
 
 ```bash
 cd ts
 
-# Build một lần
+# Xây dựng một lần
 npm run build
 
-# Build watch mode (tự rebuild khi thay đổi)
+# Xây dựng ở chế độ watch (tự động xây dựng lại khi thay đổi)
 npm run dev
 
-# Xóa dist/
+# Dọn dẹp dist/
 npm run clean
 ```
 
-### Unit Tests (không cần API key)
+### Unit Tests (Không cần API key)
 
 ```bash
 cd ts
 
-# Chạy toàn bộ unit tests
+# Chạy tất cả unit tests
 npm test
 
-# Chạy một file cụ thể
+# Chạy một tệp cụ thể
 npx vitest run tests/unit/http.test.ts
 npx vitest run tests/unit/resources/contacts.test.ts
 
-# Watch mode (tự chạy lại khi code thay đổi)
+# Chế độ watch (tự động chạy khi thay đổi mã)
 npm run test:watch
 ```
 
-### Integration Tests (cần API key thật)
-
-```bash
-cd ts
-
-IMBRACE_API_KEY=api_xxx npm run test:integration
-```
-
-### Chạy tất cả (unit + integration)
+### Chạy Tất cả (Unit + Local Tests)
 
 ```bash
 npm run test:all
 ```
 
----
-
-## Chi Tiết Từng File Test
-
-### Python — Unit Tests
-
-#### `tests/unit/test_auth.py` — TokenManager
-
-Kiểm tra lưu/xóa token thread-safe.
-
-| Test case                 | Kiểm tra                                                       |
-| ------------------------- | -------------------------------------------------------------- |
-| `test_initial_token_none` | Token ban đầu là `None`                                        |
-| `test_initial_token_set`  | Token được lưu từ constructor                                  |
-| `test_set_token`          | Token thay đổi thành công                                      |
-| `test_clear_token`        | Token bị xóa, `get_token()` → `None`                           |
-| `test_thread_safety`      | 2 thread đọc/ghi đồng thời — không crash, không race condition |
-
-#### `tests/unit/test_exceptions.py` — Error classes
-
-| Loại lỗi       | Khi nào xảy ra           |
-| -------------- | ------------------------ |
-| `AuthError`    | Server trả 401, 403      |
-| `ApiError`     | Server trả 4xx, 5xx khác |
-| `NetworkError` | Mất kết nối, timeout     |
-
-| Test case                                       | Kiểm tra                                               |
-| ----------------------------------------------- | ------------------------------------------------------ |
-| `test_hierarchy`                                | Cả 3 đều là subclass của `ImbraceError`                |
-| `test_api_error_message`                        | `status_code` và message đúng format `[404] Not Found` |
-| `test_auth_error_is_catchable_as_imbrace_error` | Bắt được bằng `except ImbraceError`                    |
-
-#### `tests/unit/test_http.py` — HttpTransport
-
-Dùng `pytest-httpx` để giả lập server — không có request thật.
-
-| Test case                                | Kịch bản                 | Kiểm tra                                        |
-| ---------------------------------------- | ------------------------ | ----------------------------------------------- |
-| `test_get_success`                       | Server trả 200           | Response parse đúng                             |
-| `test_sets_api_key_header`               | Request với `api_key`    | Header `x-api-key` có trong request             |
-| `test_sets_bearer_token_header`          | Request với access token | Token đè lên api_key                            |
-| `test_401_raises_auth_error`             | Server trả 401           | Raise `AuthError`, không retry                  |
-| `test_403_raises_auth_error`             | Server trả 403           | Raise `AuthError`, không retry                  |
-| `test_404_raises_api_error`              | Server trả 404           | Raise `ApiError(status_code=404)`               |
-| `test_500_retries_then_raises`           | Server trả 500 liên tiếp | Retry 2 lần → tổng 3 request → raise `ApiError` |
-| `test_network_error_retries_then_raises` | Mạng bị ngắt             | Retry 2 lần → raise `NetworkError`              |
-
-#### `tests/unit/test_client.py` — ImbraceClient
-
-| Test case                             | Kiểm tra                        |
-| ------------------------------------- | ------------------------------- |
-| `test_default_base_url`               | URL mặc định đúng               |
-| `test_custom_base_url`                | Trailing slash bị strip         |
-| `test_reads_api_key_from_env`         | Đọc `IMBRACE_API_KEY` từ env    |
-| `test_explicit_api_key_overrides_env` | Param trực tiếp ưu tiên hơn env |
-| `test_all_resources_initialized`      | Tất cả resources được khởi tạo  |
-| `test_set_access_token`               | Token được cập nhật             |
-| `test_context_manager`                | `with` block tự gọi `close()`   |
-
-#### `tests/unit/resources/` — Resource tests
-
-| File                         | Endpoint kiểm tra                                          |
-| ---------------------------- | ---------------------------------------------------------- |
-| `test_account.py`            | `GET /v1/backend/account`                                  |
-| `test_agent.py`              | `GET/POST/PATCH/DELETE /v2/backend/templates`              |
-| `test_ai.py`                 | AI completion, embedding, streaming                        |
-| `test_auth.py`               | OTP signin, verify, signout                                |
-| `test_boards.py`             | Board CRUD, items, search, export CSV                      |
-| `test_campaigns.py`          | Campaign CRUD, touchpoints list/get/create/update/delete/validate |
-| `test_channel.py`            | Channel list, get, delete, conv count                      |
-| `test_contacts.py`           | Contacts list, search, update, notifications               |
-| `test_conversations.py`      | Views count, create, search                                |
-| `test_messages.py`           | List, send (text/image)                                    |
-| `test_message_suggestion.py` | `POST /v1/message-suggestion` — gợi ý câu trả lời AI      |
-| `test_organizations.py`      | List, pagination, auth header                              |
-| `test_predict.py`            | `POST /predict/` — chấm điểm ML                           |
-| `test_sessions.py`           | List sessions, directory filter                            |
-| `test_settings.py`           | Message templates, users, bulk invite                      |
-| `test_teams.py`              | List, my teams, add/remove users                           |
-| `test_workflows.py`          | List, tag filter, channel automation, create/update        |
+Lệnh này chạy vitest trên toàn bộ dự án (unit + bất kỳ tệp cục bộ nào khớp với mẫu kiểm thử). TypeScript integration tests chưa có sẵn — xem `py/tests/integration/` để kiểm tra API trực tiếp, hoặc `ts/tests/local/` để có các script kiểm thử trực tiếp thủ công.
 
 ---
 
@@ -223,7 +138,7 @@ cd py
 # Kiểm tra code style
 ruff check src/ tests/
 
-# Tự fix lỗi ruff có thể sửa
+# Tự động sửa lỗi ruff có thể sửa được
 ruff check src/ tests/ --fix
 
 # Kiểm tra type annotations
@@ -235,12 +150,12 @@ mypy src/imbrace
 ```bash
 cd ts
 
-# Type check
+# Kiểm tra type
 npm run typecheck
 
 # Lint
 npm run lint
 
-# Build (compile ra JS)
+# Xây dựng (biên dịch sang JS)
 npm run build
 ```

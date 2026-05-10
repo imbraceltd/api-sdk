@@ -201,6 +201,7 @@ Available for both TypeScript and Python.
 <TabItem label="TypeScript">
 ```typescript
 const suggestions = await client.messageSuggestion.getSuggestions({
+  message: "Can you help me with my order?",
   conversation_id: "conv_xxx",
   limit: 3,
 });
@@ -209,6 +210,7 @@ const suggestions = await client.messageSuggestion.getSuggestions({
 <TabItem label="Python">
 ```python
 suggestions = client.message_suggestion.get_suggestions({
+    "message": "Can you help me with my order?",
     "conversation_id": "conv_xxx",
     "limit": 3,
 })

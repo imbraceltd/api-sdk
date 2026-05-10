@@ -1,21 +1,21 @@
 ---
-title: Installation
+title: 安裝
 description: Install and authenticate with the Imbrace CLI.
 ---
 
 import { Aside } from "@astrojs/starlight/components";
 
-## Install the CLI
+## 安裝 CLI
 
-### Public npm Package
+### 公開 npm 套件
 
 ```bash
 npm install -g @imbrace/cli
 ```
 
-### From Source
+### 從原始碼安裝
 
-Clone the repository and run the install script:
+複製倉儲並執行安裝腳本：
 
 ```bash
 git clone https://github.com/imbraceltd/imbrace-cli.git
@@ -23,9 +23,9 @@ cd imbrace-cli
 ./install.sh
 ```
 
-`install.sh` runs `npm install`, `npm run build`, `npm link`, then symlinks `imbrace` into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel).
+`install.sh` 會依序執行 `npm install`、`npm run build`、`npm link`，然後將 `imbrace` 符號連結至 `/opt/homebrew/bin`（Apple Silicon）或 `/usr/local/bin`（Intel）。
 
-### Manual Build
+### 手動建置
 
 ```bash
 cd cli
@@ -34,43 +34,43 @@ npm run build
 npm link
 ```
 
-## Authentication
+## 認證
 
-All commands (except `login`) auto-prompt login if not authenticated.
+所有指令（除了 `login`）在未認證時會自動提示登入。
 
-### Login with API Key
+### 使用 API 金鑰登入
 
-Recommended for CI/CD and coding agents:
+建議用於 CI/CD 和程式碼代理工具：
 
 ```bash
 imbrace login --api-key api_xxx...
 ```
 
-### Login with Email + Password
+### 使用電子郵件 + 密碼登入
 
 ```bash
 imbrace login --email user@example.com --password mypass
 ```
 
-### Check Current Login
+### 檢查目前登入狀態
 
 ```bash
 imbrace whoami [--json]
 ```
 
-### Logout
+### 登出
 
 ```bash
 imbrace logout
 ```
 
 <Aside type="tip">
-  If a command returns 401, run `imbrace login --api-key api_xxx...` again.
+  如果指令回傳 401，請重新執行 `imbrace login --api-key api_xxx...`。
 </Aside>
 
-## Credential Storage
+## 憑證儲存
 
-| OS | Path |
+| 作業系統 | 路徑 |
 |---|---|
 | macOS | `~/Library/Preferences/imbrace-nodejs/config.json` |
 | Linux | `~/.config/imbrace-nodejs/config.json` |

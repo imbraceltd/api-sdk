@@ -1,17 +1,17 @@
 ---
-title: 数据看板
-description: 客户端看板的 SDK 参考——CRM 管道、条目、字段、分类、知识库、导入/导出和外部驱动器集成。
+title: 数据面板
+description: SDK reference for client.boards — CRM pipelines, items, fields, segments, Knowledge Hub, import/export, and external drive integration.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-看板是 CRM 管道的核心数据存储——线索、交易、任务或任何结构化数据。在创建 AI agent 时传入 `board_ids` 以赋予其访问该数据的权限——参见[完整流程指南 §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)。
+面板是 CRM 管道的核心数据存储 — 线索、交易、任务或任何结构化数据。创建 AI 代理时在 `board_ids` 中传入面板 ID，以让代理有权访问这些数据 — 参见[完整流程指南 §4](/zh-cn/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)。
 
-首先初始化客户端（参见[安装](/sdk/installation/)或[快速入门](/sdk/quick-start/)）。
+首先初始化客户端（参见[安装](/zh-cn/sdk/installation/)或[快速入门](/zh-cn/sdk/quick-start/)）。
 
 ---
 
-## 看板 CRUD
+## 面板增删改查
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -19,8 +19,8 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 const { data: boards } = await client.boards.list();
 const board = await client.boards.get("board_id");
 
-const newBoard = await client.boards.create({ name: "企业线索" });
-await client.boards.update("board_id", { name: "企业线索 2025" });
+const newBoard = await client.boards.create({ name: "Enterprise Leads" });
+await client.boards.update("board_id", { name: "Enterprise Leads 2025" });
 await client.boards.delete("board_id");
 ```
 </TabItem>
@@ -29,8 +29,8 @@ await client.boards.delete("board_id");
 boards = client.boards.list().get("data", [])
 board = client.boards.get("board_id")
 
-new_board = client.boards.create("企业线索")
-client.boards.update("board_id", {"name": "企业线索 2025"})
+new_board = client.boards.create("Enterprise Leads")
+client.boards.update("board_id", {"name": "Enterprise Leads 2025"})
 client.boards.delete("board_id")
 ```
 </TabItem>
@@ -58,7 +58,7 @@ client.boards.reorder({"order": ["board_id_1", "board_id_2", "board_id_3"]})
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// CSV 导入（multipart/form-data）
+// CSV 导入 (multipart/form-data)
 const formData = new FormData();
 formData.append("file", csvFile);
 const result = await client.boards.importCsv("board_id", formData);
@@ -80,7 +80,7 @@ await client.boards.exportCsvViaMail("board_id", { email: "user@example.com" });
 </TabItem>
 <TabItem label="Python">
 ```python
-# CSV 导入（multipart/form-data）
+# CSV 导入 (multipart/form-data)
 result = client.boards.import_csv("board_id", files={"file": open("data.csv", "rb")})
 
 # Excel 导入
@@ -107,12 +107,18 @@ csv = client.boards.export_csv("board_id")
 const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
 const item = await client.boards.getItem("board_id", "item_id");
 
+// createItem 使用 { fields: [{ board_field_id, value }] }
 const lead = await client.boards.createItem("board_id", {
-  fields: { name: "Acme Corp", status: "new", value: 50000 },
+  fields: [
+    { board_field_id: "name_field_id",   value: "Acme Corp" },
+    { board_field_id: "status_field_id", value: "new" },
+    { board_field_id: "value_field_id",  value: 50000 },
+  ],
 });
 
-await client.boards.updateItem("board_id", lead.id, {
-  fields: { status: "qualified" },
+// updateItem 使用 { data: [{ key, value }] } — 注意是 `key`，不是 `board_field_id`
+await client.boards.updateItem("board_id", lead._id, {
+  data: [{ key: "status_field_id", value: "qualified" }],
 });
 
 await client.boards.deleteItem("board_id", "item_id");
@@ -123,12 +129,18 @@ await client.boards.bulkDeleteItems("board_id", { ids: ["item_1", "item_2", "ite
 ```python
 leads = client.boards.list_items("board_id", limit=100).get("data", [])
 
+# create_item 使用 {"fields": [{"board_field_id", "value"}]}
 lead = client.boards.create_item("board_id", {
-    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+    "fields": [
+        {"board_field_id": "name_field_id",   "value": "Acme Corp"},
+        {"board_field_id": "status_field_id", "value": "new"},
+        {"board_field_id": "value_field_id",  "value": 50000},
+    ],
 })
 
-client.boards.update_item("board_id", lead["id"], {
-    "fields": {"status": "qualified"}
+# update_item 使用 {"data": [{"key", "value"}]} — 注意 "key"，不是 "board_field_id"
+client.boards.update_item("board_id", lead["_id"], {
+    "data": [{"key": "status_field_id", "value": "qualified"}],
 })
 
 client.boards.delete_item("board_id", "item_id")
@@ -152,31 +164,31 @@ result = client.boards.check_conflict("board_id", "item_id", {"version": 2})
 </TabItem>
 </Tabs>
 
-### 关联条目（相关看板）
+### 链接条目（相关面板）
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 从其他看板获取相关条目
+// 从另一个面板获取相关条目
 const related = await client.boards.getRelatedItems("board_id", "item_id", "related_board_id");
 
-// 按类型获取关联看板条目（Opportunities / Tasks）
+// 按类型获取链接面板条目 (Opportunities / Tasks)
 const linked = await client.boards.getLinkedBoardItems("contact_board_id", "item_id", "Opportunities");
 
-// 关联和取消关联
+// 链接和取消链接
 await client.boards.linkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
 await client.boards.unlinkItems("board_id", "item_id", "related_board_id", { related_item_ids: ["other_item_id"] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# 从其他看板获取相关条目
+# 从另一个面板获取相关条目
 related = client.boards.get_related_items("board_id", "item_id", "related_board_id")
 
-# 按类型获取关联看板条目（Opportunities / Tasks）
+# 按类型获取链接面板条目 (Opportunities / Tasks)
 linked = client.boards.get_linked_board_items("contact_board_id", "item_id", "Opportunities")
 
-# 关联和取消关联
+# 链接和取消链接
 client.boards.link_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
 client.boards.unlink_items("board_id", "item_id", "related_board_id", {"related_item_ids": ["other_item_id"]})
 ```
@@ -208,43 +220,44 @@ results = client.boards.search("board_id", q="enterprise")
 <TabItem label="TypeScript">
 ```typescript
 const field = await client.boards.createField("board_id", {
-  name: "交易金额",
-  type: "number",
+  name: "Deal Value",
+  type: "Number",
 });
-await client.boards.updateField("board_id", field._id, { name: "合同金额" });
+await client.boards.updateField("board_id", field._id, { name: "Contract Value" });
 await client.boards.deleteField("board_id", field._id);
 
 // 重新排序和批量更新
 await client.boards.reorderFields("board_id", { fields: ["field_id_1", "field_id_2"] });
-await client.boards.bulkUpdateFields("board_id", { fields: [{ _id: "field_1", name: "已更新" }] });
+await client.boards.bulkUpdateFields("board_id", { fields: [{ _id: "field_1", name: "Updated" }] });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-field = client.boards.create_field("board_id", {"name": "交易金额", "type": "number"})
-client.boards.update_field("board_id", field["_id"], {"name": "合同金额"})
+field = client.boards.create_field("board_id", {"name": "Deal Value", "type": "Number"})
+client.boards.update_field("board_id", field["_id"], {"name": "Contract Value"})
 client.boards.delete_field("board_id", field["_id"])
 
 # 重新排序和批量更新
 client.boards.reorder_fields("board_id", {"fields": ["field_id_1", "field_id_2"]})
-client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "name": "已更新"}]})
+client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "name": "Updated"}]})
 ```
 </TabItem>
 </Tabs>
 
 ---
 
-## 分类
+## 分段
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: segments } = await client.boards.listSegments("board_id");
+// listSegments 直接返回 BoardSegment[]（没有 { data } 包装）
+const segments = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
-  name: "高价值线索",
-  filter: { field: "value", op: "gt", value: 10000 },
+  name: "High Value Leads",
+  filter: {},
 });
-await client.boards.updateSegment("board_id", segment._id, { name: "VIP 线索" });
+await client.boards.updateSegment("board_id", segment._id, { name: "VIP Leads" });
 await client.boards.deleteSegment("board_id", segment._id);
 ```
 </TabItem>
@@ -252,10 +265,10 @@ await client.boards.deleteSegment("board_id", segment._id);
 ```python
 segments = client.boards.list_segments("board_id")
 segment = client.boards.create_segment("board_id", {
-    "name": "高价值线索",
-    "filter": {"field": "value", "op": "gt", "value": 10000},
+    "name": "High Value Leads",
+    "filter": {},
 })
-client.boards.update_segment("board_id", segment["_id"], {"name": "VIP 线索"})
+client.boards.update_segment("board_id", segment["_id"], {"name": "VIP Leads"})
 client.boards.delete_segment("board_id", segment["_id"])
 ```
 </TabItem>
@@ -263,7 +276,7 @@ client.boards.delete_segment("board_id", segment["_id"])
 
 ---
 
-## 知识库 — 文件夹
+## 知识中心 — 文件夹
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -271,10 +284,10 @@ client.boards.delete_segment("board_id", segment["_id"])
 // 搜索
 const folders = await client.boards.searchFolders({ q: "contracts" });
 
-// CRUD
+// 增删改查
 const folder = await client.boards.getFolder("folder_id", { recursive: true });
-const newFolder = await client.boards.createFolder({ name: "合同", parent_id: "parent_id" });
-await client.boards.updateFolder("folder_id", { name: "已重命名" });
+const newFolder = await client.boards.createFolder({ name: "Contracts", parent_id: "parent_id" });
+await client.boards.updateFolder("folder_id", { name: "Renamed" });
 await client.boards.deleteFolders({ ids: ["folder_id_1", "folder_id_2"] });
 
 // 内容（文件夹元数据 + 子文件夹 + 文件）
@@ -286,10 +299,10 @@ const contents = await client.boards.getFolderContents("folder_id");
 # 搜索
 folders = client.boards.search_folders(q="contracts")
 
-# CRUD
+# 增删改查
 folder = client.boards.get_folder("folder_id", recursive=True)
-new_folder = client.boards.create_folder({"name": "合同", "parent_id": "parent_id"})
-client.boards.update_folder("folder_id", {"name": "已重命名"})
+new_folder = client.boards.create_folder({"name": "Contracts", "parent_id": "parent_id"})
+client.boards.update_folder("folder_id", {"name": "Renamed"})
 client.boards.delete_folders(["folder_id_1", "folder_id_2"])
 
 # 内容（文件夹元数据 + 子文件夹 + 文件）
@@ -300,12 +313,12 @@ contents = client.boards.get_folder_contents("folder_id")
 
 ---
 
-## 知识库 — 文件
+## 知识中心 — 文件
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 搜索和 CRUD
+// 搜索和增删改查
 const files = await client.boards.searchFiles({ folderId: "folder_id" });
 const file = await client.boards.getFile("file_id");
 const newFile = await client.boards.createFile({ name: "report.pdf", folder_id: "folder_id" });
@@ -319,7 +332,7 @@ const response = await client.boards.downloadFile("file_id");
 </TabItem>
 <TabItem label="Python">
 ```python
-# 搜索和 CRUD
+# 搜索和增删改查
 files = client.boards.search_files(folder_id="folder_id")
 file = client.boards.get_file("file_id")
 new_file = client.boards.create_file({"name": "report.pdf", "folder_id": "folder_id"})
@@ -335,9 +348,9 @@ response = client.boards.download_file("file_id")
 
 ---
 
-## 看板文件
+## 面板文件
 
-上传附加到看板记录的文件（非知识库）。
+上传附加到面板记录的文件（非知识中心）。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -346,7 +359,7 @@ const formData = new FormData();
 formData.append("file", file);
 const { url } = await client.boards.uploadBoardFile(formData);
 
-// 替代端点
+// 备选端点
 const { url: url2 } = await client.boards.uploadBoardFileV2(formData);
 ```
 </TabItem>
@@ -354,7 +367,7 @@ const { url: url2 } = await client.boards.uploadBoardFileV2(formData);
 ```python
 result = client.boards.upload_board_file(files={"file": open("photo.jpg", "rb")})
 
-# 替代端点
+# 备选端点
 result = client.boards.upload_board_file_v2(files={"file": open("photo.jpg", "rb")})
 ```
 </TabItem>
@@ -368,7 +381,7 @@ result = client.boards.upload_board_file_v2(files={"file": open("photo.jpg", "rb
 <TabItem label="TypeScript">
 ```typescript
 // AI 生成的标签
-const { tags } = await client.boards.generateAiTags({ text: "与 Acme Corp 的企业交易" });
+const { tags } = await client.boards.generateAiTags({ text: "Enterprise deal with Acme Corp" });
 
 // 链接预览
 const preview = await client.boards.getLinkPreview("https://example.com");
@@ -377,7 +390,7 @@ const preview = await client.boards.getLinkPreview("https://example.com");
 <TabItem label="Python">
 ```python
 # AI 生成的标签
-tags = client.boards.generate_ai_tags({"text": "与 Acme Corp 的企业交易"})
+tags = client.boards.generate_ai_tags({"text": "Enterprise deal with Acme Corp"})
 
 # 链接预览
 preview = client.boards.get_link_preview("https://example.com")
@@ -389,7 +402,7 @@ preview = client.boards.get_link_preview("https://example.com")
 
 ## 外部驱动器
 
-知识库的 OneDrive / Google Drive 集成。
+用于知识中心的 OneDrive / Google Drive 集成。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
