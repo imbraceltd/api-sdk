@@ -1,24 +1,24 @@
 ---
 title: Tổng quan
-description: SDK Imbrace là gì, cách hoạt động và khi nào sử dụng.
+description: Imbrace SDK là gì, cách nó hoạt động, và khi nào nên sử dụng.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Imbrace SDK là client chính thức cho Imbrace Gateway, có sẵn cho **TypeScript** và **Python**. Cả hai SDK đều bao bọc cùng một Gateway API với cùng các namespace tài nguyên, cùng mô hình xác thực và cùng ngữ nghĩa retry/lỗi — hãy chọn ngôn ngữ phù hợp với hệ thống của bạn.
+Imbrace SDK là client chính thức cho Imbrace Gateway, có sẵn cho **TypeScript** và **Python**. Cả hai SDK đều bao bọc cùng một Gateway API với cùng các resource namespaces, cùng mô hình xác thực, và cùng ngữ nghĩa thử lại/lỗi — hãy chọn ngôn ngữ phù hợp với stack của bạn.
 
-> Chỉ cần chuyển đổi tab ngôn ngữ một lần trên trang này, phần còn lại của tài liệu sẽ ghi nhớ lựa chọn của bạn.
+> Chuyển đổi tab ngôn ngữ ở bất kỳ đâu trên trang này một lần và phần còn lại của tài liệu sẽ ghi nhớ lựa chọn của bạn.
 
 ### Tính năng chính
 
 | Tính năng | Chi tiết |
 |---|---|
-| **An toàn kiểu** | Kiểu TypeScript và gợi ý kiểu Python trên mọi tài nguyên |
-| **Hai loại thông tin xác thực** | `apiKey` hoặc `accessToken` — xem [Authentication](/sdk/authentication/) |
-| **Tự động thử lại** | Thử lại mã 429 và 5xx với exponential backoff, không cần cấu hình |
-| **AI phát trực tiếp** | SSE / async iterator cho `streamChat` và kết quả AI |
-| **Bất đồng bộ & đồng bộ (Py)** | `ImbraceClient` (đồng bộ) và `AsyncImbraceClient` (bất đồng bộ) |
-| **Hủy bỏ (TS)** | Lan truyền `AbortSignal` để hủy bỏ đang thực thi |
+| **An toàn kiểu dữ liệu** | TypeScript types và Python type hints trên mọi resource |
+| **Hai loại thông tin xác thực** | `apiKey` hoặc `accessToken` — xem [Xác thực](/sdk/authentication/) |
+| **Tự động thử lại** | Thử lại 429 và 5xx với exponential backoff, không cần cấu hình |
+| **Streaming AI** | SSE / async iterator cho `streamChat` và AI completions |
+| **Async & đồng bộ (Py)** | `ImbraceClient` (đồng bộ) và `AsyncImbraceClient` (bất đồng bộ) |
+| **Hủy (TS)** | Truyền `AbortSignal` để hủy tác vụ đang thực hiện |
 
 ### Cài đặt
 
@@ -35,7 +35,7 @@ Imbrace SDK là client chính thức cho Imbrace Gateway, có sẵn cho **TypeSc
   </TabItem>
 </Tabs>
 
-### Xin chào, thế giới
+### Hello, world
 
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
@@ -56,34 +56,34 @@ Imbrace SDK là client chính thức cho Imbrace Gateway, có sẵn cho **TypeSc
   </TabItem>
 </Tabs>
 
-### Các tài nguyên có sẵn
+### Các resource có sẵn
 
 Mọi namespace đều có trên cả hai SDK. Các phương thức tuân theo quy ước ngôn ngữ — `client.aiAgent.streamChat()` trong TS, `client.ai_agent.stream_chat()` trong Python.
 
 | Namespace | Mục đích |
 |---|---|
-| `client.aiAgent` / `client.ai_agent` | Chat AI phát trực tiếp, embeddings, parquet, sub-API chat-client |
-| `client.chatAi` / `client.chat_ai` | CRUD trợ lý (tạo/cập nhật/xóa/liệt kê trợ lý) |
-| `client.workflows` | Tự động hóa quy trình — luồng, trình kích hoạt, lần chạy |
-| `client.boards` | Bảng CRM — CRUD, mục, trường, tìm kiếm, phân đoạn, CSV; thư mục & tệp Knowledge Hub |
-| `client.platform` | Người dùng, tổ chức, quyền hạn |
-| `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | Lớp liên hệ / kênh |
-| `client.ai` | Kết quả và embeddings tương thích OpenAI |
+| `client.aiAgent` / `client.ai_agent` | Streaming AI chat, embeddings, parquet, chat-client sub-API |
+| `client.chatAi` / `client.chat_ai` | AI Agent CRUD (tạo/cập nhật/xóa/danh sách AI agent) |
+| `client.workflows` | Tự động hóa workflow — flows, triggers, runs |
+| `client.boards` | CRM boards — CRUD, items, fields, search, segments, CSV; KH folders & files |
+| `client.platform` | Người dùng, tổ chức, quyền |
+| `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | Tầng liên hệ / kênh |
+| `client.ai` | Completions và embeddings tương thích OpenAI |
 
 Để xem danh sách đầy đủ và tài liệu tham khảo phương thức, hãy xem [Resources](/sdk/resources/).
 
-### Khi nào chọn loại thông tin xác thực nào
+### Khi nào nên chọn loại thông tin xác thực nào
 
 | | API Key | Access Token |
 |---|---|---|
-| **Imbrace là backend của ai?** | Một tính năng bên trong *backend của bạn* | *Imbrace CHÍNH LÀ* backend của bạn |
+| **Vai trò của Imbrace?** | Một tính năng bên trong *backend của bạn* | *Imbrace LÀ* backend của bạn |
 | **Người dùng của ai?** | Của bạn | Của Imbrace |
-| **Phù hợp nhất cho** | Máy chủ đến máy chủ, tập lệnh nội bộ, tích hợp CRM | Ứng dụng hướng đến người dùng, nơi mỗi người dùng cuối đăng nhập |
+| **Phù hợp nhất cho** | Server-to-server, script nội bộ, tích hợp CRM | Ứng dụng hướng đến người dùng cuối, nơi mỗi người dùng đăng nhập |
 
-Cây quyết định đầy đủ: [Authentication →](/sdk/authentication/).
+Cây quyết định đầy đủ: [Xác thực →](/sdk/authentication/).
 
 ### Các bước tiếp theo
 
-- [Installation →](/sdk/installation/) — thiết lập gói và thông tin xác thực
-- [Quick Start →](/sdk/quick-start/) — thực hiện lệnh gọi đầu tiên trong 60 giây
-- [Full Flow Guide →](/sdk/full-flow-guide/) — hướng dẫn chi tiết từ đầu đến cuối về bốn quy trình chính (assistants, workflows, knowledge hub, boards)
+- [Cài đặt →](/sdk/installation/) — thiết lập gói và thông tin xác thực
+- [Quick Start →](/sdk/quick-start/) — thực hiện lời gọi đầu tiên trong 60 giây
+- [Hướng dẫn toàn diện →](/sdk/full-flow-guide/) — hướng dẫn từ đầu đến cuối cho bốn quy trình làm việc chính (AI agents, workflows, knowledge hub, boards)

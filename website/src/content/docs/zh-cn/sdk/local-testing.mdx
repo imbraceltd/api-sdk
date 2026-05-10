@@ -1,45 +1,45 @@
 ---
 title: 本地测试
-description: 测试构建的 Imbrace SDK 包在本地能否对真实或模拟网关正常工作。
+description: Test the built Imbrace SDK packages locally against a real or mock gateway.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-本指南让你能够像消费者一样测试**构建后的包**——而非原始源代码。在发布新版本之前，或在复现消费者报告的错误时使用它。
+本指南让你测试**构建后的包**，就像消费者安装它一样 — 而不是原始源码。在发布新版本之前使用它，或者在复现消费者报告的错误时使用。
 
-## 前置条件
+## 先决条件
 
 - TypeScript：Node 18+
 - Python：Python 3.10+ 和 `pip`
-- 已配置 AWS 凭证（`imbrace` 配置文件），如果需要从 Ansible 解密环境变量
+- 已配置 AWS 凭证（`imbrace` 配置文件），如果需从 Ansible 解密环境变量
 
 ## 环境 URL
 
-同一组网关基础 URL 适用于两个 SDK。在你的测试环境中设置一次：
+相同的网关基础 URL 集适用于两个 SDK。在你的测试环境中设置一次：
 
-| 环境 | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| 环境 | `IMBRACE_GATEWAY_URL` |
 | ----------- | ------------------------------------------ |
-| develop     | `https://app-gateway.dev.imbrace.co`       |
-| sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
-| stable      | `https://app-gatewayv2.imbrace.co`          |
+| develop | `https://app-gateway.dev.imbrace.co` |
+| sandbox | `https://app-gateway.sandbox.imbrace.co` |
+| stable | `https://app-gatewayv2.imbrace.co` |
 
 ## 凭证
 
-从 Ansible 拉取真实凭证（或从门户粘贴）：
+从 Ansible 拉取实时凭证（或从门户粘贴）：
 
 ```bash
-# 在 SDK 仓库根目录执行
+# 从 SDK 仓库根目录
 AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/imbrace.env
 ```
 
-实时调用所需的最小变量：
+实时调用所需的最低要求：
 
-| 变量              | 获取位置                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------ |
-| `IMBRACE_API_KEY` | Imbrace 门户，或使用现有 access token 调用 `POST /private/backend/v1/third_party_token`    |
-| `IMBRACE_BASE_URL` | 上表中的一个 URL（未设置时默认为开发环境）                                                 |
+| 变量 | 获取位置 |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `IMBRACE_API_KEY` | Imbrace 门户，或使用现有访问令牌调用 `POST /private/backend/v1/third_party_token` |
+| `IMBRACE_GATEWAY_URL` | 上表中的 URL 之一（未设置时默认为 dev） |
 
-组织上下文已编码在 API Key 中——你不需要传递组织 ID。
+组织上下文编码在 API Key 内部 — 你不需要传递组织 ID。
 
 ---
 
@@ -51,7 +51,7 @@ AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/i
 cd ts
 npm install
 npm run build
-npm link        # 全局暴露 @imbrace/sdk
+npm link        # 将 @imbrace/sdk 暴露到全局
 ```
 
 然后在测试文件夹中：
@@ -59,7 +59,7 @@ npm link        # 全局暴露 @imbrace/sdk
 ```bash
 cd ts/tests/local
 npm link @imbrace/sdk
-cp .env.example .env
+cp ../../.env.example .env
 # 填写 .env
 ```
 
@@ -70,12 +70,12 @@ cd ts/tests/local
 node test-local.mjs
 ```
 
-- **没有凭证时**——仅运行实例化 + 资源表面检查（无网络请求）。
-- **设置了 `IMBRACE_API_KEY` 时**——针对 `IMBRACE_BASE_URL` 中的网关运行所有实时 API 检查。
+- **没有凭证时** — 仅运行实例化 + 资源表面检查（无网络）。
+- **设置了 `IMBRACE_API_KEY` 时** — 对 `IMBRACE_GATEWAY_URL` 中的网关运行所有实时 API 检查。
 
 ### 迭代 SDK 更改
 
-每次编辑都需要重新构建，以便链接能够捕获变更：
+每次编辑都需要重新构建，链接才能生效：
 
 ```bash
 # 终端 1 — ts/
@@ -91,7 +91,7 @@ node test-local.mjs  # 随时重新运行
 
 ### Editable 安装（最快迭代）
 
-在 `py/` 文件夹中：
+从 `py/` 文件夹：
 
 ```bash
 cd py
@@ -108,17 +108,17 @@ python -m build               # 生成 dist/imbrace-*.whl
 pip install dist/imbrace-*.whl --force-reinstall
 ```
 
-这能捕获 editable 安装所隐藏的缺失文件、打包错误和导入路径问题。
+这可以捕获 editable 安装隐藏的文件缺失、打包错误和导入路径问题。
 
 ### 运行测试
 
 ```bash
 cd py
-pip install -r tests/requirements.txt
+pip install -e ".[dev]"
 python -m pytest tests/
 ```
 
-用于镜像[完整流程指南](/sdk/full-flow-guide/)的端到端回归测试：
+对于镜像[完整流程指南](/zh-cn/sdk/full-flow-guide/)的全流程回归测试：
 
 ```bash
 cd test-pip-pkg/py
@@ -128,7 +128,7 @@ pip install -r requirements.txt
 python -m pytest tests/test_guide_flow.py -v
 ```
 
-相同的测试同时使用 `IMBRACE_API_KEY` 和 `IMBRACE_ACCESS_TOKEN` 运行，以覆盖两种认证模式。
+同样的测试以 `IMBRACE_API_KEY` 和 `IMBRACE_ACCESS_TOKEN` 两种认证模式运行。
 
 ---
 
@@ -137,12 +137,12 @@ python -m pytest tests/test_guide_flow.py -v
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
 ```
 </TabItem>
 <TabItem label="Python">
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 ```
 </TabItem>
 </Tabs>
@@ -151,17 +151,17 @@ IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 
 ## 故障排除
 
-**`Cannot find package '@imbrace/sdk'`**（TypeScript）
-在测试文件夹内再次运行 `npm link @imbrace/sdk`。如果在 `ts/` 中删除并重新安装 `node_modules`，链接可能会断开。
+**`Cannot find package '@imbrace/sdk'`** (TypeScript)
+在测试文件夹中再次运行 `npm link @imbrace/sdk`。如果你在 `ts/` 中删除并重新安装 `node_modules`，链接可能会断开。
 
-**`ERR_MODULE_NOT_FOUND` 指向一个 dist 文件**（TypeScript）
-尚未运行构建，或者添加了源文件但没有重新构建。在 `ts/` 中运行 `npm run build`。
+**`ERR_MODULE_NOT_FOUND for a dist file`** (TypeScript)
+构建还未运行，或者添加了源文件但没有重新构建。在 `ts/` 中运行 `npm run build`。
 
-**`ModuleNotFoundError: No module named 'imbrace'`**（Python）
-包未安装到当前激活的虚拟环境中。重新运行 `pip install -e .`（editable）或 `pip install dist/imbrace-*.whl`。
+**`ModuleNotFoundError: No module named 'imbrace'`** (Python)
+包未安装在当前虚拟环境中。重新运行 `pip install -e .`（editable）或 `pip install dist/imbrace-*.whl`。
 
-**实时调用返回 401 / 403**
-你的凭证已过期、被撤销或错误。如果是 API Key，生成一个新的：
+**401 / 403 on live calls**
+你的凭证已过期、被撤销或错误。对于 API Key，生成一个新的：
 
 ```bash
 curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_token \
@@ -170,4 +170,4 @@ curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_t
   -d '{"expirationDays": 30}'
 ```
 
-其他运行时错误，参见[错误处理](/sdk/error-handling/)和[故障排除](/guides/troubleshooting/)。
+对于其他运行时错误，请参见[错误处理](/zh-cn/sdk/error-handling/)和[故障排除](/zh-cn/guides/troubleshooting/)。

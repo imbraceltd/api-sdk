@@ -1,15 +1,15 @@
 ---
 title: Vibe Coding
-description: Dùng Imbrace SDK nhanh hơn bằng cách đưa llms.txt vào AI coding assistant — Claude, Cursor, Copilot, hay bất kỳ IDE nào hỗ trợ LLM.
+description: Sử dụng Imbrace SDK nhanh hơn bằng cách đưa llms.txt vào trợ lý lập trình AI của bạn — Claude, Cursor, Copilot, hoặc bất kỳ IDE hỗ trợ LLM nào.
 ---
 
 import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
 
-**Vibe Coding** là cách viết code bằng cách cộng tác với AI assistant — mô tả yêu cầu bằng ngôn ngữ tự nhiên và để AI tạo, giải thích, hoặc refactor code cho bạn. Imbrace SDK đi kèm file [`llms.txt`](https://developer.imbrace.co/llms.txt) để bất kỳ AI tool nào cũng có thể hiểu SDK ngay lập tức mà không bịa ra tên method hay shape của argument.
+**Vibe Coding** có nghĩa là viết mã bằng cách cộng tác với trợ lý AI — mô tả những gì bạn muốn bằng ngôn ngữ tự nhiên và để AI tạo ra, giải thích hoặc tái cấu trúc mã cho bạn. Imbrace SDK đi kèm với tệp [`llms.txt`](https://developer.imbrace.co/llms.txt) để bất kỳ công cụ AI nào cũng có thể hiểu ngay SDK mà không cần phải bịa ra tên phương thức hoặc hình dạng tham số.
 
 ## Thiết lập
 
-Trước khi bắt đầu vibe code, hãy đảm bảo SDK đã được cài đặt và credentials đã được cấu hình.
+Trước khi vibe coding, hãy đảm bảo SDK đã được cài đặt và thông tin xác thực của bạn đã được cấu hình.
 
 **1. Cài đặt SDK**
 
@@ -26,16 +26,16 @@ pip install imbrace
 </TabItem>
 </Tabs>
 
-**2. Lưu credentials**
+**2. Lưu trữ thông tin xác thực của bạn**
 
-Tạo file `.env` ở thư mục gốc project. SDK **không** tự đọc biến môi trường — bạn truyền chúng vào constructor ở bước 3.
+Tạo tệp `.env` trong thư mục gốc dự án của bạn. SDK **không** tự động đọc biến môi trường — bạn truyền chúng vào constructor ở bước 3.
 
 ```env
-IMBRACE_API_KEY=your_api_key_here
-IMBRACE_ORGANIZATION_ID=your_org_id_here
+IMBRACE_API_KEY=api_key_của_bạn
+IMBRACE_ORGANIZATION_ID=org_id_của_bạn
 ```
 
-Xem [Authentication](/sdk/authentication/) để biết nên dùng API Key hay Access Token, và [Hướng dẫn Setup](/getting-started/setup/#get-an-api-key) để biết cách lấy API key.
+Xem [Xác thực](/sdk/authentication/) để biết khi nào nên sử dụng API Key so với Access Token, và [Hướng dẫn Thiết lập](/getting-started/setup/#get-an-api-key) để biết cách lấy API key.
 
 **3. Khởi tạo client**
 
@@ -63,81 +63,84 @@ client = ImbraceClient(
 </TabItem>
 </Tabs>
 
-**4. Lấy file `llms.txt`**
+**4. Lấy `llms.txt`**
 
-Tải hoặc copy file tại [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) và đưa vào AI tool của bạn (xem [Cách sử dụng](#cách-sử-dụng) bên dưới).
+Tải xuống hoặc sao chép tệp tại [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt) và đưa nó vào công cụ AI của bạn (xem [Cách sử dụng](#how-to-use-it) bên dưới).
 
 ---
 
 ## `llms.txt` là gì?
 
-`llms.txt` là file plain-text (tương tự `robots.txt`) cung cấp cho AI model bản tóm tắt chính xác, gọn nhẹ về thư viện — clients, resources, authentication, và các pattern phổ biến. Khi bạn paste nó vào context window của AI, model đã hiểu SDK và có thể viết code đúng ngay từ lần đầu.
+`llms.txt` là một tệp văn bản thuần (tương tự `robots.txt`) cung cấp cho các mô hình AI một bản tóm tắt chính xác, nhỏ gọn về thư viện — các client, resource, xác thực và các mẫu phổ biến của nó. Khi bạn dán nó vào cửa sổ ngữ cảnh AI, mô hình đã biết SDK và có thể viết mã chính xác ngay lần đầu tiên.
 
-**URL file:** [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt)
+**URL tệp:** [`https://developer.imbrace.co/llms.txt`](https://developer.imbrace.co/llms.txt)
 
 ## Cách sử dụng
 
-### Claude (claude.ai hoặc Claude Code)
+### Claude (claude.ai or Claude Code)
 
-1. Mở conversation mới.
-2. Paste nội dung `llms.txt` vào đầu tin nhắn, rồi mô tả task của bạn:
+1. Mở một cuộc hội thoại mới.
+2. Dán nội dung của `llms.txt` ở đầu tin nhắn của bạn, sau đó mô tả tác vụ của bạn:
 
 ```
 <context>
-[paste llms.txt vào đây]
+[dán llms.txt vào đây]
 </context>
 
-Viết TypeScript snippet stream chat response từ assistant "asst_abc"
-và in từng text delta ra console.
+Viết một đoạn mã TypeScript để stream phản hồi chat từ trợ lý "asst_abc"
+và in mỗi delta văn bản ra console.
 ```
 
 ### Cursor / VS Code Copilot
 
-Thêm URL vào AI context qua tính năng **@ docs** hoặc "add context" trong IDE của bạn. Cursor hỗ trợ `@URL` trực tiếp:
+Thêm URL vào ngữ cảnh AI của bạn qua **@ docs** hoặc tính năng "thêm ngữ cảnh" tương đương trong IDE của bạn. Cursor hỗ trợ `@URL` trực tiếp:
 
 ```
 @https://developer.imbrace.co/llms.txt
 
-Làm thế nào để upload file và trigger embedding processing?
+Làm thế nào để tải tệp lên và kích hoạt xử lý embedding?
 ```
 
-### Các LLM khác
+### Bất kỳ LLM nào khác
 
-Copy nội dung raw của file và paste vào đầu prompt trước khi đặt câu hỏi. Hầu hết LLM với context window 32k+ đều có thể đọc toàn bộ file mà không bị mất thông tin.
+Sao chép nội dung tệp thô và dán nó ở đầu prompt của bạn trước khi đặt câu hỏi. Hầu hết các LLM với cửa sổ ngữ cảnh 32k+ có thể tiếp nhận toàn bộ tệp mà không bị mất thông tin.
 
 ## Ví dụ prompt
 
-Sau khi AI có context từ `llms.txt`, thử các prompt như:
+Khi AI đã có ngữ cảnh `llms.txt`, hãy thử các prompt như:
 
-- *"Hướng dẫn tạo AI agent và stream chat response bằng Python."*
-- *"Tạo TypeScript code để list tất cả embedding file và xóa những file có status `error`."*
-- *"Sự khác nhau giữa `streamChat` và `streamSubAgentChat` là gì?"*
-- *"Viết Express.js auth proxy cho Chat Client theo pattern trong Integrations guide."*
+- *"Chỉ cho tôi cách tạo AI agent và stream phản hồi chat trong Python."*
+- *"Tạo mã TypeScript để liệt kê tất cả các tệp embedding và xóa những tệp có trạng thái `error`."*
+- *"Sự khác biệt giữa `streamChat` và `streamSubAgentChat` là gì?"*
+- *"Viết một proxy xác thực Express.js cho Chat Client, theo mẫu trong hướng dẫn Tích hợp."*
 
 <Aside type="tip">
-Với những session dài, hãy pin `llms.txt` làm **system prompt** hoặc **project instruction** để nó tự động áp dụng cho mọi tin nhắn.
+Đối với các phiên dài, hãy ghim `llms.txt` như một **system prompt** hoặc **project instruction** để nó áp dụng tự động cho mọi tin nhắn.
 </Aside>
 
-### CLI cho Coding Agents
+### CLI cho Tác nhân Lập trình
 
-Imbrace CLI (`@imbrace/cli`) cũng được thiết kế cho coding agent. Sau khi cài đặt CLI, AI assistant có thể chạy lệnh trực tiếp qua terminal mà không cần viết mã SDK:
+Imbrace CLI (`@imbrace/cli`) cũng được thiết kế cho các tác nhân lập trình. Sau khi cài đặt CLI, trợ lý AI có thể chạy các lệnh trực tiếp qua terminal mà không cần viết bất kỳ mã SDK nào:
 
 ```bash
-# Danh sách boards
+# Liệt kê board
 imbrace data-board list --json
 
-# Tạo items
+# Tạo mục
 imbrace data-board create-item <boardId> --fields '<json>' --json
 
-# Danh sách AI agents
+# Liệt kê AI agent
 imbrace ai-agent list --json
 
-# Quản lý workflows
+# Quản lý workflow
 imbrace workflow list --json
+
+# Tác nhân trích xuất Document AI
+imbrace document-ai list --json
 ```
 
-Tất cả lệnh đều hỗ trợ `--json` cho đầu ra máy đọc được và `-h` / `--help` để xem hướng dẫn. Xem [CLI Commands](/cli/commands/) để tham khảo đầy đủ.
+Các lệnh resource (`data-board`, `ai-agent`, `workflow`, `document-ai`, `orchestrator`, `guardrail`) hỗ trợ `--json` để có đầu ra máy có thể đọc được. Mọi lệnh đều hỗ trợ `-h` / `--help` để xem hướng dẫn sử dụng. Xem [CLI Commands](/cli/commands/) để biết tài liệu tham khảo đầy đủ.
 
-## Cập nhật định kỳ
+## Giữ nó luôn cập nhật
 
-File được tạo lại sau mỗi lần release. Hãy fetch lại URL khi bạn nâng cấp SDK để cập nhật các method mới hoặc signature đã thay đổi.
+Tệp được tạo lại mỗi lần phát hành. Tải lại URL nếu bạn nâng cấp SDK để nhận các phương thức mới hoặc chữ ký đã thay đổi.

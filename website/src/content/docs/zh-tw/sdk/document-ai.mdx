@@ -1,17 +1,17 @@
 ---
 title: Document AI
-description: "使用視覺模型從 PDF 與圖片中提取結構化資料。兩個命名空間：client.chatAi 用於直接處理，client.documentAi 用於基於 Agent 的工作流程。"
+description: "Extract structured data from PDFs and images using vision models. Two namespaces: client.chatAi for direct processing, client.documentAi for agent-based workflows."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Document AI 使用視覺模型（例如 GPT-4o）從 PDF 與圖片中提取結構化資料 — 發票、表單、收據、合約或任何包含可見文字的文件。
+Document AI 使用視覺模型（例如 GPT-4o）從 PDF 和圖片中提取結構化資料 — 發票、表單、收據、合約或任何包含可見文字的文件。
 
-SDK 提供兩個命名空間：
-- **`client.chatAi` / `client.chat_ai`** — 直接文件處理與模型列表
-- **`client.documentAi` / `client.document_ai`** — 基於 Agent 的文件處理，包含架構管理、Agent CRUD 與端到端編排
+SDK 公開兩個命名空間：
+- **`client.chatAi` / `client.chat_ai`** — 直接文件處理和模型列表
+- **`client.documentAi` / `client.document_ai`** — 基於 agent 的文件處理，包含結構定義管理、agent CRUD 和端到端編排
 
-請先初始化客戶端（參閱[安裝](/sdk/installation/)或[快速入門](/sdk/quick-start/)）。
+請先初始化客戶端（請參閱[安裝](/sdk/installation/)或[快速入門](/sdk/quick-start/)）。
 
 ---
 
@@ -57,12 +57,12 @@ result = client.chat_ai.process_document(
 
 #### 參數參考
 
-| 參數 | TS 欄位 | Python 參數 | 型別 | 必填 |
+| 參數 | TS 欄位 | Python 參數 | 類型 | 必填 |
 |---|---|---|---|---|
 | 模型名稱 | `modelName` | `model_name` | `string` / `str` | 是 |
 | 文件 URL | `url` | `url` | `string` / `str` | 是 |
 | 組織 ID | `organizationId` | `organization_id` | `string` / `str` | 是 |
-| 看板 ID | `boardId` | `board_id` | `string` / `str` | 否 |
+| Board ID | `boardId` | `board_id` | `string` / `str` | 否 |
 | 語言 | `language` | `language` | `string` / `str` | 否 |
 | 額外指示 | `additionalInstructions` | `additional_instructions` | `string` / `str` | 否 |
 | 額外文件指示 | `additionalDocumentInstructions` | `additional_document_instructions` | `string` / `str` | 否 |
@@ -89,7 +89,7 @@ const result = await client.chatAi.processDocument({
 });
 
 if (result.success && result.data.filledPdfUrl) {
-  console.log("已填寫的 PDF：", result.data.filledPdfUrl);
+  console.log("Filled PDF:", result.data.filledPdfUrl);
 }
 ```
 </TabItem>
@@ -104,7 +104,7 @@ result = client.chat_ai.process_document(
 )
 
 if result["success"] and result["data"].get("filledPdfUrl"):
-    print("已填寫的 PDF：", result["data"]["filledPdfUrl"])
+    print("Filled PDF:", result["data"]["filledPdfUrl"])
 ```
 </TabItem>
 </Tabs>
@@ -113,38 +113,38 @@ if result["success"] and result["data"].get("filledPdfUrl"):
 
 ## `client.documentAi` — Agent CRUD
 
-Document AI Agent 可儲存提取架構、指示與模型設定以供重複使用。
+Document AI Agent 儲存提取結構定義、指示和模型設定以供重複使用。
 
-### 列出 Agent
+### 列出 agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 所有 Agent
+// 所有 agent
 const agents = await client.documentAi.listAgents();
 
 // 依名稱篩選
 const filtered = await client.documentAi.listAgents({ nameContains: "Invoice" });
 
-// 僅 Document AI Agent（透過 createFull 或 Web 應用程式建立）
+// 僅 Document AI agent（透過 createFull 或 webapp 建立）
 const docAiAgents = await client.documentAi.listAgents({ documentAiOnly: true });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# 所有 Agent
+# 所有 agent
 agents = client.document_ai.list_agents()
 
 # 依名稱篩選
 filtered = client.document_ai.list_agents(name_contains="Invoice")
 
-# 僅 Document AI Agent
+# 僅 Document AI agent
 doc_ai_agents = client.document_ai.list_agents(document_ai_only=True)
 ```
 </TabItem>
 </Tabs>
 
-### 取得 Agent
+### 取得 agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -159,17 +159,17 @@ agent = client.document_ai.get_agent("agent_id")
 </TabItem>
 </Tabs>
 
-### 建立 Agent
+### 建立 agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 const agent = await client.documentAi.createAgent({
   name: "Invoice Extractor",
-  instructions: "提取發票欄位。日期格式為 YYYY-MM-DD。",
+  instructions: "Extract invoice fields. Dates as YYYY-MM-DD.",
   model_id: "gpt-4o",
   schema: {
-    invoice_number: { type: "string", description: "發票 ID" },
+    invoice_number: { type: "string", description: "Invoice ID" },
     total:          { type: "number" },
     date:           { type: "string", format: "date" },
   },
@@ -180,10 +180,10 @@ const agent = await client.documentAi.createAgent({
 ```python
 agent = client.document_ai.create_agent(
     name="Invoice Extractor",
-    instructions="提取發票欄位。日期格式為 YYYY-MM-DD。",
+    instructions="Extract invoice fields. Dates as YYYY-MM-DD.",
     model_id="gpt-4o",
     schema={
-        "invoice_number": {"type": "string", "description": "發票 ID"},
+        "invoice_number": {"type": "string", "description": "Invoice ID"},
         "total":          {"type": "number"},
         "date":           {"type": "string", "format": "date"},
     },
@@ -192,14 +192,14 @@ agent = client.document_ai.create_agent(
 </TabItem>
 </Tabs>
 
-### 更新 Agent
+### 更新 agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 await client.documentAi.updateAgent("agent_id", {
   name: "Invoice Extractor v2",
-  instructions: "已更新的提取邏輯。",
+  instructions: "Updated extraction logic.",
 });
 ```
 </TabItem>
@@ -207,13 +207,13 @@ await client.documentAi.updateAgent("agent_id", {
 ```python
 client.document_ai.update_agent("agent_id", {
     "name": "Invoice Extractor v2",
-    "instructions": "已更新的提取邏輯。",
+    "instructions": "Updated extraction logic.",
 })
 ```
 </TabItem>
 </Tabs>
 
-### 刪除 Agent
+### 刪除 agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -232,7 +232,7 @@ client.document_ai.delete_agent("agent_id")
 
 ## `client.documentAi` — 使用 Agent 處理
 
-使用已設定的 Agent 處理文件（從 Agent 查詢模型 + 指示）。
+使用已設定的 agent 處理文件（從 agent 查詢模型 + 指示）。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -255,7 +255,7 @@ result = client.document_ai.process(
 </TabItem>
 </Tabs>
 
-你也可以覆寫 Agent 的模型或指示：
+您也可以覆蓋 agent 的模型或指示：
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -264,8 +264,8 @@ const result = await client.documentAi.process({
   agentId: "agent_id",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
-  modelName: "gpt-4o",          // 覆寫 Agent 的模型
-  instructions: "自訂提示",     // 覆寫 Agent 的指示
+  modelName: "gpt-4o",          // 覆蓋 agent 的模型
+  instructions: "Custom prompt", // 覆蓋 agent 的指示
 });
 ```
 </TabItem>
@@ -276,7 +276,7 @@ result = client.document_ai.process(
     url="https://example.com/invoice.pdf",
     organization_id="org_xxx",
     model_name="gpt-4o",
-    instructions="自訂提示",
+    instructions="Custom prompt",
 )
 ```
 </TabItem>
@@ -284,9 +284,9 @@ result = client.document_ai.process(
 
 ---
 
-## `client.documentAi` — 建議架構
+## `client.documentAi` — 建議結構定義
 
-透過分析範例文件自動提出 JSON 架構。
+透過分析範例文件自動提出 JSON 結構定義。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -311,60 +311,60 @@ schema = client.document_ai.suggest_schema(
 
 ---
 
-## `client.documentAi` — Create Full（編排器）
+## `client.documentAi` — 完整建立（Orchestrator）
 
-端到端 Document AI Agent 建立（iMBRACE Web 應用程式的做法）：建立包含提取架構的看板，然後建立連結至該看板的 UseCase + AI Agent。
+端到端 Document AI agent 建立（iMBRACE webapp 的做法）：建立包含提取結構定義的 board，然後建立與該 board 關聯的 UseCase + AI Agent。
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 const result = await client.documentAi.createFull({
   name: "Invoice Extractor",
-  instructions: "提取發票欄位。日期格式為 YYYY-MM-DD。",
+  instructions: "Extract invoice fields. Dates as YYYY-MM-DD.",
   schemaFields: [
-    { name: "invoice_number", type: "ShortText", description: "發票 ID" },
-    { name: "total",          type: "Number",    description: "總金額" },
-    { name: "date",           type: "Date",      description: "發票日期" },
+    { name: "invoice_number", type: "ShortText", description: "Invoice ID" },
+    { name: "total",          type: "Number",    description: "Total amount" },
+    { name: "date",           type: "Date",      description: "Invoice date" },
   ],
   modelId: "gpt-4o",
   providerId: "system",
 });
 
 console.log(result.board_id);     // "brd_xxx"
-console.log(result.ai_agent_id);  // 所建立 AI Agent 的 UUID
-console.log(result.usecase_id);   // 所建立 UseCase 的 UUID
+console.log(result.ai_agent_id);  // 建立的 AI Agent 的 UUID
+console.log(result.usecase_id);   // 建立的 UseCase 的 UUID
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 result = client.document_ai.create_full(
     name="Invoice Extractor",
-    instructions="提取發票欄位。日期格式為 YYYY-MM-DD。",
+    instructions="Extract invoice fields. Dates as YYYY-MM-DD.",
     schema_fields=[
-        {"name": "invoice_number", "type": "ShortText", "description": "發票 ID"},
-        {"name": "total",          "type": "Number",    "description": "總金額"},
-        {"name": "date",           "type": "Date",      "description": "發票日期"},
+        {"name": "invoice_number", "type": "ShortText", "description": "Invoice ID"},
+        {"name": "total",          "type": "Number",    "description": "Total amount"},
+        {"name": "date",           "type": "Date",      "description": "Invoice date"},
     ],
     model_id="gpt-4o",
     provider_id="system",
 )
 
 print(result["board_id"])      # "brd_xxx"
-print(result["ai_agent_id"])   # 所建立 AI Agent 的 UUID
+print(result["ai_agent_id"])   # 建立的 AI Agent 的 UUID
 ```
 </TabItem>
 </Tabs>
 
-#### Create Full 選項
+#### 完整建立選項
 
-| 參數 | TS 欄位 | Python 參數 | 型別 | 預設值 |
+| 參數 | TS 欄位 | Python 參數 | 類型 | 預設值 |
 |---|---|---|---|---|
 | 名稱 | `name` | `name` | `string` / `str` | — |
 | 指示 | `instructions` | `instructions` | `string` / `str` | — |
-| 架構欄位 | `schemaFields` | `schema_fields` | `CreateBoardFieldInput[]` / `List[Dict]` | — |
+| 結構定義欄位 | `schemaFields` | `schema_fields` | `CreateBoardFieldInput[]` / `List[Dict]` | — |
 | 模型 ID | `modelId` | `model_id` | `string` / `str` | — |
 | 提供者 ID | `providerId` | `provider_id` | `string` / `str` | — |
-| 說明 | `description` | `description` | `string` / `str` | `None` |
+| 描述 | `description` | `description` | `string` / `str` | `None` |
 | VLM 模型 | `vlmModel` | `vlm_model` | `string` / `str` | `modelId` |
 | VLM 提供者 | `vlmProviderId` | `vlm_provider_id` | `string` / `str` | `providerId` |
 | 來源語言 | `sourceLanguages` | `source_languages` | `string[]` / `List[str]` | `["English"]` |
@@ -379,7 +379,7 @@ print(result["ai_agent_id"])   # 所建立 AI Agent 的 UUID
 
 ---
 
-## 非同步用法 (Python)
+## 非同步使用（Python）
 
 <Tabs syncKey="lang">
 <TabItem label="AsyncImbraceClient">
@@ -387,7 +387,7 @@ print(result["ai_agent_id"])   # 所建立 AI Agent 的 UUID
 from imbrace import AsyncImbraceClient
 
 async with AsyncImbraceClient() as client:
-    # 直接處理 (chat_ai)
+    # 直接處理（chat_ai）
     models = await client.chat_ai.list_document_models()
     result = await client.chat_ai.process_document(
         model_name="gpt-4o",
@@ -395,7 +395,7 @@ async with AsyncImbraceClient() as client:
         organization_id="org_xxx",
     )
 
-    # 基於 Agent 的處理 (document_ai)
+    # 基於 agent 的處理（document_ai）
     agents = await client.document_ai.list_agents(document_ai_only=True)
     result2 = await client.document_ai.process(
         agent_id=agents[0]["_id"],
@@ -408,7 +408,7 @@ async with AsyncImbraceClient() as client:
 
 ---
 
-## 另請參閱
+## 參閱
 
-- [完整流程指南 §3 — 知識庫](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — 上傳檔案以供 RAG 使用
-- [AI Agent — 嵌入向量與知識庫](/sdk/ai-agent/#embeddings--knowledge-base) — 管理用於檢索的嵌入向量檔案
+- [完整流程指南 §3 — 知識中心](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — 上傳檔案以供 RAG 使用
+- [AI Agent — 嵌入與知識庫](/sdk/ai-agent/#embeddings--knowledge-base) — 管理用於檢索的嵌入檔案

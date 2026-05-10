@@ -1,17 +1,17 @@
 ---
-title: SDK Methods Reference
+title: SDK 方法参考
 description: SDK methods used by each CLI command group.
 ---
 
-The CLI communicates with the Imbrace platform directly via `@imbrace/sdk`. This page maps each command group to the underlying SDK methods.
+CLI 通过 `@imbrace/sdk` 直接与 Imbrace 平台通信。本页将每个命令组映射到底层 SDK 方法。
 
-For the full SDK reference see [SDK Overview](/sdk/overview/).
+完整 SDK 参考请参见 [SDK 概览](/zh-cn/sdk/overview/)。
 
 ---
 
-## Data Board — `client.boards`
+## 数据面板 — `client.boards`
 
-| CLI Command | SDK Method |
+| CLI 命令 | SDK 方法 |
 |---|---|
 | `data-board list` | `client.boards.list()` |
 | `data-board get <id>` | `client.boards.get(id)` |
@@ -26,9 +26,9 @@ For the full SDK reference see [SDK Overview](/sdk/overview/).
 
 ---
 
-## AI Agent — `client.chatAi`, `client.ai`
+## AI 代理 — `client.chatAi`, `client.ai`
 
-| CLI Command | SDK Method |
+| CLI 命令 | SDK 方法 |
 |---|---|
 | `ai-agent list` | `client.chatAi.listAiAgents()` |
 | `ai-agent get <id>` | `client.chatAi.getAiAgent(id)` |
@@ -36,15 +36,15 @@ For the full SDK reference see [SDK Overview](/sdk/overview/).
 | `ai-agent update <id>` | `client.chatAi.updateAiAgent(id, body)` |
 | `ai-agent delete <id>` | `client.chatAi.deleteAiAgent(id)` |
 | `ai-agent list-providers` | `client.ai.listProviders()` |
-| `ai-agent list-models --provider-id <id>` | `client.ai.listProviders()` (filtered by provider) |
+| `ai-agent list-models --provider-id <id>` | `client.ai.listProviders()`（按提供商过滤） |
 | `ai-agent list-folders` | `client.boards.searchFolders(query)` |
 | `ai-agent list-files --folder-id <id>` | `client.boards.searchFiles({ folderId })` |
 
 ---
 
-## Workflow — `client.workflows`
+## 工作流 — `client.workflows`
 
-| CLI Command | SDK Method |
+| CLI 命令 | SDK 方法 |
 |---|---|
 | `workflow list` | `client.workflows.listFlows(params)` |
 | `workflow get <id>` | `client.workflows.getFlow(id)` |
@@ -57,7 +57,7 @@ For the full SDK reference see [SDK Overview](/sdk/overview/).
 | `workflow run <id>` | `client.workflows.triggerFlow(id, payload)` |
 | `workflow runs` | `client.workflows.listRuns()` |
 | `workflow run-detail <runId>` | `client.workflows.getRun(runId)` |
-| `workflow node list <id>` | `client.workflows.getFlow(id)` (parsed) |
+| `workflow node list <id>` | `client.workflows.getFlow(id)`（解析后） |
 | `workflow node add <id>` | `client.workflows.applyFlowOperation(id, ADD_ACTION / UPDATE_TRIGGER)` |
 | `workflow node update <id> <node>` | `client.workflows.applyFlowOperation(id, UPDATE_ACTION)` |
 | `workflow node delete <id> <node>` | `client.workflows.applyFlowOperation(id, DELETE_ACTION)` |

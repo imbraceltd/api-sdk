@@ -1,23 +1,23 @@
 ---
 title: Document AI
-description: "Trích xuất dữ liệu có cấu trúc từ PDF và hình ảnh bằng mô hình thị giác. Hai không gian tên: client.chatAi để xử lý trực tiếp, client.documentAi cho quy trình dựa trên agent."
+description: "Trích xuất dữ liệu có cấu trúc từ PDF và hình ảnh bằng vision models. Hai namespace: client.chatAi để xử lý trực tiếp, client.documentAi cho workflow dựa trên agent."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Document AI sử dụng mô hình thị giác (ví dụ: GPT-4o) để trích xuất dữ liệu có cấu trúc từ PDF và hình ảnh — hóa đơn, biểu mẫu, biên lai, hợp đồng hoặc bất kỳ tài liệu nào có văn bản nhìn thấy được.
+Document AI sử dụng vision models (ví dụ: GPT-4o) để trích xuất dữ liệu có cấu trúc từ PDF và hình ảnh — hóa đơn, biểu mẫu, biên lai, hợp đồng, hoặc bất kỳ tài liệu nào có văn bản nhìn thấy được.
 
-SDK cung cấp hai không gian tên:
-- **`client.chatAi` / `client.chat_ai`** — xử lý tài liệu trực tiếp và liệt kê mô hình
-- **`client.documentAi` / `client.document_ai`** — xử lý tài liệu dựa trên agent với quản lý lược đồ, CRUD agent và điều phối đầu cuối
+SDK hiển thị hai namespace:
+- **`client.chatAi` / `client.chat_ai`** — xử lý tài liệu trực tiếp và liệt kê model
+- **`client.documentAi` / `client.document_ai`** — xử lý tài liệu dựa trên agent với quản lý schema, CRUD agent và điều phối đầu cuối
 
-Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Bắt đầu nhanh](/sdk/quick-start/)).
+Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Quick Start](/sdk/quick-start/)).
 
 ---
 
-## `client.chatAi` — Xử lý tài liệu
+## `client.chatAi` — Xử lý Tài liệu
 
-### Liệt kê mô hình khả dụng
+### Liệt kê model có sẵn
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -55,18 +55,18 @@ result = client.chat_ai.process_document(
 </TabItem>
 </Tabs>
 
-#### Tham chiếu tham số
+#### Tham số tham chiếu
 
-| Tham số | Trường TS | Tham số Python | Kiểu | Bắt buộc |
+| Tham số | Trường TS | Tham số Python | Loại | Bắt buộc |
 |---|---|---|---|---|
-| Tên mô hình | `modelName` | `model_name` | `string` / `str` | Có |
+| Tên model | `modelName` | `model_name` | `string` / `str` | Có |
 | URL tài liệu | `url` | `url` | `string` / `str` | Có |
 | ID tổ chức | `organizationId` | `organization_id` | `string` / `str` | Có |
 | ID Board | `boardId` | `board_id` | `string` / `str` | Không |
 | Ngôn ngữ | `language` | `language` | `string` / `str` | Không |
 | Hướng dẫn bổ sung | `additionalInstructions` | `additional_instructions` | `string` / `str` | Không |
 | Hướng dẫn tài liệu bổ sung | `additionalDocumentInstructions` | `additional_document_instructions` | `string` / `str` | Không |
-| Tên mô hình xử lý | `processModelName` | `process_model_name` | `string` / `str` | Không |
+| Tên model xử lý | `processModelName` | `process_model_name` | `string` / `str` | Không |
 | URL tệp để điền | `fileUrlToFill` | `file_url_to_fill` | `string` / `str` | Không |
 | Công cụ | `tools` | `tools` | `Record<string, unknown>[]` / `List[Dict]` | Không |
 | UTC offset | `utc` | `utc` | `number` / `int` | Không |
@@ -75,7 +75,7 @@ result = client.chat_ai.process_document(
 | Số lần thử lại tối đa | `maxRetries` | `max_retries` | `number` / `int` | Không |
 | Xử lý nâng cao | `useEnhancedProcessing` | `use_enhanced_processing` | `boolean` / `bool` | Không |
 
-#### Ví dụ điền biểu mẫu PDF
+#### Ví dụ điền form PDF
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -111,34 +111,34 @@ if result["success"] and result["data"].get("filledPdfUrl"):
 
 ---
 
-## `client.documentAi` — Agent CRUD
+## `client.documentAi` — CRUD Agent
 
-Document AI Agent lưu trữ lược đồ trích xuất, hướng dẫn và cấu hình mô hình để sử dụng lặp lại.
+Document AI Agents lưu trữ schema trích xuất, hướng dẫn và cấu hình model để sử dụng lặp lại.
 
-### Danh sách agent
+### Liệt kê agent
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// All agents
+// Tất cả agent
 const agents = await client.documentAi.listAgents();
 
-// Filter by name
+// Lọc theo tên
 const filtered = await client.documentAi.listAgents({ nameContains: "Invoice" });
 
-// Document AI agents only (created via createFull or webapp)
+// Chỉ Document AI agents (được tạo qua createFull hoặc webapp)
 const docAiAgents = await client.documentAi.listAgents({ documentAiOnly: true });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
-# All agents
+# Tất cả agent
 agents = client.document_ai.list_agents()
 
-# Filter by name
+# Lọc theo tên
 filtered = client.document_ai.list_agents(name_contains="Invoice")
 
-# Document AI agents only
+# Chỉ Document AI agents
 doc_ai_agents = client.document_ai.list_agents(document_ai_only=True)
 ```
 </TabItem>
@@ -232,7 +232,7 @@ client.document_ai.delete_agent("agent_id")
 
 ## `client.documentAi` — Xử lý với Agent
 
-Xử lý tài liệu bằng một agent đã được cấu hình (tra cứu mô hình + hướng dẫn từ agent).
+Xử lý tài liệu bằng agent đã cấu hình (tra cứu model + hướng dẫn từ agent).
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -255,7 +255,7 @@ result = client.document_ai.process(
 </TabItem>
 </Tabs>
 
-Bạn cũng có thể ghi đè mô hình hoặc hướng dẫn của agent:
+Bạn cũng có thể ghi đè model hoặc hướng dẫn của agent:
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -264,8 +264,8 @@ const result = await client.documentAi.process({
   agentId: "agent_id",
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
-  modelName: "gpt-4o",          // override agent's model
-  instructions: "Custom prompt", // override agent's instructions
+  modelName: "gpt-4o",          // ghi đè model của agent
+  instructions: "Custom prompt", // ghi đè hướng dẫn của agent
 });
 ```
 </TabItem>
@@ -284,9 +284,9 @@ result = client.document_ai.process(
 
 ---
 
-## `client.documentAi` — Đề xuất lược đồ
+## `client.documentAi` — Đề xuất Schema
 
-Tự động đề xuất lược đồ JSON bằng cách phân tích một tài liệu mẫu.
+Tự động đề xuất JSON schema bằng cách phân tích tài liệu mẫu.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -294,7 +294,7 @@ Tự động đề xuất lược đồ JSON bằng cách phân tích một tài
 const schema = await client.documentAi.suggestSchema({
   url: "https://example.com/invoice.pdf",
   organizationId: "org_xxx",
-  modelName: "gpt-4o",  // optional, defaults to "gpt-4o"
+  modelName: "gpt-4o",  // tùy chọn, mặc định "gpt-4o"
 });
 ```
 </TabItem>
@@ -311,9 +311,9 @@ schema = client.document_ai.suggest_schema(
 
 ---
 
-## `client.documentAi` — Tạo đầy đủ (Orchestrator)
+## `client.documentAi` — Tạo Đầy đủ (Orchestrator)
 
-Tạo agent Document AI từ đầu đến cuối (những gì ứng dụng web iMBRACE làm): tạo board với lược đồ trích xuất, sau đó tạo UseCase + AI Agent liên kết với board đó.
+Tạo Document AI agent từ đầu đến cuối (giống như webapp iMBRACE): tạo board với schema trích xuất, sau đó tạo UseCase + AI Agent liên kết với board đó.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -331,8 +331,8 @@ const result = await client.documentAi.createFull({
 });
 
 console.log(result.board_id);     // "brd_xxx"
-console.log(result.ai_agent_id);  // UUID of the created AI Agent
-console.log(result.usecase_id);   // UUID of the created UseCase
+console.log(result.ai_agent_id);  // UUID của AI Agent đã tạo
+console.log(result.usecase_id);   // UUID của UseCase đã tạo
 ```
 </TabItem>
 <TabItem label="Python">
@@ -350,30 +350,30 @@ result = client.document_ai.create_full(
 )
 
 print(result["board_id"])      # "brd_xxx"
-print(result["ai_agent_id"])   # UUID of the created AI Agent
+print(result["ai_agent_id"])   # UUID của AI Agent đã tạo
 ```
 </TabItem>
 </Tabs>
 
-#### Tùy chọn Tạo đầy đủ
+#### Tùy chọn Tạo Đầy đủ
 
-| Tham số | Trường TS | Tham số Python | Kiểu | Mặc định |
+| Tham số | Trường TS | Tham số Python | Loại | Mặc định |
 |---|---|---|---|---|
 | Tên | `name` | `name` | `string` / `str` | — |
 | Hướng dẫn | `instructions` | `instructions` | `string` / `str` | — |
-| Trường lược đồ | `schemaFields` | `schema_fields` | `CreateBoardFieldInput[]` / `List[Dict]` | — |
-| ID mô hình | `modelId` | `model_id` | `string` / `str` | — |
-| ID nhà cung cấp | `providerId` | `provider_id` | `string` / `str` | — |
+| Trường schema | `schemaFields` | `schema_fields` | `CreateBoardFieldInput[]` / `List[Dict]` | — |
+| Model ID | `modelId` | `model_id` | `string` / `str` | — |
+| Provider ID | `providerId` | `provider_id` | `string` / `str` | — |
 | Mô tả | `description` | `description` | `string` / `str` | `None` |
-| Mô hình VLM | `vlmModel` | `vlm_model` | `string` / `str` | `modelId` |
-| Nhà cung cấp VLM | `vlmProviderId` | `vlm_provider_id` | `string` / `str` | `providerId` |
+| Model VLM | `vlmModel` | `vlm_model` | `string` / `str` | `modelId` |
+| Provider VLM | `vlmProviderId` | `vlm_provider_id` | `string` / `str` | `providerId` |
 | Ngôn ngữ nguồn | `sourceLanguages` | `source_languages` | `string[]` / `List[str]` | `["English"]` |
 | Hỗ trợ chữ viết tay | `handwritingSupport` | `handwriting_support` | `boolean` / `bool` | `false` |
 | Offset thời gian | `timeOffset` | `time_offset` | `string` / `str` | `"UTC+00:00"` |
 | Tiếp tục khi lỗi | `continueOnFailure` | `continue_on_failure` | `boolean` / `bool` | `false` |
 | Thời gian thử lại | `retryTime` | `retry_time` | `number` / `int` | `2` |
 | Nhiệt độ | `temperature` | `temperature` | `number` / `float` | `0.1` |
-| URL demo | `demoUrl` | `demo_url` | `string` / `str` | `None` |
+| URL Demo | `demoUrl` | `demo_url` | `string` / `str` | `None` |
 | ID nhóm | `teamIds` | `team_ids` | `string[]` / `List[str]` | `[]` |
 | Trường AI Agent bổ sung | `extraAiAgent` | `extra_ai_agent` | `Record<string, unknown>` / `Dict` | `None` |
 
@@ -387,7 +387,7 @@ print(result["ai_agent_id"])   # UUID of the created AI Agent
 from imbrace import AsyncImbraceClient
 
 async with AsyncImbraceClient() as client:
-    # Direct processing (chat_ai)
+    # Xử lý trực tiếp (chat_ai)
     models = await client.chat_ai.list_document_models()
     result = await client.chat_ai.process_document(
         model_name="gpt-4o",
@@ -395,7 +395,7 @@ async with AsyncImbraceClient() as client:
         organization_id="org_xxx",
     )
 
-    # Agent-based processing (document_ai)
+    # Xử lý dựa trên agent (document_ai)
     agents = await client.document_ai.list_agents(document_ai_only=True)
     result2 = await client.document_ai.process(
         agent_id=agents[0]["_id"],
@@ -410,5 +410,5 @@ async with AsyncImbraceClient() as client:
 
 ## Xem thêm
 
-- [Hướng dẫn toàn luồng §3 — Knowledge Hubs](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — tải tệp lên cho RAG
-- [AI Agent — Embeddings & Kiến thức nền](/sdk/ai-agent/#embeddings--knowledge-base) — quản lý tệp embedding để truy xuất
+- [Hướng dẫn toàn diện §3 — Knowledge Hubs](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — tải tệp lên cho RAG
+- [AI Agent — Embeddings & Knowledge Base](/sdk/ai-agent/#embeddings--knowledge-base) — quản lý tệp embedding để truy xuất

@@ -50,14 +50,20 @@ Use this when you need to generate a key from code, for example during automated
   </TabItem>
 </Tabs>
 
-The response shape:
+The response shape (full fields below — internal fields omitted for brevity):
 
 ```json
 {
   "apiKey": {
+    "_id": "...",
     "apiKey": "api_...",
+    "organization_id": "...",
+    "user_id": "...",
+    "is_active": true,
     "expired_at": "2025-08-01T00:00:00.000Z",
-    "is_active": true
+    "created_at": "2025-07-01T00:00:00.000Z",
+    "updated_at": "2025-07-01T00:00:00.000Z",
+    "is_temp": false
   },
   "expires_in": 2592000
 }

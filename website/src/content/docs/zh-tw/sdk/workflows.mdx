@@ -1,13 +1,13 @@
 ---
 title: 工作流程
-description: 工作流程 — 可視化工作流程建置器與頻道自動化 — 透過 SDK 建立、觸發與管理流程。
+description: Workflows — visual workflow builder and channel automation — create, trigger, and manage flows via the SDK.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK 公開兩個工作流程系統：**工作流程**（`client.workflows`）用於可視化工作流程自動化，以及**頻道自動化**（`client.workflows`）用於訊息頻道流程（如 WhatsApp）。
+`client.workflows` 同時公開頻道自動化（v2/backend 路由）和流程引擎（CRUD 流程、執行、資料夾、連線、元件、MCP 伺服器、表格、邀請）。
 
-請先初始化客戶端（參閱[安裝](/sdk/installation/)或[快速入門](/sdk/quick-start/)）。如需將工作流程連接至助理的端到端逐步解說，請參閱[完整流程指南 §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent)。
+請先初始化客戶端（請參閱[安裝](/sdk/installation/)或[快速入門](/sdk/quick-start/)）。如需將工作流程連接至 AI agent 的端到端逐步說明，請參閱[完整流程指南 §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent)。
 
 ---
 
@@ -23,7 +23,7 @@ const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ 
 <TabItem label="Python">
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
-whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp").get("data", [])
 ```
 </TabItem>
 </Tabs>
@@ -71,16 +71,40 @@ client.workflows.delete_flow("flow_id")
 <TabItem label="TypeScript">
 ```typescript
 await client.workflows.applyFlowOperation("flow_id", {
-  operation: "UPDATE_TRIGGER",
-  trigger: { type: "PIECE", pieceName: "@imbrace/schedule", actionName: "every_day" },
+  type: "UPDATE_TRIGGER",
+  request: {
+    name: "trigger",
+    type: "PIECE_TRIGGER",
+    valid: true,
+    displayName: "Webhook",
+    settings: {
+      pieceName: "@activepieces/piece-webhook",
+      pieceVersion: "0.1.24",
+      triggerName: "catch_webhook",
+      input: {},
+      propertySettings: {},
+    },
+  },
 });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 client.workflows.apply_flow_operation("flow_id", {
-    "operation": "UPDATE_TRIGGER",
-    "trigger": {"type": "PIECE", "pieceName": "@imbrace/schedule", "actionName": "every_day"},
+    "type": "UPDATE_TRIGGER",
+    "request": {
+        "name": "trigger",
+        "type": "PIECE_TRIGGER",
+        "valid": True,
+        "displayName": "Webhook",
+        "settings": {
+            "pieceName": "@activepieces/piece-webhook",
+            "pieceVersion": "0.1.24",
+            "triggerName": "catch_webhook",
+            "input": {},
+            "propertySettings": {},
+        },
+    },
 })
 ```
 </TabItem>
@@ -91,7 +115,7 @@ client.workflows.apply_flow_operation("flow_id", {
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-// 發送後即忘
+// 觸發後即忘
 await client.workflows.triggerFlow("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
@@ -106,7 +130,7 @@ const result = await client.workflows.triggerFlowSync("flow_id", {
 </TabItem>
 <TabItem label="Python">
 ```python
-# 發送後即忘
+# 觸發後即忘
 client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
 
 # 等待結果
@@ -188,7 +212,7 @@ client.workflows.delete_connection("connection_id")
 
 ---
 
-## 片段
+## 元件
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -205,19 +229,19 @@ pieces = client.workflows.list_pieces(limit=20)
 
 ---
 
-## 觸發器
+## 觸發條件
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 const status = await client.workflows.getTriggerRunStatus();
-await client.workflows.testTrigger({ pieceName: "@imbrace/schedule", flowId: "flow_id" });
+await client.workflows.testTrigger({ pieceName: "@activepieces/piece-webhook", flowId: "flow_id" });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 status = client.workflows.get_trigger_run_status()
-client.workflows.test_trigger({"pieceName": "@imbrace/schedule", "flowId": "flow_id"})
+client.workflows.test_trigger({"pieceName": "@activepieces/piece-webhook", "flowId": "flow_id"})
 ```
 </TabItem>
 </Tabs>

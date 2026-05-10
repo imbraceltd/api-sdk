@@ -246,7 +246,7 @@ await client.boards.deleteFolders({ ids: [folder._id] });
 const uploaded = await client.boards.uploadFile(formData);
 const files    = await client.boards.searchFiles({ folderId: folder._id });
 const file     = await client.boards.getFile("file_id");
-await client.boards.createFile({ name: "doc.txt", folderId: folder._id });
+await client.boards.createFile({ name: "doc.txt", folder_id: folder._id });
 await client.boards.deleteFiles({ ids: ["file_id"] });
 ```
 </TabItem>
@@ -985,14 +985,18 @@ user = client.ai_agent.get_chat_client_user({"token": "tok_xxx"})
 ```typescript
 // Create a new chat session
 await client.aiAgent.createClientChat({
-  id: "chat_uuid",
+  id:                     "chat_uuid",
+  assistantId:            "asst_abc",
+  organizationId:         "org_abc",
+  userId:                 "user_xxx",
+  selectedVisibilityType: "private",
   message: {
-    id: "msg_uuid",
-    role: "user",
-    parts: [{ type: "text", text: "Hello!" }],
+    id:        "msg_uuid",
+    role:      "user",
+    content:   "Hello!",
+    createdAt: new Date().toISOString(),
+    parts:     [{ type: "text", text: "Hello!" }],
   },
-  assistantId:    "asst_abc",
-  organizationId: "org_abc",
 });
 
 // List, read, update, delete chats
@@ -1015,15 +1019,21 @@ const statusStream = await client.aiAgent.streamClientChatStatus("chat_id");
 <TabItem label="Python">
 ```python
 # Create a new chat session
+from datetime import datetime, timezone
+
 client.ai_agent.create_client_chat({
-    "id": "chat_uuid",
+    "id":                     "chat_uuid",
+    "assistantId":            "asst_abc",
+    "organizationId":         "org_abc",
+    "userId":                 "user_xxx",
+    "selectedVisibilityType": "private",
     "message": {
-        "id": "msg_uuid",
-        "role": "user",
-        "parts": [{"type": "text", "text": "Hello!"}],
+        "id":        "msg_uuid",
+        "role":      "user",
+        "content":   "Hello!",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "parts":     [{"type": "text", "text": "Hello!"}],
     },
-    "assistantId":    "asst_abc",
-    "organizationId": "org_abc",
 })
 
 # List, read, update, delete

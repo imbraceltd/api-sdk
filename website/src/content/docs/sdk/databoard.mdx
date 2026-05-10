@@ -107,12 +107,18 @@ Note: `exportCsvViaMail` is TypeScript-only.
 const { data: items } = await client.boards.listItems("board_id", { limit: 100 });
 const item = await client.boards.getItem("board_id", "item_id");
 
+// createItem uses { fields: [{ board_field_id, value }] }
 const lead = await client.boards.createItem("board_id", {
-  fields: { name: "Acme Corp", status: "new", value: 50000 },
+  fields: [
+    { board_field_id: "name_field_id",   value: "Acme Corp" },
+    { board_field_id: "status_field_id", value: "new" },
+    { board_field_id: "value_field_id",  value: 50000 },
+  ],
 });
 
-await client.boards.updateItem("board_id", lead.id, {
-  fields: { status: "qualified" },
+// updateItem uses { data: [{ key, value }] } — note `key`, not `board_field_id`
+await client.boards.updateItem("board_id", lead._id, {
+  data: [{ key: "status_field_id", value: "qualified" }],
 });
 
 await client.boards.deleteItem("board_id", "item_id");
@@ -123,12 +129,18 @@ await client.boards.bulkDeleteItems("board_id", { ids: ["item_1", "item_2", "ite
 ```python
 leads = client.boards.list_items("board_id", limit=100).get("data", [])
 
+# create_item uses {"fields": [{"board_field_id", "value"}]}
 lead = client.boards.create_item("board_id", {
-    "fields": {"name": "Acme Corp", "status": "new", "value": 50000}
+    "fields": [
+        {"board_field_id": "name_field_id",   "value": "Acme Corp"},
+        {"board_field_id": "status_field_id", "value": "new"},
+        {"board_field_id": "value_field_id",  "value": 50000},
+    ],
 })
 
-client.boards.update_item("board_id", lead["id"], {
-    "fields": {"status": "qualified"}
+# update_item uses {"data": [{"key", "value"}]} — note "key", not "board_field_id"
+client.boards.update_item("board_id", lead["_id"], {
+    "data": [{"key": "status_field_id", "value": "qualified"}],
 })
 
 client.boards.delete_item("board_id", "item_id")
@@ -209,7 +221,7 @@ results = client.boards.search("board_id", q="enterprise")
 ```typescript
 const field = await client.boards.createField("board_id", {
   name: "Deal Value",
-  type: "number",
+  type: "Number",
 });
 await client.boards.updateField("board_id", field._id, { name: "Contract Value" });
 await client.boards.deleteField("board_id", field._id);
@@ -221,7 +233,7 @@ await client.boards.bulkUpdateFields("board_id", { fields: [{ _id: "field_1", na
 </TabItem>
 <TabItem label="Python">
 ```python
-field = client.boards.create_field("board_id", {"name": "Deal Value", "type": "number"})
+field = client.boards.create_field("board_id", {"name": "Deal Value", "type": "Number"})
 client.boards.update_field("board_id", field["_id"], {"name": "Contract Value"})
 client.boards.delete_field("board_id", field["_id"])
 
@@ -239,10 +251,11 @@ client.boards.bulk_update_fields("board_id", {"fields": [{"_id": "field_1", "nam
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
-const { data: segments } = await client.boards.listSegments("board_id");
+// listSegments returns BoardSegment[] directly (no { data } wrapper)
+const segments = await client.boards.listSegments("board_id");
 const segment = await client.boards.createSegment("board_id", {
   name: "High Value Leads",
-  filter: { field: "value", op: "gt", value: 10000 },
+  filter: {},
 });
 await client.boards.updateSegment("board_id", segment._id, { name: "VIP Leads" });
 await client.boards.deleteSegment("board_id", segment._id);
@@ -253,7 +266,7 @@ await client.boards.deleteSegment("board_id", segment._id);
 segments = client.boards.list_segments("board_id")
 segment = client.boards.create_segment("board_id", {
     "name": "High Value Leads",
-    "filter": {"field": "value", "op": "gt", "value": 10000},
+    "filter": {},
 })
 client.boards.update_segment("board_id", segment["_id"], {"name": "VIP Leads"})
 client.boards.delete_segment("board_id", segment["_id"])

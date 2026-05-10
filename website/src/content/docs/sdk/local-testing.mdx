@@ -17,7 +17,7 @@ This guide lets you test the **built package** exactly as a consumer would insta
 
 The same set of gateway base URLs applies to both SDKs. Set this once in your test environment:
 
-| Environment | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| Environment | `IMBRACE_GATEWAY_URL` |
 | ----------- | ------------------------------------------ |
 | develop     | `https://app-gateway.dev.imbrace.co`       |
 | sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
@@ -36,8 +36,8 @@ Minimum required for live calls:
 
 | Variable          | Where to get it                                                                               |
 | ----------------- | --------------------------------------------------------------------------------------------- |
-| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
-| `IMBRACE_BASE_URL` | One of the URLs in the table above (defaults to dev when unset)                              |
+| `IMBRACE_API_KEY`     | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
+| `IMBRACE_GATEWAY_URL` | One of the URLs in the table above (defaults to dev when unset)              |
 
 Org context is encoded inside the API key — you do not pass an organization id.
 
@@ -71,7 +71,7 @@ node test-local.mjs
 ```
 
 - **Without credentials** — runs instantiation + resource surface checks only (no network).
-- **With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_BASE_URL`.
+- **With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_GATEWAY_URL`.
 
 ### Iterating on SDK changes
 
@@ -137,12 +137,12 @@ The same test runs with both `IMBRACE_API_KEY` and `IMBRACE_ACCESS_TOKEN` to cov
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
 ```
 </TabItem>
 <TabItem label="Python">
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 ```
 </TabItem>
 </Tabs>

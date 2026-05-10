@@ -1,17 +1,17 @@
 ---
 title: Workflows
-description: Workflows — trình xây dựng workflow trực quan và tự động hóa kênh — tạo, kích hoạt và quản lý flow qua SDK.
+description: Workflows — trình xây dựng workflow trực quan và tự động hóa kênh — tạo, kích hoạt và quản lý flows qua SDK.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-SDK cung cấp hai hệ thống workflow: **Workflows** (`client.workflows`) để tự động hóa workflow trực quan và **tự động hóa kênh** (`client.workflows`) cho các luồng kênh nhắn tin như WhatsApp.
+`client.workflows` hiển thị cả tự động hóa kênh (route v2/backend) và công cụ flow (CRUD flows, runs, folders, connections, pieces, MCP servers, tables, invitations).
 
-Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Bắt đầu nhanh](/sdk/quick-start/)). Để có hướng dẫn từ đầu đến cuối kết nối workflow với assistant, xem [Hướng dẫn toàn luồng §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent).
+Khởi tạo client trước (xem [Cài đặt](/sdk/installation/) hoặc [Quick Start](/sdk/quick-start/)). Để biết hướng dẫn từ đầu đến cuối kết nối workflow với AI agent, xem [Hướng dẫn toàn diện §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent).
 
 ---
 
-## Tự động hóa kênh — `client.workflows`
+## Tự động hóa Kênh — `client.workflows`
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -23,7 +23,7 @@ const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ 
 <TabItem label="Python">
 ```python
 automations    = client.workflows.list_channel_automation().get("data", [])
-whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp").get("data", [])
 ```
 </TabItem>
 </Tabs>
@@ -71,16 +71,40 @@ client.workflows.delete_flow("flow_id")
 <TabItem label="TypeScript">
 ```typescript
 await client.workflows.applyFlowOperation("flow_id", {
-  operation: "UPDATE_TRIGGER",
-  trigger: { type: "PIECE", pieceName: "@imbrace/schedule", actionName: "every_day" },
+  type: "UPDATE_TRIGGER",
+  request: {
+    name: "trigger",
+    type: "PIECE_TRIGGER",
+    valid: true,
+    displayName: "Webhook",
+    settings: {
+      pieceName: "@activepieces/piece-webhook",
+      pieceVersion: "0.1.24",
+      triggerName: "catch_webhook",
+      input: {},
+      propertySettings: {},
+    },
+  },
 });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 client.workflows.apply_flow_operation("flow_id", {
-    "operation": "UPDATE_TRIGGER",
-    "trigger": {"type": "PIECE", "pieceName": "@imbrace/schedule", "actionName": "every_day"},
+    "type": "UPDATE_TRIGGER",
+    "request": {
+        "name": "trigger",
+        "type": "PIECE_TRIGGER",
+        "valid": True,
+        "displayName": "Webhook",
+        "settings": {
+            "pieceName": "@activepieces/piece-webhook",
+            "pieceVersion": "0.1.24",
+            "triggerName": "catch_webhook",
+            "input": {},
+            "propertySettings": {},
+        },
+    },
 })
 ```
 </TabItem>
@@ -97,7 +121,7 @@ await client.workflows.triggerFlow("flow_id", {
   event: "lead_qualified",
 });
 
-// Wait for result
+// Chờ kết quả
 const result = await client.workflows.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
@@ -109,7 +133,7 @@ const result = await client.workflows.triggerFlowSync("flow_id", {
 # Fire and forget
 client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
 
-# Wait for result
+# Chờ kết quả
 result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
 ```
 </TabItem>
@@ -117,7 +141,7 @@ result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xx
 
 ---
 
-## Flow Runs
+## Lượt chạy Flow
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -161,7 +185,7 @@ client.workflows.delete_folder("folder_id")
 
 ---
 
-## Kết nối ứng dụng
+## Kết nối Ứng dụng
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -211,20 +235,20 @@ pieces = client.workflows.list_pieces(limit=20)
 <TabItem label="TypeScript">
 ```typescript
 const status = await client.workflows.getTriggerRunStatus();
-await client.workflows.testTrigger({ pieceName: "@imbrace/schedule", flowId: "flow_id" });
+await client.workflows.testTrigger({ pieceName: "@activepieces/piece-webhook", flowId: "flow_id" });
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
 status = client.workflows.get_trigger_run_status()
-client.workflows.test_trigger({"pieceName": "@imbrace/schedule", "flowId": "flow_id"})
+client.workflows.test_trigger({"pieceName": "@activepieces/piece-webhook", "flowId": "flow_id"})
 ```
 </TabItem>
 </Tabs>
 
 ---
 
-## Tables & Records
+## Bảng & Bản ghi
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
@@ -270,7 +294,7 @@ client.workflows.rotate_mcp_token("mcp_server_id")
 
 ---
 
-## User Invitations
+## Lời mời Người dùng
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">

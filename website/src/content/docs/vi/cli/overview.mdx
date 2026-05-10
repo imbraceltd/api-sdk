@@ -1,69 +1,69 @@
 ---
-title: CLI Overview
-description: Architecture and authentication flow of the Imbrace CLI.
+title: Tổng quan CLI
+description: Kiến trúc và luồng xác thực của Imbrace CLI.
 ---
 
 import { Aside } from "@astrojs/starlight/components";
 
-The Imbrace CLI (`@imbrace/cli`) is a terminal tool for interacting with the Imbrace platform. Commands call the Imbrace platform directly via the `@imbrace/sdk` package. Source: [imbraceltd/imbrace-cli](https://github.com/imbraceltd/imbrace-cli).
+Imbrace CLI (`@imbrace/cli`) là một công cụ dòng lệnh để tương tác với nền tảng Imbrace. Các lệnh gọi trực tiếp đến nền tảng Imbrace thông qua gói `@imbrace/sdk`. Nguồn: [imbraceltd/imbrace-cli](https://github.com/imbraceltd/imbrace-cli).
 
 ```
-imbrace (CLI) → https://app-gatewayv2.imbrace.co (Imbrace Platform)
+imbrace (CLI) → https://app-gatewayv2.imbrace.co (Nền tảng Imbrace)
 ```
 
-## Authentication Flow
+## Luồng xác thực
 
-The CLI supports two authentication methods:
+CLI hỗ trợ hai phương thức xác thực:
 
-**1. API Key** (credential starts with `sk-` or `api_`):
-- Passed directly to SDK: `new ImbraceClient({ apiKey: credential, baseUrl })`
-- Stored as-is in local config
+**1. API Key** (thông tin xác thực bắt đầu bằng `sk-` hoặc `api_`):
+- Được truyền trực tiếp đến SDK: `new ImbraceClient({ apiKey: credential })`
+- Được lưu nguyên trạng trong cấu hình cục bộ
 
-**2. Email + Password** (returns JWT token):
-- SDK: `client.login(email, password)` → token stored locally
-- JWT token stored as credential
+**2. Email + Mật khẩu** (trả về JWT token):
+- SDK: `client.login(email, password)` → token được lưu cục bộ
+- JWT token được lưu làm thông tin xác thực
 
-### Credential Storage
+### Lưu trữ thông tin xác thực
 
-Credentials are stored via the `conf` npm package with `projectName: "imbrace"`.
+Thông tin xác thực được lưu qua gói `conf` với `projectName: "imbrace"`.
 
-| OS | Config path |
+| Hệ điều hành | Đường dẫn cấu hình |
 |---|---|
 | macOS | `~/Library/Preferences/imbrace-nodejs/config.json` |
 | Linux | `~/.config/imbrace-nodejs/config.json` |
 | Windows | `%APPDATA%\imbrace-nodejs\Config\config.json` |
 
-Stored fields: `credential`, `method` (`"api-key"` | `"password"`), `email`.
+Các trường được lưu: `credential`, `method` (`"api-key"` | `"password"`), `email`.
 
-### Auto-login
+### Tự động đăng nhập
 
-Every CLI command (except `login`) extends `BaseCommand`, which calls `ensureLoggedIn()` on init. If no credential is found, it interactively prompts the user to choose a login method (API Key or Email + Password).
+Mọi lệnh CLI (ngoại trừ `login`) đều kế thừa `BaseCommand`, lệnh này gọi `ensureLoggedIn()` khi khởi tạo. Nếu không tìm thấy thông tin xác thực, nó sẽ tương tác yêu cầu người dùng chọn phương thức đăng nhập (API Key hoặc Email + Mật khẩu).
 
 <Aside type="tip">
-  All commands accept `--json` for machine-readable output and `-h` / `--help` for usage.
+  Tất cả các lệnh đều chấp nhận `--json` để xuất ra dữ liệu máy có thể đọc được và `-h` / `--help` để xem hướng dẫn sử dụng.
 </Aside>
 
-## Project Structure
+## Cấu trúc dự án
 
 ```
 imbrace-cli/
 └── cli/                     ← oclif CLI
     └── src/
-        ├── base-command.ts       ← Auto-login
-        ├── config.ts             ← Credential store (conf)
+        ├── base-command.ts       ← Tự động đăng nhập
+        ├── config.ts             ← Lưu trữ thông tin xác thực (conf)
         └── commands/
             ├── login.ts / logout.ts / whoami.ts / docs.ts
-            ├── data-board/    (8 commands)
-            ├── ai-agent/      (9 commands)
-            ├── document-ai/   (7 commands)
-            ├── orchestrator/  (4 commands)
-            ├── guardrail/     (5 commands)
-            └── workflow/      (32 commands)
+            ├── data-board/    (8 lệnh)
+            ├── ai-agent/      (9 lệnh)
+            ├── document-ai/   (7 lệnh)
+            ├── orchestrator/  (4 lệnh)
+            ├── guardrail/     (5 lệnh)
+            └── workflow/      (32 lệnh)
 ```
 
-## Workflow Node Architecture
+## Kiến trúc Workflow Node
 
-Workflows use a **linked list** structure via `nextAction` pointers:
+Workflows sử dụng cấu trúc **danh sách liên kết** thông qua con trỏ `nextAction`:
 
 ```typescript
 {
@@ -80,4 +80,4 @@ Workflows use a **linked list** structure via `nextAction` pointers:
 }
 ```
 
-All node operations use `applyFlowOperation()` with types: `UPDATE_TRIGGER`, `ADD_ACTION`, `UPDATE_ACTION`, `DELETE_ACTION`, `LOCK_AND_PUBLISH`, `CHANGE_STATUS`, `CHANGE_FOLDER`.
+Tất cả các thao tác node đều sử dụng `applyFlowOperation()` với các loại: `UPDATE_TRIGGER`, `ADD_ACTION`, `UPDATE_ACTION`, `DELETE_ACTION`, `LOCK_AND_PUBLISH`, `CHANGE_STATUS`, `CHANGE_FOLDER`.

@@ -1,32 +1,32 @@
 ---
 title: 安装
-description: 安装 TypeScript 或 Python 的 Imbrace SDK。
+description: Install the Imbrace SDK for TypeScript or Python.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
-import AuthOnly from "../../../../components/AuthOnly.astro";
-import VersionOnly from "../../../../components/VersionOnly.astro";
+import AuthOnly from "../../../components/AuthOnly.astro";
+import VersionOnly from "../../../components/VersionOnly.astro";
 
 ### 安装
 
-<VersionOnly version="1.0.2">
+<VersionOnly version="1.0.4">
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```bash
-    npm install @imbrace/sdk@1.0.2
-    # 或者
-    yarn add @imbrace/sdk@1.0.2
-    # 或者
-    pnpm add @imbrace/sdk@1.0.2
+    npm install @imbrace/sdk
+    # 或
+    yarn add @imbrace/sdk
+    # 或
+    pnpm add @imbrace/sdk
     ```
 
     需要 Node.js 18+（或任何支持原生 `fetch` 和 `ReadableStream` 的浏览器）。
   </TabItem>
   <TabItem label="Python">
     ```bash
-    pip install imbrace==1.0.2
-    # 或者
-    uv add imbrace==1.0.2
+    pip install imbrace
+    # 或
+    uv add imbrace
     ```
 
     需要 Python 3.9+。
@@ -42,20 +42,20 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
-    // 基于 Imbrace 构建——Imbrace 就是你的后端，终端用户通过 OTP 登录
+    // 构建在 Imbrace 之上 — Imbrace 就是你的后端，终端用户通过 OTP 登录
     const client = new ImbraceClient({
       accessToken: "acc_your_token",
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
 
-    客户端是有状态的——创建一次并在整个应用中复用。
+    客户端是有状态的 — 创建一次并在整个应用中重复使用。
   </TabItem>
   <TabItem label="Python">
     ```python
     from imbrace import ImbraceClient
 
-    # 基于 Imbrace 构建——Imbrace 就是你的后端，终端用户通过 OTP 登录
+    # 构建在 Imbrace 之上 — Imbrace 就是你的后端，终端用户通过 OTP 登录
     with ImbraceClient(access_token="acc_your_token") as client:
         ...
     ```
@@ -73,20 +73,20 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
-    // 封装 Imbrace——Imbrace 是你后端内部的一个功能，使用你的用户
+    // 包装 Imbrace — Imbrace 是你后端中的一个功能，你的用户
     const client = new ImbraceClient({
       apiKey: "api_xxx...",
       baseUrl: "https://app-gatewayv2.imbrace.co",
     })
     ```
 
-    客户端是有状态的——创建一次并在整个应用中复用。
+    客户端是有状态的 — 创建一次并在整个应用中重复使用。
   </TabItem>
   <TabItem label="Python">
     ```python
     from imbrace import ImbraceClient
 
-    # 封装 Imbrace——Imbrace 是你后端内部的一个功能，使用你的用户
+    # 包装 Imbrace — Imbrace 是你后端中的一个功能，你的用户
     with ImbraceClient(api_key="api_xxx...") as client:
         ...
     ```
@@ -98,7 +98,7 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
 </Tabs>
 </AuthOnly>
 
-关于何时使用每种凭证，参见[认证](/sdk/authentication/)。关于凭证设置的分步指南（环境变量、dotenv、密钥），参见[设置指南](/getting-started/setup/#configure-credentials)。
+关于何时使用每种凭证，请参见[认证](/zh-cn/sdk/authentication/)。关于凭证设置的分步指南（环境变量、dotenv、密钥），请参见[设置指南](/zh-cn/getting-started/setup/#configure-credentials)。
 
 ### 验证
 
@@ -119,12 +119,12 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
 
 ### 环境变量
 
-SDK **不会**自动读取环境变量。请直接将凭证传递给构造函数，并使用加载器（`dotenv`/你框架的环境变量处理方式）来管理 `.env` 中的变量。
+SDK **不会**自动读取环境变量。请直接将凭证传递给构造函数，如果你将它们保存在 `.env` 中，请使用加载器（`dotenv` / 你框架的环境变量处理方式）。
 
 | 变量 | 用途 |
 |---|---|
 | `IMBRACE_API_KEY` | 你的 API Key（组织级凭证） |
-| `IMBRACE_ACCESS_TOKEN` | 用户的访问令牌（按会话的凭证） |
-| `IMBRACE_BASE_URL` | 覆盖网关 URL（默认：`https://app-gatewayv2.imbrace.co`） |
+| `IMBRACE_ACCESS_TOKEN` | 用户的访问令牌（每会话凭证） |
+| `IMBRACE_GATEWAY_URL` | 覆盖网关 URL（默认：`https://app-gatewayv2.imbrace.co`） |
 
-组织 ID 已编码在 API Key 和访问令牌中——你无需向 SDK 传递 `organizationId`/`organization_id`。详情参见[认证](/sdk/authentication/)。
+组织 ID 编码在 API Key 和访问令牌内部。你可以选择性地通过向构造函数传递 `organizationId`（TypeScript）或 `organization_id`（Python）来覆盖它。详情请参见[认证](/zh-cn/sdk/authentication/)。

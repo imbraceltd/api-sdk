@@ -1,26 +1,26 @@
 ---
-title: Hướng Dẫn Cài Đặt
-description: Cài đặt Imbrace SDK, cấu hình thông tin xác thực, thiết lập môi trường và override URL dịch vụ.
+title: Hướng dẫn Thiết lập
+description: Cài đặt Imbrace SDK, cấu hình thông tin xác thực, thiết lập môi trường và ghi đè URL dịch vụ.
 ---
 
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 
-Hướng dẫn này bao gồm mọi thứ cần thiết để bắt đầu tích hợp Imbrace SDK — từ cài đặt, cấu hình thông tin xác thực, môi trường cho đến override URL dịch vụ.
+Hướng dẫn này bao gồm mọi thứ bạn cần để đi từ số không đến một tích hợp Imbrace SDK hoạt động — cài đặt, thông tin xác thực, môi trường và ghi đè URL dịch vụ.
 
 ---
 
-### Yêu Cầu Hệ Thống
+### Yêu cầu Hệ thống
 
 | Yêu cầu | Phiên bản tối thiểu |
-|---|---|
-| Node.js | 18.0.0+ |
-| npm | 8.0.0+ |
-| Python | 3.9+ |
-| pip | 23.0+ |
+| ----------- | --------------- |
+| Node.js     | 18.0.0+         |
+| npm         | 8.0.0+          |
+| Python      | 3.9+            |
+| pip         | 23.0+           |
 
 ---
 
-### Cài Đặt
+### Cài đặt
 
 <Tabs>
   <TabItem label="TypeScript">
@@ -35,29 +35,29 @@ yarn add @imbrace/sdk
 pnpm add @imbrace/sdk
 ```
 
-**Monorepo / phát triển nội bộ:**
+**Monorepo / phát triển cục bộ:**
 
 ```bash
-# Bước 1 — cài dependencies và build
+# Bước 1 — cài đặt phụ thuộc và xây dựng
 cd ts
 npm install
 npm run build
 
-# Bước 2 (tuỳ chọn) — link global để dùng trong project khác
+# Bước 2 (tùy chọn) — liên kết toàn cục để sử dụng trong dự án khác trên cùng máy
 npm link
 ```
 
-Sau đó trong project bên ngoài:
+Sau đó trong dự án bên ngoài của bạn:
 
 ```bash
 npm link @imbrace/sdk
 ```
 
-**Kiểm tra:**
+**Xác minh:**
 
 ```typescript
-import { ImbraceClient } from '@imbrace/sdk'
-console.log('SDK loaded:', typeof ImbraceClient) // 'function'
+import { ImbraceClient } from "@imbrace/sdk";
+console.log("SDK loaded:", typeof ImbraceClient); // 'function'
 ```
 
   </TabItem>
@@ -71,16 +71,16 @@ pip install imbrace
 uv add imbrace
 ```
 
-**Monorepo / phát triển nội bộ (editable mode):**
+**Monorepo / phát triển cục bộ (chế độ editable):**
 
 ```bash
 cd py
 pip install -e ".[dev]"
 ```
 
-Cờ `[dev]` cài thêm: `pytest`, `pytest-asyncio`, `pytest-httpx`, `ruff`, `mypy`.
+Cờ `[dev]` cài đặt: `pytest`, `pytest-asyncio`, `pytest-httpx`, `ruff`, `mypy`.
 
-**Kiểm tra:**
+**Xác minh:**
 
 ```python
 from imbrace import ImbraceClient
@@ -92,56 +92,56 @@ print("SDK loaded:", ImbraceClient)
 
 ---
 
-### Cấu Hình Thông Tin Xác Thực
+### Cấu hình Thông tin Xác thực
 
-#### Tạo file `.env`
+#### Tạo tệp `.env`
 
-SDK không tự đọc biến môi trường — bạn truyền credentials trực tiếp vào constructor. File `.env` là quy ước của người dùng; dùng `dotenv` hoặc env loader của framework để đọc.
+SDK không tự động đọc biến môi trường — bạn truyền thông tin xác thực trực tiếp vào constructor. Tệp `.env` là một quy ước người dùng để lưu trữ bí mật; sử dụng `dotenv` hoặc trình tải env của framework để đọc chúng.
 
 ```env
-# Credentials
-IMBRACE_API_KEY=your_api_key_here
-IMBRACE_ACCESS_TOKEN=your_jwt_token_here
+# Thông tin xác thực
+IMBRACE_API_KEY=api_key_của_bạn
+IMBRACE_ACCESS_TOKEN=jwt_token_của_bạn
 
-# ID tổ chức — gửi kèm mọi request
-IMBRACE_ORGANIZATION_ID=your_org_id_here
+# ID Tổ chức — được gửi với mọi yêu cầu
+IMBRACE_ORGANIZATION_ID=org_id_của_bạn
 
-# Tuỳ chọn: override URL gateway trực tiếp
-IMBRACE_BASE_URL=https://app-gatewayv2.imbrace.co
+# Tùy chọn: ghi đè URL gateway trực tiếp
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
 ```
 
 #### Lấy API Key
 
-**Cách 1 — Imbrace Portal:** đăng nhập và vào **Settings → API Keys**.
+**Tùy chọn 1 — Cổng thông tin Imbrace:** đăng nhập và đi đến **Settings → API Keys**.
 
-**Cách 2 — qua API** (cần có access token hiện tại):
+**Tùy chọn 2 — qua API** (yêu cầu access token hiện có):
 
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
+  -H "x-access-token: <token_hiện_có_của_bạn>" \
   -H "Content-Type: application/json" \
   -d '{"expirationDays": 30}'
 ```
 
-Giá trị cần dùng là `response.apiKey.apiKey`.
+Giá trị bạn cần là `response.apiKey.apiKey`.
 
 ---
 
-### Môi Trường
+### Môi trường
 
-| Tên | Gateway URL | Dùng khi |
-|---|---|---|
-| `develop` | `https://app-gateway.dev.imbrace.co` | Phát triển nội bộ |
-| `sandbox` | `https://app-gateway.sandbox.imbrace.co` | Kiểm thử tích hợp |
-| `stable` | `https://app-gatewayv2.imbrace.co` | Production (mặc định) |
+| Tên       | URL Gateway                             | Sử dụng khi           |
+| --------- | --------------------------------------- | --------------------- |
+| `develop` | `https://app-gateway.dev.imbrace.co`    | Phát triển nội bộ     |
+| `sandbox` | `https://app-gateway.sandbox.imbrace.co`| Kiểm thử tích hợp     |
+| `stable`  | `https://app-gatewayv2.imbrace.co`      | Sản xuất (mặc định)   |
 
-Chuyển môi trường qua option `env` trong constructor, hoặc override URL trực tiếp bằng `baseUrl`:
+Chuyển đổi môi trường qua tùy chọn constructor `env`, hoặc ghi đè URL trực tiếp bằng `baseUrl`:
 
 <Tabs>
   <TabItem label="TypeScript">
 
 ```typescript
-const client = new ImbraceClient({ env: 'sandbox' })
+const client = new ImbraceClient({ env: "sandbox" });
 ```
 
   </TabItem>
@@ -156,49 +156,49 @@ client = ImbraceClient(env="sandbox")
 
 ---
 
-### Khởi Tạo Client
+### Khởi tạo Client
 
 <Tabs>
   <TabItem label="TypeScript">
 
 ```typescript
-import { ImbraceClient } from '@imbrace/sdk'
+import { ImbraceClient } from "@imbrace/sdk";
 
-// Server-side — API Key
+// Phía máy chủ — API Key
 const client = new ImbraceClient({
   apiKey:         process.env.IMBRACE_API_KEY,
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
-  baseUrl:        'https://app-gatewayv2.imbrace.co', // hoặc dùng env: 'stable'
-})
+  baseUrl:        "https://app-gatewayv2.imbrace.co", // hoặc dùng env: "stable"
+});
 
-// Client-side — Access Token (ví dụ sau khi đăng nhập OTP)
+// Phía client — Access Token (ví dụ: sau khi đăng nhập OTP)
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN,
-  baseUrl:     'https://app-gatewayv2.imbrace.co',
-})
+  baseUrl:     "https://app-gatewayv2.imbrace.co",
+});
 
 // Luồng đăng nhập OTP
-const anon = new ImbraceClient({ baseUrl: 'https://app-gatewayv2.imbrace.co' })
-await anon.requestOtp('user@example.com')
-await anon.loginWithOtp('user@example.com', '123456')
-// Token được lưu tự động vào client
+const anon = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+await anon.requestOtp("user@example.com");
+await anon.loginWithOtp("user@example.com", "123456");
+// Token được lưu tự động trên client
 ```
 
   </TabItem>
-  <TabItem label="Python (sync)">
+  <TabItem label="Python (đồng bộ)">
 
 ```python
 import os
 from imbrace import ImbraceClient
 
-# Server-side — API Key
+# Phía máy chủ — API Key
 client = ImbraceClient(
     api_key=os.environ["IMBRACE_API_KEY"],
     organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
     env="stable",
 )
 
-# Client-side — Access Token
+# Phía client — Access Token
 client = ImbraceClient(
     access_token="eyJhbGci...",
     organization_id="org_xxx",
@@ -211,7 +211,7 @@ anon.login_with_otp("user@example.com", "123456")
 ```
 
   </TabItem>
-  <TabItem label="Python (async)">
+  <TabItem label="Python (bất đồng bộ)">
 
 ```python
 from imbrace import AsyncImbraceClient
@@ -227,21 +227,21 @@ async def main():
 
 ---
 
-### Cài Đặt CLI
+### Cài đặt CLI
 
 ```bash
-# Cài đặt global
+# Cài đặt toàn cục
 npm install -g @imbrace/cli
 
 # Đăng nhập để bắt đầu
 imbrace login --api-key api_xxx...
 ```
 
-Xem [CLI Installation](/cli/installation/) để biết thêm cách cài đặt và [CLI Commands](/cli/commands/) để tham khảo lệnh đầy đủ.
+Xem [Cài đặt CLI](/cli/installation/) để biết các phương pháp cài đặt thay thế và [CLI Commands](/cli/commands/) để biết tài liệu tham khảo lệnh đầy đủ.
 
 ---
 
-### Ví Dụ Sử Dụng Nhanh
+## Ví dụ Sử dụng Nhanh
 
 <Tabs>
   <TabItem label="TypeScript">
@@ -251,10 +251,10 @@ import { ImbraceClient } from '@imbrace/sdk'
 
 const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
 
-// Lấy thông tin user hiện tại
+// Lấy người dùng hiện tại
 const me = await client.platform.getMe()
 
-// Danh sách channel
+// Liệt kê kênh
 const channels = await client.channel.list()
 
 // Gửi tin nhắn
@@ -263,7 +263,7 @@ await client.messages.send({ type: 'text', text: 'Xin chào!' })
 // AI completion
 const result = await client.ai.complete({
   model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'Tóm tắt báo cáo.' }],
+  messages: [{ role: 'user', content: 'Tóm tắt điều này.' }],
 })
 
 // AI streaming
@@ -277,6 +277,13 @@ const response = await client.aiAgent.streamChat({
   assistant_id: 'asst_abc',
   messages: [{ role: 'user', content: 'Xin chào' }],
 })
+const reader = response.body!.getReader()
+const decoder = new TextDecoder()
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  console.log(decoder.decode(value))
+}
 ```
 
   </TabItem>
@@ -287,13 +294,16 @@ from imbrace import ImbraceClient
 from imbrace.types.ai import CompletionInput, CompletionMessage
 
 with ImbraceClient(api_key="sk-...") as client:
-    # Lấy thông tin user
+    # Lấy người dùng hiện tại
     me = client.platform.get_me()
 
-    # Danh sách channel và boards
+    # Liệt kê kênh và board
     channels = client.channel.list()
-    boards   = client.boards.list()
-    items    = client.boards.list_items(boards[0]["id"])
+    boards_res = client.boards.list()
+    boards_data = boards_res.get("data", [])
+    if boards_data:
+        board_id = boards_data[0].get("_id") or boards_data[0]["id"]
+        items = client.boards.list_items(board_id)
 
     # AI completion
     result = client.ai.complete(CompletionInput(
@@ -316,22 +326,22 @@ with ImbraceClient(api_key="sk-...") as client:
 
 ---
 
-### Override URL Dịch Vụ
+### Ghi đè URL Dịch vụ
 
-Dùng khi một microservice chạy ở địa chỉ khác (ví dụ: local dev, staging riêng).
+Sử dụng khi một microservice chạy ở địa chỉ khác (ví dụ: dev cục bộ, staging chuyên dụng).
 
 <Tabs>
   <TabItem label="TypeScript">
 
 ```typescript
 const client = new ImbraceClient({
-  env: 'develop',
+  env: "develop",
   services: {
-    aiAgent:        'http://localhost:4000/ai-agent',
-    dataBoard:      'http://localhost:3001/data-board',
-    channelService: 'http://localhost:3002/channel-service',
+    aiAgent: "http://localhost:4000/ai-agent",
+    dataBoard: "http://localhost:3001/data-board",
+    channelService: "http://localhost:3002/channel-service",
   },
-})
+});
 ```
 
   </TabItem>
@@ -341,9 +351,9 @@ const client = new ImbraceClient({
 client = ImbraceClient(
     env="develop",
     services={
-        "ai_agent":        "http://localhost:4000/ai-agent",
-        "data_board":      "http://localhost:3001/data-board",
-        "channel_service": "http://localhost:3002/channel-service",
+        "ai_agent":       "http://localhost:4000/ai-agent",
+        "data_board":     "http://localhost:3001/data-board",
+        "channel_service":"http://localhost:3002/channel-service",
     },
 )
 ```
@@ -351,62 +361,62 @@ client = ImbraceClient(
   </TabItem>
 </Tabs>
 
-Tất cả service keys hợp lệ:
+Tất cả các key dịch vụ hợp lệ:
 
-| Python key | TypeScript key | Dịch vụ |
-|---|---|---|
-| `gateway` | `gateway` | App Gateway |
-| `platform` | `platform` | Platform service |
-| `channel_service` | `channelService` | Channel service |
-| `data_board` | `dataBoard` | Data Board |
-| `backend` | `backend` | Board/Items backend (`/v1/backend`) |
-| `ips` | `ips` | IPS service |
-| `ai` | `ai` | AI service |
-| `marketplaces` | `marketplaces` | Marketplace service |
-| `file_service` | `fileService` | File service |
-| `message_suggestion` | `messageSuggestion` | Message Suggestion service |
-| `predict` | `predict` | Predict service |
-| `activepieces` | `activepieces` | Workflows |
-| `ai_agent` | `aiAgent` | AI Agent service |
+| Python key           | TypeScript key      | Dịch vụ                             |
+| -------------------- | ------------------- | ----------------------------------- |
+| `gateway`            | `gateway`           | App Gateway                         |
+| `platform`           | `platform`          | Platform service                    |
+| `channel_service`    | `channelService`    | Channel service                     |
+| `data_board`         | `dataBoard`         | Data Board                          |
+| `backend`            | `backend`           | Board/Items backend (`/v1/backend`) |
+| `ips`                | `ips`               | IPS service                         |
+| `ai`                 | `ai`                | AI service                          |
+| `marketplaces`       | `marketplaces`      | Marketplace service                 |
+| `file_service`       | `fileService`       | File service                        |
+| `message_suggestion` | `messageSuggestion` | Message Suggestion service          |
+| `predict`            | `predict`           | Predict service                     |
+| `workflow_engine`    | `workflowEngine`    | Workflows (Activepieces)            |
+| `ai_agent`           | `aiAgent`           | AI Agent service                    |
 
 ---
 
-### Xử Lý Lỗi Thường Gặp
+### Khắc phục sự cố
 
-#### `Cannot find package '@imbrace/sdk'`
+##### `Cannot find package '@imbrace/sdk'`
 
-Package chưa được link. Chạy lại từ `ts`:
+Gói chưa được liên kết. Chạy lại từ `ts`:
 
 ```bash
 npm link
 cd /path/to/your-project && npm link @imbrace/sdk
 ```
 
-#### `ERR_MODULE_NOT_FOUND` cho file trong `dist/`
+##### `ERR_MODULE_NOT_FOUND` cho tệp trong `dist/`
 
-Package chưa được build:
+Gói chưa được xây dựng:
 
 ```bash
 cd ts && npm run build
 ```
 
-#### `ModuleNotFoundError: No module named 'imbrace'`
+##### `ModuleNotFoundError: No module named 'imbrace'`
 
 ```bash
 cd py && pip install -e ".[dev]"
 ```
 
-#### `401 Unauthorized`
+##### `401 Unauthorized`
 
-API Key hết hạn hoặc sai. Tạo API Key mới:
+API Key đã hết hạn hoặc không hợp lệ. Tạo key mới:
 
 ```bash
 curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
+  -H "x-access-token: <token_hiện_có_của_bạn>" \
   -H "Content-Type: application/json" \
   -d '{"expirationDays": 30}'
 ```
 
-#### `UserWarning: ImbraceClient: no credentials provided`
+##### `UserWarning: ImbraceClient: no credentials provided`
 
-Không truyền `api_key` hoặc `access_token`. Nếu cố ý (ví dụ: chỉ dùng để đăng nhập), có thể bỏ qua warning này. Nếu không, hãy kiểm tra lại file `.env`.
+Không có `api_key` hoặc `access_token` nào được truyền. Nếu cố ý (ví dụ: luồng chỉ đăng nhập), bỏ qua cảnh báo này. Nếu không, hãy kiểm tra tệp `.env` của bạn.
