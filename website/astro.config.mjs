@@ -131,6 +131,9 @@ export default defineConfig({
         },
       ],
       lastUpdated: true,
+      expressiveCode: {
+        langs: ['env'],
+      },
     }),
   ],
 })
