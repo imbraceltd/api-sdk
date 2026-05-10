@@ -136,11 +136,20 @@ export class AiAgentResource {
 
   // --- Data Board ---
 
-  async suggestFieldTypes(body: { fields: { name: string; samples?: unknown[] }[] }): Promise<any> {
+  /**
+   * Suggest a JSON schema by analyzing sample documents (PDFs/images).
+   *
+   * Pass `fileUrls` — public URLs the AI Agent worker can fetch. The backend
+   * extracts visible structure and proposes a `{ field_name: { type, description } }`
+   * schema suitable for {@link DocumentAIResource.createAgent}.
+   *
+   * @param input.fileUrls — array of public document URLs.
+   */
+  async suggestFieldTypes(input: { fileUrls: string[] }): Promise<any> {
     return this.http.getFetch()(`${this.base}/data-board/suggest-field-types`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ file_urls: input.fileUrls }),
     }).then(r => r.json())
   }
 

@@ -107,8 +107,17 @@ class AiAgentResource:
 
     # --- Data Board ---
 
-    def suggest_field_types(self, fields: List[Dict[str, Any]]) -> Dict[str, Any]:
-        return self._http.request("POST", f"{self._base}/data-board/suggest-field-types", json={"fields": fields}).json()
+    def suggest_field_types(self, file_urls: List[str]) -> Dict[str, Any]:
+        """Suggest a JSON schema by analyzing sample documents (PDFs/images).
+
+        :param file_urls: array of public document URLs the AI Agent worker can fetch.
+            The backend extracts visible structure and proposes a schema.
+        """
+        return self._http.request(
+            "POST",
+            f"{self._base}/data-board/suggest-field-types",
+            json={"file_urls": file_urls},
+        ).json()
 
     # --- Parquet ---
 
@@ -328,8 +337,13 @@ class AsyncAiAgentResource:
 
     # --- Data Board ---
 
-    async def suggest_field_types(self, fields: List[Dict[str, Any]]) -> Dict[str, Any]:
-        res = await self._http.request("POST", f"{self._base}/data-board/suggest-field-types", json={"fields": fields})
+    async def suggest_field_types(self, file_urls: List[str]) -> Dict[str, Any]:
+        """Suggest a JSON schema by analyzing sample documents (async)."""
+        res = await self._http.request(
+            "POST",
+            f"{self._base}/data-board/suggest-field-types",
+            json={"file_urls": file_urls},
+        )
         return res.json()
 
     # --- Parquet ---

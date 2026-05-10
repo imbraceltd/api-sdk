@@ -73,4 +73,5 @@ API-document
 
 sdk-tester
 test-logs
-test-npm-pip-pkg    
+test-npm-pip-pkg  
+scripts
