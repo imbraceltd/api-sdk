@@ -833,16 +833,15 @@ classification = client.ai_agent.classify_file(file_id="file_abc")
 
 ## Data Board
 
-AI-assisted field type suggestion for structured datasets.
+Analyze sample documents (PDFs/images) to suggest a JSON schema suitable for Document AI agents.
 
 <Tabs syncKey="lang">
 <TabItem label="TypeScript">
 ```typescript
 const result = await client.aiAgent.suggestFieldTypes({
-  fields: [
-    { name: "created_at", samples: ["2024-01-01", "2024-02-15"] },
-    { name: "amount",     samples: [100, 200.5, 999] },
-    { name: "is_active",  samples: [true, false, true] },
+  fileUrls: [
+    "https://cdn.imbrace.co/docs/invoice-1.pdf",
+    "https://cdn.imbrace.co/docs/invoice-2.pdf",
   ],
 });
 // result.fields[i].suggestedType → "datetime" | "number" | "boolean" | ...
@@ -850,11 +849,12 @@ const result = await client.aiAgent.suggestFieldTypes({
 </TabItem>
 <TabItem label="Python">
 ```python
-result = client.ai_agent.suggest_field_types(fields=[
-    {"name": "created_at", "samples": ["2024-01-01", "2024-02-15"]},
-    {"name": "amount",     "samples": [100, 200.5, 999]},
-    {"name": "is_active",  "samples": [True, False, True]},
-])
+result = client.ai_agent.suggest_field_types(
+    file_urls=[
+        "https://cdn.imbrace.co/docs/invoice-1.pdf",
+        "https://cdn.imbrace.co/docs/invoice-2.pdf",
+    ],
+)
 # result["fields"][i]["suggestedType"] → "datetime" | "number" | "boolean" | ...
 ```
 </TabItem>
