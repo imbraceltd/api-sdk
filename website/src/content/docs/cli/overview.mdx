@@ -25,7 +25,7 @@ The CLI supports two authentication methods:
 
 ### Credential Storage
 
-Credentials are stored via the `conf` npm package with `projectName: "imbrace"`.
+Credentials and per-environment settings are stored in **profiles** via the `conf` npm package with `projectName: "imbrace"`.
 
 | OS | Config path |
 |---|---|
@@ -33,14 +33,30 @@ Credentials are stored via the `conf` npm package with `projectName: "imbrace"`.
 | Linux | `~/.config/imbrace-nodejs/config.json` |
 | Windows | `%APPDATA%\imbrace-nodejs\Config\config.json` |
 
-Stored fields: `credential`, `method` (`"api-key"` | `"password"`), `email`.
+Each profile stores:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `credential` | string | API key or JWT token |
+| `method` | `"api-key"` \| `"password"` | Authentication method |
+| `email` | string? | Email (for password auth) |
+| `env` | `"stable"` \| `"sandbox"` \| `"develop"` \| `"prodv2"`? | SDK environment preset |
+| `base_url` | string? | Override gateway base URL |
+| `organization_id` | string? | Organization ID |
+| `timeout` | number? | Request timeout in ms |
+| `services` | object? | Per-service URL overrides |
+| `check_health` | boolean? | Ping health on client init |
+
+Resolution order for profile selection: `--profile` flag > `IMBRACE_PROFILE` env var > `active_profile` config > `"default"`.
 
 ### Auto-login
 
-Every CLI command (except `login`) extends `BaseCommand`, which calls `ensureLoggedIn()` on init. If no credential is found, it interactively prompts the user to choose a login method (API Key or Email + Password).
+Resource commands (ai-agent, data-board, document-ai, guardrail, orchestrator, workflow) extend `BaseCommand`, which calls `ensureLoggedIn()` on init. If no credential is found for the resolved profile, it interactively prompts the user to choose a login method (API Key or Email + Password). Auth and profile management commands (`login`, `logout`, `whoami`, `docs`, `profile/*`) extend `Command` directly and do not auto-prompt.
+
+All commands accept a global `--profile` flag to target a specific profile, overriding `IMBRACE_PROFILE` env var and the `active_profile` setting.
 
 <Aside type="tip">
-  All commands accept `--json` for machine-readable output and `-h` / `--help` for usage.
+  Most commands accept `--json` for machine-readable output (exceptions: `login`, `logout`). All commands accept `-h` / `--help` for usage.
 </Aside>
 
 ## Project Structure
@@ -53,6 +69,7 @@ imbrace-cli/
         ├── config.ts             ← Credential store (conf)
         └── commands/
             ├── login.ts / logout.ts / whoami.ts / docs.ts
+            ├── profile/      (6 commands: create, delete, list, rename, show, use)
             ├── data-board/    (8 commands)
             ├── ai-agent/      (9 commands)
             ├── document-ai/   (7 commands)

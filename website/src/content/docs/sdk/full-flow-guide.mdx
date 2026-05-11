@@ -593,26 +593,31 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
 
 2. **Add a custom field**
 
-   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the updated board — find your new field inside `board.fields`.
+   Field types are `ShortText`, `LongText`, `Number`, `Dropdown`, `Date`, `Checkbox`, etc. `createField` returns the newly-created field. To inspect all fields on the board, fetch the board separately.
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const updated = await client.boards.createField(board._id, {
+       await client.boards.createField(board._id, {
          name: "Company",
          type: "ShortText",
        })
-       // Find the identifier field (auto-created with every board)
-       const identifierField = updated.fields.find(f => f.is_identifier)
+
+       // Boards auto-create an identifier field — fetch the board to see all fields
+       const boardWithFields = await client.boards.get(board._id) as any
+       const identifierField = boardWithFields.fields?.find((f: any) => f.is_identifier)
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       updated = client.boards.create_field(board["_id"], {
+       client.boards.create_field(board["_id"], {
            "name": "Company",
            "type": "ShortText",
        })
-       identifier_field = next(f for f in updated["fields"] if f.get("is_identifier"))
+
+       # Fetch the board to see all fields (including the auto-created identifier)
+       board_with_fields = client.boards.get(board["_id"])
+       identifier_field = next(f for f in board_with_fields.get("fields", []) if f.get("is_identifier"))
        ```
      </TabItem>
    </Tabs>

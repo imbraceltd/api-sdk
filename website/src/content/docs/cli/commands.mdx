@@ -107,7 +107,7 @@ imbrace ai-agent delete <agentId> [--yes] [--json]
 
 ### Create / Update Flags
 
-`create` and `update` accept the same flags. `update` preserves unchanged fields via PUT-merge.
+`create` and `update` accept the same behavioral flags. `update` preserves unchanged fields via PUT-merge. `--id-only` is available on `create` only.
 
 | Flag | Maps to | Notes |
 |---|---|---|
@@ -140,9 +140,8 @@ imbrace ai-agent delete <agentId> [--yes] [--json]
 | `--streaming` | `streaming` | Default true |
 | `--use-memory` | `use_memory` | Default true |
 | **Output** | | |
-| `--yes` / `-y` | — | Skip confirm on delete |
 | `--json` | — | Machine-readable output |
-| `--id-only` | — | Print only the new agent ID |
+| `--id-only` | — | Print only the new agent ID (create only) |
 
 ### Full Create Example
 
@@ -401,6 +400,62 @@ imbrace workflow run-detail <runId> [--json]
 | `{{trigger.X}}` | Top-level trigger field |
 | `{{step_1.output.Y}}` | Output field Y from step_1 |
 | `{{connections.<id>.access_token}}` | Connection field |
+
+---
+
+## Profile
+
+Manage multiple credential profiles (AWS-style). Each profile stores credentials, environment preset, organization ID, and other SDK settings. Resolution order: `--profile` flag > `IMBRACE_PROFILE` env var > `active_profile` config > `"default"`.
+
+### Create
+
+Create a new profile and verify the credential against the platform:
+
+```bash
+imbrace profile create <name> --api-key api_xxx... [--env stable|sandbox|develop|prodv2] [--org-id <orgId>] [--base-url <url>] [--timeout <ms>] [--check-health] [--services '<json>'] [--json] [--force]
+```
+
+`--force` skips credential verification. If the profile already exists, the command errors.
+
+### List
+
+```bash
+imbrace profile list [--json]
+```
+
+Shows all profiles with active marker, environment, and status.
+
+### Show
+
+```bash
+imbrace profile show [<name>] [--json]
+```
+
+Defaults to the active profile. Shows all stored fields (credential preview, method, email, env, base URL, org ID, timeout, services, health check).
+
+### Use
+
+Switch the active profile for all subsequent commands:
+
+```bash
+imbrace profile use <name> [--json]
+```
+
+### Rename
+
+```bash
+imbrace profile rename <from> <to> [--json]
+```
+
+Preserves credentials and active state.
+
+### Delete
+
+```bash
+imbrace profile delete <name> [--yes] [--json]
+```
+
+Does not affect data on the platform — only removes the local credential set.
 
 ---
 

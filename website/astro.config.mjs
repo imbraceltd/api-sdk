@@ -104,6 +104,19 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Reference',
+          items: [
+            { label: 'AI Agent',      link: '/reference/ai-agent/' },
+            { label: 'Workflow',      link: '/reference/workflow/' },
+            { label: 'Board',         link: '/reference/board/' },
+            { label: 'Campaign',      link: '/reference/campaign/' },
+            { label: 'Communication', link: '/reference/communication/' },
+            { label: 'Channel',       link: '/reference/channel/' },
+            { label: 'Conversation',  link: '/reference/conversation/' },
+            { label: 'Contact',       link: '/reference/contact/' },
+          ],
+        },
+        {
           label: 'Guides',
           translations: { vi: 'Hướng Dẫn', 'zh-CN': '指南', 'zh-TW': '指南' },
           items: [
