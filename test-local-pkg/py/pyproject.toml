@@ -1,0 +1,12 @@
+[project]
+name = "test-local-pkg-py"
+version = "1.0.0"
+description = "Verify the local imbrace SDK (path: ../../py) — auto-picks API Key vs Access Token from .env"
+requires-python = ">=3.9"
+dependencies = [
+  "imbrace",
+  "python-dotenv>=1.0.0",
+]
+
+[tool.uv.sources]
+imbrace = { path = "../../py", editable = true }
