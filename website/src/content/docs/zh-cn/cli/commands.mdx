@@ -5,6 +5,76 @@ description: Complete reference for all Imbrace CLI commands.
 
 import { Aside } from "@astrojs/starlight/components";
 
+## Profile
+
+The CLI uses AWS-style **named profiles** so one install can manage multiple accounts / environments (work + personal, cloud + sandbox, self-hosted instances, etc.). Each profile is a credential set mapping 1:1 to the SDK `ImbraceClientConfig`.
+
+```bash
+imbrace profile list [--json]
+imbrace profile show [name] [--json]
+imbrace profile create <name> --api-key <key> [--env stable|sandbox|develop|prodv2] [--base-url <url>] [--org-id <id>] [--timeout <ms>] [--check-health] [--services '<json>'] [--force] [--json] [--id-only]
+imbrace profile use <name> [--json]
+imbrace profile delete <name> [--yes] [--json]
+imbrace profile rename <from> <to> [--json]
+```
+
+### Resolution order
+
+Highest priority first:
+
+1. `--profile <name>` flag (per-call override)
+2. `IMBRACE_PROFILE` env var
+3. `active_profile` saved in config
+4. `"default"` fallback
+
+### Per-profile config maps to SDK ImbraceClientConfig
+
+| Flag | SDK option | Use |
+|---|---|---|
+| `--api-key` / login `--email/--password` | `apiKey` / `accessToken` | Credential (api_* or JWT) |
+| `--env` (`stable` / `sandbox` / `develop` / `prodv2`) | `env` | Choose preset gateway |
+| `--base-url <url>` | `baseUrl` | Override gateway (self-host) |
+| `--org-id <id>` | `organizationId` | `x-organization-id` header |
+| `--timeout <ms>` | `timeout` | Request timeout (default 30000) |
+| `--check-health` | `checkHealth` | Ping `/global/health` on init |
+| `--services '<json>'` | `services` | Per-microservice URL override |
+
+### Self-hosted Imbrace example
+
+```bash
+imbrace profile create acme \
+  --api-key api_acme_xxx... \
+  --base-url "https://imbrace.acme.com" \
+  --org-id "org_acme_001"
+
+imbrace profile use acme
+imbrace workflow list             # → calls https://imbrace.acme.com/...
+```
+
+### Multi-environment example
+
+```bash
+imbrace profile create prod    --api-key api_aaa... --env stable
+imbrace profile create staging --api-key api_bbb... --env sandbox
+imbrace profile create dev     --api-key api_ccc... --env develop
+
+# Daily use
+imbrace profile use prod
+imbrace workflow list
+
+# Override for one call
+imbrace --profile staging workflow list
+
+# CI/CD
+IMBRACE_PROFILE=prod imbrace workflow run <flowId>
+```
+
+<Aside type="note">
+  Legacy pre-v0.6 configs are auto-migrated into a `"default"` profile on first run. Existing single-account users see no change.
+</Aside>
+
+---
+
 ## 数据面板
 
 数据面板是一个 CRM 管道 — 线索、交易、任务或任何结构化数据。

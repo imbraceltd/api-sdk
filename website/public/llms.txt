@@ -90,14 +90,49 @@
 
 ## Authentication
 
-- `imbrace login --api-key api_xxx...` — Login with API key (recommended for CI/CD)
-- `imbrace login --email user@example.com --password mypass` — Login with email + password
-- `imbrace logout` — Clear credentials
-- `imbrace whoami --json` — Verify login status
+- `imbrace login --api-key api_xxx... [--profile <name>] [--env stable|sandbox|develop|prodv2] [--base-url <url>] [--org-id <id>] [--timeout <ms>] [--check-health] [--services '<json>']` — Login with API key (writes credentials into a profile)
+- `imbrace login --email user@example.com --password mypass [--profile <name>]` — Login with email + password
+- `imbrace logout [--profile <name>]` — Clear credentials for the (named or active) profile
+- `imbrace whoami [--profile <name>] --json` — Verify login status
 
 Credentials stored via `conf` package: macOS `~/Library/Preferences/imbrace-nodejs/config.json`, Linux `~/.config/imbrace-nodejs/config.json`, Windows `%APPDATA%\imbrace-nodejs\Config\config.json`.
 
 If a command returns 401, run `imbrace login --api-key api_xxx...` again. All commands support `--json` flag for machine-readable output — always use it when scripting.
+
+## Profile (multi-account, AWS-style)
+
+The CLI uses named profiles so one install can manage multiple accounts/environments — work + personal, cloud + sandbox + self-hosted, etc. Each profile maps 1:1 to the SDK `ImbraceClientConfig`.
+
+- `imbrace profile list --json` — List all profiles, mark the active one
+- `imbrace profile show [name] --json` — Show env, email, org_id, timeout, ...
+- `imbrace profile create <name> --api-key <key> [--env stable|sandbox|develop|prodv2] [--base-url <url>] [--org-id <id>] [--timeout <ms>] [--check-health] [--services '<json>'] [--force]` — Create + verify credential
+- `imbrace profile use <name>` — Switch active profile
+- `imbrace profile delete <name> --yes`
+- `imbrace profile rename <from> <to>`
+
+**Resolution order** (highest priority first): `--profile <name>` flag > `IMBRACE_PROFILE` env var > `active_profile` saved in config > `"default"` fallback.
+
+**Profile → SDK ImbraceClientConfig map**:
+
+| Profile field | SDK option | Use |
+|---|---|---|
+| `credential` (api_*/sk-*) | `apiKey` | server-side key |
+| `credential` (JWT) | `accessToken` | OAuth/login token |
+| `env` | `env` | `stable` (default) / `sandbox` / `develop` / `prodv2` |
+| `base_url` | `baseUrl` | Override gateway (for self-hosted Imbrace) |
+| `organization_id` | `organizationId` | `x-organization-id` header |
+| `timeout` | `timeout` | Request timeout in ms (default 30000) |
+| `services` | `services` | `Partial<ServiceUrls>` — per-microservice URL override |
+| `check_health` | `checkHealth` | Ping `/global/health` on init (default false) |
+
+**Self-hosted example**:
+```bash
+imbrace profile create acme --api-key api_xxx --base-url https://imbrace.acme.com --org-id org_acme_001
+imbrace profile use acme
+imbrace workflow list      # → calls https://imbrace.acme.com/...
+```
+
+Legacy pre-v0.6 configs are auto-migrated into a `"default"` profile on first run.
 
 ## Data Board
 

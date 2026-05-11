@@ -13,15 +13,19 @@ imbrace (CLI) → https://app-gatewayv2.imbrace.co (Imbrace Platform)
 
 ## Authentication Flow
 
-The CLI supports two authentication methods:
+Credentials live inside **named profiles** (AWS-style). One CLI install can hold multiple accounts/environments — switch via `imbrace profile use <name>`, `--profile <name>` flag, or `IMBRACE_PROFILE` env var. Each profile maps 1:1 to the SDK `ImbraceClientConfig`.
+
+The CLI supports two authentication methods (both written into a profile):
 
 **1. API Key** (credential starts with `sk-` or `api_`):
-- Passed directly to SDK: `new ImbraceClient({ apiKey: credential })`
-- Stored as-is in local config
+- Passed directly to SDK: `new ImbraceClient({ apiKey: credential, env, baseUrl, organizationId, ... })`
+- Stored as-is in the target profile
 
 **2. Email + Password** (returns JWT token):
-- SDK: `client.login(email, password)` → token stored locally
+- SDK: `client.login(email, password)` → token stored in the profile
 - JWT token stored as credential
+
+See [Commands → Profile](/cli/commands/#profile) for the full profile management surface, including `--base-url` for self-hosted Imbrace instances.
 
 ### Credential Storage
 
