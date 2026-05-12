@@ -1,6 +1,6 @@
 # Integrations
 
-Framework-level wiring patterns for both SDKs. Pick the section for your stack â€” TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
+Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
 
 For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication/) and [Setup Guide](/getting-started/setup/#configure-credentials).
 
@@ -61,7 +61,7 @@ export function ProductList() {
   return (
     <ul>
       {products.map((p) => (
-        <li key={p.id}>{p.name} â€” {p.price} {p.currency}</li>
+        <li key={p.id}>{p.name} — {p.price}</li>
       ))}
     </ul>
   );
@@ -92,12 +92,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const product = await client.marketplace.createProduct(body);
-  return NextResponse.json(product, { status: 201 });
+  const order = await client.marketplace.createOrder(body);
+  return NextResponse.json(order, { status: 201 });
 }
 ```
 
-`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide â†’ Configure credentials](/getting-started/setup/#configure-credentials).
+`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup/#configure-credentials).
 
 ### Server component (App Router)
 
@@ -112,8 +112,10 @@ const client = new ImbraceClient({
 export default async function ProductsPage() {
   const { data: products } = await client.marketplace.listProducts({ limit: 20 });
   return (
+    <main>
       <h1>Products</h1>
       <ul>{products.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
+    </main>
   );
 }
 ```
@@ -150,11 +152,12 @@ npx ts-node scripts/export-contacts.ts
 
 ### Per-request dependency injection
 
-The simplest pattern â€” one async client per request, lifetime managed by the dependency:
+The simplest pattern — one async client per request, lifetime managed by the dependency:
 
 ```python
 from fastapi import FastAPI, Depends
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 app = FastAPI()
 
@@ -164,7 +167,7 @@ async def get_imbrace() -> AsyncImbraceClient:
 
 @app.get("/products")
 async def list_products(client: AsyncImbraceClient = Depends(get_imbrace)):
-    result = await client.marketplace.list_products(limit=20)
+    result = await client.marketplace.list_products({"limit": 20})
     return result["data"]
 
 @app.get("/products/{product_id}")
@@ -173,10 +176,10 @@ async def get_product(product_id: str, client: AsyncImbraceClient = Depends(get_
 
 @app.post("/ai/chat")
 async def chat(message: str, client: AsyncImbraceClient = Depends(get_imbrace)):
-    return await client.ai.complete(
+    return await client.ai.complete(CompletionInput(
         model="gpt-4o",
-        messages=[{"role": "user", "content": message}],
-    )
+        messages=[CompletionMessage(role="user", content=message)],
+    ))
 ```
 
 ### Global singleton (better connection reuse)
@@ -219,13 +222,13 @@ async def fetch_dashboard_data():
     async with AsyncImbraceClient() as client:
         me, products, channels = await asyncio.gather(
             client.platform.get_me(),
-            client.marketplace.list_products(limit=5),
-            client.channel.list_channels(type="group"),
+            client.marketplace.list_products({"limit": 5}),
+            client.channel.list(type="group"),
         )
         return {
             "user": me,
             "products": products["data"],
-            "channels": channels["data"],
+            "channels": channels.data,
         }
 
 data = asyncio.run(fetch_dashboard_data())
@@ -236,14 +239,15 @@ data = asyncio.run(fetch_dashboard_data())
 ```python
 import asyncio
 from imbrace import AsyncImbraceClient
+from imbrace.types.ai import CompletionInput, CompletionMessage
 
 async def stream_response():
     async with AsyncImbraceClient() as client:
-        async for chunk in client.ai.stream(
+        async for chunk in client.ai.stream(CompletionInput(
             model="gpt-4o",
-            messages=[{"role": "user", "content": "Explain async/await in Python."}],
-        ):
-            content = chunk["choices"][0]["delta"].get("content", "")
+            messages=[CompletionMessage(role="user", content="Explain async/await in Python.")],
+        )):
+            content = chunk.choices[0].delta.content or ""
             print(content, end="", flush=True)
 
 asyncio.run(stream_response())
@@ -263,10 +267,10 @@ from imbrace import ImbraceClient, ApiError
 def product_list(request):
     with ImbraceClient() as client:
         try:
-            result = client.marketplace.list_products(
-                category=request.GET.get("category"),
-                page=int(request.GET.get("page", 1)),
-            )
+            result = client.marketplace.list_products({
+                "category": request.GET.get("category"),
+                "page": int(request.GET.get("page", 1)),
+            })
             return JsonResponse(result)
         except ApiError as e:
             return JsonResponse({"error": str(e)}, status=e.status_code)
@@ -307,20 +311,22 @@ app = Celery("tasks")
 def sync_products(self):
     try:
         with ImbraceClient() as client:
-            result = client.marketplace.list_products(limit=100)
+            result = client.marketplace.list_products({"limit": 100})
             for product in result["data"]:
                 save_to_db(product)
     except NetworkError as exc:
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-Don't share a single `ImbraceClient` instance across Celery workers â€” create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
 
 ---
 
 ## OTP login flow
 
-The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication â†’ OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+
+**TypeScript**
 
 ```tsx
 // components/LoginForm.tsx
@@ -349,14 +355,21 @@ export function LoginForm() {
   }
 
   return step === "email" ? (
+    <div>
       <input value={email} onChange={(e) => setEmail(e.target.value)} />
       <button onClick={requestOtp}>Send OTP</button>
+    </div>
   ) : (
+    <div>
       <input value={otp} onChange={(e) => setOtp(e.target.value)} />
       <button onClick={verifyOtp}>Verify</button>
+    </div>
   );
 }
 ```
+
+**Python**
+
 ```python
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -374,16 +387,15 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.request_otp(body.email)
+        await client.auth.signin_email_request(body.email)
     return {"message": "OTP sent"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            await client.login_with_otp(body.email, body.otp)
-            token = client._token_manager.get_token()
-            return {"access_token": token}
+            result = await client.auth.signin_with_email(body.email, body.otp)
+            return {"access_token": result["token"]}
         except AuthError:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 ```

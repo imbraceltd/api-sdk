@@ -1,18 +1,18 @@
 # Local Testing
 
-This guide lets you test the **built package** exactly as a consumer would install it â€” not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
+This guide lets you test the **built package** exactly as a consumer would install it — not the raw source. Use it before publishing a new version, or when reproducing a bug a consumer reported.
 
 ## Prerequisites
 
 - TypeScript: Node 18+
-- Python: Python 3.10+ and `pip`
+- Python: Python 3.9+ and `pip`
 - AWS credentials configured (`imbrace` profile) if you need to decrypt env vars from Ansible
 
 ## Environment URLs
 
 The same set of gateway base URLs applies to both SDKs. Set this once in your test environment:
 
-| Environment | `IMBRACE_BASE_URL` / `IMBRACE_GATEWAY_URL` |
+| Environment | `IMBRACE_GATEWAY_URL` |
 | ----------- | ------------------------------------------ |
 | develop     | `https://app-gateway.dev.imbrace.co`       |
 | sandbox     | `https://app-gateway.sandbox.imbrace.co`   |
@@ -29,16 +29,16 @@ AWS_PROFILE=imbrace sops -d ansible/dev/secrets.enc.env | grep IMBRACE >> /tmp/i
 
 Minimum required for live calls:
 
-| Variable          | Where to get it                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------- |
-| `IMBRACE_API_KEY` | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
-| `IMBRACE_BASE_URL` | One of the URLs in the table above (defaults to dev when unset)                              |
+| Variable              | Where to get it                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| `IMBRACE_API_KEY`     | Imbrace Portal, or `POST /private/backend/v1/third_party_token` with an existing access token |
+| `IMBRACE_GATEWAY_URL` | One of the URLs in the table above (defaults to dev when unset)                              |
 
-Org context is encoded inside the API key â€” you do not pass an organization id.
+Org context is encoded inside the API key — you do not pass an organization id.
 
 ---
 
-## TypeScript â€” link the built dist
+## TypeScript — link the built dist
 
 ### One-time setup
 
@@ -54,7 +54,7 @@ Then in the test folder:
 ```bash
 cd ts/tests/local
 npm link @imbrace/sdk
-cp .env.example .env
+cp ../../.env.example .env
 # fill in .env
 ```
 
@@ -65,24 +65,24 @@ cd ts/tests/local
 node test-local.mjs
 ```
 
-- **Without credentials** â€” runs instantiation + resource surface checks only (no network).
-- **With `IMBRACE_API_KEY` set** â€” runs all live API checks against the gateway in `IMBRACE_BASE_URL`.
+- **Without credentials** — runs instantiation + resource surface checks only (no network).
+- **With `IMBRACE_API_KEY` set** — runs all live API checks against the gateway in `IMBRACE_GATEWAY_URL`.
 
 ### Iterating on SDK changes
 
 Every edit needs a rebuild for the link to pick it up:
 
 ```bash
-# terminal 1 â€” ts/
+# terminal 1 — ts/
 npm run dev          # tsc --watch
 
-# terminal 2 â€” ts/tests/local
+# terminal 2 — ts/tests/local
 node test-local.mjs  # re-run any time
 ```
 
 ---
 
-## Python â€” install from a wheel or editable
+## Python — install from a wheel or editable
 
 ### Editable install (fastest iteration)
 
@@ -109,7 +109,7 @@ This catches missing files, packaging bugs, and import-path issues that an edita
 
 ```bash
 cd py
-pip install -r tests/requirements.txt
+pip install -e ".[dev]"
 python -m pytest tests/
 ```
 
@@ -129,11 +129,16 @@ The same test runs with both `IMBRACE_API_KEY` and `IMBRACE_ACCESS_TOKEN` to cov
 
 ## Switching environments
 
+**TypeScript**
+
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co node test-local.mjs
 ```
+
+**Python**
+
 ```bash
-IMBRACE_BASE_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
+IMBRACE_GATEWAY_URL=https://app-gateway.sandbox.imbrace.co python -m pytest tests/
 ```
 
 ---
