@@ -70,7 +70,7 @@ with ImbraceClient(api_key="api_xxx...") as client:
     ...
 ```
 
-For when to use each credential, see [Authentication](/sdk/authentication/). For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
+For when to use each credential, see [Authentication](/sdk/authentication.md). For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup.md#configure-credentials).
 
 ### Verify
 
@@ -98,4 +98,4 @@ The SDK does **not** auto-read environment variables. Pass credentials directly 
 | `IMBRACE_ACCESS_TOKEN` | A user's access token (per-session credential) |
 | `IMBRACE_GATEWAY_URL` | Override the gateway URL (default: `https://app-gatewayv2.imbrace.co`) |
 
-The org id is encoded inside both API keys and access tokens. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor. See [Authentication](/sdk/authentication/) for details.
+The org id is encoded inside both API keys and access tokens. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor. See [Authentication](/sdk/authentication.md) for details.

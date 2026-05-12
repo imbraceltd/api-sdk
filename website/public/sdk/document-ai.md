@@ -6,7 +6,7 @@ The SDK exposes two namespaces:
 - **`client.chatAi` / `client.chat_ai`** — direct document processing and model listing
 - **`client.documentAi` / `client.document_ai`** — agent-based document processing with schema management, agent CRUD, and end-to-end orchestration
 
-Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)).
+Initialize the client first (see [Installation](/sdk/installation.md) or [Quick Start](/sdk/quick-start.md)).
 
 ---
 
@@ -389,5 +389,5 @@ async with AsyncImbraceClient() as client:
 
 ## See also
 
-- [Full Flow Guide §3 — Knowledge Hubs](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — upload files for RAG
-- [AI Agent — Embeddings & Knowledge Base](/sdk/ai-agent/#embeddings--knowledge-base) — manage embedding files for retrieval
+- [Full Flow Guide §3 — Knowledge Hubs](/sdk/full-flow-guide.md#3-manage-knowledge-hubs-and-attach-to-an-ai-agent) — upload files for RAG
+- [AI Agent — Embeddings & Knowledge Base](/sdk/ai-agent.md#embeddings--knowledge-base) — manage embedding files for retrieval

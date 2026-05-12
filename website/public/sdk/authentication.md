@@ -39,7 +39,7 @@ Both credential types are first-class. Most resources accept either. A few featu
 
 The org context is **encoded inside the credential itself** — every API key and every access token is bound to exactly one org. The gateway resolves the org on every request from whichever credential you sent. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor.
 
-For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup/#configure-credentials).
+For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide](/getting-started/setup.md#configure-credentials).
 
 ---
 

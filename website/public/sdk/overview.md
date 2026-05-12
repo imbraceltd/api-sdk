@@ -7,7 +7,7 @@ The Imbrace SDK is the official client for the Imbrace Gateway, available in **T
 | Feature | Detail |
 |---|---|
 | **Type safety** | TypeScript types and Python type hints across every resource |
-| **Two credential types** | `apiKey` or `accessToken` — see [Authentication](/sdk/authentication/) |
+| **Two credential types** | `apiKey` or `accessToken` — see [Authentication](/sdk/authentication.md) |
 | **Auto retry** | 429 and 5xx retry with exponential backoff, no config needed |
 | **Streaming AI** | SSE / async iterator for `streamChat` and AI completions |
 | **Async & sync (Py)** | `ImbraceClient` (sync) and `AsyncImbraceClient` (async) |
@@ -61,7 +61,7 @@ Every namespace is on both SDKs. Methods follow the language conventions — `cl
 | `client.contacts`, `client.conversations`, `client.messages`, `client.channel` | Contact / channel layer |
 | `client.ai` | OpenAI-compatible completions and embeddings |
 
-For the complete list and method reference, see [Resources](/sdk/resources/).
+For the complete list and method reference, see [Resources](/sdk/resources.md).
 
 ### When to pick which credential
 
@@ -71,10 +71,10 @@ For the complete list and method reference, see [Resources](/sdk/resources/).
 | **Whose users?** | Yours | Imbrace's |
 | **Best for** | Server-to-server, internal scripts, CRM integrations | User-facing apps where each end-user logs in |
 
-Full decision tree: [Authentication →](/sdk/authentication/).
+Full decision tree: [Authentication →](/sdk/authentication.md).
 
 ### Next steps
 
-- [Installation →](/sdk/installation/) — set up the package and credentials
-- [Quick Start →](/sdk/quick-start/) — make your first call in 60 seconds
-- [Full Flow Guide →](/sdk/full-flow-guide/) — end-to-end walkthrough of the four major workflows (AI agents, workflows, knowledge hub, boards)
+- [Installation →](/sdk/installation.md) — set up the package and credentials
+- [Quick Start →](/sdk/quick-start.md) — make your first call in 60 seconds
+- [Full Flow Guide →](/sdk/full-flow-guide.md) — end-to-end walkthrough of the four major workflows (AI agents, workflows, knowledge hub, boards)

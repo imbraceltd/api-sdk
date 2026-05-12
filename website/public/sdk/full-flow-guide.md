@@ -52,7 +52,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
    )
    ```
 
-   See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
+   See [Authentication → which credential to use](/sdk/authentication.md#which-credential-should-i-use) for the full decision tree.
 
 2. **Create an AI agent**
 

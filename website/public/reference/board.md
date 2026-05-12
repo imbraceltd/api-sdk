@@ -2,7 +2,7 @@
 
 `client.boards` is the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Each board has custom fields and items. Boards can also be linked to the Knowledge Hub for AI-powered search.
 
-For a guided walkthrough, see [DataBoards in the SDK guide](/sdk/databoard/).
+For a guided walkthrough, see [DataBoards in the SDK guide](/sdk/databoard.md).
 
 ---
 

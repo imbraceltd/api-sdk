@@ -1,13 +1,13 @@
 # Resource Reference
 
-This page covers the CRM and messaging namespaces exposed by the SDK. Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). All snippets below assume `client` is the initialized instance.
+This page covers the CRM and messaging namespaces exposed by the SDK. Initialize the client first (see [Installation](/sdk/installation.md) or [Quick Start](/sdk/quick-start.md)). All snippets below assume `client` is the initialized instance.
 
 For AI and workflow-related resources, see:
-- [AI Agent](/sdk/ai-agent/) — AI agents (`chatAi`), AI agent streaming, embeddings, parquet
-- [Workflows](/sdk/workflows/) — Workflow flows and channel automation
-- [Data Boards](/sdk/databoard/) — CRM pipeline boards and items
+- [AI Agent](/sdk/ai-agent.md) — AI agents (`chatAi`), AI agent streaming, embeddings, parquet
+- [Workflows](/sdk/workflows.md) — Workflow flows and channel automation
+- [Data Boards](/sdk/databoard.md) — CRM pipeline boards and items
 
-For an end-to-end walkthrough that uses these resources together, see [Full Flow Guide](/sdk/full-flow-guide/).
+For an end-to-end walkthrough that uses these resources together, see [Full Flow Guide](/sdk/full-flow-guide.md).
 
 ---
 

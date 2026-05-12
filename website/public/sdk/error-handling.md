@@ -24,7 +24,7 @@ Exception
     └── NetworkError       (timeout, connection refused, DNS failure)
 ```
 
-For specific error messages and known fixes, see [Troubleshooting](/guides/troubleshooting/).
+For specific error messages and known fixes, see [Troubleshooting](/guides/troubleshooting.md).
 
 ---
 
@@ -58,7 +58,7 @@ except AuthError as e:
     # Re-authenticate before retrying
 ```
 
-`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
+`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication.md).
 
 ---
 

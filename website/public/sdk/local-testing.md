@@ -113,7 +113,7 @@ pip install -e ".[dev]"
 python -m pytest tests/
 ```
 
-For the full-flow regression that mirrors the [Full Flow Guide](/sdk/full-flow-guide/):
+For the full-flow regression that mirrors the [Full Flow Guide](/sdk/full-flow-guide.md):
 
 ```bash
 cd test-pip-pkg/py
@@ -164,4 +164,4 @@ curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_t
   -d '{"expirationDays": 30}'
 ```
 
-For other runtime errors, see [Error Handling](/sdk/error-handling/) and [Troubleshooting](/guides/troubleshooting/).
+For other runtime errors, see [Error Handling](/sdk/error-handling.md) and [Troubleshooting](/guides/troubleshooting.md).

@@ -2,7 +2,7 @@
 
 `client.aiAgent` (TypeScript) / `client.ai_agent` (Python) provides chat streaming, embedding management, parquet generation, and distributed tracing for AI agents.
 
-For a guided walkthrough, see [AI Agent in the SDK guide](/sdk/ai-agent/).
+For a guided walkthrough, see [AI Agent in the SDK guide](/sdk/ai-agent.md).
 
 ---
 

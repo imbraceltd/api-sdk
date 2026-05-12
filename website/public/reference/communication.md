@@ -4,9 +4,9 @@ The Imbrace SDK organizes communication into three closely related resources:
 
 | Resource | Client namespace | Description |
 |----------|-----------------|-------------|
-| [Channel](/reference/channel/) | `client.channel` | Messaging channels (Web, WhatsApp, Facebook, Instagram, Email, WeChat, LINE) |
-| [Conversation](/reference/conversation/) | `client.conversations` | Individual conversation threads within a channel |
-| [Contact](/reference/contact/) | `client.contacts` | Contacts (leads, customers) linked to conversations |
+| [Channel](/reference/channel.md) | `client.channel` | Messaging channels (Web, WhatsApp, Facebook, Instagram, Email, WeChat, LINE) |
+| [Conversation](/reference/conversation.md) | `client.conversations` | Individual conversation threads within a channel |
+| [Contact](/reference/contact.md) | `client.contacts` | Contacts (leads, customers) linked to conversations |
 
 ---
 

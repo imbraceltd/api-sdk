@@ -16,36 +16,48 @@
 
 ## Documentation & Links
 
+- [SDK Landing Page](https://developer.imbrace.co/index.md) - Official TypeScript and Python SDK overview, quick install, and why Imbrace.
+
 ### Getting Started
-- [Overview](https://developer.imbrace.co/sdk/overview/) - Key features and architecture.
-- [Setup Guide](https://developer.imbrace.co/getting-started/setup/) - Install, credentials, environment, and client init for TS and Python.
-- [Installation](https://developer.imbrace.co/sdk/installation/) - Step-by-step package setup for TS and Python.
-- [Quick Start](https://developer.imbrace.co/sdk/quick-start/) - Make your first API call in 60 seconds.
+- [Platform Overview](https://developer.imbrace.co/getting-started/overview.md) - What Imbrace is and what you can build.
+- [SDK Overview](https://developer.imbrace.co/sdk/overview.md) - Key features and architecture.
+- [Setup Guide](https://developer.imbrace.co/getting-started/setup.md) - Install, credentials, environment, and client init for TS and Python.
+- [Installation](https://developer.imbrace.co/sdk/installation.md) - Step-by-step package setup for TS and Python.
+- [Quick Start](https://developer.imbrace.co/sdk/quick-start.md) - Make your first API call in 60 seconds.
 
 ### Guides & Workflows
-- [Authentication Guide](https://developer.imbrace.co/sdk/authentication/) - API Key vs Access Token strategies.
-- [Full Flow Guide (E2E)](https://developer.imbrace.co/sdk/full-flow-guide/) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
-- [Framework Integrations](https://developer.imbrace.co/sdk/integrations/) - Patterns for React, Next.js, FastAPI, Django, and Celery.
-- [Testing Guide](https://developer.imbrace.co/guides/testing/) - Unit testing, mocking, and integration patterns.
-- [Local Testing](https://developer.imbrace.co/sdk/local-testing/) - Test the built SDK package locally before publishing (TS + Python).
-- [Troubleshooting](https://developer.imbrace.co/guides/troubleshooting/) - Common errors, 401s, and double-path issues.
-- [Vibe Coding](https://developer.imbrace.co/guides/vibe-coding/) - Use llms.txt with Claude, Cursor, Copilot to code faster.
+- [API Key Guide](https://developer.imbrace.co/guides/api-key.md) - How to get and use an API key.
+- [Authentication Guide](https://developer.imbrace.co/sdk/authentication.md) - API Key vs Access Token strategies.
+- [Full Flow Guide (E2E)](https://developer.imbrace.co/sdk/full-flow-guide.md) - End-to-end examples for Assistants, Workflows, Knowledge Hub, and CRM.
+- [Framework Integrations](https://developer.imbrace.co/sdk/integrations.md) - Patterns for React, Next.js, FastAPI, Django, and Celery.
+- [Testing Guide](https://developer.imbrace.co/guides/testing.md) - Unit testing, mocking, and integration patterns.
+- [Local Testing](https://developer.imbrace.co/sdk/local-testing.md) - Test the built SDK package locally before publishing (TS + Python).
+- [Troubleshooting](https://developer.imbrace.co/guides/troubleshooting.md) - Common errors, 401s, and double-path issues.
+- [Vibe Coding](https://developer.imbrace.co/guides/vibe-coding.md) - Use llms.txt with Claude, Cursor, Copilot to code faster.
 
 ### API Reference
-- [Namespace Resource Reference](https://developer.imbrace.co/sdk/resources/) - Detailed signatures for all 30+ namespaces.
-- [AI Agent Deep Dive](https://developer.imbrace.co/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
-- [Document AI](https://developer.imbrace.co/sdk/document-ai/) - Extract structured data from PDFs/images via chatAi and documentAi namespaces.
-- [Error Handling](https://developer.imbrace.co/sdk/error-handling/) - Full error class hierarchy, retry behavior, and 401/403 handling.
+- [Namespace Resource Reference](https://developer.imbrace.co/sdk/resources.md) - Detailed signatures for all 30+ namespaces.
+- [AI Agent Deep Dive](https://developer.imbrace.co/sdk/ai-agent.md) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
+- [Document AI](https://developer.imbrace.co/sdk/document-ai.md) - Extract structured data from PDFs/images via chatAi and documentAi namespaces.
+- [Data Boards](https://developer.imbrace.co/sdk/databoard.md) - CRM pipeline boards, fields, items, and export.
+- [Workflows](https://developer.imbrace.co/sdk/workflows.md) - Workflow flow engine, runs, folders, connections, and MCP.
+- [Error Handling](https://developer.imbrace.co/sdk/error-handling.md) - Full error class hierarchy, retry behavior, and 401/403 handling.
 
 ### Reference (Schema + Method Tables)
-- [AI Agent Reference](https://developer.imbrace.co/reference/ai-agent/) - client.aiAgent: streamChat, embeddings, parquet, tracing.
-- [Board Reference](https://developer.imbrace.co/reference/board/) - client.boards: CRUD, fields, items, segments, import/export.
-- [Channel Reference](https://developer.imbrace.co/reference/channel/) - client.channel: Web, WhatsApp, Facebook, Instagram, Email, WeChat, LINE.
-- [Contact Reference](https://developer.imbrace.co/reference/contact/) - client.contacts: CRUD, search, conversations, notifications.
-- [Conversation Reference](https://developer.imbrace.co/reference/conversation/) - client.conversations: list, search, join, assign, status.
-- [Workflow Reference](https://developer.imbrace.co/reference/workflow/) - client.workflows: flows, runs, folders, connections, MCP servers.
-- [Campaign Reference](https://developer.imbrace.co/reference/campaign/) - client.campaign: campaigns and touchpoints.
-- [Communication Overview](https://developer.imbrace.co/reference/communication/) - How Channel, Conversation, and Contact relate.
+- [AI Agent Reference](https://developer.imbrace.co/reference/ai-agent.md) - client.aiAgent: streamChat, embeddings, parquet, tracing.
+- [Board Reference](https://developer.imbrace.co/reference/board.md) - client.boards: CRUD, fields, items, segments, import/export.
+- [Channel Reference](https://developer.imbrace.co/reference/channel.md) - client.channel: Web, WhatsApp, Facebook, Instagram, Email, WeChat, LINE.
+- [Contact Reference](https://developer.imbrace.co/reference/contact.md) - client.contacts: CRUD, search, conversations, notifications.
+- [Conversation Reference](https://developer.imbrace.co/reference/conversation.md) - client.conversations: list, search, join, assign, status.
+- [Workflow Reference](https://developer.imbrace.co/reference/workflow.md) - client.workflows: flows, runs, folders, connections, MCP servers.
+- [Campaign Reference](https://developer.imbrace.co/reference/campaign.md) - client.campaign: campaigns and touchpoints.
+- [Communication Overview](https://developer.imbrace.co/reference/communication.md) - How Channel, Conversation, and Contact relate.
+
+### CLI
+- [CLI Overview](https://developer.imbrace.co/cli/overview.md) - CLI architecture, auth flow, and credential storage.
+- [CLI Installation](https://developer.imbrace.co/cli/installation.md) - Install from npm or build from source.
+- [CLI Commands](https://developer.imbrace.co/cli/commands.md) - Full command reference: data-board, ai-agent, workflow, and more.
+- [CLI API Reference](https://developer.imbrace.co/cli/api-reference.md) - Maps CLI commands to underlying SDK methods.
 
 ## Core Technical Specs
 - **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
@@ -199,4 +211,4 @@ npm install -g @imbrace/cli
 imbrace login --api-key api_xxx...
 ```
 
-For full command reference: [developer.imbrace.co/cli/commands/](https://developer.imbrace.co/cli/commands/)
+For full command reference: [CLI Commands](https://developer.imbrace.co/cli/commands.md) · [CLI Overview](https://developer.imbrace.co/cli/overview.md) · [CLI Installation](https://developer.imbrace.co/cli/installation.md) · [CLI API Reference](https://developer.imbrace.co/cli/api-reference.md)

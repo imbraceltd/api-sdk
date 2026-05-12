@@ -54,7 +54,7 @@ client = ImbraceClient(
 )
 ```
 
-See [Authentication](/sdk/authentication/) for which credential to pick.
+See [Authentication](/sdk/authentication.md) for which credential to pick.
 
 ---
 
@@ -87,11 +87,11 @@ If you see your boards listed, the SDK is connected and authenticated.
 
 ### 3. Next steps
 
-The [Full Flow Guide](/sdk/full-flow-guide/) walks the four major workflows end-to-end. Jump straight to a section:
+The [Full Flow Guide](/sdk/full-flow-guide.md) walks the four major workflows end-to-end. Jump straight to a section:
 
-- **AI Agent + streamChat** → [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-agent-and-start-chatting)
-- **Workflows** → [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent)
-- **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent)
-- **Boards & Items (CRM)** → [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
+- **AI Agent + streamChat** → [Full Flow Guide §1](/sdk/full-flow-guide.md#1-create-an-ai-agent-and-start-chatting)
+- **Workflows** → [Full Flow Guide §2](/sdk/full-flow-guide.md#2-create-a-workflow-and-bind-it-to-an-ai-agent)
+- **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/sdk/full-flow-guide.md#3-manage-knowledge-hubs-and-attach-to-an-ai-agent)
+- **Boards & Items (CRM)** → [Full Flow Guide §4](/sdk/full-flow-guide.md#4-manage-data-boards-and-items-crm-pipelines)
 
-For the per-namespace API reference, see [Resources](/sdk/resources/).
+For the per-namespace API reference, see [Resources](/sdk/resources.md).

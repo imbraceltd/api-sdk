@@ -7,7 +7,7 @@ This page covers two related AI namespaces:
 
 The AI Agent resource connects to a dedicated service that runs on a separate base URL from the main API gateway.
 
-For an end-to-end example that ties these together, see [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-agent-and-start-chatting).
+For an end-to-end example that ties these together, see [Full Flow Guide §1](/sdk/full-flow-guide.md#1-create-an-ai-agent-and-start-chatting).
 
 **TypeScript — access token**
 
