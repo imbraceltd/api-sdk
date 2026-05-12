@@ -4,6 +4,6 @@ version = "1.0.0"
 description = "Verify imbrace (PyPI) — auth via Access Token — exercises every ai_agent method"
 requires-python = ">=3.9"
 dependencies = [
-  "imbrace==1.0.4",
+  "imbrace==1.0.5",
   "python-dotenv>=1.0.0",
 ]

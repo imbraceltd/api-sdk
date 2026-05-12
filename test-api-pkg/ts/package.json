@@ -11,7 +11,7 @@
     "test": "npm run test:agent && npm run test:all"
   },
   "dependencies": {
-    "@imbrace/sdk": "1.0.4",
+    "@imbrace/sdk": "1.0.5",
     "dotenv": "^16.4.5",
     "test-api-pkg-ts": "file:"
   },

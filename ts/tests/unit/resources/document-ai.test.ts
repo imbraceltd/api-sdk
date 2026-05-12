@@ -140,17 +140,58 @@ describe("DocumentAIResource", () => {
   // ── updateAgent ────────────────────────────────────────────────────────────
 
   describe("updateAgent()", () => {
-    it("PUTs /assistant_apps/{id}", async () => {
-      mockFetch({})
+    // Default mergeMode is "merge" — SDK auto-fetches existing agent via
+    // getAgent() (GET) then sends merged body via PUT. Two fetches per call.
+    it("PUTs /assistant_apps/{id} after auto-fetching (mergeMode='merge')", async () => {
+      mockFetchSequence([
+        { data: { _id: "a1", name: "old", workflow_name: "document_extraction" } }, // GET
+        { data: {} },                                                                // PUT
+      ])
       await makeResource().updateAgent("a1", { name: "renamed" })
-      expect(getCalledUrl()).toBe(`${BASE}/assistant_apps/a1`)
-      expect(getCalledInit().method).toBe("PUT")
+      expect(getCalledUrl(0)).toBe(`${BASE}/assistants/a1`)        // auto-fetch
+      expect(getCalledUrl(1)).toBe(`${BASE}/assistant_apps/a1`)    // PUT
+      expect(getCalledInit(1).method).toBe("PUT")
+    })
+
+    it("mergeMode='replace' skips auto-fetch and PUTs body as-is", async () => {
+      mockFetch({})
+      await makeResource().updateAgent("a1", { name: "renamed" }, { mergeMode: "replace" })
+      // Only one fetch (no auto-GET).
+      expect(vi.mocked(globalThis.fetch).mock.calls).toHaveLength(1)
+      expect(getCalledUrl(0)).toBe(`${BASE}/assistant_apps/a1`)
+      expect(getCalledInit(0).method).toBe("PUT")
+      expect(getCalledBody(0).name).toBe("renamed")
+    })
+
+    it("strips server-managed fields from merged body (_id, assistant_id, timestamps)", async () => {
+      mockFetchSequence([
+        { data: {
+          _id: "a1", id: "a1", assistant_id: "a1",
+          created_at: "2024-01-01", updated_at: "2024-02-02",
+          organization_id: "org_xxx",
+          name: "old", workflow_name: "document_extraction",
+        } },
+        { data: {} },
+      ])
+      await makeResource().updateAgent("a1", { name: "renamed" })
+      const putBody = getCalledBody(1)
+      expect(putBody._id).toBeUndefined()
+      expect(putBody.id).toBeUndefined()
+      expect(putBody.assistant_id).toBeUndefined()
+      expect(putBody.created_at).toBeUndefined()
+      expect(putBody.updated_at).toBeUndefined()
+      expect(putBody.organization_id).toBeUndefined()
+      expect(putBody.name).toBe("renamed")
+      expect(putBody.workflow_name).toBe("document_extraction")
     })
 
     it("renames `schema` → `data_schema` on update", async () => {
-      mockFetch({})
+      mockFetchSequence([
+        { data: { _id: "a1", name: "n", workflow_name: "wf" } }, // GET
+        { data: {} },                                             // PUT
+      ])
       await makeResource().updateAgent("a1", { schema: { x: { type: "string" } } })
-      const body = getCalledBody()
+      const body = getCalledBody(1)
       expect(body.data_schema).toEqual({ x: { type: "string" } })
       expect(body.schema).toBeUndefined()
     })
@@ -269,9 +310,18 @@ describe("DocumentAIResource", () => {
       return { documentAi, boards, templates }
     }
 
-    it("runs full flow: board create → templates createCustom, with linked board_id", async () => {
+    // Post-v1.0.5 wire shape:
+    //  1. POST /v1/backend/board                      — board (type: "General", no fields)
+    //  2. POST /v1/backend/board/{id}/board_fields    — one per schemaField (sequential)
+    //  ...
+    //  N+2. POST /v2/backend/templates/v2/custom      — usecase + ai_agent
+    // Backend's POST /board_fields returns the full Board; SDK extracts the
+    // just-added field by name, so each field-create mock returns a Board.
+    it("runs full flow: board create → fields one-by-one → templates createCustom", async () => {
       mockFetchSequence([
-        { data: { _id: "brd_xxx", name: "DEMO", type: "DocumentAI" } },
+        { data: { _id: "brd_xxx", name: "DEMO", type: "General" } },                                                  // boards.create
+        { data: { _id: "brd_xxx", fields: [{ name: "invoice_number", _id: "f1", type: "ShortText" }] } },              // createField #1
+        { data: { _id: "brd_xxx", fields: [{ name: "invoice_number", _id: "f1" }, { name: "total_amount", _id: "f2", type: "Number" }] } }, // createField #2
         { data: { data: {
             _id: "uc_xxx",
             title: "DEMO",
@@ -301,22 +351,30 @@ describe("DocumentAIResource", () => {
       expect(result.channel_id).toBe("ch_xxx")
       expect(result.usecase_id).toBe("uc_xxx")
 
-      // Verify URLs hit
+      // Verify URLs hit (in order)
       expect(getCalledUrl(0)).toBe(`${GW}/v1/backend/board`)
-      expect(getCalledUrl(1)).toBe(`${GW}/v2/backend/templates/v2/custom`)
+      expect(getCalledUrl(1)).toBe(`${GW}/v1/backend/board/brd_xxx/board_fields`)
+      expect(getCalledUrl(2)).toBe(`${GW}/v1/backend/board/brd_xxx/board_fields`)
+      expect(getCalledUrl(3)).toBe(`${GW}/v2/backend/templates/v2/custom`)
 
-      // Board POST body
+      // Board POST body — General type, no fields embedded
       const boardBody = getCalledBody(0)
       expect(boardBody.name).toBe("DEMO")
-      expect(boardBody.type).toBe("DocumentAI")
-      expect(boardBody.fields).toHaveLength(2)
+      expect(boardBody.type).toBe("General")
+      expect(boardBody.fields).toBeUndefined()
+      expect(boardBody.show_id).toBe(false)
 
-      // Templates POST body — linked board_id
-      const tplBody = getCalledBody(1)
+      // Per-field POST bodies
+      expect(getCalledBody(1).name).toBe("invoice_number")
+      expect(getCalledBody(2).name).toBe("total_amount")
+
+      // Templates POST body — linked board_id (now at index 3)
+      const tplBody = getCalledBody(3)
       expect(tplBody.usecase.title).toBe("DEMO")
       expect(tplBody.usecase.agent_type).toBe("document_ai")
       expect(tplBody.assistant.model_id).toBe("qwen3.5:27b")
       expect(tplBody.assistant.core_task).toBe("Step 1: Extract Data...")
+      expect(tplBody.assistant.workflow_name).toBe("document_extraction")
       expect(tplBody.assistant.document_ai.board_id).toBe("brd_xxx")
       expect(tplBody.assistant.document_ai.vlm_model).toBe("qwen3.5:27b") // defaults to modelId
       expect(tplBody.assistant.document_ai.vlm_provider_id).toBe("prov-uuid")
@@ -325,8 +383,9 @@ describe("DocumentAIResource", () => {
 
     it("vlmModel/vlmProviderId defaust to modelId/providerId; sourceLanguages default to ['English']", async () => {
       mockFetchSequence([
-        { data: { _id: "brd_y" } },
-        { data: { data: {} } },
+        { data: { _id: "brd_y", type: "General" } },                                          // boards.create
+        { data: { _id: "brd_y", fields: [{ name: "f", _id: "f1", type: "ShortText" }] } },    // createField #1
+        { data: { data: {} } },                                                                // templates.createCustom
       ])
       const { documentAi } = makeWiredResource()
       await documentAi.createFull({
@@ -334,7 +393,7 @@ describe("DocumentAIResource", () => {
         schemaFields: [{ name: "f", type: "ShortText" }],
         modelId: "gpt-4o", providerId: "p1",
       })
-      const tplBody = getCalledBody(1)
+      const tplBody = getCalledBody(2)
       expect(tplBody.assistant.document_ai.vlm_model).toBe("gpt-4o")
       expect(tplBody.assistant.document_ai.vlm_provider_id).toBe("p1")
       expect(tplBody.assistant.document_ai.source_languages).toEqual(["English"])
@@ -342,8 +401,9 @@ describe("DocumentAIResource", () => {
 
     it("extraAiAgent overrides AI Agent fields on the wire body", async () => {
       mockFetchSequence([
-        { data: { _id: "brd_z" } },
-        { data: { data: {} } },
+        { data: { _id: "brd_z", type: "General" } },                                          // boards.create
+        { data: { _id: "brd_z", fields: [{ name: "f", _id: "f1", type: "ShortText" }] } },    // createField #1
+        { data: { data: {} } },                                                                // templates.createCustom
       ])
       const { documentAi } = makeWiredResource()
       await documentAi.createFull({
@@ -355,7 +415,7 @@ describe("DocumentAIResource", () => {
           metadata: { max_token_limit: 100 },
         },
       })
-      const tplBody = getCalledBody(1)
+      const tplBody = getCalledBody(2)
       expect(tplBody.assistant.workflow_function_call).toEqual(["wf_id_1"])
       expect(tplBody.assistant.metadata).toEqual({ max_token_limit: 100 })
     })
