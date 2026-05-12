@@ -56,8 +56,9 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
     import { ImbraceClient } from "@imbrace/sdk";
 
     const client = new ImbraceClient({
-      apiKey: "api_xxx...",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey:         process.env.IMBRACE_API_KEY,
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env:            "stable",
     });
     ```
   </TabItem>
@@ -68,6 +69,8 @@ For step-by-step credential setup (env vars, dotenv, secrets), see [Setup Guide]
 
     client = ImbraceClient(
         api_key=os.environ["IMBRACE_API_KEY"],
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
     )
     ```
   </TabItem>
@@ -82,16 +85,22 @@ If you already have an `acc_...` token, pass it directly:
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
+
     const client = new ImbraceClient({
-      accessToken: "acc_xxxxxxxxxxxxx",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env:         "stable",
     });
     ```
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
+    from imbrace import ImbraceClient
+
     client = ImbraceClient(
-        access_token="acc_xxxxxxxxxxxxx",
+        access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+        env="stable",
     )
     ```
   </TabItem>
@@ -109,18 +118,18 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      env: "stable",
     })
 
     // Step 1: Send OTP to the user's email
     await client.requestOtp("user@example.com")
 
     // Step 2: User submits the OTP they received
-    const loginRes = await client.loginWithOtp("user@example.com", "ABC123")
-    // loginRes contains a short-lived login_acc_... token (stored internally)
+    // SDK stores a short-lived login_acc_... token internally
+    await client.loginWithOtp("user@example.com", "ABC123")
 
     // Step 3: Exchange for a long-lived access token
-    const { token, refresh_token } = await client.auth.exchangeAccessToken("org_your_org_id")
+    const { token, refresh_token } = await client.auth.exchangeAccessToken(process.env.IMBRACE_ORGANIZATION_ID!)
 
     // Step 4: Activate the token for all subsequent calls
     client.setAccessToken(token)
@@ -131,6 +140,7 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
     from imbrace import ImbraceClient
 
     client = ImbraceClient()
@@ -142,7 +152,7 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     client.login_with_otp("user@example.com", "123456")
 
     # Step 3: Exchange for a long-lived access token
-    result = client.auth.exchange_access_token("org_your_org_id")
+    result = client.auth.exchange_access_token(os.environ["IMBRACE_ORGANIZATION_ID"])
     client.set_access_token(result["token"])
 
     # Step 4: Now use any resource
@@ -152,12 +162,13 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
     Async variant:
 
     ```python
+    import os
     from imbrace import AsyncImbraceClient
 
     async with AsyncImbraceClient() as client:
         await client.request_otp("user@example.com")
         await client.login_with_otp("user@example.com", "123456")
-        result = await client.auth.exchange_access_token("org_your_org_id")
+        result = await client.auth.exchange_access_token(os.environ["IMBRACE_ORGANIZATION_ID"])
         client.set_access_token(result["token"])
         me = await client.platform.get_me()
     ```
@@ -171,8 +182,10 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
 <Tabs syncKey="lang">
   <TabItem label="TypeScript">
     ```typescript
+    import { ImbraceClient } from "@imbrace/sdk";
+
     const client = new ImbraceClient({
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      env: "stable",
     })
 
     await client.login("user@example.com", "password")
@@ -183,6 +196,8 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
   </TabItem>
   <TabItem label="Python">
     ```python
+    from imbrace import ImbraceClient
+
     client = ImbraceClient()
     client.login("user@example.com", "password123")
 
@@ -224,11 +239,22 @@ Use this flow to authenticate a user via email OTP and obtain a session token. T
 Always wrap the Python client in a context manager so the underlying `httpx` connection pool is closed cleanly:
 
 ```python
+import os
+from imbrace import ImbraceClient, AsyncImbraceClient
+
 # Synchronous
-with ImbraceClient(api_key="api_xxx") as client:
+with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     me = client.platform.get_me()
 
 # Asynchronous
-async with AsyncImbraceClient(api_key="api_xxx") as client:
+async with AsyncImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     me = await client.platform.get_me()
 ```
+
+---
+
+### Next steps
+
+- [Setup Guide →](/getting-started/setup/#configure-credentials) — env vars, dotenv, and secrets management
+- [Quick Start →](/sdk/quick-start/) — first API call using your credential
+- [Integrations →](/sdk/integrations/) — framework wiring patterns (React, Next.js, FastAPI, Django)

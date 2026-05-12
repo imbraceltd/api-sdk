@@ -29,7 +29,7 @@ An API key (`api_...`) lets your backend call Imbrace without user sessions. For
 
 ---
 
-## Option 2 — SDK (programmatic)
+## Generate via SDK (programmatic)
 
 Use this when you need to generate a key from code, for example during automated provisioning. You must be authenticated with an access token first (via [OTP](/sdk/authentication/#otp-login-flow) or [password](/sdk/authentication/#password-login)).
 
@@ -82,7 +82,8 @@ Pass the key to the client constructor:
 
     const client = new ImbraceClient({
       apiKey: process.env.IMBRACE_API_KEY!,
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env: "stable",
     });
     ```
 
@@ -92,7 +93,11 @@ Pass the key to the client constructor:
     import os
     from imbrace import ImbraceClient
 
-    client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+    client = ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
+    )
     ```
 
   </TabItem>

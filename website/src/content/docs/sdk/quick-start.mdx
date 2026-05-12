@@ -3,7 +3,7 @@ title: Quick Start
 description: Make your first Imbrace API call in under a minute.
 ---
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 import AuthOnly from "../../../components/AuthOnly.astro";
 
 ### 1. Initialize the client
@@ -15,8 +15,8 @@ import AuthOnly from "../../../components/AuthOnly.astro";
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      accessToken: "your-access-token",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env: "stable",
     })
     ```
   </TabItem>
@@ -30,7 +30,7 @@ import AuthOnly from "../../../components/AuthOnly.astro";
 
     client = ImbraceClient(
         access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
-        base_url="https://app-gatewayv2.imbrace.co",
+        env="stable",
     )
     ```
   </TabItem>
@@ -44,8 +44,9 @@ import AuthOnly from "../../../components/AuthOnly.astro";
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      apiKey: "your-api-key",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey:         process.env.IMBRACE_API_KEY,
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env:            "stable",
     })
     ```
   </TabItem>
@@ -59,14 +60,17 @@ import AuthOnly from "../../../components/AuthOnly.astro";
 
     client = ImbraceClient(
         api_key=os.environ["IMBRACE_API_KEY"],
-        base_url="https://app-gatewayv2.imbrace.co",
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
     )
     ```
   </TabItem>
 </Tabs>
 </AuthOnly>
 
-> Switch the **Auth** dropdown in the header to flip between API Key and Access Token examples site-wide. See [Authentication](/sdk/authentication/) for which to pick.
+<Aside type="tip">
+  Not sure which credential to use? See [Authentication →](/sdk/authentication/)
+</Aside>
 
 ---
 
@@ -89,12 +93,13 @@ Boards are CRM pipelines — leads, deals, tasks, or any structured data. This c
     boards = client.boards.list()
 
     for board in boards.get("data", []):
-        print(board["id"], board.get("name"))
+        board_id = board.get("_id") or board.get("id")
+        print(board_id, board.get("name"))
     ```
   </TabItem>
 </Tabs>
 
-If you see your boards listed, the SDK is connected and authenticated.
+If you see your boards listed, the SDK is connected and authenticated. An empty list (`data: []`) just means no boards exist yet — that's fine, not an error.
 
 ---
 

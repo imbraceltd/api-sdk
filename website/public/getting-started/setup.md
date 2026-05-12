@@ -184,7 +184,7 @@ anon.login_with_otp("user@example.com", "123456")
 from imbrace import AsyncImbraceClient
 
 async def main():
-    async with AsyncImbraceClient(api_key="sk-...") as client:
+    async with AsyncImbraceClient(api_key="api_...") as client:
         me = await client.platform.get_me()
         print(me)
 ```

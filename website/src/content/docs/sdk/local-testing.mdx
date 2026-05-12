@@ -118,7 +118,7 @@ pip install -e ".[dev]"
 python -m pytest tests/
 ```
 
-For the full-flow regression that mirrors the [Full Flow Guide](/sdk/full-flow-guide/):
+For the full-flow regression that mirrors the [Full Flow Guide](/sdk/full-flow-guide/) (run from the repo root):
 
 ```bash
 cd test-pip-pkg/py
@@ -171,3 +171,11 @@ curl -X POST https://app-gateway.dev.imbrace.co/private/backend/v1/third_party_t
 ```
 
 For other runtime errors, see [Error Handling](/sdk/error-handling/) and [Troubleshooting](/guides/troubleshooting/).
+
+---
+
+### Next steps
+
+- [Testing Guide →](/guides/testing/) — unit tests, integration tests, lint, and type checks for the SDK source
+- [Error Handling →](/sdk/error-handling/) — how the SDK surfaces errors and retries
+- [Full Flow Guide →](/sdk/full-flow-guide/) — end-to-end walkthroughs that the regression test mirrors
