@@ -1,6 +1,6 @@
 # Getting an API Key
 
-An API key (`api_...`) lets your backend call Imbrace without user sessions. For when to use an API key versus an access token, see [Authentication](/sdk/authentication/).
+An API key (`api_...`) lets your backend call Imbrace without user sessions. For when to use an API key versus an access token, see [Authentication](/sdk/authentication.md).
 
 ---
 
@@ -16,7 +16,7 @@ An API key (`api_...`) lets your backend call Imbrace without user sessions. For
 
 ## Option 2 — SDK (programmatic)
 
-Use this when you need to generate a key from code, for example during automated provisioning. You must be authenticated with an access token first (via [OTP](/sdk/authentication/#otp-login-flow) or [password](/sdk/authentication/#password-login)).
+Use this when you need to generate a key from code, for example during automated provisioning. You must be authenticated with an access token first (via [OTP](/sdk/authentication.md#otp-login-flow) or [password](/sdk/authentication.md#password-login)).
 
 **TypeScript**
 

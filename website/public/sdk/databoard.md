@@ -1,8 +1,8 @@
 # Data Boards
 
-Boards are the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Pass board ids in `board_ids` when creating an AI agent to give it access to that data — see [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines).
+Boards are the core data store for CRM pipelines — leads, deals, tasks, or any structured data. Pass board ids in `board_ids` when creating an AI agent to give it access to that data — see [Full Flow Guide §4](/sdk/full-flow-guide.md#4-manage-data-boards-and-items-crm-pipelines).
 
-Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)).
+Initialize the client first (see [Installation](/sdk/installation.md) or [Quick Start](/sdk/quick-start.md)).
 
 ---
 

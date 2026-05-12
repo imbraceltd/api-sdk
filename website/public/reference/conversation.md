@@ -1,6 +1,6 @@
 # Conversation Reference
 
-`client.conversations` manages conversation threads between contacts and your team (or AI agent). Each conversation belongs to a [Channel](/reference/channel/) and is linked to a [Contact](/reference/contact/).
+`client.conversations` manages conversation threads between contacts and your team (or AI agent). Each conversation belongs to a [Channel](/reference/channel.md) and is linked to a [Contact](/reference/contact.md).
 
 ---
 
@@ -15,7 +15,7 @@
 | `organization_id` | string | Organization this conversation belongs to |
 | `business_unit_id` | string | Business unit ID |
 | `channel_id` | string | The channel this conversation belongs to |
-| `channel_type` | string | Channel platform type (see [Channel](/reference/channel/)) |
+| `channel_type` | string | Channel platform type (see [Channel](/reference/channel.md)) |
 | `contact_id` | string | Linked contact ID |
 | `status` | string | Conversation status (e.g. `open`, `resolved`) |
 | `name` | string | Conversation display name |

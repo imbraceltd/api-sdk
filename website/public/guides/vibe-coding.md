@@ -29,7 +29,7 @@ IMBRACE_API_KEY=your_api_key_here
 IMBRACE_ORGANIZATION_ID=your_org_id_here
 ```
 
-See [Authentication](/sdk/authentication/) to learn when to use API Key vs Access Token, and [Setup Guide](/getting-started/setup/#get-an-api-key) for how to obtain an API key.
+See [Authentication](/sdk/authentication.md) to learn when to use API Key vs Access Token, and [Setup Guide](/getting-started/setup.md#get-an-api-key) for how to obtain an API key.
 
 **3. Initialize the client**
 
@@ -130,7 +130,7 @@ imbrace workflow list --json
 imbrace document-ai list --json
 ```
 
-Resource commands (`data-board`, `ai-agent`, `workflow`, `document-ai`, `orchestrator`, `guardrail`) support `--json` for machine-readable output. Every command supports `-h` / `--help` for usage. See [CLI Commands](/cli/commands/) for the full reference.
+Resource commands (`data-board`, `ai-agent`, `workflow`, `document-ai`, `orchestrator`, `guardrail`) support `--json` for machine-readable output. Every command supports `-h` / `--help` for usage. See [CLI Commands](/cli/commands.md) for the full reference.
 
 ## Keep it up to date
 

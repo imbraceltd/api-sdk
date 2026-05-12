@@ -13,7 +13,7 @@ Imbrace is a customer engagement platform — it handles chat channels, CRM pipe
 
 Imbrace also provides a command-line interface (`@imbrace/cli`) for interacting with the platform from the terminal. It is designed for developers and coding agents — install it alongside the SDK for quick prototyping, debugging, and automation.
 
-See [CLI Overview](/cli/overview/) for details.
+See [CLI Overview](/cli/overview.md) for details.
 
 ### Available SDKs
 

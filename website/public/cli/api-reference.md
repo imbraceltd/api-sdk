@@ -2,7 +2,7 @@
 
 The CLI communicates with the Imbrace platform directly via `@imbrace/sdk`. This page maps each command group to the underlying SDK methods.
 
-For the full SDK reference see [SDK Overview](/sdk/overview/).
+For the full SDK reference see [SDK Overview](/sdk/overview.md).
 
 ---
 

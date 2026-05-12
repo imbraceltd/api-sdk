@@ -201,7 +201,7 @@ npm install -g @imbrace/cli
 imbrace login --api-key api_xxx...
 ```
 
-See [CLI Installation](/cli/installation/) for alternative install methods and [CLI Commands](/cli/commands/) for the full command reference.
+See [CLI Installation](/cli/installation.md) for alternative install methods and [CLI Commands](/cli/commands.md) for the full command reference.
 
 ---
 

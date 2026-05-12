@@ -2,7 +2,7 @@
 
 `client.workflows` manages the Imbrace flow engine: create and trigger automation flows, inspect run history, organize with folders, manage app connections and MCP servers, and access workflow tables.
 
-For a guided walkthrough, see [Workflows in the SDK guide](/sdk/workflows/).
+For a guided walkthrough, see [Workflows in the SDK guide](/sdk/workflows.md).
 
 ---
 

@@ -2,7 +2,7 @@
 
 `client.workflows` exposes both channel automation (v2/backend route) and the flow engine (CRUD flows, runs, folders, connections, pieces, MCP servers, tables, invitations).
 
-Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an AI agent, see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent).
+Initialize the client first (see [Installation](/sdk/installation.md) or [Quick Start](/sdk/quick-start.md)). For an end-to-end walkthrough that wires a workflow to an AI agent, see [Full Flow Guide §2](/sdk/full-flow-guide.md#2-create-a-workflow-and-bind-it-to-an-ai-agent).
 
 ---
 

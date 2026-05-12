@@ -21,6 +21,10 @@
   /* Readability */
   --sl-line-height: 1.8;
 
+  /* Layout — wider content column (default Starlight is 45rem) */
+  --sl-content-width: 72rem;
+  --sl-sidebar-width: 25rem;
+
   scroll-behavior: smooth;
 }
 
@@ -786,7 +790,48 @@ html[data-has-hero] .hero .actions {
    16. RESPONSIVE
    ============================================================ */
 
-/* --- Mobile (≤768px) ------------------------------------ */
+/* --- Right TOC (right sidebar) ------------------------------ */
+
+/* Starlight's TwoColumnContent shows TOC at ≥72rem but our
+   variables (sidebar=25rem, content=72rem) need ≥96rem (1536px)
+   for a usable 3-column layout. Hide TOC below that threshold. */
+@media (max-width: 95.99rem) {
+  .right-sidebar-container {
+    display: none !important;
+  }
+  [data-has-sidebar][data-has-toc] .main-pane {
+    width: 100% !important;
+    --sl-content-margin-inline: auto !important;
+  }
+}
+
+/* --- Layout variables per breakpoint ------------------------ */
+
+/* Medium desktop  1200px – 1535px  (75rem – 95.99rem) */
+@media (min-width: 75rem) and (max-width: 95.99rem) {
+  :root {
+    --sl-sidebar-width: 18rem;
+    --sl-content-width: 56rem;
+  }
+}
+
+/* Small desktop  960px – 1199px  (60rem – 74.99rem) */
+@media (max-width: 74.99rem) {
+  :root {
+    --sl-sidebar-width: 16rem;
+    --sl-content-width: 50rem;
+  }
+}
+
+/* Tablet & below  ≤959px  (≤59.99rem) */
+@media (max-width: 59.99rem) {
+  :root {
+    --sl-sidebar-width: 15rem;
+    --sl-content-width: 45rem;
+  }
+}
+
+/* --- Mobile (≤768px) ---------------------------------------- */
 
 @media (max-width: 768px) {
   .content-panel {
@@ -821,7 +866,7 @@ html[data-has-hero] .hero .actions {
   }
 }
 
-/* --- Extra small (≤480px) ------------------------------- */
+/* --- Extra small (≤480px) ----------------------------------- */
 
 @media (max-width: 480px) {
   pre, pre code {
@@ -834,15 +879,7 @@ html[data-has-hero] .hero .actions {
   }
 }
 
-/* --- Tablet (769px–1100px) ------------------------------ */
-
-@media (min-width: 769px) and (max-width: 1100px) {
-  .content-panel {
-    max-width: 720px;
-  }
-}
-
-/* --- Print ---------------------------------------------- */
+/* --- Print -------------------------------------------------- */
 
 @media print {
   header,

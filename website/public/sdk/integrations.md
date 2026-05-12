@@ -2,7 +2,7 @@
 
 Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
 
-For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication/) and [Setup Guide](/getting-started/setup/#configure-credentials).
+For credential strategy (api key vs access token, env vars), see [Authentication](/sdk/authentication.md) and [Setup Guide](/getting-started/setup.md#configure-credentials).
 
 ---
 
@@ -10,7 +10,7 @@ For credential strategy (api key vs access token, env vars), see [Authentication
 
 ### Singleton client
 
-Create the client once outside the component tree and reuse it across all components. The `localStorage` token comes from the [OTP login flow](/sdk/authentication/#otp-login-flow).
+Create the client once outside the component tree and reuse it across all components. The `localStorage` token comes from the [OTP login flow](/sdk/authentication.md#otp-login-flow).
 
 ```typescript
 // lib/imbrace.ts
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup/#configure-credentials).
+`process.env.IMBRACE_API_KEY` should be set the way your deployment platform expects (Vercel env var, `.env.local` for dev, etc.). See [Setup Guide → Configure credentials](/getting-started/setup.md#configure-credentials).
 
 ### Server component (App Router)
 
@@ -324,7 +324,7 @@ Don't share a single `ImbraceClient` instance across Celery workers — create o
 
 ## OTP login flow
 
-The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication/#otp-login-flow) for the full credential lifecycle.
+The OTP flow is identical conceptually in both SDKs: request an OTP for an email, then exchange it for an access token. See [Authentication → OTP login flow](/sdk/authentication.md#otp-login-flow) for the full credential lifecycle.
 
 **TypeScript**
 
