@@ -3,7 +3,7 @@ title: Integrations
 description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
 ---
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 
 Framework-level wiring patterns for both SDKs. Pick the section for your stack — TypeScript covers React, Next.js, and plain Node.js; Python covers FastAPI, asyncio, Django, and Celery. The OTP login flow is documented for both.
 
@@ -136,7 +136,9 @@ For one-shot scripts (data exports, backfills, ad-hoc queries):
 import { ImbraceClient } from "@imbrace/sdk";
 import { writeFileSync } from "fs";
 
-const client = new ImbraceClient();
+const client = new ImbraceClient({
+  apiKey: process.env.IMBRACE_API_KEY,
+});
 
 async function exportContacts() {
   const { data: contacts } = await client.contacts.list({ limit: 1000 });
@@ -323,9 +325,9 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-:::tip
-Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
-:::
+<Aside type="tip">
+  Don't share a single `ImbraceClient` instance across Celery workers — create one per task invocation using the context manager. The httpx connection pool is not safe to share across processes.
+</Aside>
 
 ---
 
@@ -393,17 +395,26 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.auth.signin_email_request(body.email)
+        await client.request_otp(body.email)
     return {"message": "OTP sent"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            result = await client.auth.signin_with_email(body.email, body.otp)
-            return {"access_token": result["token"]}
+            result = await client.login_with_otp(body.email, body.otp)
+            token = result.get("accessToken") or result.get("token")
+            return {"access_token": token}
         except AuthError:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 ```
 </TabItem>
 </Tabs>
+
+---
+
+### Next steps
+
+- [Authentication →](/sdk/authentication/) — OTP login flow, credential lifecycle, and token storage
+- [Error Handling →](/sdk/error-handling/) — how `AuthError`, `ApiError`, and `NetworkError` surface
+- [Quick Start →](/sdk/quick-start/) — minimal working example before adding framework wiring

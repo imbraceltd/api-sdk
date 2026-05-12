@@ -3,10 +3,10 @@ title: Full Flow Guide
 description: End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
 ---
 
-import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Steps, Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 import AuthOnly from "../../../components/AuthOnly.astro";
 
-This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need. Toggle the language tabs once and the rest of the page remembers your choice.
+This guide walks through the four major workflows in the Imbrace SDK from start to finish. Each section is self-contained — follow them in order or jump to the one you need.
 
 ---
 
@@ -23,18 +23,19 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        import { ImbraceClient } from "@imbrace/sdk"
 
        const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         accessToken: "acc_your_token",
+         accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+         env: "stable",
        })
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
+       import os
        from imbrace import ImbraceClient
 
        client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           access_token="acc_your_token",
+           access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+           env="stable",
        )
        ```
      </TabItem>
@@ -48,25 +49,30 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        import { ImbraceClient } from "@imbrace/sdk"
 
        const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         apiKey: "api_your_key",
+         apiKey:         process.env.IMBRACE_API_KEY,
+         organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+         env:            "stable",
        })
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
+       import os
        from imbrace import ImbraceClient
 
        client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           api_key="api_your_key",
+           api_key=os.environ["IMBRACE_API_KEY"],
+           organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+           env="stable",
        )
        ```
      </TabItem>
    </Tabs>
    </AuthOnly>
 
-   The header dropdown swaps these snippets between **access token** (user-facing apps where Imbrace is your backend) and **api key** (service-to-service where Imbrace is a feature inside your stack). See [Authentication → which credential to use](/sdk/authentication/#which-credential-should-i-use) for the full decision tree.
+   <Aside type="tip">
+     Not sure which credential to use? See [Authentication →](/sdk/authentication/#which-credential-should-i-use)
+   </Aside>
 
 2. **Create an AI agent**
 
@@ -100,7 +106,7 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
        })
 
        ai_agent_id = agent["id"]
-        print("AI agent created:", ai_agent_id)
+       print("AI agent created:", ai_agent_id)
        ```
      </TabItem>
    </Tabs>
@@ -184,12 +190,12 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
          messages: [{ role: "user", content: "What's your refund policy?" }],
        })
 
-        // Follow-up — same session, AI agent remembers context
-        await client.aiAgent.streamChat({
-          assistant_id: aiAgentId,
-          id: sessionId,
-          messages: [{ role: "user", content: "How long does it take?" }],
-        })
+       // Follow-up — same session, AI agent remembers context
+       await client.aiAgent.streamChat({
+         assistant_id: aiAgentId,
+         id: sessionId,
+         messages: [{ role: "user", content: "How long does it take?" }],
+       })
         ```
       </TabItem>
       <TabItem label="Python">
@@ -206,11 +212,11 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
         })
 
         # Follow-up — same session, AI agent remembers context
-       client.ai_agent.stream_chat({
-           "assistant_id": ai_agent_id,
-           "id": session_id,
-           "messages": [{"role": "user", "content": "How long does it take?"}],
-       })
+        client.ai_agent.stream_chat({
+            "assistant_id": ai_agent_id,
+            "id": session_id,
+            "messages": [{"role": "user", "content": "How long does it take?"}],
+        })
        ```
      </TabItem>
    </Tabs>
@@ -223,22 +229,27 @@ This guide walks through the four major workflows in the Imbrace SDK from start 
 
 <Steps>
 
-1. **List existing flows to find your project ID**
+1. **Get your project ID**
+
+   Copy your Project ID from the Imbrace Dashboard → Workflows, or resolve it programmatically if your org already has flows:
 
    <Tabs syncKey="lang">
      <TabItem label="TypeScript">
        ```typescript
-       const { data: flows } = await client.workflows.listFlows({ limit: 5 })
-       const projectId = flows[0]?.projectId
-       console.log("Project ID:", projectId)
+       // Option A — hardcode from the Dashboard (recommended for new orgs)
+       const projectId = "your_project_id"
+
+       // Option B — resolve from an existing flow (throws if org has no flows yet)
+       const projectId = await client.workflows.resolveProjectId()
        ```
      </TabItem>
      <TabItem label="Python">
        ```python
-       res = client.workflows.list_flows(limit=5)
-       flows = res.get("data", [])
-       project_id = flows[0]["projectId"] if flows else None
-       print("Project ID:", project_id)
+       # Option A — hardcode from the Dashboard (recommended for new orgs)
+       project_id = "your_project_id"
+
+       # Option B — resolve from an existing flow (throws if org has no flows yet)
+       project_id = client.workflows.resolve_project_id()
        ```
      </TabItem>
    </Tabs>
@@ -437,7 +448,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        ```typescript
        const folder = await client.boards.createFolder({
          name: "Product Documentation",
-         organization_id: "org_your_org_id",
+         organization_id: process.env.IMBRACE_ORGANIZATION_ID,
          parent_id: "root",
        })
        console.log("Folder ID:", folder._id)
@@ -447,7 +458,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        ```python
        folder = client.boards.create_folder({
            "name": "Product Documentation",
-           "organization_id": "org_your_org_id",
+           "organization_id": os.environ.get("IMBRACE_ORGANIZATION_ID"),
            "parent_id": "root",
        })
        print("Folder ID:", folder["_id"])
@@ -466,7 +477,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        const formData = new FormData()
        formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
        formData.append("folder_id", folder._id)
-       formData.append("organization_id", "org_your_org_id")
+       formData.append("organization_id", process.env.IMBRACE_ORGANIZATION_ID ?? "")
 
        const uploaded = await client.boards.uploadFile(formData)
        console.log("File uploaded:", uploaded.file_id)
@@ -480,7 +491,7 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
        files = {
            "file": (path.name, path.read_bytes(), "application/pdf"),
            "folder_id": (None, folder["_id"]),
-           "organization_id": (None, "org_your_org_id"),
+           "organization_id": (None, os.environ.get("IMBRACE_ORGANIZATION_ID")),
        }
        uploaded = client.boards.upload_file(files)
        print("File uploaded:", uploaded.get("file_id") or uploaded.get("_id"))
@@ -718,3 +729,13 @@ Knowledge Hub files and folders live in the **data-board** service (`client.boar
    </Tabs>
 
 </Steps>
+
+---
+
+### Next steps
+
+- [Resources →](/sdk/resources/) — per-namespace method reference for all four workflows
+- [AI Agent →](/sdk/ai-agent/) — deeper dive into `streamChat`, embeddings, and parquet
+- [Workflows →](/sdk/workflows/) — flow operations, MCP servers, and run history
+- [Document AI →](/sdk/document-ai/) — AI-powered document parsing and extraction
+- [Data Board →](/sdk/databoard/) — board fields, items, search, segments, and CSV

@@ -44,8 +44,8 @@ import VersionOnly from "../../../components/VersionOnly.astro";
 
     // Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
     const client = new ImbraceClient({
-      accessToken: "acc_your_token",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env: "stable",
     })
     ```
 
@@ -53,11 +53,15 @@ import VersionOnly from "../../../components/VersionOnly.astro";
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
     from imbrace import ImbraceClient
 
     # Build on Imbrace — Imbrace IS your backend, end-users log in via OTP
-    with ImbraceClient(access_token="acc_your_token") as client:
-        ...
+    with ImbraceClient(
+        access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+        env="stable",
+    ) as client:
+        me = client.platform.get_me()
     ```
 
     Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
@@ -75,8 +79,9 @@ import VersionOnly from "../../../components/VersionOnly.astro";
 
     // Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
     const client = new ImbraceClient({
-      apiKey: "api_xxx...",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey:         process.env.IMBRACE_API_KEY,
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env:            "stable",
     })
     ```
 
@@ -84,11 +89,16 @@ import VersionOnly from "../../../components/VersionOnly.astro";
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
     from imbrace import ImbraceClient
 
     # Wrap Imbrace — Imbrace is a feature inside YOUR backend, your users
-    with ImbraceClient(api_key="api_xxx...") as client:
-        ...
+    with ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
+    ) as client:
+        me = client.platform.get_me()
     ```
 
     Python also exports `AsyncImbraceClient` (`async with ...`) for async stacks like FastAPI.
@@ -125,6 +135,15 @@ The SDK does **not** auto-read environment variables. Pass credentials directly 
 |---|---|
 | `IMBRACE_API_KEY` | Your API key (org-level credential) |
 | `IMBRACE_ACCESS_TOKEN` | A user's access token (per-session credential) |
+| `IMBRACE_ORGANIZATION_ID` | Organization ID — passed as `x-organization-id` on every request |
 | `IMBRACE_GATEWAY_URL` | Override the gateway URL (default: `https://app-gatewayv2.imbrace.co`) |
 
 The org id is encoded inside both API keys and access tokens. You can optionally override it by passing `organizationId` (TypeScript) or `organization_id` (Python) to the constructor. See [Authentication](/sdk/authentication/) for details.
+
+---
+
+### Next steps
+
+- [Quick Start →](/sdk/quick-start/) — make your first API call in 60 seconds
+- [Authentication →](/sdk/authentication/) — credential types, OTP login flow, and when to use each
+- [Setup Guide →](/getting-started/setup/) — environments, env vars, and service URL overrides

@@ -1,11 +1,11 @@
 ---
 title: Setup Guide
-description: Install the Imbrace SDK, configure credentials, set up environments, and override service URLs.
+description: Install the Imbrace SDK, set up environments, configure credentials, and override service URLs.
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 
-This guide covers everything you need to go from zero to a working Imbrace SDK integration — installation, credentials, environments, and service URL overrides.
+This guide covers everything you need to go from zero to a working Imbrace SDK integration — installation, environments, credentials, and service URL overrides.
 
 ---
 
@@ -92,41 +92,6 @@ print("SDK loaded:", ImbraceClient)
 
 ---
 
-### Configure Credentials
-
-#### Create a `.env` file
-
-The SDK does not auto-read environment variables — you pass credentials directly to the constructor. A `.env` file is a user convention for storing secrets; use `dotenv` or your framework's env loader to read them.
-
-```env
-# Credentials
-IMBRACE_API_KEY=your_api_key_here
-IMBRACE_ACCESS_TOKEN=your_jwt_token_here
-
-# Organization ID — sent with every request
-IMBRACE_ORGANIZATION_ID=your_org_id_here
-
-# Optional: override the gateway URL directly
-IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
-```
-
-#### Get an API Key
-
-**Option 1 — Imbrace Portal:** log in and go to **Settings → API Keys**.
-
-**Option 2 — via API** (requires an existing access token):
-
-```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"expirationDays": 30}'
-```
-
-The value you need is `response.apiKey.apiKey`.
-
----
-
 ### Environments
 
 | Name      | Gateway URL                              | Use when             |
@@ -156,6 +121,30 @@ client = ImbraceClient(env="sandbox")
 
 ---
 
+### Configure Credentials
+
+#### Create a `.env` file
+
+The SDK does not auto-read environment variables — you pass credentials directly to the constructor. A `.env` file is a user convention for storing secrets; use `dotenv` or your framework's env loader to read them.
+
+```env
+# Credentials
+IMBRACE_API_KEY=your_api_key_here
+IMBRACE_ACCESS_TOKEN=your_jwt_token_here
+
+# Organization ID — sent with every request
+IMBRACE_ORGANIZATION_ID=your_org_id_here
+
+# Optional: override the gateway URL directly
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
+```
+
+#### Get an API Key
+
+See [Get an API Key](/guides/api-key) for full instructions.
+
+---
+
 ### Initialize the Client
 
 <Tabs>
@@ -168,17 +157,17 @@ import { ImbraceClient } from "@imbrace/sdk";
 const client = new ImbraceClient({
   apiKey:         process.env.IMBRACE_API_KEY,
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
-  baseUrl:        "https://app-gatewayv2.imbrace.co", // or use env: "stable"
+  env:            "stable",
 });
 
 // Client-side — Access Token (e.g. after OTP login)
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN,
-  baseUrl:     "https://app-gatewayv2.imbrace.co",
+  env:         "stable",
 });
 
 // OTP login flow
-const anon = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+const anon = new ImbraceClient({ env: "stable" });
 await anon.requestOtp("user@example.com");
 await anon.loginWithOtp("user@example.com", "123456");
 // Token is stored automatically on the client
@@ -217,7 +206,7 @@ anon.login_with_otp("user@example.com", "123456")
 from imbrace import AsyncImbraceClient
 
 async def main():
-    async with AsyncImbraceClient(api_key="sk-...") as client:
+    async with AsyncImbraceClient(api_key="api_...") as client:
         me = await client.platform.get_me()
         print(me)
 ```
@@ -238,91 +227,6 @@ imbrace login --api-key api_xxx...
 ```
 
 See [CLI Installation](/cli/installation/) for alternative install methods and [CLI Commands](/cli/commands/) for the full command reference.
-
----
-
-## Quick Usage Examples
-
-<Tabs>
-  <TabItem label="TypeScript">
-
-```typescript
-import { ImbraceClient } from '@imbrace/sdk'
-
-const client = new ImbraceClient({ apiKey: process.env.IMBRACE_API_KEY })
-
-// Get current user
-const me = await client.platform.getMe()
-
-// List channels
-const channels = await client.channel.list()
-
-// Send a message
-await client.messages.send({ type: 'text', text: 'Hello!' })
-
-// AI completion
-const result = await client.ai.complete({
-  model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'Summarize this.' }],
-})
-
-// AI streaming
-for await (const chunk of client.ai.stream({ model: 'gpt-4o', messages: [...] })) {
-  process.stdout.write(chunk.choices[0]?.delta?.content ?? '')
-}
-
-// AI Agent — streaming chat
-const response = await client.aiAgent.streamChat({
-  id: 'chat_id',
-  assistant_id: 'asst_abc',
-  messages: [{ role: 'user', content: 'Hello' }],
-})
-const reader = response.body!.getReader()
-const decoder = new TextDecoder()
-while (true) {
-  const { done, value } = await reader.read()
-  if (done) break
-  console.log(decoder.decode(value))
-}
-```
-
-  </TabItem>
-  <TabItem label="Python">
-
-```python
-from imbrace import ImbraceClient
-from imbrace.types.ai import CompletionInput, CompletionMessage
-
-with ImbraceClient(api_key="sk-...") as client:
-    # Get current user
-    me = client.platform.get_me()
-
-    # List channels and boards
-    channels = client.channel.list()
-    boards_res = client.boards.list()
-    boards_data = boards_res.get("data", [])
-    if boards_data:
-        board_id = boards_data[0].get("_id") or boards_data[0]["id"]
-        items = client.boards.list_items(board_id)
-
-    # AI completion
-    result = client.ai.complete(CompletionInput(
-        model="gpt-4o",
-        messages=[CompletionMessage(role="user", content="Hello")],
-    ))
-
-    # AI Agent — streaming chat
-    response = client.ai_agent.stream_chat({
-        "id": "chat_id",
-        "assistant_id": "asst_abc",
-        "messages": [{"role": "user", "content": "Hello"}],
-    })
-    for line in response.iter_lines():
-        print(line)
-```
-
-  </TabItem>
-</Tabs>
 
 ---
 
@@ -408,14 +312,7 @@ cd py && pip install -e ".[dev]"
 
 ##### `401 Unauthorized`
 
-API Key expired or invalid. Generate a new one:
-
-```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <your_existing_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"expirationDays": 30}'
-```
+API Key expired or invalid. Generate a new one from the [Imbrace Dashboard](https://cloud.imbrace.co) or see the [API Key guide](/guides/api-key).
 
 ##### `UserWarning: ImbraceClient: no credentials provided`
 
