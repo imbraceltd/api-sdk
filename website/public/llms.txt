@@ -34,7 +34,18 @@
 ### API Reference
 - [Namespace Resource Reference](https://developer.imbrace.co/sdk/resources/) - Detailed signatures for all 30+ namespaces.
 - [AI Agent Deep Dive](https://developer.imbrace.co/sdk/ai-agent/) - SSE Streaming, TraceQL, Parquet, and Chat Client Sub-API.
+- [Document AI](https://developer.imbrace.co/sdk/document-ai/) - Extract structured data from PDFs/images via chatAi and documentAi namespaces.
 - [Error Handling](https://developer.imbrace.co/sdk/error-handling/) - Full error class hierarchy, retry behavior, and 401/403 handling.
+
+### Reference (Schema + Method Tables)
+- [AI Agent Reference](https://developer.imbrace.co/reference/ai-agent/) - client.aiAgent: streamChat, embeddings, parquet, tracing.
+- [Board Reference](https://developer.imbrace.co/reference/board/) - client.boards: CRUD, fields, items, segments, import/export.
+- [Channel Reference](https://developer.imbrace.co/reference/channel/) - client.channel: Web, WhatsApp, Facebook, Instagram, Email, WeChat, LINE.
+- [Contact Reference](https://developer.imbrace.co/reference/contact/) - client.contacts: CRUD, search, conversations, notifications.
+- [Conversation Reference](https://developer.imbrace.co/reference/conversation/) - client.conversations: list, search, join, assign, status.
+- [Workflow Reference](https://developer.imbrace.co/reference/workflow/) - client.workflows: flows, runs, folders, connections, MCP servers.
+- [Campaign Reference](https://developer.imbrace.co/reference/campaign/) - client.campaign: campaigns and touchpoints.
+- [Communication Overview](https://developer.imbrace.co/reference/communication/) - How Channel, Conversation, and Contact relate.
 
 ## Core Technical Specs
 - **Naming:** TS uses `camelCase` (e.g. `streamChat`), Py uses `snake_case` (e.g. `stream_chat`).
@@ -51,7 +62,7 @@
 ### Implementation Pitfalls
 - **Workflow State:** Newly created flows are `DRAFT`. You MUST add a trigger and call `LOCK_AND_PUBLISH` before they can be triggered.
 - **Conversation Params:** `conversations.list()` requires `type` (e.g., 'channel') and `view` (e.g., 'all') to avoid 400 errors.
-- **Base URL:** `IMBRACE_BASE_URL` must be a root domain. Do not add path fragments.
+- **Base URL:** `IMBRACE_GATEWAY_URL` must be a root domain (e.g. `https://app-gatewayv2.imbrace.co`). Do not add path fragments. The SDK does **not** auto-read env vars — pass it explicitly to the constructor.
 
 ## Resource Inventory (Selected)
 
