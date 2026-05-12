@@ -1,6 +1,6 @@
 ---
 title: 概覽
-description: What Imbrace is and what you can build with the SDK.
+description: Imbrace 是什麼以及你可以用 SDK 建置什麼。
 ---
 
 Imbrace 是一個客戶互動平台 — 它在一個地方處理聊天頻道、CRM 管道、AI agent、自動化工作流程和文件處理。SDK 讓您將這些功能直接嵌入到您自己的應用程式中，而無需自行建置基礎設施。
@@ -48,8 +48,8 @@ https://app-gatewayv2.imbrace.co
 import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  accessToken: "your-access-token",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
+  accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+  env: "stable",
 })
 
 const stream = await client.aiAgent.streamChat({

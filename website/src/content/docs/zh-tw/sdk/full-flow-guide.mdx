@@ -1,12 +1,12 @@
 ﻿---
 title: 完整流程指南
-description: End-to-end walkthroughs — from client setup to AI agents, workflows, knowledge hubs, and data boards. TypeScript and Python.
+description: 端到端逐步解說 — 從用戶端設定到 AI Agent、工作流程、知識中心和資料面板。TypeScript 和 Python。
 ---
 
-import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Steps, Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 import AuthOnly from "../../../../components/AuthOnly.astro";
 
-本指南從頭到尾逐步說明 Imbrace SDK 中的四大主要工作流程。每個章節都是獨立的 — 可以依序閱讀或直接跳到您需要的部分。切換語言標籤一次，頁面其餘部分將記住您的選擇。
+本指南從頭到尾逐步說明 Imbrace SDK 中的四大主要工作流程。每個章節都是獨立的 — 可以依序閱讀或直接跳到您需要的部分。
 
 ---
 
@@ -22,20 +22,21 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         accessToken: "acc_your_token",
-       })
+        const client = new ImbraceClient({
+          accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+          env: "stable",
+        })
        ```
      </TabItem>
      <TabItem label="Python">
-       ```python
-       from imbrace import ImbraceClient
+        ```python
+        import os
+        from imbrace import ImbraceClient
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           access_token="acc_your_token",
-       )
+        client = ImbraceClient(
+            access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+            env="stable",
+        )
        ```
      </TabItem>
    </Tabs>
@@ -47,26 +48,31 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         apiKey: "api_your_key",
-       })
+        const client = new ImbraceClient({
+          apiKey:         process.env.IMBRACE_API_KEY,
+          organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+          env:            "stable",
+        })
        ```
      </TabItem>
      <TabItem label="Python">
-       ```python
-       from imbrace import ImbraceClient
+        ```python
+        import os
+        from imbrace import ImbraceClient
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           api_key="api_your_key",
-       )
+        client = ImbraceClient(
+            api_key=os.environ["IMBRACE_API_KEY"],
+            organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+            env="stable",
+        )
        ```
      </TabItem>
    </Tabs>
    </AuthOnly>
 
-   頁首下拉選單可在**存取令牌**（Imbrace 作為後端的面向使用者應用程式）和**API 金鑰**（Imbrace 作為您技術棧內部功能的服務對服務）之間切換這些程式碼片段。請參閱[認證 → 應該使用哪種憑證](/sdk/authentication/#which-credential-should-i-use)以了解完整的決策樹。
+   <Aside type="tip">
+     不確定該使用哪種憑證？請參閱[認證 →](/sdk/authentication/#which-credential-should-i-use)
+   </Aside>
 
 2. **建立 AI agent**
 
@@ -437,7 +443,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        ```typescript
        const folder = await client.boards.createFolder({
          name: "Product Documentation",
-         organization_id: "org_your_org_id",
+          organization_id: process.env.IMBRACE_ORGANIZATION_ID,
          parent_id: "root",
        })
        console.log("Folder ID:", folder._id)
@@ -447,7 +453,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        ```python
        folder = client.boards.create_folder({
            "name": "Product Documentation",
-           "organization_id": "org_your_org_id",
+            "organization_id": os.environ.get("IMBRACE_ORGANIZATION_ID"),
            "parent_id": "root",
        })
        print("Folder ID:", folder["_id"])
@@ -466,7 +472,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        const formData = new FormData()
        formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
        formData.append("folder_id", folder._id)
-       formData.append("organization_id", "org_your_org_id")
+        formData.append("organization_id", process.env.IMBRACE_ORGANIZATION_ID ?? "")
 
        const uploaded = await client.boards.uploadFile(formData)
        console.log("File uploaded:", uploaded.file_id)
@@ -480,7 +486,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
        files = {
            "file": (path.name, path.read_bytes(), "application/pdf"),
            "folder_id": (None, folder["_id"]),
-           "organization_id": (None, "org_your_org_id"),
+            "organization_id": (None, os.environ.get("IMBRACE_ORGANIZATION_ID")),
        }
        uploaded = client.boards.upload_file(files)
        print("File uploaded:", uploaded.get("file_id") or uploaded.get("_id"))

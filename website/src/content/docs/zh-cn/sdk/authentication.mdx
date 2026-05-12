@@ -1,6 +1,6 @@
 ---
 title: 认证
-description: API Key vs Access Token — when to use each, and how to pass them to the SDK.
+description: API Key 与 Access Token — 何时使用每种方式，以及如何将它们传递给 SDK。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
@@ -56,8 +56,8 @@ Imbrace 是你的后端。你的终端用户登录 Imbrace（通过 OTP 或密�
     import { ImbraceClient } from "@imbrace/sdk";
 
     const client = new ImbraceClient({
-      apiKey: "api_xxx...",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey: process.env.IMBRACE_API_KEY,
+      env: "stable",
     });
     ```
   </TabItem>
@@ -83,15 +83,15 @@ Imbrace 是你的后端。你的终端用户登录 Imbrace（通过 OTP 或密�
   <TabItem label="TypeScript">
     ```typescript
     const client = new ImbraceClient({
-      accessToken: "acc_xxxxxxxxxxxxx",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env: "stable",
     });
     ```
   </TabItem>
   <TabItem label="Python">
     ```python
     client = ImbraceClient(
-        access_token="acc_xxxxxxxxxxxxx",
+        access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
     )
     ```
   </TabItem>
@@ -109,7 +109,7 @@ Imbrace 是你的后端。你的终端用户登录 Imbrace（通过 OTP 或密�
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      env: "stable",
     })
 
     // 步骤 1：向用户邮箱发送 OTP
@@ -172,7 +172,7 @@ Imbrace 是你的后端。你的终端用户登录 Imbrace（通过 OTP 或密�
   <TabItem label="TypeScript">
     ```typescript
     const client = new ImbraceClient({
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      env: "stable",
     })
 
     await client.login("user@example.com", "password")
@@ -225,10 +225,18 @@ Imbrace 是你的后端。你的终端用户登录 Imbrace（通过 OTP 或密�
 
 ```python
 # 同步
-with ImbraceClient(api_key="api_xxx") as client:
+with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     me = client.platform.get_me()
 
 # 异步
-async with AsyncImbraceClient(api_key="api_xxx") as client:
+async with AsyncImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     me = await client.platform.get_me()
 ```
+
+---
+
+### Next steps
+
+- [Setup Guide ?](/getting-started/setup/#configure-credentials) � env vars, dotenv, and secrets management
+- [Quick Start ?](/sdk/quick-start/) � first API call using your credential
+- [Integrations ?](/sdk/integrations/) � framework wiring patterns (React, Next.js, FastAPI, Django)

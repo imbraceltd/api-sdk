@@ -1,13 +1,12 @@
 ---
 title: 概览
-description: What the Imbrace SDK is, how it works, and when to use it.
+description: Imbrace SDK 是什么、如何工作以及何时使用。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
 Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 **Python** 两种版本。两个 SDK 封装了相同的 Gateway API，具有相同的资源命名空间、相同的认证模型以及相同的重试/错误语义 — 选择适合你技术栈的语言即可。
 
-> 在此网站上的任意位置切换语言标签一次，其余文档会记住你的选择。
 
 ### 主要特性
 
@@ -42,7 +41,7 @@ Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 *
     ```typescript
     import { ImbraceClient } from "@imbrace/sdk"
 
-    const client = new ImbraceClient({ accessToken: "acc_your_token" })
+    const client = new ImbraceClient({ accessToken: process.env.IMBRACE_ACCESS_TOKEN })
     const me = await client.platform.getMe()
     ```
   </TabItem>
@@ -50,7 +49,7 @@ Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 *
     ```python
     from imbrace import ImbraceClient
 
-    with ImbraceClient(access_token="acc_your_token") as client:
+    with ImbraceClient(access_token=os.environ["IMBRACE_ACCESS_TOKEN"]) as client:
         me = client.platform.get_me()
     ```
   </TabItem>
@@ -64,6 +63,7 @@ Imbrace SDK 是 Imbrace Gateway 的官方客户端，提供 **TypeScript** 和 *
 |---|---|
 | `client.aiAgent` / `client.ai_agent` | 流式 AI 聊天、嵌入、parquet、聊天客户端子 API |
 | `client.chatAi` / `client.chat_ai` | AI 代理增删改查（创建/更新/删除/列出 AI 代理） |
+| client.documentAi / client.document_ai | Document parsing, extraction, and AI over files |
 | `client.workflows` | 工作流自动化 — 流程、触发器、运行 |
 | `client.boards` | CRM 面板 — 增删改查、条目、字段、搜索、分段、CSV；知识中心文件夹和文件 |
 | `client.platform` | 用户、组织、权限 |

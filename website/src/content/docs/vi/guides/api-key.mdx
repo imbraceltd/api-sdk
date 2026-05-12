@@ -29,7 +29,7 @@ API key (`api_...`) cho phép backend của bạn gọi Imbrace mà không cần
 
 ---
 
-## Tùy chọn 2 — SDK (lập trình)
+## Generate via SDK (lập trình)
 
 Sử dụng tùy chọn này khi bạn cần tạo key từ mã, ví dụ trong quá trình cấp phát tự động. Bạn phải được xác thực bằng access token trước (qua [OTP](/sdk/authentication/#otp-login-flow) hoặc [mật khẩu](/sdk/authentication/#password-login)).
 
@@ -82,7 +82,8 @@ Truyền key vào constructor client:
 
     const client = new ImbraceClient({
       apiKey: process.env.IMBRACE_API_KEY!,
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env: "stable",
     });
     ```
 
@@ -92,7 +93,11 @@ Truyền key vào constructor client:
     import os
     from imbrace import ImbraceClient
 
-    client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"])
+    client = ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
+    )
     ```
 
   </TabItem>

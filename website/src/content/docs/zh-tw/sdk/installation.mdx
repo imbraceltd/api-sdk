@@ -1,6 +1,6 @@
 ﻿---
 title: 安裝
-description: Install the Imbrace SDK for TypeScript or Python.
+description: 安裝適用於 TypeScript 或 Python 的 Imbrace SDK。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
@@ -44,8 +44,8 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
 
     // 建構於 Imbrace — Imbrace 就是您的後端，終端使用者透過 OTP 登入
     const client = new ImbraceClient({
-      accessToken: "acc_your_token",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env: "stable",
     })
     ```
 
@@ -53,11 +53,15 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
     from imbrace import ImbraceClient
 
     # 建構於 Imbrace — Imbrace 就是您的後端，終端使用者透過 OTP 登入
-    with ImbraceClient(access_token="acc_your_token") as client:
-        ...
+    with ImbraceClient(
+        access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+        env="stable",
+    ) as client:
+        me = client.platform.get_me()
     ```
 
     Python 也匯出 `AsyncImbraceClient`（`async with ...`）用於非同步技術棧，如 FastAPI。
@@ -75,8 +79,9 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
 
     // 包裝 Imbrace — Imbrace 是您後端內部的功能，您的使用者
     const client = new ImbraceClient({
-      apiKey: "api_xxx...",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey:         process.env.IMBRACE_API_KEY,
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env:            "stable",
     })
     ```
 
@@ -84,11 +89,16 @@ import VersionOnly from "../../../../components/VersionOnly.astro";
   </TabItem>
   <TabItem label="Python">
     ```python
+    import os
     from imbrace import ImbraceClient
 
     # 包裝 Imbrace — Imbrace 是您後端內部的功能，您的使用者
-    with ImbraceClient(api_key="api_xxx...") as client:
-        ...
+    with ImbraceClient(
+        api_key=os.environ["IMBRACE_API_KEY"],
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
+    ) as client:
+        me = client.platform.get_me()
     ```
 
     Python 也匯出 `AsyncImbraceClient`（`async with ...`）用於非同步技術棧，如 FastAPI。
@@ -125,6 +135,15 @@ SDK **不會**自動讀取環境變數。請直接在建構函式中傳遞憑證
 |---|---|
 | `IMBRACE_API_KEY` | 您的 API 金鑰（組織層級憑證） |
 | `IMBRACE_ACCESS_TOKEN` | 使用者的存取令牌（每次連線的憑證） |
+| `IMBRACE_ORGANIZATION_ID` | 組織 ID — 在每個請求中作為 `x-organization-id` 傳遞 |
 | `IMBRACE_GATEWAY_URL` | 覆寫閘道 URL（預設：`https://app-gatewayv2.imbrace.co`） |
 
 組織 ID 已編碼在 API 金鑰和存取令牌中。您可以選擇性地在建構函式中傳遞 `organizationId`（TypeScript）或 `organization_id`（Python）來覆寫它。詳情請參閱[認證](/sdk/authentication/)。
+
+---
+
+### 下一步
+
+- [快速入門 →](/sdk/quick-start/) — 在 60 秒內完成您的第一次 API 呼叫
+- [認證 →](/sdk/authentication/) — 憑證類型、OTP 登入流程以及何時使用每種憑證
+- [設定指南 →](/getting-started/setup/) — 環境、環境變數和服務 URL 覆寫

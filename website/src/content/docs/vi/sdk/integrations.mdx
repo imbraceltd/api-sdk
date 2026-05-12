@@ -323,9 +323,7 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-:::tip
-Đừng chia sẻ một instance `ImbraceClient` duy nhất giữa các Celery worker — hãy tạo một client mới cho mỗi lần gọi tác vụ bằng context manager. Pool kết nối httpx không an toàn để chia sẻ giữa các tiến trình.
-:::
+<Aside type="tip">`nĐừng chia sẻ một instance `ImbraceClient` duy nhất giữa các Celery worker — hãy tạo một client mới cho mỗi lần gọi tác vụ bằng context manager. Pool kết nối httpx không an toàn để chia sẻ giữa các tiến trình.`n</Aside>
 
 ---
 
@@ -393,14 +391,14 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.auth.signin_email_request(body.email)
+        await client.auth.request_otp(body.email)
     return {"message": "OTP đã được gửi"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            result = await client.auth.signin_with_email(body.email, body.otp)
+            result = await client.auth.login_with_otp(body.email, body.otp)
             return {"access_token": result["token"]}
         except AuthError:
             raise HTTPException(status_code=401, detail="OTP không hợp lệ")

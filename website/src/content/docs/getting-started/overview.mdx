@@ -48,8 +48,8 @@ The gateway is set by default — you do not need to configure it unless you are
 import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  accessToken: "your-access-token",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
+  accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+  env: "stable",
 })
 
 const stream = await client.aiAgent.streamChat({

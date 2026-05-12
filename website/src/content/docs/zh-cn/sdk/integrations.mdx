@@ -1,6 +1,6 @@
 ---
 title: 集成
-description: Using the Imbrace SDKs with React, Next.js, Node.js, FastAPI, asyncio, Django, and Celery.
+description: 在 React、Next.js、Node.js、FastAPI、asyncio、Django 和 Celery 中使用 Imbrace SDK。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
@@ -323,9 +323,7 @@ def sync_products(self):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
 ```
 
-:::tip
-不要跨 Celery 工作器共享单个 `ImbraceClient` 实例 — 使用上下文管理器在每个任务调用中创建一个。httpx 连接池不适合跨进程共享。
-:::
+<Aside type="tip">`n不要跨 Celery 工作器共享单个 `ImbraceClient` 实例 — 使用上下文管理器在每个任务调用中创建一个。httpx 连接池不适合跨进程共享。`n</Aside>
 
 ---
 
@@ -393,14 +391,14 @@ class OtpVerify(BaseModel):
 @app.post("/auth/request-otp")
 async def request_otp(body: OtpRequest):
     async with AsyncImbraceClient() as client:
-        await client.auth.signin_email_request(body.email)
+        await client.auth.request_otp(body.email)
     return {"message": "OTP 已发送"}
 
 @app.post("/auth/verify-otp")
 async def verify_otp(body: OtpVerify):
     async with AsyncImbraceClient() as client:
         try:
-            result = await client.auth.signin_with_email(body.email, body.otp)
+            result = await client.auth.login_with_otp(body.email, body.otp)
             return {"access_token": result["token"]}
         except AuthError:
             raise HTTPException(status_code=401, detail="无效的 OTP")

@@ -1,6 +1,6 @@
 ---
 title: 设置指南
-description: Install the Imbrace SDK, configure credentials, set up environments, and override service URLs.
+description: 安装 Imbrace SDK、配置凭据、设置环境以及覆盖服务 URL。
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
@@ -168,17 +168,17 @@ import { ImbraceClient } from "@imbrace/sdk";
 const client = new ImbraceClient({
   apiKey:         process.env.IMBRACE_API_KEY,
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
-  baseUrl:        "https://app-gatewayv2.imbrace.co", // 或使用 env: "stable"
+  env: "stable", // 或使用 env: "stable"
 });
 
 // 客户端 — Access Token（例如 OTP 登录后）
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN,
-  baseUrl:     "https://app-gatewayv2.imbrace.co",
+  env: "stable",
 });
 
 // OTP 登录流程
-const anon = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+const anon = new ImbraceClient({ env: "stable" });
 await anon.requestOtp("user@example.com");
 await anon.loginWithOtp("user@example.com", "123456");
 // 令牌自动存储在客户端上
@@ -200,7 +200,7 @@ client = ImbraceClient(
 
 # 客户端 — Access Token
 client = ImbraceClient(
-    access_token="eyJhbGci...",
+    access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
     organization_id="org_xxx",
 )
 
@@ -217,7 +217,7 @@ anon.login_with_otp("user@example.com", "123456")
 from imbrace import AsyncImbraceClient
 
 async def main():
-    async with AsyncImbraceClient(api_key="sk-...") as client:
+    async with AsyncImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
         me = await client.platform.get_me()
         print(me)
 ```
@@ -293,7 +293,7 @@ while (true) {
 from imbrace import ImbraceClient
 from imbrace.types.ai import CompletionInput, CompletionMessage
 
-with ImbraceClient(api_key="sk-...") as client:
+with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     # 获取当前用户
     me = client.platform.get_me()
 
