@@ -1,29 +1,50 @@
 # Workflows
 
-The SDK exposes two workflow systems: **Activepieces** (`client.activepieces` / `client.workflows`) for visual workflow automation, and **channel automation** (`client.workflows`) for messaging channel flows such as WhatsApp.
+`client.workflows` exposes both channel automation (v2/backend route) and the flow engine (CRUD flows, runs, folders, connections, pieces, MCP servers, tables, invitations).
 
-Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an assistant, see [Full Flow Guide Â§2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant).
+Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). For an end-to-end walkthrough that wires a workflow to an AI agent, see [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent).
 
 ---
 
-## Activepieces â€” `client.activepieces` / `client.workflows`
+## Channel Automation — `client.workflows`
 
-Activepieces is the visual workflow builder. Available for both TypeScript and Python.
-
-### Flows
+**TypeScript**
 
 ```typescript
-const { data: flows } = await client.activepieces.listFlows();
+const { data: automations }    = await client.workflows.listChannelAutomation();
+const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ channelType: "whatsapp" });
+```
 
-const flow = await client.activepieces.getFlow("flow_id");
+**Python**
 
-const newFlow = await client.activepieces.createFlow({
+```python
+automations    = client.workflows.list_channel_automation().get("data", [])
+whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp").get("data", [])
+```
+
+---
+
+## Flows
+
+### CRUD
+
+**TypeScript**
+
+```typescript
+const { data: flows } = await client.workflows.listFlows();
+
+const flow = await client.workflows.getFlow("flow_id");
+
+const newFlow = await client.workflows.createFlow({
   displayName: "New Lead Notification",
   projectId: "project_id",
 });
 
-await client.activepieces.deleteFlow("flow_id");
+await client.workflows.deleteFlow("flow_id");
 ```
+
+**Python**
+
 ```python
 flows = client.workflows.list_flows().get("data", [])
 
@@ -37,21 +58,70 @@ new_flow = client.workflows.create_flow(
 client.workflows.delete_flow("flow_id")
 ```
 
+### Apply operation
+
+**TypeScript**
+
+```typescript
+await client.workflows.applyFlowOperation("flow_id", {
+  type: "UPDATE_TRIGGER",
+  request: {
+    name: "trigger",
+    type: "PIECE_TRIGGER",
+    valid: true,
+    displayName: "Webhook",
+    settings: {
+      pieceName: "@activepieces/piece-webhook",
+      pieceVersion: "0.1.24",
+      triggerName: "catch_webhook",
+      input: {},
+      propertySettings: {},
+    },
+  },
+});
+```
+
+**Python**
+
+```python
+client.workflows.apply_flow_operation("flow_id", {
+    "type": "UPDATE_TRIGGER",
+    "request": {
+        "name": "trigger",
+        "type": "PIECE_TRIGGER",
+        "valid": True,
+        "displayName": "Webhook",
+        "settings": {
+            "pieceName": "@activepieces/piece-webhook",
+            "pieceVersion": "0.1.24",
+            "triggerName": "catch_webhook",
+            "input": {},
+            "propertySettings": {},
+        },
+    },
+})
+```
+
 ### Trigger a flow
+
+**TypeScript**
 
 ```typescript
 // Fire and forget
-await client.activepieces.triggerFlow("flow_id", {
+await client.workflows.triggerFlow("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 
 // Wait for result
-const result = await client.activepieces.triggerFlowSync("flow_id", {
+const result = await client.workflows.triggerFlowSync("flow_id", {
   contactId: "contact_xxx",
   event: "lead_qualified",
 });
 ```
+
+**Python**
+
 ```python
 # Fire and forget
 client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
@@ -60,48 +130,166 @@ client.workflows.trigger_flow("flow_id", {"contactId": "contact_xxx", "event": "
 result = client.workflows.trigger_flow_sync("flow_id", {"contactId": "contact_xxx", "event": "lead_qualified"})
 ```
 
-### Runs, folders, connections, tables
+---
+
+## Flow Runs
+
+**TypeScript**
 
 ```typescript
-const { data: runs }     = await client.activepieces.listRuns({ flowId: "flow_id", limit: 20 });
-const run                = await client.activepieces.getRun("run_id");
+const { data: runs } = await client.workflows.listRuns({ flowId: "flow_id", limit: 20 });
+const run            = await client.workflows.getRun("run_id");
+```
 
-const { data: folders }  = await client.activepieces.listFolders();
-const folder             = await client.activepieces.createFolder({ displayName: "CRM Automations", projectId: "project_id" });
+**Python**
 
-const { data: connections } = await client.activepieces.listConnections();
-await client.activepieces.upsertConnection({
+```python
+runs = client.workflows.list_runs(flow_id="flow_id", limit=20).get("data", [])
+run  = client.workflows.get_run("run_id")
+```
+
+---
+
+## Folders
+
+**TypeScript**
+
+```typescript
+const { data: folders }  = await client.workflows.listFolders();
+const folder             = await client.workflows.getFolder("folder_id");
+const newFolder          = await client.workflows.createFolder({ displayName: "CRM Automations", projectId: "project_id" });
+const updated            = await client.workflows.updateFolder("folder_id", { displayName: "Updated Name" });
+await client.workflows.deleteFolder("folder_id");
+```
+
+**Python**
+
+```python
+folders    = client.workflows.list_folders().get("data", [])
+folder     = client.workflows.get_folder("folder_id")
+new_folder = client.workflows.create_folder(display_name="CRM Automations", project_id="project_id")
+updated    = client.workflows.update_folder(folder_id="folder_id", display_name="Updated Name")
+client.workflows.delete_folder("folder_id")
+```
+
+---
+
+## App Connections
+
+**TypeScript**
+
+```typescript
+const { data: connections } = await client.workflows.listConnections();
+const connection            = await client.workflows.getConnection("connection_id");
+await client.workflows.upsertConnection({
   name: "slack-integration",
   type: "OAUTH2",
   value: { access_token: "xoxb-xxx" },
 });
-
-const { data: tables }   = await client.activepieces.listTables();
-const { data: records }  = await client.activepieces.listRecords({ tableId: "table_id" });
+await client.workflows.deleteConnection("connection_id");
 ```
+
+**Python**
+
 ```python
-runs   = client.workflows.list_runs(flow_id="flow_id", limit=20).get("data", [])
-run    = client.workflows.get_run("run_id")
-
-folders = client.workflows.list_folders().get("data", [])
-folder  = client.workflows.create_folder(display_name="CRM Automations", project_id="project_id")
-
 connections = client.workflows.list_connections().get("data", [])
+connection  = client.workflows.get_connection("connection_id")
 client.workflows.upsert_connection({"name": "slack-integration", "type": "OAUTH2", "value": {"access_token": "xoxb-xxx"}})
+client.workflows.delete_connection("connection_id")
+```
 
+---
+
+## Pieces
+
+**TypeScript**
+
+```typescript
+const pieces = await client.workflows.listPieces({ limit: 20 });
+```
+
+**Python**
+
+```python
+pieces = client.workflows.list_pieces(limit=20)
+```
+
+---
+
+## Triggers
+
+**TypeScript**
+
+```typescript
+const status = await client.workflows.getTriggerRunStatus();
+await client.workflows.testTrigger({ pieceName: "@activepieces/piece-webhook", flowId: "flow_id" });
+```
+
+**Python**
+
+```python
+status = client.workflows.get_trigger_run_status()
+client.workflows.test_trigger({"pieceName": "@activepieces/piece-webhook", "flowId": "flow_id"})
+```
+
+---
+
+## Tables & Records
+
+**TypeScript**
+
+```typescript
+const { data: tables }  = await client.workflows.listTables();
+const table             = await client.workflows.getTable("table_id");
+const { data: records } = await client.workflows.listRecords({ tableId: "table_id" });
+```
+
+**Python**
+
+```python
 tables  = client.workflows.list_tables().get("data", [])
+table   = client.workflows.get_table("table_id")
 records = client.workflows.list_records(table_id="table_id").get("data", [])
 ```
 
 ---
 
-## Channel Automation â€” `client.workflows`
+## MCP Servers
+
+**TypeScript**
 
 ```typescript
-const { data: automations }    = await client.workflows.listChannelAutomation();
-const { data: whatsappFlows }  = await client.workflows.listChannelAutomation({ channelType: "whatsapp" });
+const { data: servers } = await client.workflows.listMcpServers("project_id");
+const server            = await client.workflows.getMcpServer("mcp_server_id");
+const newServer         = await client.workflows.createMcpServer({ projectId: "project_id", name: "My MCP" });
+await client.workflows.deleteMcpServer("mcp_server_id");
+await client.workflows.rotateMcpToken("mcp_server_id");
 ```
+
+**Python**
+
 ```python
-automations    = client.workflows.list_channel_automation().get("data", [])
-whatsapp_flows = client.workflows.list_channel_automation(channel_type="whatsapp")
+servers    = client.workflows.list_mcp_servers(project_id="project_id").get("data", [])
+server     = client.workflows.get_mcp_server("mcp_server_id")
+new_server = client.workflows.create_mcp_server({"projectId": "project_id", "name": "My MCP"})
+client.workflows.delete_mcp_server("mcp_server_id")
+client.workflows.rotate_mcp_token("mcp_server_id")
+```
+
+---
+
+## User Invitations
+
+**TypeScript**
+
+```typescript
+const { data: invitations } = await client.workflows.listInvitations({ type: "PROJECT" });
+await client.workflows.deleteInvitation("invitation_id");
+```
+
+**Python**
+
+```python
+invitations = client.workflows.list_invitations(type="PROJECT").get("data", [])
+client.workflows.delete_invitation("invitation_id")
 ```

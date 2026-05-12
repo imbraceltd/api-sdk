@@ -4,19 +4,24 @@ All errors thrown by the SDK extend a single base type, so you can catch any SDK
 
 ## Error hierarchy
 
+**TypeScript**
+
 ```
 Error
-â””â”€â”€ ImbraceError          (base â€” catch-all for SDK errors)
-    â”œâ”€â”€ AuthError          (401, 403 â€” invalid or expired credentials)
-    â”œâ”€â”€ ApiError           (4xx/5xx â€” request rejected by the server)
-    â””â”€â”€ NetworkError       (timeout, connection refused, DNS failure)
+└── ImbraceError          (base — catch-all for SDK errors)
+    ├── AuthError          (401, 403 — invalid or expired credentials)
+    ├── ApiError           (4xx/5xx — request rejected by the server)
+    └── NetworkError       (timeout, connection refused, DNS failure)
 ```
+
+**Python**
+
 ```
 Exception
-â””â”€â”€ ImbraceError          (base â€” catch-all for SDK errors)
-    â”œâ”€â”€ AuthError          (401, 403 â€” invalid or expired credentials)
-    â”œâ”€â”€ ApiError           (4xx/5xx â€” request rejected by server)
-    â””â”€â”€ NetworkError       (timeout, connection refused, DNS failure)
+└── ImbraceError          (base — catch-all for SDK errors)
+    ├── AuthError          (401, 403 — invalid or expired credentials)
+    ├── ApiError           (4xx/5xx — request rejected by server)
+    └── NetworkError       (timeout, connection refused, DNS failure)
 ```
 
 For specific error messages and known fixes, see [Troubleshooting](/guides/troubleshooting/).
@@ -25,7 +30,9 @@ For specific error messages and known fixes, see [Troubleshooting](/guides/troub
 
 ## AuthError
 
-Raised when the server returns **401** or **403** â€” credentials are invalid, expired, or revoked.
+Raised when the server returns **401** or **403** — credentials are invalid, expired, or revoked.
+
+**TypeScript**
 
 ```typescript
 import { AuthError } from "@imbrace/sdk";
@@ -38,6 +45,9 @@ try {
   }
 }
 ```
+
+**Python**
+
 ```python
 from imbrace import AuthError
 
@@ -48,13 +58,15 @@ except AuthError as e:
     # Re-authenticate before retrying
 ```
 
-`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 â€” fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
+`AuthError` is **never retried**. The SDK throws/raises immediately on 401/403 — fix the credentials before trying again. For credential strategy, see [Authentication](/sdk/authentication/).
 
 ---
 
 ## ApiError
 
 Raised for all other **4xx and 5xx** responses (after retries are exhausted for 429/5xx).
+
+**TypeScript**
 
 ```typescript
 import { ApiError } from "@imbrace/sdk";
@@ -73,6 +85,9 @@ try {
 | ------------ | -------- | ---------------------------------- |
 | `statusCode` | `number` | HTTP status code                   |
 | `message`    | `string` | Error message from server response |
+
+**Python**
+
 ```python
 from imbrace import ApiError
 
@@ -86,13 +101,14 @@ except ApiError as e:
 | Attribute     | Type  | Description                        |
 | ------------- | ----- | ---------------------------------- |
 | `status_code` | `int` | HTTP status code                   |
-| `message`    | `str` | Error message from server response |
 
 ---
 
 ## NetworkError
 
-Raised when the request never reaches the server â€” timeout, DNS failure, or connection reset.
+Raised when the request never reaches the server — timeout, DNS failure, or connection reset.
+
+**TypeScript**
 
 ```typescript
 import { NetworkError } from "@imbrace/sdk";
@@ -106,6 +122,9 @@ try {
   }
 }
 ```
+
+**Python**
+
 ```python
 from imbrace import NetworkError
 
@@ -113,14 +132,14 @@ try:
     client.platform.get_me()
 except NetworkError as e:
     print(f"Network error: {e}")
-    # e.g. "Request timed out after 30s"
+    # e.g. "Network error or timeout: ConnectTimeout(...)"
 ```
 
 ---
 
 ## Catching all SDK errors
 
-Import the base type to handle any SDK-originated error in a single block:
+**TypeScript**
 
 ```typescript
 import {
@@ -141,6 +160,9 @@ try {
   throw e; // re-throw non-SDK errors
 }
 ```
+
+**Python**
+
 ```python
 from imbrace import ImbraceError, AuthError, ApiError, NetworkError
 
@@ -162,45 +184,46 @@ except ImbraceError as e:
 
 The HTTP transport in both SDKs retries transient failures with exponential backoff. The retry count differs slightly between languages but the conditions are identical.
 
+**TypeScript**
+
 | Condition                   | Action                                   |
 | --------------------------- | ---------------------------------------- |
 | HTTP **429** (rate limit)   | Retry up to 2 times                      |
 | HTTP **5xx** (server error) | Retry up to 2 times                      |
 | Network error / timeout     | Retry up to 2 times                      |
-| HTTP **401 / 403**          | No retry â€” throw `AuthError` immediately |
-| HTTP **4xx** (other)        | No retry â€” throw `ApiError` immediately  |
+| HTTP **401 / 403**          | No retry — throw `AuthError` immediately |
+| HTTP **4xx** (other)        | No retry — throw `ApiError` immediately  |
 
-**Backoff:** `2^retryCount` seconds between attempts (2s â†’ 4s). Total worst-case: 3 attempts.
+**Backoff:** `2^retryCount` seconds between attempts (2s → 4s). Total worst-case: 3 attempts.
+
+**Python**
+
 | Condition                   | Action                                   |
 | --------------------------- | ---------------------------------------- |
 | HTTP **429** (rate limit)   | Retry up to 3 times                      |
 | HTTP **5xx** (server error) | Retry up to 3 times                      |
 | Network error / timeout     | Retry up to 3 times                      |
-| HTTP **401 / 403**          | No retry â€” raise `AuthError` immediately |
-| HTTP **4xx** (other)        | No retry â€” raise `ApiError` immediately  |
+| HTTP **401 / 403**          | No retry — raise `AuthError` immediately |
+| HTTP **4xx** (other)        | No retry — raise `ApiError` immediately  |
 
-**Backoff:** `2^retryCount` seconds between attempts (2s â†’ 4s â†’ 8s). Total worst-case: 4 attempts.
+**Backoff:** `2^retryCount` seconds between attempts (1s → 2s → 4s). Total worst-case: 4 attempts.
 
 ---
 
-## Request cancellation (TypeScript)
+## Request timeout
 
-Pass an `AbortSignal` to cancel an in-flight request:
+Configure the timeout when creating the client (default: **30 s**). When the timeout fires, the in-flight request is aborted and a `NetworkError` is thrown/raised.
+
+**TypeScript**
 
 ```typescript
-const controller = new AbortController();
-setTimeout(() => controller.abort(), 5000);
+const client = new ImbraceClient({ timeout: 15_000 }); // milliseconds
+```
 
-try {
-  const result = await client.marketplace.listProducts(
-    { page: 1 },
-    { signal: controller.signal },
-  );
-} catch (e) {
-  if (e instanceof NetworkError && e.message.includes("aborted")) {
-    console.log("Request cancelled");
-  }
-}
+**Python**
+
+```python
+client = ImbraceClient(timeout=15)  # seconds
 ```
 
 ## Async error handling (Python)
@@ -223,11 +246,13 @@ async with AsyncImbraceClient() as client:
 
 ## Best practices
 
+**TypeScript**
+
 ```typescript
-// 1. Always handle AuthError separately â€” credentials need to be refreshed
-// 2. Log ApiError.statusCode â€” 400 = bad params, 404 = not found, 409 = conflict
+// 1. Always handle AuthError separately — credentials need to be refreshed
+// 2. Log ApiError.statusCode — 400 = bad params, 404 = not found, 409 = conflict
 // 3. Wrap top-level entry points in try/catch
-// 4. Don't retry on AuthError â€” won't help until credentials are fixed
+// 4. Don't retry on AuthError — won't help until credentials are fixed
 
 async function safeGetMe(client: ImbraceClient) {
   try {
@@ -241,12 +266,15 @@ async function safeGetMe(client: ImbraceClient) {
   }
 }
 ```
+
+**Python**
+
 ```python
 # 1. Use a context manager so connections are closed deterministically
 with ImbraceClient() as client:
     ...
 
-# 2. Handle AuthError separately â€” credentials need refresh before retrying
+# 2. Handle AuthError separately — credentials need refresh before retrying
 def safe_get_me(client):
     try:
         return client.platform.get_me()
@@ -256,10 +284,10 @@ def safe_get_me(client):
 
 # 3. Branch on status_code for ApiError
 try:
-    client.marketplace.create_product(data)
+    client.marketplace.create_order(data)
 except ApiError as e:
     if e.status_code == 409:
-        print("Product already exists")
+        print("Order already exists")
     elif e.status_code == 400:
         print(f"Invalid data: {e}")
 ```

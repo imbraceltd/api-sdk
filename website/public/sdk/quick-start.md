@@ -2,67 +2,84 @@
 
 ### 1. Initialize the client
 
-    ```typescript
-    import { ImbraceClient } from "@imbrace/sdk"
+**TypeScript — access token**
 
-    const client = new ImbraceClient({
-      accessToken: "your-access-token",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
-    })
-    ```
-    ```python
-    import os
-    from dotenv import load_dotenv
-    from imbrace import ImbraceClient
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
 
-    load_dotenv()
+const client = new ImbraceClient({
+  accessToken: "your-access-token",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+```
 
-    client = ImbraceClient(
-        access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
-        base_url="https://app-gatewayv2.imbrace.co",
-    )
-    ```
+**TypeScript — API key**
 
-    ```typescript
-    import { ImbraceClient } from "@imbrace/sdk"
+```typescript
+import { ImbraceClient } from "@imbrace/sdk"
 
-    const client = new ImbraceClient({
-      apiKey: "your-api-key",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
-    })
-    ```
-    ```python
-    import os
-    from dotenv import load_dotenv
-    from imbrace import ImbraceClient
+const client = new ImbraceClient({
+  apiKey: "your-api-key",
+  baseUrl: "https://app-gatewayv2.imbrace.co",
+})
+```
 
-    load_dotenv()
+**Python — access token**
 
-    client = ImbraceClient(
-        api_key=os.environ["IMBRACE_API_KEY"],
-        base_url="https://app-gatewayv2.imbrace.co",
-    )
-    ```
+```python
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient
+
+load_dotenv()
+
+client = ImbraceClient(
+    access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+    base_url="https://app-gatewayv2.imbrace.co",
+)
+```
+
+**Python — API key**
+
+```python
+import os
+from dotenv import load_dotenv
+from imbrace import ImbraceClient
+
+load_dotenv()
+
+client = ImbraceClient(
+    api_key=os.environ["IMBRACE_API_KEY"],
+    base_url="https://app-gatewayv2.imbrace.co",
+)
+```
+
+See [Authentication](/sdk/authentication/) for which credential to pick.
 
 ---
 
 ### 2. Fetch your boards
 
-Boards are CRM pipelines â€” leads, deals, tasks, or any structured data. This call requires only your credential.
+Boards are CRM pipelines — leads, deals, tasks, or any structured data. This call requires only your credential.
 
-    ```typescript
-    const { data: boards } = await client.boards.list()
+**TypeScript**
 
-    for (const board of boards) {
-      console.log(board._id, board.doc_name)
-    }
-    ```
-    ```python
-    boards = client.boards.list()
+```typescript
+const { data: boards } = await client.boards.list()
 
-    for board in boards.get("data", []):
-        print(board["_id"], board.get("doc_name"))
-    ```
+for (const board of boards) {
+  console.log(board.id, board.name)
+}
+```
+
+**Python**
+
+```python
+boards = client.boards.list()
+
+for board in boards.get("data", []):
+    print(board["id"], board.get("name"))
+```
 
 If you see your boards listed, the SDK is connected and authenticated.
 
@@ -72,9 +89,9 @@ If you see your boards listed, the SDK is connected and authenticated.
 
 The [Full Flow Guide](/sdk/full-flow-guide/) walks the four major workflows end-to-end. Jump straight to a section:
 
-- **AI Assistant + streamChat** â†’ [Full Flow Guide Â§1](/sdk/full-flow-guide/#1-create-an-ai-assistant-and-start-chatting)
-- **Activepieces workflows** â†’ [Full Flow Guide Â§2](/sdk/full-flow-guide/#2-create-a-workflow-with-activepieces-and-bind-it-to-an-assistant)
-- **Knowledge Hub (folders, RAG)** â†’ [Full Flow Guide Â§3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-assistant)
-- **Boards & Items (CRM)** â†’ [Full Flow Guide Â§4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
+- **AI Agent + streamChat** → [Full Flow Guide §1](/sdk/full-flow-guide/#1-create-an-ai-agent-and-start-chatting)
+- **Workflows** → [Full Flow Guide §2](/sdk/full-flow-guide/#2-create-a-workflow-and-bind-it-to-an-ai-agent)
+- **Knowledge Hub (folders, RAG)** → [Full Flow Guide §3](/sdk/full-flow-guide/#3-manage-knowledge-hubs-and-attach-to-an-ai-agent)
+- **Boards & Items (CRM)** → [Full Flow Guide §4](/sdk/full-flow-guide/#4-manage-data-boards-and-items-crm-pipelines)
 
 For the per-namespace API reference, see [Resources](/sdk/resources/).

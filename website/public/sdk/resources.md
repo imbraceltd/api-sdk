@@ -3,15 +3,17 @@
 This page covers the CRM and messaging namespaces exposed by the SDK. Initialize the client first (see [Installation](/sdk/installation/) or [Quick Start](/sdk/quick-start/)). All snippets below assume `client` is the initialized instance.
 
 For AI and workflow-related resources, see:
-- [AI Agent](/sdk/ai-agent/) â€” assistants (`chatAi`), AI agent streaming, embeddings, parquet
-- [Workflows](/sdk/workflows/) â€” Activepieces flows and channel automation
-- [Data Boards](/sdk/databoard/) â€” CRM pipeline boards and items
+- [AI Agent](/sdk/ai-agent/) — AI agents (`chatAi`), AI agent streaming, embeddings, parquet
+- [Workflows](/sdk/workflows/) — Workflow flows and channel automation
+- [Data Boards](/sdk/databoard/) — CRM pipeline boards and items
 
 For an end-to-end walkthrough that uses these resources together, see [Full Flow Guide](/sdk/full-flow-guide/).
 
 ---
 
-## Contacts â€” `client.contacts`
+## Contacts — `client.contacts`
+
+**TypeScript**
 
 ```typescript
 const { data: contacts } = await client.contacts.list({ limit: 50 });
@@ -27,6 +29,9 @@ const comments = await client.contacts.getComments("contact_id");
 const files    = await client.contacts.getFiles("contact_id");
 const activity = await client.contacts.getActivities("conversation_id");
 ```
+
+**Python**
+
 ```python
 result   = client.contacts.list(limit=50)
 contacts = result.get("data", [])
@@ -46,7 +51,9 @@ activity  = client.contacts.get_activities("conversation_id")
 
 ---
 
-## Conversations â€” `client.conversations`
+## Conversations — `client.conversations`
+
+**TypeScript**
 
 ```typescript
 // Search
@@ -74,6 +81,9 @@ await client.conversations.updateStatus({
   status: "resolved",
 });
 ```
+
+**Python**
+
 ```python
 result = client.conversations.search(
     business_unit_id="bu_xxx",
@@ -92,7 +102,9 @@ client.conversations.update_status({
 
 ---
 
-## Messaging â€” `client.channel`, `client.messages`
+## Messaging — `client.channel`, `client.messages`
+
+**TypeScript**
 
 ```typescript
 const channels = await client.channel.list();
@@ -104,6 +116,9 @@ await client.messages.send({
 
 const msgs = await client.messages.list({ limit: 20 });
 ```
+
+**Python**
+
 ```python
 channels = client.channel.list()
 
@@ -117,12 +132,14 @@ msgs = client.messages.list(limit=20)
 
 ---
 
-## Campaigns & touchpoints â€” `client.campaign`
+## Campaigns & touchpoints — `client.campaign`
+
+**TypeScript**
 
 ```typescript
 const { data: campaigns } = await client.campaign.list();
 const campaign  = await client.campaign.get("campaign_id");
-const newCamp   = await client.campaign.create({ name: "Q2 Outreach", type: "email" });
+const newCamp   = await client.campaign.create({ name: "Q2 Outreach", channel_type: "email" });
 await client.campaign.delete("campaign_id");
 
 // Touchpoints
@@ -140,10 +157,13 @@ await client.campaign.deleteTouchpoint("touchpoint_id");
 // Validate touchpoint config before saving
 const result = await client.campaign.validateTouchpoint({ type: "email", template_id: "tpl_xxx" });
 ```
+
+**Python**
+
 ```python
 campaigns = client.campaign.list().get("data", [])
 campaign  = client.campaign.get("campaign_id")
-new_camp  = client.campaign.create({"name": "Q2 Outreach", "type": "email"})
+new_camp  = client.campaign.create({"name": "Q2 Outreach", "channel_type": "email"})
 client.campaign.delete("campaign_id")
 
 # Touchpoints
@@ -164,18 +184,23 @@ result = client.campaign.validate_touchpoint({"type": "email", "template_id": "t
 
 ---
 
-## Message suggestion â€” `client.messageSuggestion` / `client.message_suggestion`
+## Message suggestion — `client.messageSuggestion` / `client.message_suggestion`
 
-Available for both TypeScript and Python.
+**TypeScript**
 
 ```typescript
 const suggestions = await client.messageSuggestion.getSuggestions({
+  message: "Can you help me with my order?",
   conversation_id: "conv_xxx",
   limit: 3,
 });
 ```
+
+**Python**
+
 ```python
 suggestions = client.message_suggestion.get_suggestions({
+    "message": "Can you help me with my order?",
     "conversation_id": "conv_xxx",
     "limit": 3,
 })
@@ -183,9 +208,9 @@ suggestions = client.message_suggestion.get_suggestions({
 
 ---
 
-## Predict â€” `client.predict`
+## Predict — `client.predict`
 
-Available for both TypeScript and Python.
+**TypeScript**
 
 ```typescript
 const result = await client.predict.predict({
@@ -194,6 +219,9 @@ const result = await client.predict.predict({
 });
 console.log(result.score);   // 0.87
 ```
+
+**Python**
+
 ```python
 result = client.predict.predict({
     "model": "lead_score_v1",
