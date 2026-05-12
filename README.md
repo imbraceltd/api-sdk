@@ -12,8 +12,8 @@ Official TypeScript and Python SDKs for the [Imbrace](https://imbrace.co) platfo
 
 | Directory | Package | Version | Runtime |
 | --------- | ------- | ------- | ------- |
-| [`ts/`](./ts) | [`@imbrace/sdk`](https://www.npmjs.com/package/@imbrace/sdk) | 1.0.1 | Node.js 18+, browser |
-| [`py/`](./py) | [`imbrace`](https://pypi.org/project/imbrace/) | 1.0.0 | Python 3.9+ |
+| [`ts/`](./ts) | [`@imbrace/sdk`](https://www.npmjs.com/package/@imbrace/sdk) | 1.0.4 | Node.js 18+, browser |
+| [`py/`](./py) | [`imbrace`](https://pypi.org/project/imbrace/) | 1.0.4 | Python 3.9+ |
 
 ---
 
@@ -62,7 +62,7 @@ Set `IMBRACE_API_KEY` in your environment or `.env` file. Both SDKs read it auto
 
 Full reference, authentication guides, and examples:
 
-**[imbraceltd.github.io/api-sdk](https://imbraceltd.github.io/api-sdk/)**
+**[developer.imbrace.co](https://developer.imbrace.co/)**
 
 Available in: English · Tiếng Việt · 简体中文 · 繁體中文
 
