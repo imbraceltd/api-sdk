@@ -22,16 +22,17 @@ Tài nguyên AI Agent kết nối đến một dịch vụ chuyên biệt chạy
 import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  accessToken: "your-access-token",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
+  accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+  env: "stable",
 })
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
+import os
 from imbrace import ImbraceClient
 
-client = ImbraceClient(access_token="your-access-token")
+client = ImbraceClient(access_token=os.environ["IMBRACE_ACCESS_TOKEN"], env="stable")
 ```
 </TabItem>
 </Tabs>
@@ -44,16 +45,18 @@ client = ImbraceClient(access_token="your-access-token")
 import { ImbraceClient } from "@imbrace/sdk"
 
 const client = new ImbraceClient({
-  apiKey: "your-api-key",
-  baseUrl: "https://app-gatewayv2.imbrace.co",
+  apiKey: process.env.IMBRACE_API_KEY,
+  organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+  env: "stable",
 })
 ```
 </TabItem>
 <TabItem label="Python">
 ```python
+import os
 from imbrace import ImbraceClient
 
-client = ImbraceClient(api_key="your-api-key")
+client = ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"], organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"), env="stable")
 ```
 </TabItem>
 </Tabs>

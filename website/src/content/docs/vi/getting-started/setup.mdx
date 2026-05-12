@@ -92,41 +92,6 @@ print("SDK loaded:", ImbraceClient)
 
 ---
 
-### Cấu hình Thông tin Xác thực
-
-#### Tạo tệp `.env`
-
-SDK không tự động đọc biến môi trường — bạn truyền thông tin xác thực trực tiếp vào constructor. Tệp `.env` là một quy ước người dùng để lưu trữ bí mật; sử dụng `dotenv` hoặc trình tải env của framework để đọc chúng.
-
-```env
-# Thông tin xác thực
-IMBRACE_API_KEY=api_key_của_bạn
-IMBRACE_ACCESS_TOKEN=jwt_token_của_bạn
-
-# ID Tổ chức — được gửi với mọi yêu cầu
-IMBRACE_ORGANIZATION_ID=org_id_của_bạn
-
-# Tùy chọn: ghi đè URL gateway trực tiếp
-IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
-```
-
-#### Lấy API Key
-
-**Tùy chọn 1 — Cổng thông tin Imbrace:** đăng nhập và đi đến **Settings → API Keys**.
-
-**Tùy chọn 2 — qua API** (yêu cầu access token hiện có):
-
-```bash
-curl -X POST https://app-gatewayv2.imbrace.co/private/backend/v1/third_party_token \
-  -H "x-access-token: <token_hiện_có_của_bạn>" \
-  -H "Content-Type: application/json" \
-  -d '{"expirationDays": 30}'
-```
-
-Giá trị bạn cần là `response.apiKey.apiKey`.
-
----
-
 ### Môi trường
 
 | Tên       | URL Gateway                             | Sử dụng khi           |
@@ -156,6 +121,30 @@ client = ImbraceClient(env="sandbox")
 
 ---
 
+### Cấu hình Thông tin Xác thực
+
+#### Tạo tệp `.env`
+
+SDK không tự động đọc biến môi trường — bạn truyền thông tin xác thực trực tiếp vào constructor. Tệp `.env` là một quy ước người dùng để lưu trữ bí mật; sử dụng `dotenv` hoặc trình tải env của framework để đọc chúng.
+
+```env
+# Thông tin xác thực
+IMBRACE_API_KEY=api_key_của_bạn
+IMBRACE_ACCESS_TOKEN=jwt_token_của_bạn
+
+# ID Tổ chức — được gửi với mọi yêu cầu
+IMBRACE_ORGANIZATION_ID=org_id_của_bạn
+
+# Tùy chọn: ghi đè URL gateway trực tiếp
+IMBRACE_GATEWAY_URL=https://app-gatewayv2.imbrace.co
+```
+
+#### Lấy API Key
+
+Xem [Hướng dẫn lấy API Key](/guides/api-key) để biết hướng dẫn đầy đủ.
+
+---
+
 ### Khởi tạo Client
 
 <Tabs>
@@ -168,17 +157,17 @@ import { ImbraceClient } from "@imbrace/sdk";
 const client = new ImbraceClient({
   apiKey:         process.env.IMBRACE_API_KEY,
   organizationId: process.env.IMBRACE_ORGANIZATION_ID,
-  baseUrl:        "https://app-gatewayv2.imbrace.co", // hoặc dùng env: "stable"
+  env: "stable", // hoặc dùng env: "stable"
 });
 
 // Phía client — Access Token (ví dụ: sau khi đăng nhập OTP)
 const client = new ImbraceClient({
   accessToken: process.env.IMBRACE_ACCESS_TOKEN,
-  baseUrl:     "https://app-gatewayv2.imbrace.co",
+  env: "stable",
 });
 
 // Luồng đăng nhập OTP
-const anon = new ImbraceClient({ baseUrl: "https://app-gatewayv2.imbrace.co" });
+const anon = new ImbraceClient({ env: "stable" });
 await anon.requestOtp("user@example.com");
 await anon.loginWithOtp("user@example.com", "123456");
 // Token được lưu tự động trên client
@@ -200,7 +189,7 @@ client = ImbraceClient(
 
 # Phía client — Access Token
 client = ImbraceClient(
-    access_token="eyJhbGci...",
+    access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
     organization_id="org_xxx",
 )
 
@@ -217,7 +206,7 @@ anon.login_with_otp("user@example.com", "123456")
 from imbrace import AsyncImbraceClient
 
 async def main():
-    async with AsyncImbraceClient(api_key="sk-...") as client:
+    async with AsyncImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
         me = await client.platform.get_me()
         print(me)
 ```
@@ -293,7 +282,7 @@ while (true) {
 from imbrace import ImbraceClient
 from imbrace.types.ai import CompletionInput, CompletionMessage
 
-with ImbraceClient(api_key="sk-...") as client:
+with ImbraceClient(api_key=os.environ["IMBRACE_API_KEY"]) as client:
     # Lấy người dùng hiện tại
     me = client.platform.get_me()
 

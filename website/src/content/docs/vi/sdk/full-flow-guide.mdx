@@ -3,10 +3,10 @@ title: Hướng dẫn toàn diện
 description: Hướng dẫn từ đầu đến cuối — từ thiết lập client đến AI agents, workflows, knowledge hubs, và data boards. TypeScript và Python.
 ---
 
-import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Steps, Tabs, TabItem, Aside } from "@astrojs/starlight/components";
 import AuthOnly from "../../../../components/AuthOnly.astro";
 
-Hướng dẫn này đi qua bốn quy trình làm việc chính trong Imbrace SDK từ đầu đến cuối. Mỗi phần là độc lập — hãy theo thứ tự hoặc nhảy đến phần bạn cần. Chuyển đổi tab ngôn ngữ một lần và phần còn lại của trang sẽ ghi nhớ lựa chọn của bạn.
+Hướng dẫn này đi qua bốn quy trình làm việc chính trong Imbrace SDK từ đầu đến cuối. Mỗi phần là độc lập — hãy theo thứ tự hoặc nhảy đến phần bạn cần.
 
 ---
 
@@ -22,20 +22,21 @@ Hướng dẫn này đi qua bốn quy trình làm việc chính trong Imbrace SD
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         accessToken: "acc_your_token",
-       })
+        const client = new ImbraceClient({
+          accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+          env: "stable",
+        })
        ```
      </TabItem>
      <TabItem label="Python">
-       ```python
-       from imbrace import ImbraceClient
+        ```python
+        import os
+        from imbrace import ImbraceClient
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           access_token="acc_your_token",
-       )
+        client = ImbraceClient(
+            access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
+            env="stable",
+        )
        ```
      </TabItem>
    </Tabs>
@@ -47,26 +48,31 @@ Hướng dẫn này đi qua bốn quy trình làm việc chính trong Imbrace SD
        ```typescript
        import { ImbraceClient } from "@imbrace/sdk"
 
-       const client = new ImbraceClient({
-         baseUrl: "https://app-gatewayv2.imbrace.co",
-         apiKey: "api_your_key",
-       })
+        const client = new ImbraceClient({
+          apiKey:         process.env.IMBRACE_API_KEY,
+          organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+          env:            "stable",
+        })
        ```
      </TabItem>
      <TabItem label="Python">
-       ```python
-       from imbrace import ImbraceClient
+        ```python
+        import os
+        from imbrace import ImbraceClient
 
-       client = ImbraceClient(
-           base_url="https://app-gatewayv2.imbrace.co",
-           api_key="api_your_key",
-       )
+        client = ImbraceClient(
+            api_key=os.environ["IMBRACE_API_KEY"],
+            organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+            env="stable",
+        )
        ```
      </TabItem>
    </Tabs>
    </AuthOnly>
 
-   Dropdown ở tiêu đề chuyển đổi các đoạn mã này giữa **access token** (ứng dụng hướng đến người dùng nơi Imbrace là backend của bạn) và **api key** (dịch vụ-gọi-dịch vụ nơi Imbrace là một tính năng bên trong stack của bạn). Xem [Xác thực → nên dùng thông tin xác thực nào](/sdk/authentication/#which-credential-should-i-use) để biết cây quyết định đầy đủ.
+   <Aside type="tip">
+     Không chắc nên dùng thông tin xác thực nào? Xem [Xác thực →](/sdk/authentication/#which-credential-should-i-use)
+   </Aside>
 
 2. **Tạo AI agent**
 
@@ -437,7 +443,7 @@ Các tệp và thư mục Knowledge Hub nằm trong dịch vụ **data-board** (
        ```typescript
        const folder = await client.boards.createFolder({
          name: "Product Documentation",
-         organization_id: "org_your_org_id",
+          organization_id: process.env.IMBRACE_ORGANIZATION_ID,
          parent_id: "root",
        })
        console.log("Folder ID:", folder._id)
@@ -447,7 +453,7 @@ Các tệp và thư mục Knowledge Hub nằm trong dịch vụ **data-board** (
        ```python
        folder = client.boards.create_folder({
            "name": "Product Documentation",
-           "organization_id": "org_your_org_id",
+            "organization_id": os.environ.get("IMBRACE_ORGANIZATION_ID"),
            "parent_id": "root",
        })
        print("Folder ID:", folder["_id"])
@@ -466,7 +472,7 @@ Các tệp và thư mục Knowledge Hub nằm trong dịch vụ **data-board** (
        const formData = new FormData()
        formData.append("file", new Blob([fileBuffer], { type: "application/pdf" }), "faq.pdf")
        formData.append("folder_id", folder._id)
-       formData.append("organization_id", "org_your_org_id")
+        formData.append("organization_id", process.env.IMBRACE_ORGANIZATION_ID ?? "")
 
        const uploaded = await client.boards.uploadFile(formData)
        console.log("File uploaded:", uploaded.file_id)
@@ -480,7 +486,7 @@ Các tệp và thư mục Knowledge Hub nằm trong dịch vụ **data-board** (
        files = {
            "file": (path.name, path.read_bytes(), "application/pdf"),
            "folder_id": (None, folder["_id"]),
-           "organization_id": (None, "org_your_org_id"),
+            "organization_id": (None, os.environ.get("IMBRACE_ORGANIZATION_ID")),
        }
        uploaded = client.boards.upload_file(files)
        print("File uploaded:", uploaded.get("file_id") or uploaded.get("_id"))

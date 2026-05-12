@@ -1,6 +1,6 @@
 ﻿---
-title: Quick Start
-description: Make your first Imbrace API call in under a minute.
+title: Bắt Đầu Nhanh
+description: Thực hiện lời gọi API Imbrace đầu tiên trong vòng một phút.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
@@ -15,8 +15,8 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      accessToken: "your-access-token",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      accessToken: process.env.IMBRACE_ACCESS_TOKEN,
+      env: "stable",
     })
     ```
   </TabItem>
@@ -30,7 +30,7 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
     client = ImbraceClient(
         access_token=os.environ["IMBRACE_ACCESS_TOKEN"],
-        base_url="https://app-gatewayv2.imbrace.co",
+        env="stable",
     )
     ```
   </TabItem>
@@ -44,8 +44,9 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
     import { ImbraceClient } from "@imbrace/sdk"
 
     const client = new ImbraceClient({
-      apiKey: "your-api-key",
-      baseUrl: "https://app-gatewayv2.imbrace.co",
+      apiKey:         process.env.IMBRACE_API_KEY,
+      organizationId: process.env.IMBRACE_ORGANIZATION_ID,
+      env:            "stable",
     })
     ```
   </TabItem>
@@ -59,7 +60,8 @@ import AuthOnly from "../../../../components/AuthOnly.astro";
 
     client = ImbraceClient(
         api_key=os.environ["IMBRACE_API_KEY"],
-        base_url="https://app-gatewayv2.imbrace.co",
+        organization_id=os.environ.get("IMBRACE_ORGANIZATION_ID"),
+        env="stable",
     )
     ```
   </TabItem>
